@@ -13,3 +13,4 @@ export * from "./constants.js";
 export * from "./types.js";
 export * from "./url.js";
 export * from "./metadata.js";
+export * from "./schema/index.js";
