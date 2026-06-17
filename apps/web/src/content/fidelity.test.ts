@@ -6,6 +6,7 @@ import { about } from "./core/about.js";
 import { howWeWork } from "./core/how-we-work.js";
 import { caseStudies } from "./core/case-studies.js";
 import { contact } from "./core/contact.js";
+import { servicePages } from "./services/index.js";
 import { collectVerbatimStrings, normalizeWhitespace } from "./fidelity.js";
 import type { MarketingPage } from "./types.js";
 
@@ -58,6 +59,25 @@ describe("content fidelity: core pages", () => {
 
   it("every core page meta description stays within 160 characters", () => {
     for (const page of [home, about, howWeWork, caseStudies, contact]) {
+      expect(page.meta.description.length, page.meta.slug).toBeLessThanOrEqual(
+        160,
+      );
+    }
+  });
+});
+
+describe("content fidelity: service pages", () => {
+  const serviceSource = readSource("02-service-pages.md");
+
+  for (const page of servicePages) {
+    it(`${page.meta.slug} matches the approved copy verbatim`, () => {
+      expectFidelity(page, serviceSource);
+    });
+  }
+
+  it("every service page meta stays within limits", () => {
+    for (const page of servicePages) {
+      expect(page.meta.title.length, page.meta.slug).toBeLessThanOrEqual(60);
       expect(page.meta.description.length, page.meta.slug).toBeLessThanOrEqual(
         160,
       );
