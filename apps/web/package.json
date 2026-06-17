@@ -2,13 +2,25 @@
   "name": "@nexoris/web",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "description": "The Nexoris Technologies marketing site. Next.js App Router: 33 hardcoded pages, the programmatic SEO layer, and Insights, authors, careers, and legal via ISR.",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "echo \"apps/web is scaffolded in Stage 4. Next.js is installed then.\"",
-    "build": "echo \"apps/web build is wired in Stage 4.\"",
-    "lint": "echo \"apps/web lint is wired in Stage 4.\"",
-    "type-check": "echo \"apps/web type-check is wired in Stage 4.\"",
-    "test": "echo \"apps/web tests are wired in Stage 4.\""
+    "dev": "echo \"apps/web dev server (Next.js) is wired in Stage 4.\"",
+    "build": "echo \"apps/web build (Next.js) is wired in Stage 4.\"",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nexoris/seo": "workspace:*",
+    "@nexoris/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@nexoris/config": "workspace:*",
+    "@types/node": "22.10.2",
+    "eslint": "9.17.0",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
   }
 }

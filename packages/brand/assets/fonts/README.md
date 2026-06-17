@@ -5,13 +5,13 @@ These are the four free font families the design system uses (PRD 14.1), shipped
 copies them to its `public/fonts` directory and serves them from `/fonts`, matching the
 `@font-face` declarations in `packages/ui/src/styles/fonts.css`.
 
-| File                       | Family            | Used for                                  |
-| -------------------------- | ----------------- | ----------------------------------------- |
-| `plus-jakarta-sans.woff2`  | Plus Jakarta Sans | Marketing hero headlines and subheads     |
-| `inter.woff2`              | Inter             | Marketing body and all dashboard text     |
-| `lora.woff2`               | Lora              | Article headlines and body                |
-| `lora-italic.woff2`        | Lora (italic)     | Article emphasis                          |
-| `jetbrains-mono.woff2`     | JetBrains Mono    | API codes, IDs, and money amounts         |
+| File                      | Family            | Used for                              |
+| ------------------------- | ----------------- | ------------------------------------- |
+| `plus-jakarta-sans.woff2` | Plus Jakarta Sans | Marketing hero headlines and subheads |
+| `inter.woff2`             | Inter             | Marketing body and all dashboard text |
+| `lora.woff2`              | Lora              | Article headlines and body            |
+| `lora-italic.woff2`       | Lora (italic)     | Article emphasis                      |
+| `jetbrains-mono.woff2`    | JetBrains Mono    | API codes, IDs, and money amounts     |
 
 ## Source and licence
 
