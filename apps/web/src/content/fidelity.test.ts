@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { home } from "./core/home.js";
+import { about } from "./core/about.js";
+import { howWeWork } from "./core/how-we-work.js";
+import { caseStudies } from "./core/case-studies.js";
+import { contact } from "./core/contact.js";
 import { collectVerbatimStrings, normalizeWhitespace } from "./fidelity.js";
 import type { MarketingPage } from "./types.js";
 
@@ -30,10 +34,33 @@ describe("content fidelity: core pages", () => {
     expectFidelity(home, coreSource);
   });
 
-  it("Home carries the approved meta title and description", () => {
-    expect(home.meta.title).toBe(
-      "Software Development Company in Lagos | Nexoris Technologies",
-    );
-    expect(home.meta.description.length).toBeLessThanOrEqual(160);
+  it("About matches the approved copy verbatim", () => {
+    expectFidelity(about, coreSource);
+  });
+
+  it("How We Work matches the approved copy verbatim", () => {
+    expectFidelity(howWeWork, coreSource);
+  });
+
+  it("Case Studies hub matches the approved copy verbatim", () => {
+    expectFidelity(caseStudies, coreSource);
+  });
+
+  it("Contact matches the approved copy verbatim", () => {
+    expectFidelity(contact, coreSource);
+  });
+
+  it("every core page meta title stays within 60 characters", () => {
+    for (const page of [home, about, howWeWork, caseStudies, contact]) {
+      expect(page.meta.title.length, page.meta.slug).toBeLessThanOrEqual(60);
+    }
+  });
+
+  it("every core page meta description stays within 160 characters", () => {
+    for (const page of [home, about, howWeWork, caseStudies, contact]) {
+      expect(page.meta.description.length, page.meta.slug).toBeLessThanOrEqual(
+        160,
+      );
+    }
   });
 });

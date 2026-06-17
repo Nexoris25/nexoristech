@@ -51,6 +51,20 @@ export interface Faq {
   answer: string;
 }
 
+/** A form field with its label and optional microcopy and choice options. */
+export interface FormField {
+  label: string;
+  microcopy?: string;
+  options?: string[];
+}
+
+/** The AI brief-builder panel on the Contact form. */
+export interface BriefBuilder {
+  heading: string;
+  body: string;
+  buttons: string[];
+}
+
 /**
  * A section of a page. The discriminated `kind` keeps the model expressive without forcing
  * every page into one shape. `dynamic` marks a block whose content comes from the CMS at
@@ -89,6 +103,15 @@ export type Section =
       heading: string;
       body?: string;
       button: Cta;
+    }
+  | {
+      kind: "form";
+      id: string;
+      heading: string;
+      fields: FormField[];
+      briefBuilder: BriefBuilder;
+      submitLabel: string;
+      afterSubmit: string;
     }
   | {
       kind: "dynamic";

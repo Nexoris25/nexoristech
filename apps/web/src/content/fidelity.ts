@@ -60,6 +60,19 @@ function sectionStrings(section: Section): string[] {
       if (section.body) out.push(section.body);
       out.push(...ctaLabels(section.button));
       break;
+    case "form":
+      out.push(section.heading);
+      for (const field of section.fields) {
+        out.push(field.label);
+        if (field.microcopy) out.push(field.microcopy);
+        out.push(...(field.options ?? []));
+      }
+      out.push(section.briefBuilder.heading);
+      out.push(section.briefBuilder.body);
+      out.push(...section.briefBuilder.buttons);
+      out.push(section.submitLabel);
+      out.push(section.afterSubmit);
+      break;
     case "dynamic":
       // The note summarises a CMS-sourced block and is not approved copy, so it is excluded.
       if (section.heading) out.push(section.heading);

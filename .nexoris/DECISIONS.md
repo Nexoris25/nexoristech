@@ -59,6 +59,21 @@ supply a YouTube link. The footer will use the verified handles provided; the Yo
 omitted until one is provided, and TikTok and Threads are added since they were supplied.
 This is recorded as a copy-vs-asset reconciliation to confirm with the product owner.
 
+### D-009: Two interim hrefs to confirm
+
+Two CTA targets in the approved core-page copy do not map to an existing route or a supplied
+asset. The label text is rendered verbatim; the link target is interim and flagged for the
+product owner:
+
+- How We Work, hero secondary CTA "Download the service catalogue": no catalogue PDF has
+  been supplied and no route exists. Interim `href` is `#service-catalogue`. Needs either the
+  PDF asset or a decision to drop the CTA.
+- Home, services footer link "See everything we do": there is no services index route (services
+  are flat and reached via the flyout). Interim `href` is the on-page `#services` anchor.
+
+The Covyvo and GLEEN "Visit the ... website" outbound links are intentionally omitted per PRD
+1.7 (the sites are not live yet); they are added when the sites go live.
+
 ### D-008: Self-hosted variable fonts
 
 The four required families (Plus Jakarta Sans, Inter, Lora, JetBrains Mono, PRD 14.1) are all
