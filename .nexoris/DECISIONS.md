@@ -59,6 +59,15 @@ supply a YouTube link. The footer will use the verified handles provided; the Yo
 omitted until one is provided, and TikTok and Threads are added since they were supplied.
 This is recorded as a copy-vs-asset reconciliation to confirm with the product owner.
 
+### D-008: Self-hosted variable fonts
+
+The four required families (Plus Jakarta Sans, Inter, Lora, JetBrains Mono, PRD 14.1) are all
+licensed under the SIL Open Font License 1.1. The variable `woff2` builds were fetched from
+the Fontsource distribution on the official jsDelivr CDN and stored in
+`packages/brand/assets/fonts`, then served self-hosted from each app's `/fonts` so the site
+does not depend on a third-party font CDN at runtime. Licence and source are recorded in the
+fonts README.
+
 ### D-007: Open Graph card rendering split
 
 The branded Open Graph card (1200x630 PNG, PRD 9.3) has two parts. The content model and
