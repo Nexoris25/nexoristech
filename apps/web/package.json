@@ -1,0 +1,14 @@
+{
+  "name": "@nexoris/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Nexoris Technologies marketing site. Next.js App Router: 33 hardcoded pages, the programmatic SEO layer, and Insights, authors, careers, and legal via ISR.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "echo \"apps/web is scaffolded in Stage 4. Next.js is installed then.\"",
+    "build": "echo \"apps/web build is wired in Stage 4.\"",
+    "lint": "echo \"apps/web lint is wired in Stage 4.\"",
+    "type-check": "echo \"apps/web type-check is wired in Stage 4.\"",
+    "test": "echo \"apps/web tests are wired in Stage 4.\""
+  }
+}

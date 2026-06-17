@@ -1,0 +1,25 @@
+{
+  "name": "@nexoris/seo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SEO engine for the Nexoris Technologies platform: JSON-LD @graph builders, buildMetadata, the branded OG card generator, split sitemaps, robots.txt, llms.txt, and the check:seo gate.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "check:seo": "node ./scripts/check-seo.mjs"
+  },
+  "devDependencies": {
+    "@nexoris/config": "workspace:*",
+    "eslint": "9.17.0",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  }
+}

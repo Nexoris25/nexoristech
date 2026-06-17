@@ -1,0 +1,14 @@
+# Normalise line endings to LF for all text files so the repository is consistent across
+# Windows, macOS, and Linux.
+* text=auto eol=lf
+
+# Binary assets are never normalised.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary

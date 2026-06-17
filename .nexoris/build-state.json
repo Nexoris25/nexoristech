@@ -1,0 +1,167 @@
+{
+  "product": "Nexoris Technologies Digital Platform",
+  "lastUpdated": "2026-06-17T00:00:00Z",
+  "currentStage": "stage-0",
+  "currentTask": "Scaffold the monorepo, tooling, and control system.",
+  "lastCommit": "",
+  "nextAction": "Create the monorepo root config (package.json, pnpm-workspace.yaml, turbo.json, .gitignore, base tsconfig), then the shared packages, then apps scaffolds, docker-compose, and .env.example.",
+  "blockedOn": null,
+  "stages": [
+    {
+      "id": "stage-0",
+      "title": "Monorepo scaffold",
+      "status": "in_progress",
+      "tasks": [
+        { "id": "repo-init", "status": "done", "notes": "Standalone git repo initialised at nexoristech with main branch." },
+        { "id": "control-system", "status": "in_progress", "notes": "Create /.nexoris build-state.json, BUILD_PROGRESS.md, DECISIONS.md." },
+        { "id": "root-config", "status": "not_started", "notes": "package.json, pnpm-workspace.yaml, turbo.json, .gitignore, base tsconfig, .env.example." },
+        { "id": "packages-scaffold", "status": "not_started", "notes": "packages/config, ui, seo, kb, brand, content-source." },
+        { "id": "apps-scaffold", "status": "not_started", "notes": "apps/web, cms, oge, admin minimal scaffolds." },
+        { "id": "docker-compose", "status": "not_started", "notes": "infra/docker-compose.yml with pgvector + Meilisearch, pinned tags." },
+        { "id": "ci-skeleton", "status": "not_started", "notes": "ci/ workflows; check:seo and check:a11y wired as failing stubs." },
+        { "id": "docs-and-copy", "status": "not_started", "notes": "docs/PRD.md and content-source website copy placed as read-only source of truth." }
+      ]
+    },
+    {
+      "id": "stage-1",
+      "title": "packages/seo and the check:seo gate",
+      "status": "not_started",
+      "tasks": [
+        { "id": "schema-builders", "status": "not_started", "notes": "JSON-LD @graph builders for every node and route class, NG locale facts, omission rules, unit tested." },
+        { "id": "build-metadata", "status": "not_started", "notes": "buildMetadata helper; title <=60, description 155-160 (160 hard max); trailing-slash-consistent canonical/OG." },
+        { "id": "og-card", "status": "not_started", "notes": "Branded OG card generator, 1200x630 PNG." },
+        { "id": "sitemaps-robots-llms", "status": "not_started", "notes": "Split sitemaps (core, services, industries, insights, authors, careers, programmatic), robots.txt, llms.txt." },
+        { "id": "sitelinks-eligibility", "status": "not_started", "notes": "WebSite SearchAction, BreadcrumbList, flat-architecture link rules per PRD 9.8/9.9." },
+        { "id": "check-seo-gate", "status": "not_started", "notes": "Real crawler over the build manifest asserting every rule in PRD 9.11; kept green forever." }
+      ]
+    },
+    {
+      "id": "stage-2",
+      "title": "packages/ui design system + check:a11y gate",
+      "status": "not_started",
+      "tasks": [
+        { "id": "design-tokens", "status": "not_started", "notes": "Tailwind brand preset in packages/config: colour system around #543CDA, spacing, shadows, radius, motion." },
+        { "id": "typography-contexts", "status": "not_started", "notes": "Three font contexts (Plus Jakarta Sans + Inter; Lora; Inter + JetBrains Mono), self-hosted variable woff2." },
+        { "id": "header-flyouts", "status": "not_started", "notes": "Keyboard-correct mega-flyouts (Services, Industries), Company dropdown, sticky header states." },
+        { "id": "mobile-drawer-toc", "status": "not_started", "notes": "Mobile nav drawer with accordions; mobile floating TOC disclosure widget." },
+        { "id": "responsive-tables", "status": "not_started", "notes": "Stacked-card and frozen-first-column patterns; JetBrains Mono numerics; usable at 280px." },
+        { "id": "four-states", "status": "not_started", "notes": "Loading, empty, error, populated states on every data surface." },
+        { "id": "check-a11y-gate", "status": "not_started", "notes": "axe-core across every route in CI; fail on serious/critical." }
+      ]
+    },
+    {
+      "id": "stage-3",
+      "title": "Hardcoded content modules from approved copy",
+      "status": "not_started",
+      "tasks": [
+        { "id": "content-modules", "status": "not_started", "notes": "Typed content modules generated from the four approved copy files, verbatim." },
+        { "id": "content-fidelity-test", "status": "not_started", "notes": "Byte-diff rendered H1s, sublines, CTAs against the approved copy." }
+      ]
+    },
+    {
+      "id": "stage-4",
+      "title": "33 hardcoded marketing pages",
+      "status": "not_started",
+      "tasks": [
+        { "id": "core-pages", "status": "not_started", "notes": "Home, About, How We Work, Contact, Case Studies hub." },
+        { "id": "service-pages", "status": "not_started", "notes": "All 11 service pages in the prescribed section order." },
+        { "id": "industry-pages", "status": "not_started", "notes": "All 20 industry pages in the prescribed section order." },
+        { "id": "content-api-proof", "status": "not_started", "notes": "Cached content API supplying case study cards and testimonials; absent proof renders nothing." },
+        { "id": "schema-og-cwv", "status": "not_started", "notes": "All schema and OG live; Core Web Vitals green." }
+      ]
+    },
+    {
+      "id": "stage-5",
+      "title": "Contact lead capture + Solution Finder",
+      "status": "not_started",
+      "tasks": [
+        { "id": "contact-form", "status": "not_started", "notes": "Contact form posting to admin CRM intake with CRM Worker scoring." },
+        { "id": "smart-form-assistant", "status": "not_started", "notes": "Debounced one-sentence hint; deterministic fallback." },
+        { "id": "instant-ack", "status": "not_started", "notes": "Personalised acknowledgement on submit; warm template fallback." },
+        { "id": "solution-finder", "status": "not_started", "notes": "Five-question deterministic mapping at its three entry points." }
+      ]
+    },
+    {
+      "id": "stage-6",
+      "title": "apps/oge AI gateway",
+      "status": "not_started",
+      "tasks": [
+        { "id": "kb-ingestion", "status": "not_started", "notes": "packages/kb knowledge-base builder + ingestion; chunking, embeddings, pgvector." },
+        { "id": "hybrid-retrieval", "status": "not_started", "notes": "Vector + Meilisearch keyword retrieval." },
+        { "id": "website-bot-chain", "status": "not_started", "notes": "Three-slot website bot fallback chain; caches; quota governor." },
+        { "id": "grounded-chat", "status": "not_started", "notes": "Grounded chat SSE endpoint + verbatim Oge system prompt." },
+        { "id": "lead-capture-finder-rationale", "status": "not_started", "notes": "Oge lead capture; Solution Finder rationale under strict JSON schema." },
+        { "id": "extractive-fallback", "status": "not_started", "notes": "Extractive fallback with handoff panel; no stack trace to UI." }
+      ]
+    },
+    {
+      "id": "stage-7",
+      "title": "Strapi CMS",
+      "status": "not_started",
+      "tasks": [
+        { "id": "content-types", "status": "not_started", "notes": "insight, author, category, job, pseo-page, legal single types, proof types, shared components." },
+        { "id": "content-api", "status": "not_started", "notes": "Cached content API to hardcoded pages." },
+        { "id": "url-field-index-toggle", "status": "not_started", "notes": "Read-only full public URL field; plain-language index/de-index toggle." },
+        { "id": "redirect-manager", "status": "not_started", "notes": "301/302 redirect manager; collision/chain/loop checks; auto-301 on slug change." },
+        { "id": "date-tokens", "status": "not_started", "notes": "[year], [month], [month-year] resolved at render in Africa/Lagos." },
+        { "id": "seed-preview-webhooks", "status": "not_started", "notes": "Legal/starter seed; preview routes; revalidation + Oge re-ingestion webhooks." }
+      ]
+    },
+    {
+      "id": "stage-8",
+      "title": "Insights, authors, careers, legal, AI search",
+      "status": "not_started",
+      "tasks": [
+        { "id": "insights-hub", "status": "not_started", "notes": "Article card grid, latest-first, excerpt + date, Load more, homepage latest three." },
+        { "id": "article-page", "status": "not_started", "notes": "Full EEAT structure: author/fact-checker snippet, AI bio, TL;DR, FAQ, short-title TOC, recommended reads, internal-link suggestions." },
+        { "id": "author-pages", "status": "not_started", "notes": "ProfilePage + Person schema; authored and fact-checked lists." },
+        { "id": "careers", "status": "not_started", "notes": "Careers hub + job pages with cover images; JobPosting schema." },
+        { "id": "legal-pages", "status": "not_started", "notes": "Privacy, Terms, Cookie single types; section + plain-summary pairs." },
+        { "id": "ai-search-mobile-toc", "status": "not_started", "notes": "AI search; mobile floating TOC; article + FAQ schema; CMS AI helpers wired." }
+      ]
+    },
+    {
+      "id": "stage-9",
+      "title": "apps/admin shell + CRM module",
+      "status": "not_started",
+      "tasks": [
+        { "id": "dashboard-shell", "status": "not_started", "notes": "Single sign-in, module navigation, role/permission system, theming, immutable audit log." },
+        { "id": "crm-core", "status": "not_started", "notes": "Sources, lifecycle stages, assignment with admin-only reassignment, roles, people management." },
+        { "id": "targets-dashboards", "status": "not_started", "notes": "Per-person/team live dashboards + weekly and monthly views; SLA board; exportable." },
+        { "id": "crm-ai", "status": "not_started", "notes": "Lead scoring with justification, auto-response drafting, service recommendations via CRM Worker tier." },
+        { "id": "smart-features", "status": "not_started", "notes": "Summaries, technical-fit, talking points, dedup, urgency/sentiment, next-best-action, digests." },
+        { "id": "pdf-engine", "status": "not_started", "notes": "Branded document engine: proposals, SOWs, SLAs, contracts, invoices; server-side selectable PDFs." }
+      ]
+    },
+    {
+      "id": "stage-10",
+      "title": "Hardening + launch runbook",
+      "status": "not_started",
+      "tasks": [
+        { "id": "cwv-lighthouse-gates", "status": "not_started", "notes": "Core Web Vitals + Lighthouse CI budgets enforced." },
+        { "id": "security-headers", "status": "not_started", "notes": "Security headers, CORS, CSRF, rate limits." },
+        { "id": "cookie-consent", "status": "not_started", "notes": "Granular cookie consent banner wired to legal copy." },
+        { "id": "error-pages", "status": "not_started", "notes": "404 and error pages in the house voice." },
+        { "id": "launch-runbook", "status": "not_started", "notes": "Env, deploy sequence, webhooks, DNS, Search Console, sitemaps, KB ingest, fallback smoke tests." }
+      ]
+    },
+    {
+      "id": "stage-11",
+      "title": "Programmatic SEO layer",
+      "status": "not_started",
+      "tasks": [
+        { "id": "template-route-guard", "status": "not_started", "notes": "Template route with quality-gate publish guard and data-readiness gate; unpublished by default." },
+        { "id": "proof-ladder", "status": "not_started", "notes": "Substitution ladder so no page renders empty and none fabricates." },
+        { "id": "first-wave", "status": "not_started", "notes": "Roughly 10 to 20 fully data-complete permutation and cost pages from in-house products and strongest local data." },
+        { "id": "readiness-dashboard", "status": "not_started", "notes": "CMS readiness dashboard; article-derived pipeline; quarterly AI-visibility tracking; first annual report." }
+      ]
+    }
+  ],
+  "openQuestions": [
+    "GitHub repository URL and default branch (needed to push).",
+    "PostgreSQL credentials for nexoris_cms, nexoris_oge, nexoris_admin (needed when services run).",
+    "VPS media disk path and public base URL (needed for the media pipeline).",
+    "AI provider keys: GEMINI_API_KEY_PROJECT_A, GEMINI_API_KEY_PROJECT_B, GROQ_API_KEY, SAMBANOVA_API_KEY (Stage 6+).",
+    "Nexoris Technologies logo source files (to be pulled from Figma via MCP)."
+  ]
+}

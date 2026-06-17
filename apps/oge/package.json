@@ -1,0 +1,14 @@
+{
+  "name": "@nexoris/oge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Oge AI gateway. NestJS: the only component that calls any AI provider. Two tiers (website bot and CRM worker), RAG over the knowledge base, caches, the quota governor, and the fallback chains.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "echo \"apps/oge is scaffolded in Stage 6. NestJS is installed then.\"",
+    "build": "echo \"apps/oge build is wired in Stage 6.\"",
+    "lint": "echo \"apps/oge lint is wired in Stage 6.\"",
+    "type-check": "echo \"apps/oge type-check is wired in Stage 6.\"",
+    "test": "echo \"apps/oge tests are wired in Stage 6.\""
+  }
+}

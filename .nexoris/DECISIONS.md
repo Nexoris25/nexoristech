@@ -1,0 +1,67 @@
+# Architecture and Product Decisions
+
+An append-only, dated log of architecture and product decisions, and a record of which
+assets and credentials the product owner provided. Secret values are never written here,
+only the fact that they were received.
+
+---
+
+## 2026-06-17
+
+### D-001: Repository location and version control
+
+The monorepo root is `C:\Users\CNED\Desktop\nexoristech`. A fresh standalone git
+repository was initialised here on the `main` branch. The folder previously sat inside a git
+repository rooted at the user's home folder; that repository is left untouched and is not used
+for this project. Confirmed by the product owner.
+
+### D-002: Trailing slash on every URL
+
+The product owner requires the server to automatically append a trailing slash to every URL,
+for example `nexoristech.com/about-us/` rather than `nexoristech.com/about-us`. This is
+implemented with Next.js `trailingSlash: true`. To stay consistent with the SEO rules, the
+canonical, Open Graph, sitemap, and `metadataBase` URLs all use the trailing-slash form for
+content pages, while the site root canonical remains `https://nexoristech.com` (the bare root,
+which has no path segment to slash). This keeps `og:url` equal to the canonical on every
+page, as the SEO gate requires.
+
+### D-003: Package manager and toolchain
+
+pnpm 9.15.9 (installed via npm at the user level, since Corepack could not write to the
+Node install directory). Node v22.14.0 LTS. Turborepo for the monorepo task graph.
+
+### D-004: Docker not present on the build machine
+
+Docker is not installed locally. `infra/docker-compose.yml` is authored and committed using
+official, pinned images (PostgreSQL with pgvector, Meilisearch), but local services cannot
+run until Docker is installed. Recorded so a later stage that needs running services knows to
+prompt for this.
+
+### D-005: Brand and contact assets received from the product owner
+
+The following were provided and will be used for the footer, the Organization `sameAs`
+schema, and contact details:
+
+- LinkedIn: https://www.linkedin.com/company/nexoris-technologies
+- Instagram: https://www.instagram.com/nexoristechnologies/
+- Facebook: https://web.facebook.com/people/Nexoris-Technologies/61575547172687/
+- X: https://x.com/Nexoristech
+- TikTok: https://www.tiktok.com/@nexoristechnologies
+- Threads: https://www.threads.com/@nexoristechnologies
+- Phone and WhatsApp: +2349138133224
+- Founder LinkedIn (Chinedu Nwogu): https://www.linkedin.com/in/chinedu-nwogu/
+- Covyvo and GLEEN mockups: to be pulled from the Figma demo site via the Figma
+  connection (node referenced by the product owner).
+
+Note: the Website Copy footer (Part One, Section 7.8) lists WhatsApp, LinkedIn, X,
+Instagram, and YouTube. The product owner supplied TikTok and Threads and did not
+supply a YouTube link. The footer will use the verified handles provided; the YouTube link is
+omitted until one is provided, and TikTok and Threads are added since they were supplied.
+This is recorded as a copy-vs-asset reconciliation to confirm with the product owner.
+
+### D-006: Pending credentials and assets
+
+Not yet provided (recorded as open questions in `BUILD_PROGRESS.md`, none blocking Stage
+0): GitHub repository URL, the three PostgreSQL connection sets, the VPS media path and
+public base URL, and the four AI provider keys. These will be requested when the stage that
+needs them begins.

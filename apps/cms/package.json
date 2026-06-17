@@ -1,0 +1,14 @@
+{
+  "name": "@nexoris/cms",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Nexoris Technologies content platform. Strapi v5 on PostgreSQL: Insights, authors, careers, legal, proof data, and programmatic-page drafts, with editor-reviewed AI helpers and a VPS WebP media pipeline.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "echo \"apps/cms is scaffolded in Stage 7. Strapi v5 is installed then.\"",
+    "build": "echo \"apps/cms build is wired in Stage 7.\"",
+    "lint": "echo \"apps/cms lint is wired in Stage 7.\"",
+    "type-check": "echo \"apps/cms type-check is wired in Stage 7.\"",
+    "test": "echo \"apps/cms tests are wired in Stage 7.\""
+  }
+}

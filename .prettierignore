@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+.strapi/
+coverage/
+pnpm-lock.yaml
+docs/PRD.md
+content-source/
+.nexoris/build-state.json

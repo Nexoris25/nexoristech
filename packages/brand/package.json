@@ -1,0 +1,12 @@
+{
+  "name": "@nexoris/brand",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Brand asset sources for the Nexoris Technologies platform: the white and purple logos, the favicon and icon sources, and the branded Open Graph card template, shared across the website, the internal admin dashboard, and the Strapi admin.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "files": [
+    "assets",
+    "src"
+  ]
+}

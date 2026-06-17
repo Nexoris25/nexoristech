@@ -1,0 +1,24 @@
+{
+  "name": "@nexoris/kb",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Knowledge-base builder and ingestion pipeline shared by the web build and the Oge AI gateway. Produces one canonical knowledge base from the hardcoded content and published CMS content.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@nexoris/config": "workspace:*",
+    "eslint": "9.17.0",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  }
+}

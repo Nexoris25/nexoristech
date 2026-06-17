@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.next/
+out/
+.turbo/
+.strapi/
+.cache/
+*.tsbuildinfo
+
+# Environment and secrets (only .env.example is committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Test and coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Strapi runtime
+apps/cms/.tmp/
+apps/cms/.strapi/
+apps/cms/public/uploads/*
+!apps/cms/public/uploads/.gitkeep
+apps/cms/types/generated/
+
+# Local media (served from the VPS in production)
+.media/

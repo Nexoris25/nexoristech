@@ -1,0 +1,14 @@
+{
+  "name": "@nexoris/admin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Nexoris Technologies internal admin dashboard. A modular staff platform on PostgreSQL, Oge-integrated. This build delivers the shared shell and its first module, the CRM.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "echo \"apps/admin is scaffolded in Stage 9. The framework is installed then.\"",
+    "build": "echo \"apps/admin build is wired in Stage 9.\"",
+    "lint": "echo \"apps/admin lint is wired in Stage 9.\"",
+    "type-check": "echo \"apps/admin type-check is wired in Stage 9.\"",
+    "test": "echo \"apps/admin tests are wired in Stage 9.\""
+  }
+}

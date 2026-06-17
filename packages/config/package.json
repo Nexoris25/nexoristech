@@ -1,0 +1,36 @@
+{
+  "name": "@nexoris/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared configuration for the Nexoris Technologies platform: TypeScript, ESLint, Prettier, the Tailwind brand preset, and fonts.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./eslint": "./eslint.config.js",
+    "./prettier": "./prettier.config.js",
+    "./tailwind-preset": "./src/tailwind-preset.ts",
+    "./tokens": "./src/tokens.ts"
+  },
+  "files": [
+    "tsconfig.base.json",
+    "eslint.config.js",
+    "prettier.config.js",
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.17.0",
+    "eslint": "9.17.0",
+    "globals": "15.14.0",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.7.2",
+    "typescript-eslint": "8.18.2"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
