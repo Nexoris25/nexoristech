@@ -1,31 +1,31 @@
 {
   "product": "Nexoris Technologies Digital Platform",
-  "lastUpdated": "2026-06-17T00:00:00Z",
-  "currentStage": "stage-0",
-  "currentTask": "Scaffold the monorepo, tooling, and control system.",
-  "lastCommit": "",
-  "nextAction": "Create the monorepo root config (package.json, pnpm-workspace.yaml, turbo.json, .gitignore, base tsconfig), then the shared packages, then apps scaffolds, docker-compose, and .env.example.",
+  "lastUpdated": "2026-06-17T16:10:00Z",
+  "currentStage": "stage-1",
+  "currentTask": "Build packages/seo: schema builders, buildMetadata, OG card, sitemaps, robots.txt, llms.txt, and the real check:seo gate.",
+  "lastCommit": "3b05ffb",
+  "nextAction": "Implement packages/seo core types and the buildMetadata helper (title <=60, description 155-160, trailing-slash-consistent canonical/OG), with unit tests, then the JSON-LD @graph builders.",
   "blockedOn": null,
   "stages": [
     {
       "id": "stage-0",
       "title": "Monorepo scaffold",
-      "status": "in_progress",
+      "status": "done",
       "tasks": [
         { "id": "repo-init", "status": "done", "notes": "Standalone git repo initialised at nexoristech with main branch." },
-        { "id": "control-system", "status": "in_progress", "notes": "Create /.nexoris build-state.json, BUILD_PROGRESS.md, DECISIONS.md." },
-        { "id": "root-config", "status": "not_started", "notes": "package.json, pnpm-workspace.yaml, turbo.json, .gitignore, base tsconfig, .env.example." },
-        { "id": "packages-scaffold", "status": "not_started", "notes": "packages/config, ui, seo, kb, brand, content-source." },
-        { "id": "apps-scaffold", "status": "not_started", "notes": "apps/web, cms, oge, admin minimal scaffolds." },
-        { "id": "docker-compose", "status": "not_started", "notes": "infra/docker-compose.yml with pgvector + Meilisearch, pinned tags." },
-        { "id": "ci-skeleton", "status": "not_started", "notes": "ci/ workflows; check:seo and check:a11y wired as failing stubs." },
-        { "id": "docs-and-copy", "status": "not_started", "notes": "docs/PRD.md and content-source website copy placed as read-only source of truth." }
+        { "id": "control-system", "status": "done", "notes": "/.nexoris build-state.json, BUILD_PROGRESS.md, DECISIONS.md created." },
+        { "id": "root-config", "status": "done", "notes": "package.json, pnpm-workspace.yaml, turbo.json, .gitignore, .gitattributes, base tsconfig, .env.example, .npmrc, .nvmrc, root eslint/prettier." },
+        { "id": "packages-scaffold", "status": "done", "notes": "packages/config (tokens + Tailwind brand preset), ui, seo, kb, brand scaffolded; type-check, lint, test, build green." },
+        { "id": "apps-scaffold", "status": "done", "notes": "apps/web, cms, oge, admin workspace packages created; frameworks installed in their stages." },
+        { "id": "docker-compose", "status": "done", "notes": "infra/docker-compose.yml with pgvector pg16 + Meilisearch v1.11 pinned; DB init script for three databases." },
+        { "id": "ci-skeleton", "status": "done", "notes": ".github/workflows/ci.yml runs lint, type-check, test, build, check:seo, check:a11y; the two gates are failing stubs." },
+        { "id": "docs-and-copy", "status": "done", "notes": "docs/PRD.md and content-source 00-04 placed verbatim as read-only source of truth." }
       ]
     },
     {
       "id": "stage-1",
       "title": "packages/seo and the check:seo gate",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
         { "id": "schema-builders", "status": "not_started", "notes": "JSON-LD @graph builders for every node and route class, NG locale facts, omission rules, unit tested." },
         { "id": "build-metadata", "status": "not_started", "notes": "buildMetadata helper; title <=60, description 155-160 (160 hard max); trailing-slash-consistent canonical/OG." },

@@ -5,9 +5,11 @@ authoritative machine-readable checklist lives in `build-state.json`.
 
 ## Current position
 
-- **Stage:** Stage 0, monorepo scaffold (in progress).
-- **Next action:** Create the monorepo root config, shared packages, app scaffolds,
-  docker-compose, and `.env.example`, then place the PRD and the approved Website Copy.
+- **Stage:** Stage 1, packages/seo and the check:seo gate (in progress).
+- **Next action:** Implement the `buildMetadata` helper (title within 60 characters,
+  description 155 to 160 with 160 the hard maximum, trailing-slash-consistent canonical and
+  Open Graph URLs) with unit tests, then the JSON-LD `@graph` builders for every node and
+  route class with the NG locale facts and omission rules.
 
 ## Log
 
@@ -19,6 +21,16 @@ authoritative machine-readable checklist lives in `build-state.json`.
   delivery stages and their tasks), `BUILD_PROGRESS.md`, and `DECISIONS.md`.
 - Created the directory skeleton: `apps/{web,cms,oge,admin}`,
   `packages/{ui,seo,config,kb,brand}`, `content-source`, `infra`, `ci`, `docs`.
+- **Stage 0 complete.** Scaffolded the pnpm and Turborepo workspace: root config
+  (`package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.gitattributes`,
+  `.npmrc`, `.nvmrc`, `.env.example`, root ESLint and Prettier). Built `packages/config` with
+  the design tokens and the Tailwind brand preset encoding PRD Part One, Section 14.
+  Scaffolded `packages/{ui,seo,kb,brand}` and the four apps. Added
+  `infra/docker-compose.yml` (PostgreSQL with pgvector and Meilisearch, pinned tags) and a
+  database init script. Wired the CI workflow and the `check:seo` and `check:a11y` failing
+  stubs. Placed the PRD at `docs/PRD.md` and the approved copy at `content-source/`.
+  Verified: `pnpm type-check`, `lint`, `test`, `build`, and `format:check` all green; the two
+  gates fail by design. Committed at `3b05ffb`.
 
 ## Open questions for the product owner
 
