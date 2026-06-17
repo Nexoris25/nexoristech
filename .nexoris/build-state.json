@@ -1,10 +1,10 @@
 {
   "product": "Nexoris Technologies Digital Platform",
-  "lastUpdated": "2026-06-17T16:45:00Z",
-  "currentStage": "stage-2",
-  "currentTask": "Build packages/ui design system: design tokens applied, three font contexts, header flyouts, mobile drawer and TOC, responsive tables, four states, and the real check:a11y gate.",
-  "lastCommit": "a51b606",
-  "nextAction": "Scaffold packages/ui with React + Tailwind consuming the brand preset, then build the foundational primitives (Button, focus-ring, container, section) and the four-state wrappers, with the axe-core based check:a11y gate replacing the stub.",
+  "lastUpdated": "2026-06-17T17:10:00Z",
+  "currentStage": "stage-3",
+  "currentTask": "Generate the hardcoded content modules from the four approved Website Copy files, verbatim, with the content-fidelity byte-diff test.",
+  "lastCommit": "e88294c",
+  "nextAction": "Define typed content-module schemas in apps/web (or a content package) and transcribe the approved copy verbatim: Home, About, How We Work, Contact, Case Studies hub, the 11 service pages, and the 20 industry pages. Add the content-fidelity test that byte-diffs rendered H1s, sublines, and CTAs against content-source.",
   "blockedOn": null,
   "stages": [
     {
@@ -38,21 +38,21 @@
     {
       "id": "stage-2",
       "title": "packages/ui design system + check:a11y gate",
-      "status": "in_progress",
+      "status": "done",
       "tasks": [
-        { "id": "design-tokens", "status": "not_started", "notes": "Tailwind brand preset in packages/config: colour system around #543CDA, spacing, shadows, radius, motion." },
-        { "id": "typography-contexts", "status": "not_started", "notes": "Three font contexts (Plus Jakarta Sans + Inter; Lora; Inter + JetBrains Mono), self-hosted variable woff2." },
-        { "id": "header-flyouts", "status": "not_started", "notes": "Keyboard-correct mega-flyouts (Services, Industries), Company dropdown, sticky header states." },
-        { "id": "mobile-drawer-toc", "status": "not_started", "notes": "Mobile nav drawer with accordions; mobile floating TOC disclosure widget." },
-        { "id": "responsive-tables", "status": "not_started", "notes": "Stacked-card and frozen-first-column patterns; JetBrains Mono numerics; usable at 280px." },
-        { "id": "four-states", "status": "not_started", "notes": "Loading, empty, error, populated states on every data surface." },
-        { "id": "check-a11y-gate", "status": "not_started", "notes": "axe-core across every route in CI; fail on serious/critical." }
+        { "id": "design-tokens", "status": "done", "notes": "Tailwind brand preset consumed by packages/ui; globals.css applies the focus ring, reduced-motion rules, and skip link." },
+        { "id": "typography-contexts", "status": "done", "notes": "fonts.css @font-face for the three contexts; self-hosted variable woff2 (OFL) stored in packages/brand/assets/fonts." },
+        { "id": "header-flyouts", "status": "done", "notes": "Flyout disclosure (aria-expanded/controls, Enter/Down open, Escape close with focus return, click-outside) plus MegaMenu and polymorphic MegaMenuItem for Services/Industries/Company. The Header composition with logo and scroll state is wired in apps/web (Stage 4)." },
+        { "id": "mobile-drawer-toc", "status": "done", "notes": "MobileNav full-screen dialog with focus trap, Escape, body scroll lock, sticky footer; AccordionItem; FloatingTableOfContents with section highlight, focus trap, and reduced-motion instant jump." },
+        { "id": "responsive-tables", "status": "done", "notes": "ResponsiveTable with stacked-card and frozen-first-column scroll patterns, caption with announced row count, scoped headers, JetBrains Mono right-aligned numerics." },
+        { "id": "four-states", "status": "done", "notes": "DataState (loading/empty/error/populated) with Skeleton, EmptyState using approved copy, ErrorState with retry; never colour-only." },
+        { "id": "check-a11y-gate", "status": "done", "notes": "Real axe-core component gate failing on serious/critical; passes at the root. Route-level Playwright axe (including contrast) is added in Stage 4 (decision recorded)." }
       ]
     },
     {
       "id": "stage-3",
       "title": "Hardcoded content modules from approved copy",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
         { "id": "content-modules", "status": "not_started", "notes": "Typed content modules generated from the four approved copy files, verbatim." },
         { "id": "content-fidelity-test", "status": "not_started", "notes": "Byte-diff rendered H1s, sublines, CTAs against the approved copy." }

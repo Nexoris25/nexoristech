@@ -5,10 +5,10 @@ authoritative machine-readable checklist lives in `build-state.json`.
 
 ## Current position
 
-- **Stage:** Stage 2, packages/ui design system and the check:a11y gate (in progress).
-- **Next action:** Scaffold `packages/ui` with React and Tailwind consuming the brand preset,
-  then build the foundational primitives and the four-state wrappers, and replace the
-  `check:a11y` stub with the real axe-core gate.
+- **Stage:** Stage 3, hardcoded content modules from the approved copy (in progress).
+- **Next action:** Define typed content-module schemas and transcribe the approved copy
+  verbatim (Home, About, How We Work, Contact, Case Studies hub, the 11 service pages, the
+  20 industry pages), with the content-fidelity byte-diff test against `content-source`.
 
 ## Log
 
@@ -43,6 +43,17 @@ authoritative machine-readable checklist lives in `build-state.json`.
   PNG renderer lands with brand assets (decision D-007). Verified: 60 unit tests pass; the
   gate correctly passes an empty manifest and fails a broken one; type-check, lint, and build
   green. The `check:a11y` gate remains a failing stub until Stage 2.
+- **Stage 2 complete.** Built `packages/ui` as a React and Tailwind design system consuming
+  the brand preset. Added the global focus ring, reduced-motion rules, and skip link; the
+  three font contexts with self-hosted OFL variable woff2 in `packages/brand`; the
+  foundational primitives (Button, Container, Section, SkipLink, VisuallyHidden); the four data
+  states; the responsive table (stacked-card and frozen-first-column patterns); the
+  keyboard-correct Flyout disclosure with MegaMenu; the MobileNav drawer with AccordionItem
+  and a focus trap; and the mobile FloatingTableOfContents. Replaced the `check:a11y` stub
+  with a real axe-core gate (serious and critical block). Verified: both root gates
+  (`check:seo`, `check:a11y`) now pass, and the full workspace is green. The route-level
+  Playwright axe pass (including colour contrast) is added in Stage 4. The header logo, favicon,
+  and OG card PNG are produced from the Figma logo when the pages are built (Stage 4).
 
 ## Open questions for the product owner
 
