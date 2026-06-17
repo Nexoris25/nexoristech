@@ -5,11 +5,10 @@ authoritative machine-readable checklist lives in `build-state.json`.
 
 ## Current position
 
-- **Stage:** Stage 1, packages/seo and the check:seo gate (in progress).
-- **Next action:** Implement the `buildMetadata` helper (title within 60 characters,
-  description 155 to 160 with 160 the hard maximum, trailing-slash-consistent canonical and
-  Open Graph URLs) with unit tests, then the JSON-LD `@graph` builders for every node and
-  route class with the NG locale facts and omission rules.
+- **Stage:** Stage 2, packages/ui design system and the check:a11y gate (in progress).
+- **Next action:** Scaffold `packages/ui` with React and Tailwind consuming the brand preset,
+  then build the foundational primitives and the four-state wrappers, and replace the
+  `check:a11y` stub with the real axe-core gate.
 
 ## Log
 
@@ -31,6 +30,19 @@ authoritative machine-readable checklist lives in `build-state.json`.
   stubs. Placed the PRD at `docs/PRD.md` and the approved copy at `content-source/`.
   Verified: `pnpm type-check`, `lint`, `test`, `build`, and `format:check` all green; the two
   gates fail by design. Committed at `3b05ffb`.
+- **Stage 1 complete.** Built `packages/seo` before any page. Added the locale and entity
+  constants, the trailing-slash-consistent URL helpers, and the `buildMetadata` helper
+  enforcing the meta limits. Added the JSON-LD `@graph` builders (site-wide Organization,
+  ProfessionalService, WebSite with SearchAction, founder Person; WebPage subtypes;
+  BreadcrumbList; ImageObject; Service; FAQPage; Article and BlogPosting with author and
+  reviewer; ProfilePage; JobPosting; case study) with the `prune` omission rule, assembled
+  per page by `buildPageGraph`. Added split sitemaps, robots.txt, and llms.txt. Built the real
+  `check:seo` gate: a rule engine covering every PRD 9.11 rule plus no-duplicate-slugs, with a
+  CLI that crawls the build manifest, anchored to the workspace root, passing with zero routes
+  and turning red on any real violation. The framework-agnostic OG card model is in place; the
+  PNG renderer lands with brand assets (decision D-007). Verified: 60 unit tests pass; the
+  gate correctly passes an empty manifest and fails a broken one; type-check, lint, and build
+  green. The `check:a11y` gate remains a failing stub until Stage 2.
 
 ## Open questions for the product owner
 

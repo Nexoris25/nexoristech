@@ -1,10 +1,10 @@
 {
   "product": "Nexoris Technologies Digital Platform",
-  "lastUpdated": "2026-06-17T16:10:00Z",
-  "currentStage": "stage-1",
-  "currentTask": "Build packages/seo: schema builders, buildMetadata, OG card, sitemaps, robots.txt, llms.txt, and the real check:seo gate.",
-  "lastCommit": "3b05ffb",
-  "nextAction": "Implement packages/seo core types and the buildMetadata helper (title <=60, description 155-160, trailing-slash-consistent canonical/OG), with unit tests, then the JSON-LD @graph builders.",
+  "lastUpdated": "2026-06-17T16:45:00Z",
+  "currentStage": "stage-2",
+  "currentTask": "Build packages/ui design system: design tokens applied, three font contexts, header flyouts, mobile drawer and TOC, responsive tables, four states, and the real check:a11y gate.",
+  "lastCommit": "a51b606",
+  "nextAction": "Scaffold packages/ui with React + Tailwind consuming the brand preset, then build the foundational primitives (Button, focus-ring, container, section) and the four-state wrappers, with the axe-core based check:a11y gate replacing the stub.",
   "blockedOn": null,
   "stages": [
     {
@@ -25,20 +25,20 @@
     {
       "id": "stage-1",
       "title": "packages/seo and the check:seo gate",
-      "status": "in_progress",
+      "status": "done",
       "tasks": [
-        { "id": "schema-builders", "status": "not_started", "notes": "JSON-LD @graph builders for every node and route class, NG locale facts, omission rules, unit tested." },
-        { "id": "build-metadata", "status": "not_started", "notes": "buildMetadata helper; title <=60, description 155-160 (160 hard max); trailing-slash-consistent canonical/OG." },
-        { "id": "og-card", "status": "not_started", "notes": "Branded OG card generator, 1200x630 PNG." },
-        { "id": "sitemaps-robots-llms", "status": "not_started", "notes": "Split sitemaps (core, services, industries, insights, authors, careers, programmatic), robots.txt, llms.txt." },
-        { "id": "sitelinks-eligibility", "status": "not_started", "notes": "WebSite SearchAction, BreadcrumbList, flat-architecture link rules per PRD 9.8/9.9." },
-        { "id": "check-seo-gate", "status": "not_started", "notes": "Real crawler over the build manifest asserting every rule in PRD 9.11; kept green forever." }
+        { "id": "schema-builders", "status": "done", "notes": "JSON-LD @graph builders for site nodes, WebPage subtypes, BreadcrumbList, ImageObject, Service, FAQPage, Article/BlogPosting, ProfilePage, JobPosting, case study; NG locale; prune omission rule; buildPageGraph assembler; unit tested." },
+        { "id": "build-metadata", "status": "done", "notes": "buildMetadata enforces title <=60 and description 155-160 (160 hard max); trailing-slash-consistent canonical/OG with bare home root; validateMeta for the gate; unit tested." },
+        { "id": "og-card", "status": "done", "notes": "Framework-agnostic OG card model and brand spec in packages/seo. PNG rendering (1200x630) wired in apps/web opengraph-image route once brand fonts/logo land (Stage 2/4); recorded in DECISIONS D-007." },
+        { "id": "sitemaps-robots-llms", "status": "done", "notes": "Split sitemaps + index, robots.txt, llms.txt built from the real catalogue; unit tested." },
+        { "id": "sitelinks-eligibility", "status": "done", "notes": "WebSite SearchAction and BreadcrumbList implemented; flat-architecture link rules to be enforced when pages exist (Stage 4) and verified by check:seo." },
+        { "id": "check-seo-gate", "status": "done", "notes": "Real rule engine over the build manifest asserting every PRD 9.11 rule, with a CLI anchored to the workspace root; passes vacuously with no pages and turns red on any real violation; 60 unit tests." }
       ]
     },
     {
       "id": "stage-2",
       "title": "packages/ui design system + check:a11y gate",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
         { "id": "design-tokens", "status": "not_started", "notes": "Tailwind brand preset in packages/config: colour system around #543CDA, spacing, shadows, radius, motion." },
         { "id": "typography-contexts", "status": "not_started", "notes": "Three font contexts (Plus Jakarta Sans + Inter; Lora; Inter + JetBrains Mono), self-hosted variable woff2." },

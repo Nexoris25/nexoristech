@@ -14,7 +14,7 @@
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "check:seo": "node ./scripts/check-seo.mjs"
+    "check:seo": "node ./dist/check/cli.js"
   },
   "devDependencies": {
     "@nexoris/config": "workspace:*",

@@ -59,6 +59,17 @@ supply a YouTube link. The footer will use the verified handles provided; the Yo
 omitted until one is provided, and TikTok and Threads are added since they were supplied.
 This is recorded as a copy-vs-asset reconciliation to confirm with the product owner.
 
+### D-007: Open Graph card rendering split
+
+The branded Open Graph card (1200x630 PNG, PRD 9.3) has two parts. The content model and
+the brand spec (colours, dimensions, layout intent) live in `packages/seo` (`og.ts`) so every
+surface and any future property reuses one consistent card. The actual PNG rendering depends
+on the brand fonts and the logo, which arrive with the Stage 2 branding work, so it is wired in
+the `apps/web` `opengraph-image` route then. This keeps the engine framework-agnostic and
+avoids shipping a renderer before its assets exist. The `defaultOgImage` in `metadata.ts`
+already points each page at its `opengraph-image` route, so no metadata changes are needed
+when the renderer lands.
+
 ### D-006: Pending credentials and assets
 
 Not yet provided (recorded as open questions in `BUILD_PROGRESS.md`, none blocking Stage
