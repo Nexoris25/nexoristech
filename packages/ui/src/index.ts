@@ -32,3 +32,10 @@ export type {
   TableColumn,
   TablePattern,
 } from "./data/Table.js";
+export { Flyout } from "./navigation/Flyout.js";
+export type { FlyoutProps } from "./navigation/Flyout.js";
+export { MegaMenu, MegaMenuItem } from "./navigation/MegaMenu.js";
+export type {
+  MegaMenuProps,
+  MegaMenuItemProps,
+} from "./navigation/MegaMenu.js";
