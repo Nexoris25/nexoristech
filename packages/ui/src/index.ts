@@ -39,3 +39,12 @@ export type {
   MegaMenuProps,
   MegaMenuItemProps,
 } from "./navigation/MegaMenu.js";
+export { AccordionItem } from "./navigation/Accordion.js";
+export type { AccordionItemProps } from "./navigation/Accordion.js";
+export { MobileNav } from "./navigation/MobileNav.js";
+export type { MobileNavProps } from "./navigation/MobileNav.js";
+export { FloatingTableOfContents } from "./navigation/FloatingTableOfContents.js";
+export type {
+  FloatingTableOfContentsProps,
+  TocSection,
+} from "./navigation/FloatingTableOfContents.js";
