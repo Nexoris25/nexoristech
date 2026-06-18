@@ -9,6 +9,13 @@ import { hospitalitySoftware } from "./hospitality-software.js";
 import { restaurantSoftware } from "./restaurant-software.js";
 import { retailEcommerceSoftware } from "./retail-ecommerce-software.js";
 import { realEstateSoftware } from "./real-estate-software.js";
+import { logisticsSoftware } from "./logistics-software.js";
+import { fintechSoftware } from "./fintech-software.js";
+import { insuranceSoftware } from "./insurance-software.js";
+import { manufacturingSoftware } from "./manufacturing-software.js";
+import { agritechSoftware } from "./agritech-software.js";
+import { professionalServicesSoftware } from "./professional-services-software.js";
+import { churchManagementSoftware } from "./church-management-software.js";
 
 export {
   educationSoftware,
@@ -17,6 +24,13 @@ export {
   restaurantSoftware,
   retailEcommerceSoftware,
   realEstateSoftware,
+  logisticsSoftware,
+  fintechSoftware,
+  insuranceSoftware,
+  manufacturingSoftware,
+  agritechSoftware,
+  professionalServicesSoftware,
+  churchManagementSoftware,
 };
 
 export const industryPages: MarketingPage[] = [
@@ -26,4 +40,11 @@ export const industryPages: MarketingPage[] = [
   restaurantSoftware,
   retailEcommerceSoftware,
   realEstateSoftware,
+  logisticsSoftware,
+  fintechSoftware,
+  insuranceSoftware,
+  manufacturingSoftware,
+  agritechSoftware,
+  professionalServicesSoftware,
+  churchManagementSoftware,
 ];
