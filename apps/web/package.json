@@ -16,6 +16,7 @@
     "seo:static": "tsx scripts/gen-static-seo.ts"
   },
   "dependencies": {
+    "@nexoris/kb": "workspace:*",
     "@nexoris/seo": "workspace:*",
     "@nexoris/ui": "workspace:*",
     "next": "15.1.3",

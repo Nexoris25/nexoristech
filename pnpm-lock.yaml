@@ -32,6 +32,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@nexoris/kb':
+        specifier: workspace:*
+        version: link:../../packages/kb
       '@nexoris/seo':
         specifier: workspace:*
         version: link:../../packages/seo
