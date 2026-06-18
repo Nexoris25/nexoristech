@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
 import { JsonLd } from "../../components/JsonLd.js";
+import { IndustriesGrid } from "../../components/IndustriesGrid.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
@@ -55,10 +56,13 @@ export default async function MarketingRoute({
   if (!page) {
     notFound();
   }
+  // The home page injects the filterable industries grid into its industries section.
+  const sectionSlots =
+    page.meta.slug === "/" ? { industries: <IndustriesGrid /> } : undefined;
   return (
     <>
       <JsonLd graph={graphForPage(page)} />
-      <PageRenderer page={page} />
+      <PageRenderer page={page} {...(sectionSlots ? { sectionSlots } : {})} />
     </>
   );
 }

@@ -79,17 +79,26 @@ function SectionHeading({ children }: { children: ReactNode }): ReactNode {
 function SectionBlock({
   section,
   tinted,
+  slot,
 }: {
   section: PageSection;
   tinted: boolean;
+  slot?: ReactNode;
 }): ReactNode {
   const inner = renderSectionInner(section);
-  if (inner === null) {
+  if (inner === null && !slot) {
     return null;
   }
   return (
-    <Section tinted={tinted} aria-labelledby={`${section.id}-heading`}>
-      <Container>{inner}</Container>
+    <Section
+      tinted={tinted}
+      id={section.id}
+      aria-labelledby={`${section.id}-heading`}
+    >
+      <Container>
+        {inner}
+        {slot}
+      </Container>
     </Section>
   );
 }
@@ -339,7 +348,14 @@ function renderSectionInner(section: PageSection): ReactNode {
   }
 }
 
-export function PageRenderer({ page }: { page: MarketingPage }): ReactNode {
+export function PageRenderer({
+  page,
+  sectionSlots,
+}: {
+  page: MarketingPage;
+  /** Extra content injected into a section by its id, for example the home industries grid. */
+  sectionSlots?: Record<string, ReactNode>;
+}): ReactNode {
   return (
     <>
       <Hero page={page} />
@@ -348,6 +364,9 @@ export function PageRenderer({ page }: { page: MarketingPage }): ReactNode {
           key={section.id}
           section={section}
           tinted={index % 2 === 1}
+          {...(sectionSlots?.[section.id]
+            ? { slot: sectionSlots[section.id] }
+            : {})}
         />
       ))}
     </>
