@@ -9,19 +9,35 @@ export { about } from "./core/about.js";
 export { howWeWork } from "./core/how-we-work.js";
 export { caseStudies } from "./core/case-studies.js";
 export { contact } from "./core/contact.js";
+export { servicePages } from "./services/index.js";
+export { industryPages } from "./industries/index.js";
 
 import { home } from "./core/home.js";
 import { about } from "./core/about.js";
 import { howWeWork } from "./core/how-we-work.js";
 import { caseStudies } from "./core/case-studies.js";
 import { contact } from "./core/contact.js";
+import { servicePages } from "./services/index.js";
+import { industryPages } from "./industries/index.js";
 import type { MarketingPage } from "./types.js";
 
-/** Every hardcoded core marketing page, keyed by slug. */
-export const corePages: Record<string, MarketingPage> = {
-  [home.meta.slug]: home,
-  [about.meta.slug]: about,
-  [howWeWork.meta.slug]: howWeWork,
-  [caseStudies.meta.slug]: caseStudies,
-  [contact.meta.slug]: contact,
-};
+/** The five hardcoded core marketing pages. */
+export const corePages: MarketingPage[] = [
+  home,
+  about,
+  howWeWork,
+  caseStudies,
+  contact,
+];
+
+/** Every hardcoded marketing page (5 core + 11 services + 20 industries = 36). */
+export const allHardcodedPages: MarketingPage[] = [
+  ...corePages,
+  ...servicePages,
+  ...industryPages,
+];
+
+/** Every hardcoded marketing page keyed by slug, for route lookup. */
+export const pagesBySlug: Record<string, MarketingPage> = Object.fromEntries(
+  allHardcodedPages.map((page) => [page.meta.slug, page]),
+);

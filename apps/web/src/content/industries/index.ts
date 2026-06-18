@@ -1,6 +1,6 @@
 /**
  * The 20 hardcoded industry pages, transcribed verbatim from the approved Website Copy
- * (Part 3). Added in batches; the array lists every industry page completed so far.
+ * (Part 3).
  */
 import type { MarketingPage } from "../types.js";
 import { educationSoftware } from "./education-software.js";
@@ -16,6 +16,13 @@ import { manufacturingSoftware } from "./manufacturing-software.js";
 import { agritechSoftware } from "./agritech-software.js";
 import { professionalServicesSoftware } from "./professional-services-software.js";
 import { churchManagementSoftware } from "./church-management-software.js";
+import { ngoSoftware } from "./ngo-software.js";
+import { governmentDigitalSolutions } from "./government-digital-solutions.js";
+import { constructionSoftware } from "./construction-software.js";
+import { mediaEntertainmentSoftware } from "./media-entertainment-software.js";
+import { fitnessWellnessSoftware } from "./fitness-wellness-software.js";
+import { automotiveSoftware } from "./automotive-software.js";
+import { eventsSoftware } from "./events-software.js";
 
 export {
   educationSoftware,
@@ -31,6 +38,13 @@ export {
   agritechSoftware,
   professionalServicesSoftware,
   churchManagementSoftware,
+  ngoSoftware,
+  governmentDigitalSolutions,
+  constructionSoftware,
+  mediaEntertainmentSoftware,
+  fitnessWellnessSoftware,
+  automotiveSoftware,
+  eventsSoftware,
 };
 
 export const industryPages: MarketingPage[] = [
@@ -47,4 +61,11 @@ export const industryPages: MarketingPage[] = [
   agritechSoftware,
   professionalServicesSoftware,
   churchManagementSoftware,
+  ngoSoftware,
+  governmentDigitalSolutions,
+  constructionSoftware,
+  mediaEntertainmentSoftware,
+  fitnessWellnessSoftware,
+  automotiveSoftware,
+  eventsSoftware,
 ];

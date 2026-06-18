@@ -5,15 +5,17 @@ authoritative machine-readable checklist lives in `build-state.json`.
 
 ## Current position
 
-- **Stage:** Stage 3, hardcoded content modules (in progress).
-- **Done so far:** the content-module system and content-fidelity test; all 5 core pages; all 11
-  service pages; 2 of 20 industry pages (Education, Healthcare). 18 of 36 hardcoded pages
-  complete, every one passing the fidelity check.
-- **Next action:** Continue the industry pages verbatim from
-  `content-source/03-industry-pages.md` in batches (next: Hospitality, Restaurants, Retail &
-  E-Commerce, Real Estate), each added to `industries/index.ts` and confirmed by the fidelity
-  test, until all 20 are done. Then mark Stage 3 complete and advance to Stage 4 (rendering the
-  pages with Next.js), where the Figma logo, favicon, and OG card renderer are produced.
+- **Stage:** Stage 4, the 33 hardcoded marketing pages (in progress).
+- **Stage 3 complete:** the content-module system, the content-fidelity test, all 5 core pages,
+  all 11 service pages, and all 20 industry pages, transcribed verbatim from `content-source`
+  and verified by 40 passing fidelity tests with every meta within limits. All 36 hardcoded
+  pages exist as typed content modules, aggregated in `apps/web/src/content` as
+  `corePages`, `servicePages`, `industryPages`, `allHardcodedPages`, and `pagesBySlug`.
+- **Next action:** Scaffold `apps/web` as a Next.js App Router app (`trailingSlash: true`),
+  wire the design-system styles and self-hosted fonts, build the section renderers for each
+  content-module section kind, the header, footer, and shell with the catalogue, and generate
+  routes from `pagesBySlug` using `buildMetadata` and `buildPageGraph`. Pull the Nexoris
+  Technologies logo from the Figma file for the header, favicon, and the OG card renderer.
 
 ## Log
 

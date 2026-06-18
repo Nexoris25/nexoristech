@@ -1,10 +1,10 @@
 {
   "product": "Nexoris Technologies Digital Platform",
-  "lastUpdated": "2026-06-18T01:20:00Z",
-  "currentStage": "stage-3",
-  "currentTask": "Transcribe the remaining 18 industry pages verbatim (Stage 3). Core pages and all 11 service pages are done; 2 of 20 industry pages are done.",
-  "lastCommit": "345fa54",
-  "nextAction": "Continue transcribing industry pages from content-source/03-industry-pages.md verbatim, in batches, following the pattern in industries/education-software.ts and healthcare-software.ts: next up Hospitality, Restaurants, Retail & E-Commerce, Real Estate, then the rest. Add each to industries/index.ts and confirm the content-fidelity test passes.",
+  "lastUpdated": "2026-06-18T02:00:00Z",
+  "currentStage": "stage-4",
+  "currentTask": "Build the 33 hardcoded marketing pages as Next.js routes that render the content modules, with all schema and OG live and Core Web Vitals green.",
+  "lastCommit": "",
+  "nextAction": "Scaffold apps/web as a Next.js App Router app (trailingSlash true per D-002), wire packages/ui styles and the self-hosted fonts, build the section renderers for the content-module section kinds, the header/footer/shell with the catalogue, and generate routes from pagesBySlug with buildMetadata and buildPageGraph. Pull the Nexoris Technologies logo from the Figma file for the header, favicon, and OG card render.",
   "blockedOn": null,
   "stages": [
     {
@@ -52,19 +52,19 @@
     {
       "id": "stage-3",
       "title": "Hardcoded content modules from approved copy",
-      "status": "in_progress",
+      "status": "done",
       "tasks": [
         { "id": "content-system", "status": "done", "notes": "Typed content-module schema (discriminated section model incl. form and dynamic kinds) in apps/web/src/content." },
         { "id": "content-fidelity-test", "status": "done", "notes": "Whitespace-normalised byte-diff of every rendered string (metas, H1s, sublines, CTAs, headings, card/step/FAQ copy) against content-source. Runs in CI." },
         { "id": "core-pages", "status": "done", "notes": "Home, About, How We Work, Case Studies hub, Contact, all verbatim and passing fidelity." },
         { "id": "service-pages", "status": "done", "notes": "All 11 service pages verbatim and passing fidelity." },
-        { "id": "industry-pages", "status": "in_progress", "notes": "2 of 20 done (Education, Healthcare). 18 remaining, transcribed in batches from content-source/03-industry-pages.md." }
+        { "id": "industry-pages", "status": "done", "notes": "All 20 industry pages transcribed verbatim and passing fidelity." }
       ]
     },
     {
       "id": "stage-4",
       "title": "33 hardcoded marketing pages",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
         { "id": "core-pages", "status": "not_started", "notes": "Home, About, How We Work, Contact, Case Studies hub." },
         { "id": "service-pages", "status": "not_started", "notes": "All 11 service pages in the prescribed section order." },
