@@ -5,10 +5,15 @@ authoritative machine-readable checklist lives in `build-state.json`.
 
 ## Current position
 
-- **Stage:** Stage 3, hardcoded content modules from the approved copy (in progress).
-- **Next action:** Define typed content-module schemas and transcribe the approved copy
-  verbatim (Home, About, How We Work, Contact, Case Studies hub, the 11 service pages, the
-  20 industry pages), with the content-fidelity byte-diff test against `content-source`.
+- **Stage:** Stage 3, hardcoded content modules (in progress).
+- **Done so far:** the content-module system and content-fidelity test; all 5 core pages; all 11
+  service pages; 2 of 20 industry pages (Education, Healthcare). 18 of 36 hardcoded pages
+  complete, every one passing the fidelity check.
+- **Next action:** Continue the industry pages verbatim from
+  `content-source/03-industry-pages.md` in batches (next: Hospitality, Restaurants, Retail &
+  E-Commerce, Real Estate), each added to `industries/index.ts` and confirmed by the fidelity
+  test, until all 20 are done. Then mark Stage 3 complete and advance to Stage 4 (rendering the
+  pages with Next.js), where the Figma logo, favicon, and OG card renderer are produced.
 
 ## Log
 
