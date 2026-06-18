@@ -40,7 +40,8 @@ function Hero({ page }: { page: MarketingPage }): ReactNode {
             "radial-gradient(circle, #6A55F2 0%, #543CDA 60%, transparent 100%)",
         }}
       />
-      <Container className="relative py-16 md:py-30">
+      {/* Extra top padding clears the fixed header that overlays the hero (PRD 7.1). */}
+      <Container className="relative pb-16 pt-28 md:pb-30 md:pt-40">
         <h1 className="max-w-[20ch] font-jakarta text-hero font-700 text-white">
           {hero.h1}
         </h1>
