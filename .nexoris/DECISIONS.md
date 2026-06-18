@@ -74,6 +74,30 @@ product owner:
 The Covyvo and GLEEN "Visit the ... website" outbound links are intentionally omitted per PRD
 1.7 (the sites are not live yet); they are added when the sites go live.
 
+### D-010: Logo extracted from Figma; Starter-plan MCP rate limit hit
+
+The Nexoris Technologies logo (an abstract monogram) lives in the Figma file
+`PxzL14spUP1iaRjVBdSRoC`, section "Nexoris Technologies Assets" (node 15:271), as the
+"White Logo" swatch (node 16:5096, white mark on purple `#543CDA`) and "Purple Logo"
+swatch (node 16:5097). The product owner pointed to node 15-271.
+
+The white swatch was exported via the Figma screenshot tool, then the purple background was
+keyed out programmatically (Pillow) to produce transparent white and purple logos
+(`packages/brand/assets/logo/nexoris-logo-{white,purple}.png`), exactly the background
+removal the brief permits. From the white mark a branded app-icon set was generated (white
+mark on the brand purple): `favicon.ico`, `apple-touch-icon.png`, `icon-192.png`,
+`icon-512.png`, stored in `packages/brand/assets/favicon` and served from
+`apps/web/public`. The header uses the purple logo on its solid-white surface and the footer
+uses the white logo on ink-950.
+
+Caveat: the Figma node renders at only 73x81 native, and the **Figma MCP rate limit on the
+Starter plan was reached** before a vector or higher-resolution export could be taken. The
+small icons (favicon, header, apple-touch) are crisp; the 192 and 512 PWA icons are slightly
+soft from upscaling. When the Figma quota resets (or the plan is upgraded), re-export the
+logo via `download_assets` as SVG/high-resolution and regenerate the icon set, and pull the
+remaining Figma assets (the Covyvo and GLEEN case-study mockups, and any section
+photography) at that time. Recorded as an open item.
+
 ### D-008: Self-hosted variable fonts
 
 The four required families (Plus Jakarta Sans, Inter, Lora, JetBrains Mono, PRD 14.1) are all

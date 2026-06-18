@@ -37,9 +37,20 @@ export function SiteFooter(): ReactNode {
   return (
     <footer className="bg-ink-950 text-white">
       <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-8">
-        <p className="font-jakarta text-subhead font-700">
-          Nexoris Technologies
-        </p>
+        <div className="flex items-center gap-2">
+          {/* The ink-950 footer uses the white logo (PRD 7.8). Mark is decorative; the wordmark
+              text carries the name. */}
+          <img
+            src="/brand/nexoris-logo-white.png"
+            alt=""
+            width={36}
+            height={40}
+            className="h-10 w-auto"
+          />
+          <p className="font-jakarta text-subhead font-700">
+            Nexoris Technologies
+          </p>
+        </div>
         <p className="mt-3 max-w-[48ch] text-body text-purple-100">
           We design and build custom software for businesses in Nigeria and
           abroad.

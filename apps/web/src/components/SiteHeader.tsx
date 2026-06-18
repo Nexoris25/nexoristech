@@ -21,11 +21,19 @@ export function SiteHeader(): ReactNode {
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-purple-200 bg-white md:h-[72px]">
       <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-4 md:px-8">
-        <Link
-          href="/"
-          className="font-jakarta text-subhead font-700 text-ink-950"
-        >
-          Nexoris Technologies
+        <Link href="/" className="flex items-center gap-2">
+          {/* Solid white header uses the purple logo (PRD 7.1). The mark is decorative; the
+              link's accessible name comes from the wordmark text beside it. */}
+          <img
+            src="/brand/nexoris-logo-purple.png"
+            alt=""
+            width={29}
+            height={32}
+            className="h-8 w-auto"
+          />
+          <span className="font-jakarta text-subhead font-700 text-ink-950">
+            Nexoris Technologies
+          </span>
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
