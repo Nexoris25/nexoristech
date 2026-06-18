@@ -1,0 +1,63 @@
+/*
+ * The single Tailwind entry for the Nexoris Technologies marketing site. Imports the
+ * self-hosted variable fonts, then the Tailwind layers, then the cross-cutting accessibility
+ * base from the design system (PRD 14, 15): the focus ring, the reduced-motion rules, the
+ * skip-to-content link, and the surface defaults.
+ */
+@import "@nexoris/ui/fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: #fafafc; /* neutral-50 */
+    color: #0d0a1c; /* ink-950 */
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* A single, consistent focus ring on every interactive element (PRD 15). */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid #6a55f2; /* purple-500 */
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* The signature motion and all transitions stop under reduced-motion (PRD 14.6). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* The skip-to-content link: first in the DOM, visible only when focused (PRD 15). */
+  .skip-link {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    z-index: 100;
+    padding: 8px 16px;
+    background-color: #543cda; /* purple-600 */
+    color: #ffffff;
+    border-radius: 12px;
+    transition: top 150ms ease;
+  }
+
+  .skip-link:focus {
+    top: 8px;
+  }
+}
