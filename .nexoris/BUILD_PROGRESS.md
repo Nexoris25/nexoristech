@@ -17,6 +17,21 @@ authoritative machine-readable checklist lives in `build-state.json`.
   shell; Lighthouse CI / Core Web Vitals budgets; route-level Playwright axe; and the
   content-API proof bands (empty until the CMS in Stage 7). Re-export a crisp vector logo and
   pull the Covyvo/GLEEN mockups and section photography when the Figma quota resets.
+
+### 2026-06-18 (later): no-secret work between stages
+
+- **Home industries grid** built (filterable, the `#industries` anchor target); committed.
+- **The branded `/api/og` card** added; committed.
+- **packages/kb** built beyond the stub (no secrets): the deterministic block-aware chunker
+  (about 800 tokens, 100 overlap, never splitting a paragraph, FAQ pair, or answer block) and
+  `buildKnowledgeBase` carrying source URLs, plus `apps/web` `hardcodedKbSources` flattening
+  all 36 pages into KB sources. 9 + 4 tests. This is the Stage 6 knowledge-base foundation; the
+  embedding, pgvector storage, and re-ingestion need apps/oge, the `nexoris_oge` database, and
+  the AI keys.
+- **404 and error pages** added in the house voice.
+- The whole workspace stays green: type-check, test, lint, build, check:seo, check:a11y.
+- **Waiting on the product owner** for DB credentials before wiring the Solution Finder and
+  Contact form (Stage 5), and the AI provider keys before the Oge ingestion (Stage 6).
 - **Stage 3 complete:** the content-module system, the content-fidelity test, all 5 core pages,
   all 11 service pages, and all 20 industry pages, transcribed verbatim from `content-source`
   and verified by 40 passing fidelity tests with every meta within limits. All 36 hardcoded

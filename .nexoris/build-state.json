@@ -1,11 +1,11 @@
 {
   "product": "Nexoris Technologies Digital Platform",
-  "lastUpdated": "2026-06-18T03:30:00Z",
+  "lastUpdated": "2026-06-18T05:00:00Z",
   "currentStage": "stage-4",
-  "currentTask": "Finish Stage 4: home filterable industries grid and solution-finder placement, the cached content API proof wiring (depends on CMS), Lighthouse CI / Core Web Vitals budgets, and route-level axe (Playwright). Re-export a crisp vector logo when the Figma quota resets.",
-  "lastCommit": "5d3bf37",
-  "nextAction": "Build the home industries filter grid and the Solution Finder section shell, add Lighthouse CI budgets on the four sampled page classes, and add a Playwright route-level axe pass. The content-API proof bands stay empty until Stage 7 (CMS). Then advance to Stage 5 (Contact lead capture and the Solution Finder).",
-  "blockedOn": null,
+  "currentTask": "No-secret work between stages: marketing-site polish and Stage 6 knowledge-base foundation are done. Awaiting DB credentials before wiring the Solution Finder and Contact form (Stage 5), and the AI keys before Oge (Stage 6 ingestion).",
+  "lastCommit": "7ccb2a5",
+  "nextAction": "When DB credentials arrive: build Stage 5 (Contact lead capture posting to the admin CRM intake, the Solution Finder deterministic mapping and UI). Remaining no-secret options meanwhile: render the service/industry cross-links, and add Lighthouse CI and route-level Playwright axe (Stage 10 gates). Re-export a crisp vector logo and pull the Covyvo/GLEEN mockups when the Figma quota resets.",
+  "blockedOn": "DB credentials (nexoris_admin, nexoris_oge, nexoris_cms), AI provider keys, VPS media details, and the GitHub repo URL, for the backend stages 5 to 9.",
   "stages": [
     {
       "id": "stage-0",
@@ -89,7 +89,7 @@
       "title": "apps/oge AI gateway",
       "status": "not_started",
       "tasks": [
-        { "id": "kb-ingestion", "status": "not_started", "notes": "packages/kb knowledge-base builder + ingestion; chunking, embeddings, pgvector." },
+        { "id": "kb-ingestion", "status": "in_progress", "notes": "No-secret part done: packages/kb deterministic block-aware chunker (preserves FAQ pairs) + buildKnowledgeBase with source URLs (9 tests), and apps/web hardcodedKbSources flattening all 36 pages. Embeddings, pgvector, and re-ingestion webhooks remain (need apps/oge + nexoris_oge DB + AI keys)." },
         { "id": "hybrid-retrieval", "status": "not_started", "notes": "Vector + Meilisearch keyword retrieval." },
         { "id": "website-bot-chain", "status": "not_started", "notes": "Three-slot website bot fallback chain; caches; quota governor." },
         { "id": "grounded-chat", "status": "not_started", "notes": "Grounded chat SSE endpoint + verbatim Oge system prompt." },
