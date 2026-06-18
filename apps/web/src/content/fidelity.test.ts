@@ -7,6 +7,7 @@ import { howWeWork } from "./core/how-we-work.js";
 import { caseStudies } from "./core/case-studies.js";
 import { contact } from "./core/contact.js";
 import { servicePages } from "./services/index.js";
+import { industryPages } from "./industries/index.js";
 import { collectVerbatimStrings, normalizeWhitespace } from "./fidelity.js";
 import type { MarketingPage } from "./types.js";
 
@@ -77,6 +78,25 @@ describe("content fidelity: service pages", () => {
 
   it("every service page meta stays within limits", () => {
     for (const page of servicePages) {
+      expect(page.meta.title.length, page.meta.slug).toBeLessThanOrEqual(60);
+      expect(page.meta.description.length, page.meta.slug).toBeLessThanOrEqual(
+        160,
+      );
+    }
+  });
+});
+
+describe("content fidelity: industry pages", () => {
+  const industrySource = readSource("03-industry-pages.md");
+
+  for (const page of industryPages) {
+    it(`${page.meta.slug} matches the approved copy verbatim`, () => {
+      expectFidelity(page, industrySource);
+    });
+  }
+
+  it("every industry page meta stays within limits", () => {
+    for (const page of industryPages) {
       expect(page.meta.title.length, page.meta.slug).toBeLessThanOrEqual(60);
       expect(page.meta.description.length, page.meta.slug).toBeLessThanOrEqual(
         160,
