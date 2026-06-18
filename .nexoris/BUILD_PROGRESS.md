@@ -5,7 +5,18 @@ authoritative machine-readable checklist lives in `build-state.json`.
 
 ## Current position
 
-- **Stage:** Stage 4, the 33 hardcoded marketing pages (in progress).
+- **Stage:** Stage 4, the 33 hardcoded marketing pages (in progress, foundation complete).
+- **Done in Stage 4 so far:** the Next.js App Router app renders all 36 hardcoded pages
+  (catch-all route, `trailingSlash: true`), the PageRenderer for every section kind, the real
+  Nexoris Technologies logo and the favicon/PWA icon set, the catalogue-driven mega-flyout
+  header (Services, Industries, Company, scroll state, mobile drawer) and the five-column
+  footer, the SEO build manifest with `check:seo` validating all 36 real routes (zero issues),
+  `/sitemap.xml`, `/robots.txt`, `/llms.txt`, and the branded `/api/og` card. Whole workspace
+  green: type-check, test, lint, build, check:seo, check:a11y.
+- **Remaining in Stage 4:** the home filterable industries grid and Solution Finder section
+  shell; Lighthouse CI / Core Web Vitals budgets; route-level Playwright axe; and the
+  content-API proof bands (empty until the CMS in Stage 7). Re-export a crisp vector logo and
+  pull the Covyvo/GLEEN mockups and section photography when the Figma quota resets.
 - **Stage 3 complete:** the content-module system, the content-fidelity test, all 5 core pages,
   all 11 service pages, and all 20 industry pages, transcribed verbatim from `content-source`
   and verified by 40 passing fidelity tests with every meta within limits. All 36 hardcoded
