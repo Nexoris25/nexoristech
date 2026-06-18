@@ -12,3 +12,6 @@
 *.woff binary
 *.woff2 binary
 *.pdf binary
+
+# OG card fonts
+*.ttf binary
