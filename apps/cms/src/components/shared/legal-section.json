@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_shared_legal_sections",
+  "info": {
+    "displayName": "Legal Section",
+    "icon": "file",
+    "description": "A legal clause with its plain-language summary alongside (PRD legal pages)."
+  },
+  "options": {},
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "richtext",
+      "required": true
+    },
+    "plainSummary": {
+      "type": "text"
+    }
+  }
+}

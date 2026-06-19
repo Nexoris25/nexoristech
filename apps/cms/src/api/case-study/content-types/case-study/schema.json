@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "case_studies",
+  "info": {
+    "singularName": "case-study",
+    "pluralName": "case-studies",
+    "displayName": "Case Study",
+    "description": "A client project case study with verified metrics (PRD proof, case study hub)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "client": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "text",
+      "maxLength": 300
+    },
+    "challenge": {
+      "type": "richtext"
+    },
+    "solution": {
+      "type": "richtext"
+    },
+    "outcome": {
+      "type": "richtext"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "metrics": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.metric"
+    },
+    "industry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category"
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo"
+    }
+  }
+}

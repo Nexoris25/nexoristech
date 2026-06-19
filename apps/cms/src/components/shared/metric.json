@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_shared_metrics",
+  "info": {
+    "displayName": "Metric",
+    "icon": "chartBubble",
+    "description": "A verified proof metric: a label and its value (PRD proof bands, verified only)."
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    }
+  }
+}
