@@ -1,20 +1,17 @@
-// import type { Core } from '@strapi/strapi';
+import type { Core } from "@strapi/strapi";
+import { grantPublicReadPermissions } from "./bootstrap/public-permissions";
 
 export default {
   /**
-   * An asynchronous register function that runs before
-   * your application is initialized.
-   *
-   * This gives you an opportunity to extend code.
+   * Runs before the application is initialized.
    */
   register(/* { strapi }: { strapi: Core.Strapi } */) {},
 
   /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
+   * Runs before the application starts. Ensures the Public role can read published content so the
+   * website's content API calls succeed without a manual admin step.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    await grantPublicReadPermissions(strapi);
+  },
 };
