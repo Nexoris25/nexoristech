@@ -13,6 +13,13 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import pg from "pg";
 import { embedBatch, toVectorLiteral } from "../src/providers/embeddings.js";
+import {
+  MeiliClient,
+  meiliConfigFromEnv,
+  KB_INDEX,
+  KB_PRIMARY_KEY,
+  toDocId,
+} from "../src/search/meilisearch.js";
 
 const { Client } = pg;
 const here = dirname(fileURLToPath(import.meta.url));
@@ -81,8 +88,42 @@ async function run(): Promise<void> {
     const env = process.env;
     let embedded = 0;
     const usedSlots = new Set<string>();
+    const meiliDocs: {
+      docId: string;
+      chunkId: string;
+      url: string;
+      title: string;
+      content: string;
+      sourceType: string;
+    }[] = [];
 
-    for (const batch of chunked(artifact.chunks, BATCH_SIZE)) {
+    // The keyword index covers every chunk and needs no embedding, so build its docs from the
+    // whole artifact up front.
+    for (const chunk of artifact.chunks) {
+      meiliDocs.push({
+        docId: toDocId(chunk.id),
+        chunkId: chunk.id,
+        url: chunk.url,
+        title: chunk.title,
+        content: chunk.text,
+        sourceType: chunk.sourceType,
+      });
+    }
+
+    // Embed once: skip chunks already stored at this exact version (PRD 10.3), so a re-run on
+    // unchanged content makes no provider calls.
+    const existing = new Set(
+      (
+        await client.query<{ id: string }>(
+          `SELECT id FROM kb_chunk WHERE kb_version = $1 AND embedding IS NOT NULL`,
+          [artifact.kbVersion],
+        )
+      ).rows.map((r) => r.id),
+    );
+    const toEmbed = artifact.chunks.filter((c) => !existing.has(c.id));
+    const skipped = artifact.chunks.length - toEmbed.length;
+
+    for (const batch of chunked(toEmbed, BATCH_SIZE)) {
       const { vectors, slot, modelId } = await embedBatch(
         batch.map((c) => c.text),
         env,
@@ -119,10 +160,10 @@ async function run(): Promise<void> {
       }
 
       embedded += batch.length;
-      process.stdout.write(`  embedded ${embedded}/${artifact.chunkCount}\r`);
+      process.stdout.write(`  embedded ${embedded}/${toEmbed.length}\r`);
       await sleep(PAUSE_MS);
     }
-    process.stdout.write("\n");
+    if (toEmbed.length > 0) process.stdout.write("\n");
 
     // Prune stale chunks of this source type left from an older version (full rebuild semantics).
     const pruned = await client.query(
@@ -134,9 +175,45 @@ async function run(): Promise<void> {
       "SELECT count(*)::text AS count FROM kb_chunk",
     );
 
-    console.log(`Provider(s) used: ${[...usedSlots].join(", ")}`);
-    console.log(`Upserted ${embedded}, pruned ${pruned.rowCount ?? 0} stale.`);
+    console.log(
+      `Provider(s) used: ${[...usedSlots].join(", ") || "none (all chunks already embedded)"}`,
+    );
+    console.log(
+      `Embedded ${embedded}, skipped ${skipped} already at this version, pruned ${pruned.rowCount ?? 0} stale.`,
+    );
     console.log(`kb_chunk now holds ${total.rows[0]?.count ?? "?"} rows.`);
+
+    // Keyword index for the hybrid retrieval (best-effort: a missing Meilisearch does not fail
+    // the vector ingest above).
+    const meiliConfig = meiliConfigFromEnv(env);
+    if (!meiliConfig) {
+      console.log("Meilisearch not configured; skipped keyword indexing.");
+    } else {
+      try {
+        const meili = new MeiliClient(meiliConfig);
+        await meili.ensureIndex(KB_INDEX, KB_PRIMARY_KEY);
+        await meili.updateSettings(KB_INDEX, {
+          searchableAttributes: ["title", "content"],
+          filterableAttributes: ["sourceType", "url"],
+          displayedAttributes: ["docId", "chunkId", "url", "title", "content"],
+        });
+        // Full-rebuild semantics for this source type: clear then add.
+        await meili.deleteByFilter(
+          KB_INDEX,
+          `sourceType = "${artifact.sourceType}"`,
+        );
+        await meili.addDocuments(KB_INDEX, meiliDocs);
+        console.log(
+          `Meilisearch index "${KB_INDEX}" updated with ${meiliDocs.length} documents.`,
+        );
+      } catch (error) {
+        console.warn(
+          `Meilisearch indexing failed (vector store is still updated): ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
   } finally {
     await client.end();
   }

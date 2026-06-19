@@ -15,7 +15,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx scripts/migrate.ts",
-    "kb:ingest": "tsx scripts/ingest.ts"
+    "kb:ingest": "tsx scripts/ingest.ts",
+    "kb:retrieve": "tsx scripts/retrieve.ts"
   },
   "dependencies": {
     "pg": "8.13.1"
