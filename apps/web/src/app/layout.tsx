@@ -9,6 +9,7 @@ import { SkipLink } from "@nexoris/ui";
 import { SITE_ORIGIN } from "@nexoris/seo";
 import { SiteHeader } from "../components/SiteHeader.js";
 import { SiteFooter } from "../components/SiteFooter.js";
+import { OgeWidget } from "../components/OgeWidget.js";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         <SiteHeader />
         <main id="main-content">{children}</main>
         <SiteFooter />
+        <OgeWidget />
       </body>
     </html>
   );
