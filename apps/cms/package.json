@@ -1,14 +1,43 @@
 {
   "name": "@nexoris/cms",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "The Nexoris Technologies content platform. Strapi v5 on PostgreSQL: Insights, authors, careers, legal, proof data, and programmatic-page drafts, with editor-reviewed AI helpers and a VPS WebP media pipeline.",
-  "license": "UNLICENSED",
+  "description": "The Nexoris Technologies content platform. Strapi v5 on PostgreSQL (nexoris_cms): Insights, authors, categories, careers, legal, proof data, and programmatic-page drafts, with editor-reviewed AI helpers and a VPS WebP media pipeline.",
   "scripts": {
-    "dev": "echo \"apps/cms is scaffolded in Stage 7. Strapi v5 is installed then.\"",
-    "build": "echo \"apps/cms build is wired in Stage 7.\"",
-    "lint": "echo \"apps/cms lint is wired in Stage 7.\"",
-    "type-check": "echo \"apps/cms type-check is wired in Stage 7.\"",
-    "test": "echo \"apps/cms tests are wired in Stage 7.\""
+    "build": "strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "strapi develop",
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "type-check": "tsc --noEmit",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.48.1",
+    "@strapi/plugin-users-permissions": "5.48.1",
+    "@strapi/strapi": "5.48.1",
+    "better-sqlite3": "12.8.0",
+    "pg": "8.13.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=26.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "c754a80f-21fc-4213-8238-691e09cd6b14",
+    "installId": "08a99a61e05efd5a2a27054fd8af0001a753340ad9f0ac5b9f816e5f1f61834a"
   }
 }
