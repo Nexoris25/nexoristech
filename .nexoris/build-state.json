@@ -119,14 +119,14 @@
     {
       "id": "stage-8",
       "title": "Insights, authors, careers, legal, AI search",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
-        { "id": "insights-hub", "status": "not_started", "notes": "Article card grid, latest-first, excerpt + date, Load more, homepage latest three." },
-        { "id": "article-page", "status": "not_started", "notes": "Full EEAT structure: author/fact-checker snippet, AI bio, TL;DR, FAQ, short-title TOC, recommended reads, internal-link suggestions." },
-        { "id": "author-pages", "status": "not_started", "notes": "ProfilePage + Person schema; authored and fact-checked lists." },
-        { "id": "careers", "status": "not_started", "notes": "Careers hub + job pages with cover images; JobPosting schema." },
-        { "id": "legal-pages", "status": "not_started", "notes": "Privacy, Terms, Cookie single types; section + plain-summary pairs." },
-        { "id": "ai-search-mobile-toc", "status": "not_started", "notes": "AI search; mobile floating TOC; article + FAQ schema; CMS AI helpers wired." }
+        { "id": "insights-hub", "status": "done", "notes": "/insights card grid, latest-first, excerpt + date, empty state; homepage latest three wired. Build green." },
+        { "id": "article-page", "status": "in_progress", "notes": "/insights/[slug] done: BlogPosting + FAQPage + breadcrumb JSON-LD, react-markdown body, author + fact-checker, TL;DR, FAQ, author bio. Remaining EEAT extras: short-title TOC, recommended reads, internal-link suggestions, AI bio block." },
+        { "id": "author-pages", "status": "done", "notes": "/authors/[slug] done: ProfilePage + Person schema, role/bio/LinkedIn, authored-articles list. Build green." },
+        { "id": "careers", "status": "done", "notes": "/careers hub + /careers/[slug] done: JobPosting schema, employment-type labels, markdown description, apply CTA (url/email/contact fallback), empty state. Cover images pending media." },
+        { "id": "legal-pages", "status": "done", "notes": "/privacy-policy, /terms-of-service, /cookie-policy render the Strapi single types as section + plain-summary pairs (shared LegalPageView), with an interim note until published. Build green." },
+        { "id": "ai-search-mobile-toc", "status": "not_started", "notes": "AI search; mobile floating TOC; CMS AI helpers wired." }
       ]
     },
     {

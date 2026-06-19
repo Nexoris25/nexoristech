@@ -88,6 +88,24 @@ async function fetchCollection(
   }
 }
 
+/** Fetch a CMS single type, returning null on any error or absence. */
+async function fetchSingle(
+  path: string,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const response = await fetch(`${CMS_API}${path}`, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+    if (!response.ok) return null;
+    const json = (await response.json()) as { data?: unknown };
+    return json.data && typeof json.data === "object"
+      ? (json.data as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Spread helper for exactOptionalPropertyTypes: include the key only when defined. */
 function opt<K extends string>(
   key: K,
@@ -212,5 +230,135 @@ export async function getInsight(slug: string): Promise<Insight | null> {
     ...opt("category", category),
     ...(author ? { author } : {}),
     ...(factChecker ? { factChecker } : {}),
+  };
+}
+
+// ----------------------------------------------------------------------------------------------------
+// Authors, careers, and legal pages.
+// ----------------------------------------------------------------------------------------------------
+
+export interface AuthorProfile extends Author {
+  photoUrl?: string;
+}
+export interface JobCard {
+  title: string;
+  slug: string;
+  location?: string;
+  department?: string;
+  employmentType?: string;
+  remote?: boolean;
+  summary?: string;
+}
+export interface Job extends JobCard {
+  description: string;
+  applyEmail?: string;
+  applyUrl?: string;
+  publishedAt?: string;
+}
+export interface LegalSection {
+  heading: string;
+  body: string;
+  plainSummary?: string;
+}
+export interface LegalPage {
+  title: string;
+  intro?: string;
+  effectiveDate?: string;
+  sections: LegalSection[];
+}
+
+export type LegalType =
+  | "privacy-policy"
+  | "terms-of-service"
+  | "cookie-policy";
+
+export async function getAuthorSlugs(): Promise<string[]> {
+  const rows = await fetchCollection(
+    `/authors?fields[0]=slug&pagination[limit]=200`,
+  );
+  return rows.map((r) => str(r.slug)).filter((s): s is string => Boolean(s));
+}
+
+export async function getAuthor(slug: string): Promise<AuthorProfile | null> {
+  const rows = await fetchCollection(
+    `/authors?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=photo`,
+  );
+  const r = rows[0];
+  if (!r) return null;
+  const author = toAuthor(r);
+  if (!author) return null;
+  const photoUrl = mediaUrl(r.photo);
+  return { ...author, ...opt("photoUrl", photoUrl) };
+}
+
+export async function getArticlesByAuthor(slug: string): Promise<InsightCard[]> {
+  const rows = await fetchCollection(
+    `/insights?filters[author][slug][$eq]=${encodeURIComponent(slug)}&populate=cover&sort=publishedAt:desc&pagination[limit]=50`,
+  );
+  return rows.map(toInsightCard).filter((i) => i.title && i.slug);
+}
+
+function toJobCard(r: Record<string, unknown>): JobCard {
+  return {
+    title: str(r.title) ?? "",
+    slug: str(r.slug) ?? "",
+    ...opt("location", str(r.location)),
+    ...opt("department", str(r.department)),
+    ...opt("employmentType", str(r.employmentType)),
+    ...(typeof r.remote === "boolean" ? { remote: r.remote } : {}),
+    ...opt("summary", str(r.summary)),
+  };
+}
+
+export async function getJobs(): Promise<JobCard[]> {
+  const rows = await fetchCollection(
+    `/jobs?sort=createdAt:desc&pagination[limit]=100`,
+  );
+  return rows.map(toJobCard).filter((j) => j.title && j.slug);
+}
+
+export async function getJobSlugs(): Promise<string[]> {
+  const rows = await fetchCollection(
+    `/jobs?fields[0]=slug&pagination[limit]=200`,
+  );
+  return rows.map((r) => str(r.slug)).filter((s): s is string => Boolean(s));
+}
+
+export async function getJob(slug: string): Promise<Job | null> {
+  const rows = await fetchCollection(
+    `/jobs?filters[slug][$eq]=${encodeURIComponent(slug)}`,
+  );
+  const r = rows[0];
+  if (!r) return null;
+  const card = toJobCard(r);
+  if (!card.title) return null;
+  return {
+    ...card,
+    description: str(r.description) ?? "",
+    ...opt("applyEmail", str(r.applyEmail)),
+    ...opt("applyUrl", str(r.applyUrl)),
+    ...opt("publishedAt", str(r.publishedAt)),
+  };
+}
+
+export async function getLegalPage(type: LegalType): Promise<LegalPage | null> {
+  const r = await fetchSingle(`/${type}?populate=sections`);
+  if (!r) return null;
+  const title = str(r.title);
+  if (!title) return null;
+  const sections = Array.isArray(r.sections)
+    ? (r.sections as Record<string, unknown>[])
+        .map((s) => ({
+          heading: str(s.heading) ?? "",
+          body: str(s.body) ?? "",
+          ...opt("plainSummary", str(s.plainSummary)),
+        }))
+        .filter((s) => s.heading && s.body)
+    : [];
+  return {
+    title,
+    sections,
+    ...opt("intro", str(r.intro)),
+    ...opt("effectiveDate", str(r.effectiveDate)),
   };
 }
