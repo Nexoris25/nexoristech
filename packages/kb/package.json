@@ -5,10 +5,15 @@
   "description": "Knowledge-base builder and ingestion pipeline shared by the web build and the Oge AI gateway. Produces one canonical knowledge base from the hardcoded content and published CMS content.",
   "license": "UNLICENSED",
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
+  "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src",

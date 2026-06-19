@@ -39,7 +39,6 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
   private exactCache!: ExactMatchCache;
   private semanticCache!: SemanticCache;
   private governor!: QuotaGovernor;
-  private cachedKbVersion: string | null = null;
   private readonly env: Env = process.env;
 
   onModuleInit(): void {
@@ -66,13 +65,13 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // Queried per request (a single indexed row) rather than memoised, so a CMS re-ingest that
+  // updates the latest chunk's version invalidates the caches without a gateway restart.
   private async kbVersion(): Promise<string> {
-    if (this.cachedKbVersion) return this.cachedKbVersion;
     const { rows } = await this.pool.query<{ kb_version: string }>(
       "SELECT kb_version FROM kb_chunk ORDER BY updated_at DESC LIMIT 1",
     );
-    this.cachedKbVersion = rows[0]?.kb_version ?? "none";
-    return this.cachedKbVersion;
+    return rows[0]?.kb_version ?? "none";
   }
 
   /** Stream a grounded answer for one visitor message. */
