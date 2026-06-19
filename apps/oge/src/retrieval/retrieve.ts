@@ -28,6 +28,8 @@ export interface RetrieveOptions {
   readonly limit?: number;
   /** Candidates to pull from each retriever before fusion. */
   readonly candidates?: number;
+  /** A precomputed query embedding, to avoid embedding the same query twice. */
+  readonly queryVector?: number[];
 }
 
 export interface RetrieveResult {
@@ -97,8 +99,11 @@ export async function retrieve(
   const limit = options.limit ?? 6;
   const candidates = options.candidates ?? Math.max(limit * 2, 12);
 
-  const { vectors } = await embedBatch([query], env);
-  const queryVector = vectors[0];
+  let queryVector = options.queryVector;
+  if (!queryVector) {
+    const { vectors } = await embedBatch([query], env);
+    queryVector = vectors[0];
+  }
   if (!queryVector) {
     return { chunks: [], usedKeyword: false };
   }
