@@ -141,3 +141,49 @@ Not yet provided (recorded as open questions in `BUILD_PROGRESS.md`, none blocki
 0): GitHub repository URL, the three PostgreSQL connection sets, the VPS media path and
 public base URL, and the four AI provider keys. These will be requested when the stage that
 needs them begins.
+
+---
+
+## 2026-06-19
+
+### D-012: AI provider stack change (SambaNova removed, Mistral added) and credential receipt
+
+The product owner removed SambaNova Cloud from the Oge AI provider stack and replaced it
+with Mistral AI. The reason given: SambaNova's offering is a one-time $5 trial credit that
+expires after 30 days, so it is not viable as a long-term fallback; Mistral provides ongoing
+free-tier access with published rate limits, production-ready models, and high-capacity
+embeddings. The revised per-task model assignment, to be pinned in
+`apps/oge/src/config/models.ts` when Stage 6 is built (each identifier to be verified against
+the provider's current official documentation before pinning, per `.env.example`):
+
+- **Website Bot:** Gemini Flash (primary), Llama 4 Scout via Groq (backup 1), Ministral 8B (backup 2).
+- **CRM Worker:** Mistral Large (primary), Gemini Flash (backup 1), GPT-OSS 120B via Groq (backup 2).
+- **CMS AI Services:** Mistral Large (primary), Gemini Flash (backup 1), Qwen 3 32B via Groq (backup 2).
+- **Service Recommender:** deterministic core (rules and service mappings); AI only writes the
+  personalised explanation. Gemini Flash (primary), Qwen 3 32B via Groq (backup 1), Ministral 8B (backup 2).
+- **Embeddings:** Mistral Embed (primary), Gemini Embeddings (fallback).
+
+The `.env.example` `SAMBANOVA_API_KEY` placeholder was replaced with `MISTRAL_API_KEY`.
+
+**Credentials received (values stored only in the gitignored `.env`, never committed):**
+
+- The three PostgreSQL connection strings: `nexoris_cms`, `nexoris_oge`, `nexoris_admin`,
+  all on host `194.147.95.7:5435` with a distinct user password and database per app.
+- AI provider keys: `GEMINI_API_KEY_PROJECT_A`, `GEMINI_API_KEY_PROJECT_B`,
+  `MISTRAL_API_KEY`, `GROQ_API_KEY`.
+- VPS media path on disk: `/www/docker/nexoristech-media`.
+- GitHub repository: `https://github.com/Nexoris25/nexoristech.git`.
+
+**Two data issues flagged for the product owner:**
+
+1. The `nexoris_oge` `DATABASE_URL` was supplied with a duplicated port,
+   `194.147.95.7:5435:5435`. This is an invalid host:port. Corrected in `.env` to a single
+   port `194.147.95.7:5435` (matching the `nexoris_cms` and `nexoris_admin` strings, which
+   are correct). To be confirmed.
+2. Only the VPS media **path on disk** was supplied (`/www/docker/nexoristech-media`); the
+   public **base URL** the VPS serves those files from was not. `.env` carries a provisional
+   `VPS_MEDIA_BASE_URL=https://nexoristech.com/media` to be confirmed before the media
+   pipeline (Stage 7 onward) goes live.
+
+The shared service secrets, Meilisearch key, and Strapi/admin auth secrets in `.env` are
+local development placeholders and must be regenerated as strong values for production.

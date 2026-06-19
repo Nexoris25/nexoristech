@@ -1,11 +1,11 @@
 {
   "product": "Nexoris Technologies Digital Platform",
-  "lastUpdated": "2026-06-18T05:00:00Z",
-  "currentStage": "stage-4",
-  "currentTask": "No-secret work between stages: marketing-site polish and Stage 6 knowledge-base foundation are done. Awaiting DB credentials before wiring the Solution Finder and Contact form (Stage 5), and the AI keys before Oge (Stage 6 ingestion).",
-  "lastCommit": "7ccb2a5",
-  "nextAction": "When DB credentials arrive: build Stage 5 (Contact lead capture posting to the admin CRM intake, the Solution Finder deterministic mapping and UI). Remaining no-secret options meanwhile: render the service/industry cross-links, and add Lighthouse CI and route-level Playwright axe (Stage 10 gates). Re-export a crisp vector logo and pull the Covyvo/GLEEN mockups when the Figma quota resets.",
-  "blockedOn": "DB credentials (nexoris_admin, nexoris_oge, nexoris_cms), AI provider keys, VPS media details, and the GitHub repo URL, for the backend stages 5 to 9.",
+  "lastUpdated": "2026-06-19T00:00:00Z",
+  "currentStage": "stage-6",
+  "currentTask": "Credentials received and stored in the gitignored .env (DECISIONS D-012): the three PostgreSQL strings, GEMINI_A/B, MISTRAL, GROQ keys, the VPS media path, and the GitHub repo URL. SambaNova replaced by Mistral across the Oge stack. Two data issues flagged: the nexoris_oge URL double-port typo (corrected to :5435) and the missing VPS media public base URL (provisional). Next: add the git remote and push, then build apps/oge (Stage 6) with the new models.ts.",
+  "lastCommit": "ac2967d",
+  "nextAction": "Add git remote origin https://github.com/Nexoris25/nexoristech.git and push main (outward-facing: confirm with the product owner first). Then Stage 6: scaffold apps/oge (NestJS) with config/models.ts pinning the new per-task provider chains (Website Bot, CRM Worker, CMS AI, Service Recommender, Embeddings), the nexoris_oge pgvector store, embedding + ingestion of the existing hardcodedKbSources, hybrid retrieval, and the grounded chat endpoint. Then Stage 5 (now unblocked): Contact lead capture to the admin CRM intake and the Solution Finder. Re-export a crisp vector logo and pull the Covyvo/GLEEN mockups when the Figma quota resets.",
+  "blockedOn": null,
   "stages": [
     {
       "id": "stage-0",
@@ -161,10 +161,10 @@
     }
   ],
   "openQuestions": [
-    "GitHub repository URL and default branch (needed to push).",
-    "PostgreSQL credentials for nexoris_cms, nexoris_oge, nexoris_admin (needed when services run).",
-    "VPS media disk path and public base URL (needed for the media pipeline).",
-    "AI provider keys: GEMINI_API_KEY_PROJECT_A, GEMINI_API_KEY_PROJECT_B, GROQ_API_KEY, SAMBANOVA_API_KEY (Stage 6+).",
-    "Nexoris Technologies logo source files (to be pulled from Figma via MCP)."
+    "Confirm the nexoris_oge DATABASE_URL: it was supplied as 194.147.95.7:5435:5435 (duplicated port); corrected in .env to a single :5435 port (DECISIONS D-012).",
+    "Confirm the VPS media public base URL: only the disk path /www/docker/nexoristech-media was supplied; .env carries a provisional https://nexoristech.com/media.",
+    "Confirm it is fine to push main to https://github.com/Nexoris25/nexoristech.git (first outward-facing push).",
+    "Regenerate strong production values for the placeholder shared/Strapi/admin secrets and the Meilisearch master key in .env before deploy.",
+    "Nexoris Technologies logo source files: re-export a crisp vector and pull the Covyvo/GLEEN mockups when the Figma quota resets."
   ]
 }
