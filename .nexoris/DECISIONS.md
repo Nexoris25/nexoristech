@@ -232,3 +232,26 @@ generation chain (correct, just not free), whereas a false hit would return a wr
 answer, so the threshold is kept conservative rather than maximally permissive. This is a
 deliberate, data-driven deviation from the PRD's number, flagged for the product owner to
 confirm; the threshold can be tuned per-environment without a code change.
+
+### D-015: Lead-scoring rubric and the ideal customer profile
+
+PRD 11 and 3.1 specify the scoring contract (1 to 100, a Hot/Warm/Cold band, a plain-language
+justification naming four signals: ideal-customer-profile fit, intent, completeness, and
+source/page; an immediate rules-based baseline; never auto-reject) but do not enumerate the
+ideal customer profile or the exact point weights and band thresholds. To avoid fabricating a
+rubric, both are grounded in approved material and recorded here as tunable:
+
+- **Ideal customer profile:** taken from the approved positioning (custom software, automation,
+  e-commerce, data, and AI for businesses and public institutions in Nigeria and abroad) and the
+  home trust strip (founders, executives, operations leaders, and public institutions). A
+  strong-fit lead is such a person with a concrete problem and intent to act. Used in both the
+  generative prompt and the rules baseline.
+- **Band thresholds:** Hot at 70 and above, Warm 45 to 69, Cold below 45 (`bandForScore`).
+- **Rules-baseline weights:** completeness up to 35, intent up to 40, ICP fit up to 25, each
+  mapped to a PRD-named factor, clamped to 1 to 100. These are a transparent default in
+  `apps/oge/src/crm/score.ts`, not a fabricated formula, and can be tuned.
+
+The generative score (CRM Worker chain, Mistral Large primary) returns strict JSON and was
+verified live: a complete, urgent, well-fit healthcare lead scored 85 (Hot) and a bare "just
+looking around" lead scored 5 (Cold), each with a justification naming the specific signals.
+Flagged for the product owner to confirm or adjust the ICP wording and the weights.

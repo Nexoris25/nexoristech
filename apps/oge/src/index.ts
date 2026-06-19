@@ -17,3 +17,7 @@ export * from "./cache/exact-cache.js";
 export * from "./cache/semantic-cache.js";
 export * from "./quota/token-bucket.js";
 export * from "./quota/governor.js";
+export * from "./crm/lead.js";
+export * from "./crm/score.js";
+export * from "./crm/score-prompt.js";
+export * from "./crm/score-lead.js";

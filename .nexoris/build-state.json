@@ -166,6 +166,7 @@
   ],
   "openQuestions": [
     "Confirm the semantic-cache threshold change (DECISIONS D-014): PRD 10.2 specifies 0.92, but measured Mistral Embed paraphrases score 0.85-0.89, so the default was lowered to 0.88 (env-overridable). Confirm 0.88 or supply a preferred value.",
+    "Confirm the lead-scoring rubric and ideal customer profile (DECISIONS D-015): the ICP is grounded in the approved positioning and the home trust strip, band thresholds are Hot 70+/Warm 45-69/Cold <45, and the rules-baseline weights are a tunable default. Confirm or adjust the ICP wording and weights.",
     "Confirm the VPS media public base URL: only the disk path /www/docker/nexoristech-media was supplied; .env carries a provisional https://nexoristech.com/media.",
     "Regenerate strong production values for the placeholder shared/Strapi/admin secrets and the Meilisearch master key in .env before deploy.",
     "Nexoris Technologies logo source files: re-export a crisp vector and pull the Covyvo/GLEEN mockups when the Figma quota resets."
