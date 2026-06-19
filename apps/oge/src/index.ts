@@ -5,4 +5,5 @@
  */
 export * from "./config/models.js";
 export * from "./providers/errors.js";
+export * from "./providers/embeddings.js";
 export * from "./orchestration/run-chain.js";

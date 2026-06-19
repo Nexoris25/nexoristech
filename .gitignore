@@ -48,3 +48,6 @@ apps/cms/types/generated/
 
 # Local media (served from the VPS in production)
 .media/
+
+# Generated knowledge-base artifact (emitted by the web build, ingested by apps/oge).
+/artifacts/
