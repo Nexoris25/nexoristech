@@ -215,3 +215,20 @@ written here or to any committed file; the working value lives only in the gitig
 **Confirmed by the product owner (2026-06-19):** option (A), one shared password for the
 `nexoristech` role across all three databases. The current `.env` is correct as-is. The
 `nexoris_crm_user` role is left unused for now.
+
+### D-014: Semantic-cache threshold recalibrated for Mistral Embed (0.92 to 0.88)
+
+PRD 10.2 pins the semantic-cache cosine threshold at 0.92. That value predates the provider
+change to Mistral (D-012). Measured live against Mistral Embed on 2026-06-19, cosine
+similarity for genuine paraphrases lands at about 0.85 to 0.89 (for example "How much is a
+website?" vs "What is the price of a website?" = 0.886; "What does a project cost?" vs "How
+much will my project cost?" = 0.866), while clearly unrelated queries sit near 0.68 ("How much
+is a website?" vs "Do you build mobile apps?"). At 0.92 the semantic cache would essentially
+never hit, defeating its purpose of catching paraphrases.
+
+The default threshold is therefore lowered to **0.88** and made overridable with
+`OGE_SEMANTIC_CACHE_THRESHOLD`. The choice errs safe: a miss merely falls through to the
+generation chain (correct, just not free), whereas a false hit would return a wrong cached
+answer, so the threshold is kept conservative rather than maximally permissive. This is a
+deliberate, data-driven deviation from the PRD's number, flagged for the product owner to
+confirm; the threshold can be tuned per-environment without a code change.

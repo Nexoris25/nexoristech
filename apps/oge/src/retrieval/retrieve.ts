@@ -7,6 +7,7 @@
  */
 import { embedBatch, toVectorLiteral } from "../providers/embeddings.js";
 import type { Env } from "../config/models.js";
+import type { DbClient } from "../db.js";
 import {
   MeiliClient,
   meiliConfigFromEnv,
@@ -20,14 +21,6 @@ export interface RetrievedChunk {
   readonly url: string;
   readonly title: string;
   readonly content: string;
-}
-
-/** The minimal database surface retrieval needs, satisfied structurally by a pg Client or Pool. */
-export interface DbClient {
-  query<R extends Record<string, unknown>>(
-    text: string,
-    params?: unknown[],
-  ): Promise<{ rows: R[] }>;
 }
 
 export interface RetrieveOptions {
