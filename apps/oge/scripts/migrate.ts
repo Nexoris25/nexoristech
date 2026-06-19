@@ -1,11 +1,15 @@
 /**
- * A small, transparent forward-only migration runner for nexoris_oge. It applies every
- * `.sql` file in apps/oge/migrations in filename order, inside a transaction, and records each
- * applied file in `_oge_migration` so re-running is a no-op. Plain SQL keeps pgvector DDL (the
- * vector type and HNSW indexes) first-class without an ORM. The connection string is read from
- * DATABASE_URL_OGE; no secret is hardcoded.
+ * A small, transparent forward-only migration runner. It applies every `.sql` file in a target's
+ * migrations directory in filename order, inside a transaction, and records each applied file in
+ * `_oge_migration` so re-running is a no-op. Plain SQL keeps pgvector DDL first-class without an
+ * ORM. The connection string is read from the environment; no secret is hardcoded.
  *
- * Run with: pnpm --filter @nexoris/oge db:migrate
+ * Targets (first CLI argument, defaults to "oge"):
+ *   oge   -> DATABASE_URL_OGE,   apps/oge/migrations         (knowledge base, caches)
+ *   admin -> DATABASE_URL_ADMIN, apps/oge/migrations-admin   (the CRM lead store, until Stage 9)
+ *
+ * Run with: pnpm --filter @nexoris/oge db:migrate         (oge)
+ *           pnpm --filter @nexoris/oge db:migrate:admin   (admin)
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -15,10 +19,24 @@ import pg from "pg";
 const { Client } = pg;
 
 const here = dirname(fileURLToPath(import.meta.url));
-const migrationsDir = join(here, "..", "migrations");
+
+const TARGETS = {
+  oge: { envVar: "DATABASE_URL_OGE", dir: "migrations" },
+  admin: { envVar: "DATABASE_URL_ADMIN", dir: "migrations-admin" },
+} as const;
+
+type Target = keyof typeof TARGETS;
+
+function resolveTarget(): { envVar: string; dir: string } {
+  const arg = process.argv[2] ?? "oge";
+  if (!(arg in TARGETS)) {
+    throw new Error(`Unknown migrate target "${arg}". Use oge or admin.`);
+  }
+  return TARGETS[arg as Target];
+}
 
 /** Load the gitignored repo-root .env if it exists, so local runs need no extra setup. In
- * production DATABASE_URL_OGE is set in the environment directly and this is a harmless no-op. */
+ * production the connection string is set in the environment directly and this is a harmless no-op. */
 function loadLocalEnv(): void {
   try {
     process.loadEnvFile(join(here, "..", "..", "..", ".env"));
@@ -27,19 +45,17 @@ function loadLocalEnv(): void {
   }
 }
 
-function connectionString(): string {
-  const url = process.env.DATABASE_URL_OGE;
-  if (!url) {
-    throw new Error(
-      "DATABASE_URL_OGE is not set. Load it from the gitignored .env before migrating.",
-    );
-  }
-  return url;
-}
-
 async function run(): Promise<void> {
   loadLocalEnv();
-  const client = new Client({ connectionString: connectionString() });
+  const target = resolveTarget();
+  const url = process.env[target.envVar];
+  if (!url) {
+    throw new Error(
+      `${target.envVar} is not set. Load it from the gitignored .env before migrating.`,
+    );
+  }
+  const migrationsDir = join(here, "..", target.dir);
+  const client = new Client({ connectionString: url });
   await client.connect();
   try {
     await client.query(`

@@ -16,6 +16,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx scripts/migrate.ts",
+    "db:migrate:admin": "tsx scripts/migrate.ts admin",
     "kb:ingest": "tsx scripts/ingest.ts",
     "kb:retrieve": "tsx scripts/retrieve.ts"
   },
