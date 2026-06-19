@@ -13,12 +13,18 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:migrate": "tsx scripts/migrate.ts"
+  },
+  "dependencies": {
+    "pg": "8.13.1"
   },
   "devDependencies": {
     "@nexoris/config": "workspace:*",
     "@types/node": "22.10.2",
+    "@types/pg": "8.11.10",
     "eslint": "9.17.0",
+    "tsx": "4.19.2",
     "typescript": "5.7.2",
     "vitest": "2.1.8"
   }

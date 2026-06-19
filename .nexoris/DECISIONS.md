@@ -211,3 +211,7 @@ verified-working password for all three connection strings. To be confirmed with
 either the single shared password is intended (then this is correct), or distinct per-database
 roles or passwords were intended and must be created server-side. No password value is
 written here or to any committed file; the working value lives only in the gitignored `.env`.
+
+**Confirmed by the product owner (2026-06-19):** option (A), one shared password for the
+`nexoristech` role across all three databases. The current `.env` is correct as-is. The
+`nexoris_crm_user` role is left unused for now.
