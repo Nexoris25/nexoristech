@@ -81,7 +81,7 @@
         { "id": "contact-form", "status": "not_started", "notes": "Contact form posting to admin CRM intake with CRM Worker scoring." },
         { "id": "smart-form-assistant", "status": "not_started", "notes": "Debounced one-sentence hint; deterministic fallback." },
         { "id": "instant-ack", "status": "not_started", "notes": "Personalised acknowledgement on submit; warm template fallback." },
-        { "id": "solution-finder", "status": "not_started", "notes": "Five-question deterministic mapping at its three entry points." }
+        { "id": "solution-finder", "status": "in_progress", "notes": "Home embedded Solution Finder DONE and verified live end to end: apps/web SolutionFinder client component renders the five questions from @nexoris/recommend, posts to the Next /api/finder/ proxy -> Oge /finder, shows the deterministic services + industry page links and the AI rationale, and falls back to the local deterministic match if the gateway is unreachable. Slotted into the home solution-finder section. Remaining entry points: the Services flyout featured panel and the ghost CTA on every service and industry page." }
       ]
     },
     {

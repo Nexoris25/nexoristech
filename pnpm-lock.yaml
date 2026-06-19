@@ -82,6 +82,9 @@ importers:
       '@nexoris/kb':
         specifier: workspace:*
         version: link:../../packages/kb
+      '@nexoris/recommend':
+        specifier: workspace:*
+        version: link:../../packages/recommend
       '@nexoris/seo':
         specifier: workspace:*
         version: link:../../packages/seo

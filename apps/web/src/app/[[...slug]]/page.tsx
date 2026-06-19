@@ -11,6 +11,7 @@ import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { IndustriesGrid } from "../../components/IndustriesGrid.js";
+import { SolutionFinder } from "../../components/SolutionFinder.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
@@ -56,9 +57,15 @@ export default async function MarketingRoute({
   if (!page) {
     notFound();
   }
-  // The home page injects the filterable industries grid into its industries section.
+  // The home page injects the filterable industries grid and the Solution Finder into their
+  // sections.
   const sectionSlots =
-    page.meta.slug === "/" ? { industries: <IndustriesGrid /> } : undefined;
+    page.meta.slug === "/"
+      ? {
+          industries: <IndustriesGrid />,
+          "solution-finder": <SolutionFinder />,
+        }
+      : undefined;
   return (
     <>
       <JsonLd graph={graphForPage(page)} />
