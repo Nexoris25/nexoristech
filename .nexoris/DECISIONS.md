@@ -255,3 +255,16 @@ The generative score (CRM Worker chain, Mistral Large primary) returns strict JS
 verified live: a complete, urgent, well-fit healthcare lead scored 85 (Hot) and a bare "just
 looking around" lead scored 5 (Cold), each with a justification naming the specific signals.
 Flagged for the product owner to confirm or adjust the ICP wording and the weights.
+
+### D-016: Lead store created in nexoris_admin now (confirmed)
+
+The Contact form, Oge chat capture, and Solution Finder all deliver a scored lead to intake
+(PRD 11), and leads belong in the nexoris_admin CRM, which is not built until Stage 9. The
+product owner confirmed (2026-06-19) to create the canonical `lead` table in nexoris_admin now,
+per the PRD 11 contract, rather than buffer leads elsewhere. Until the admin app exists, apps/oge
+owns the intake: its POST /leads endpoint scores a lead and writes it directly to
+nexoris_admin.lead (the migration runner gained an `admin` target). When Stage 9 builds the admin
+CRM it manages this same table (assignment, lifecycle stages, audit log) and may move intake
+behind a shared-secret endpoint; no data migration is needed because the table is already the
+canonical store. The browser reaches /leads through the apps/web /api/contact proxy; per-IP rate
+limiting on the public submit endpoints is part of Stage 10 hardening.

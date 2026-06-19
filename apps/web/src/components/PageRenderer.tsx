@@ -85,7 +85,9 @@ function SectionBlock({
   tinted: boolean;
   slot?: ReactNode;
 }): ReactNode {
-  const inner = renderSectionInner(section);
+  // The interactive Contact form replaces the static form markup when its slot is provided.
+  const inner =
+    section.kind === "form" && slot ? null : renderSectionInner(section);
   if (inner === null && !slot) {
     return null;
   }

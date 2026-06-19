@@ -12,6 +12,7 @@ import { PageRenderer } from "../../components/PageRenderer.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { IndustriesGrid } from "../../components/IndustriesGrid.js";
 import { SolutionFinder } from "../../components/SolutionFinder.js";
+import { ContactForm } from "../../components/ContactForm.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
@@ -57,15 +58,20 @@ export default async function MarketingRoute({
   if (!page) {
     notFound();
   }
-  // The home page injects the filterable industries grid and the Solution Finder into their
-  // sections.
-  const sectionSlots =
-    page.meta.slug === "/"
-      ? {
-          industries: <IndustriesGrid />,
-          "solution-finder": <SolutionFinder />,
-        }
-      : undefined;
+  // The home page injects the industries grid and the Solution Finder; the contact page injects
+  // the interactive lead-capture form into its form section.
+  let sectionSlots: Record<string, ReactNode> | undefined;
+  if (page.meta.slug === "/") {
+    sectionSlots = {
+      industries: <IndustriesGrid />,
+      "solution-finder": <SolutionFinder />,
+    };
+  } else if (page.meta.slug === "/contact") {
+    const formSection = page.sections.find((s) => s.kind === "form");
+    if (formSection?.kind === "form") {
+      sectionSlots = { [formSection.id]: <ContactForm section={formSection} /> };
+    }
+  }
   return (
     <>
       <JsonLd graph={graphForPage(page)} />
