@@ -1,0 +1,39 @@
+/*
+ * The single Tailwind entry for the Nexoris Technologies admin dashboard. Imports the self-hosted
+ * fonts, the Tailwind layers, and the design-system base (PRD 14): the focus ring and the
+ * reduced-motion rules.
+ */
+@import "@nexoris/ui/fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: #fafafc; /* neutral-50 */
+    color: #0d0a1c; /* ink-950 */
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid #6a55f2; /* purple-500 */
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
