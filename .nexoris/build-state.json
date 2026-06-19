@@ -2,7 +2,7 @@
   "product": "Nexoris Technologies Digital Platform",
   "lastUpdated": "2026-06-19T00:00:00Z",
   "currentStage": "stage-6",
-  "currentTask": "Credentials received and stored in the gitignored .env (DECISIONS D-012): the three PostgreSQL strings, GEMINI_A/B, MISTRAL, GROQ keys, the VPS media path, and the GitHub repo URL. SambaNova replaced by Mistral across the Oge stack. Two data issues flagged: the nexoris_oge URL double-port typo (corrected to :5435) and the missing VPS media public base URL (provisional). Next: add the git remote and push, then build apps/oge (Stage 6) with the new models.ts.",
+  "currentTask": "Stage 6 paused at the owner's request to confirm a runnable database first. Done so far in Stage 6: the model registry (models.ts) and the fallback orchestrator (run-chain.ts), both green. Database verified live (DECISIONS D-013): the VPS Postgres at 194.147.95.7:5435 is reachable from this machine with psql 17.4 (no Docker needed), the nexoristech role connects to all three databases and can create tables, pgvector 0.8.2 is already installed in nexoris_oge, and the public schema is empty. Password mismatch reconciled: only the admin URL's password authenticated and reaches all three databases, so .env now uses it for all three (CMS/OGE passwords as supplied failed). Awaiting the owner's confirmation of the password setup before building the NestJS runtime, schema/migrations, embedding ingestion, and retrieval.",
   "lastCommit": "ac2967d",
   "nextAction": "Add git remote origin https://github.com/Nexoris25/nexoristech.git and push main (outward-facing: confirm with the product owner first). Then Stage 6: scaffold apps/oge (NestJS) with config/models.ts pinning the new per-task provider chains (Website Bot, CRM Worker, CMS AI, Service Recommender, Embeddings), the nexoris_oge pgvector store, embedding + ingestion of the existing hardcodedKbSources, hybrid retrieval, and the grounded chat endpoint. Then Stage 5 (now unblocked): Contact lead capture to the admin CRM intake and the Solution Finder. Re-export a crisp vector logo and pull the Covyvo/GLEEN mockups when the Figma quota resets.",
   "blockedOn": null,
@@ -163,6 +163,7 @@
   ],
   "openQuestions": [
     "Confirm the nexoris_oge DATABASE_URL: it was supplied as 194.147.95.7:5435:5435 (duplicated port); corrected in .env to a single :5435 port (DECISIONS D-012).",
+    "Confirm the database password setup (DECISIONS D-013): the three URLs share one role nexoristech but carried three different passwords; only the admin URL's password authenticated (and reaches all three databases), so .env now uses it for all three. Either confirm one shared password is intended, or create distinct per-database roles/passwords server-side.",
     "Confirm the VPS media public base URL: only the disk path /www/docker/nexoristech-media was supplied; .env carries a provisional https://nexoristech.com/media.",
     "Confirm it is fine to push main to https://github.com/Nexoris25/nexoristech.git (first outward-facing push).",
     "Regenerate strong production values for the placeholder shared/Strapi/admin secrets and the Meilisearch master key in .env before deploy.",

@@ -187,3 +187,27 @@ The `.env.example` `SAMBANOVA_API_KEY` placeholder was replaced with `MISTRAL_AP
 
 The shared service secrets, Meilisearch key, and Strapi/admin auth secrets in `.env` are
 local development placeholders and must be regenerated as strong values for production.
+
+### D-013: VPS database verified runnable; single shared password reconciled
+
+Stage 6 paused at the product owner's request to confirm a runnable database before building
+the Oge runtime. Verified live against the VPS on 2026-06-19 with the locally installed
+`psql` 17.4 (Docker is not installed, D-004, and is not needed: the VPS Postgres is reachable
+directly from this machine on `194.147.95.7:5435`):
+
+- The role `nexoristech` connects to all three databases (`nexoris_cms`, `nexoris_oge`,
+  `nexoris_admin`) and can create tables in each (write probe passed). `nexoris_oge`'s
+  `public` schema is empty, a clean slate for the Oge schema and migrations.
+- **pgvector 0.8.2 is already installed in `nexoris_oge`** (extension created), so the
+  embedding store needs no extra provisioning.
+- The server also has a `nexoris_crm_user` role; no password for it was supplied.
+
+**Password reconciliation.** A PostgreSQL password belongs to the role, not the database. All
+three supplied URLs use the same role `nexoristech` but carried three different passwords,
+which cannot all be valid for one role. On test, only the password from the `nexoris_admin`
+URL authenticated, and it reaches all three databases; the `nexoris_cms` and `nexoris_oge`
+passwords as supplied failed authentication. `.env` was therefore updated to use the one
+verified-working password for all three connection strings. To be confirmed with the owner:
+either the single shared password is intended (then this is correct), or distinct per-database
+roles or passwords were intended and must be created server-side. No password value is
+written here or to any committed file; the working value lives only in the gitignored `.env`.
