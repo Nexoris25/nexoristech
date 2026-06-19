@@ -2,13 +2,24 @@
   "name": "@nexoris/oge",
   "version": "0.0.0",
   "private": true,
-  "description": "The Oge AI gateway. NestJS: the only component that calls any AI provider. Two tiers (website bot and CRM worker), RAG over the knowledge base, caches, the quota governor, and the fallback chains.",
+  "type": "module",
+  "description": "The Oge AI gateway. The only component that calls any AI provider. Functional model groups (website bot, CRM worker, CMS AI, service recommender, embeddings) with two-level fallback chains, RAG over the knowledge base, caches, and the quota governor. NestJS HTTP runtime layers on this config.",
   "license": "UNLICENSED",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "dev": "echo \"apps/oge is scaffolded in Stage 6. NestJS is installed then.\"",
-    "build": "echo \"apps/oge build is wired in Stage 6.\"",
-    "lint": "echo \"apps/oge lint is wired in Stage 6.\"",
-    "type-check": "echo \"apps/oge type-check is wired in Stage 6.\"",
-    "test": "echo \"apps/oge tests are wired in Stage 6.\""
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@nexoris/config": "workspace:*",
+    "@types/node": "22.10.2",
+    "eslint": "9.17.0",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
   }
 }

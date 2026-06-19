@@ -28,7 +28,23 @@ importers:
 
   apps/cms: {}
 
-  apps/oge: {}
+  apps/oge:
+    devDependencies:
+      '@nexoris/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: 22.10.2
+        version: 22.10.2
+      eslint:
+        specifier: 9.17.0
+        version: 9.17.0(jiti@1.21.7)
+      typescript:
+        specifier: 5.7.2
+        version: 5.7.2
+      vitest:
+        specifier: 2.1.8
+        version: 2.1.8(@types/node@22.10.2)(jsdom@25.0.1)
 
   apps/web:
     dependencies:

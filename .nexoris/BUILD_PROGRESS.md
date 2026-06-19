@@ -18,6 +18,30 @@ authoritative machine-readable checklist lives in `build-state.json`.
   content-API proof bands (empty until the CMS in Stage 7). Re-export a crisp vector logo and
   pull the Covyvo/GLEEN mockups and section photography when the Figma quota resets.
 
+### 2026-06-19: credentials received; Stage 6 model registry
+
+- **Secrets received and stored** in the gitignored `.env` only (never committed): the three
+  PostgreSQL strings (`nexoris_cms`, `nexoris_oge`, `nexoris_admin`), the Gemini Project A and B
+  keys, the Mistral key, the Groq key, and the VPS media disk path. `.env.example` keeps
+  placeholders, with `SAMBANOVA_API_KEY` replaced by `MISTRAL_API_KEY`. Recorded as
+  DECISIONS D-012, with two data issues flagged: the `nexoris_oge` URL was sent with a
+  duplicated port (`:5435:5435`), corrected to `:5435` and confirmed by the product owner; and
+  only the media disk path was supplied, so `VPS_MEDIA_BASE_URL` stays provisional.
+- **GitHub**: `origin` set to https://github.com/Nexoris25/nexoristech.git and `main` pushed
+  (confirmed by the product owner). `.env` is gitignored, so no secret left the machine.
+- **AI provider stack change** (SambaNova removed, Mistral added) applied to the model
+  registry: `apps/oge/src/config/models.ts` pins the five functional groups (Website Bot, CRM
+  Worker, CMS AI, Service Recommender, and Embeddings) with their primary and two-level
+  backup chains, pure key-routing and override helpers, and 12 tests. Model identifiers are
+  provisional defaults, overridable by env, flagged to verify against provider docs before
+  production. apps/oge is now a real ESM package; the whole workspace stays green
+  (type-check 11, test 10, lint 11, build 7).
+- **Still to build in Stage 6** (now unblocked): the NestJS HTTP runtime, the provider clients
+  walking each chain, embedding + pgvector storage in `nexoris_oge`, hybrid (vector +
+  Meilisearch) retrieval, the two cache layers and quota governor, the grounded chat SSE
+  endpoint with the verbatim Oge system prompt, Oge lead capture, the Solution Finder
+  rationale under strict JSON, and the extractive fallback with handoff.
+
 ### 2026-06-18 (later): no-secret work between stages
 
 - **Home industries grid** built (filterable, the `#industries` anchor target); committed.

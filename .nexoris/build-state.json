@@ -89,7 +89,8 @@
       "title": "apps/oge AI gateway",
       "status": "not_started",
       "tasks": [
-        { "id": "kb-ingestion", "status": "in_progress", "notes": "No-secret part done: packages/kb deterministic block-aware chunker (preserves FAQ pairs) + buildKnowledgeBase with source URLs (9 tests), and apps/web hardcodedKbSources flattening all 36 pages. Embeddings, pgvector, and re-ingestion webhooks remain (need apps/oge + nexoris_oge DB + AI keys)." },
+        { "id": "model-registry", "status": "done", "notes": "apps/oge/src/config/models.ts pins the new five-group provider stack (DECISIONS D-012): WEBSITE_BOT, CRM_WORKER, CMS_AI, SERVICE_RECOMMENDER generation groups each with primary + two backups, plus EMBEDDING_MODELS (Mistral Embed primary, Gemini fallback, 1024-dim). SambaNova fully removed. Pure helpers (apiKeyEnvVar with Project A/B routing, resolveModelId env override, chainFor, apiKeyFor) and 12 tests. Identifiers are provisional defaults, env-overridable, flagged to verify against provider docs. apps/oge wired as an ESM package (type-check, lint, test, build green)." },
+        { "id": "kb-ingestion", "status": "in_progress", "notes": "No-secret part done: packages/kb deterministic block-aware chunker (preserves FAQ pairs) + buildKnowledgeBase with source URLs (9 tests), and apps/web hardcodedKbSources flattening all 36 pages. Embeddings, pgvector, and re-ingestion webhooks remain (need the NestJS runtime + nexoris_oge DB + AI keys, all now available)." },
         { "id": "hybrid-retrieval", "status": "not_started", "notes": "Vector + Meilisearch keyword retrieval." },
         { "id": "website-bot-chain", "status": "not_started", "notes": "Three-slot website bot fallback chain; caches; quota governor." },
         { "id": "grounded-chat", "status": "not_started", "notes": "Grounded chat SSE endpoint + verbatim Oge system prompt." },
