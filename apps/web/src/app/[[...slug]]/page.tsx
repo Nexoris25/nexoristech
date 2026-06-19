@@ -13,6 +13,9 @@ import { JsonLd } from "../../components/JsonLd.js";
 import { IndustriesGrid } from "../../components/IndustriesGrid.js";
 import { SolutionFinder } from "../../components/SolutionFinder.js";
 import { ContactForm } from "../../components/ContactForm.js";
+import { ProofBand } from "../../components/ProofBand.js";
+import { Testimonials } from "../../components/Testimonials.js";
+import { LatestInsights } from "../../components/LatestInsights.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
@@ -65,6 +68,9 @@ export default async function MarketingRoute({
     sectionSlots = {
       industries: <IndustriesGrid />,
       "solution-finder": <SolutionFinder />,
+      proof: <ProofBand />,
+      testimonials: <Testimonials />,
+      insights: <LatestInsights />,
     };
   } else if (page.meta.slug === "/contact") {
     const formSection = page.sections.find((s) => s.kind === "form");
