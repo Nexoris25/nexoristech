@@ -1,0 +1,29 @@
+{
+  "name": "@nexoris/recommend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The versioned deterministic Service Recommender: the cross-linking matrix (PRD 8), the Solution Finder questions, and the headache-to-service mapping (PRD 10.4, 10.5). Shared by the web Solution Finder UI, the Oge rationale, and the admin CRM lead tagging. AI writes only the rationale; the match itself is pure code, so it cannot name a page that does not exist.",
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@nexoris/config": "workspace:*",
+    "eslint": "9.17.0",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  }
+}
