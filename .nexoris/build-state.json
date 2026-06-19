@@ -164,6 +164,7 @@
     }
   ],
   "openQuestions": [
+    "Meilisearch master key is rejected (invalid_api_key) although the instance at http://194.147.95.7:7700 is reachable and healthy. The running server was started with a different MEILI_MASTER_KEY than the one supplied (nexoristech-meili-...A0cW). Re-send the correct master key, or restart the instance with this key. Blocks the keyword half of hybrid retrieval and site search; the vector half works.",
     "Confirm the VPS media public base URL: only the disk path /www/docker/nexoristech-media was supplied; .env carries a provisional https://nexoristech.com/media.",
     "Regenerate strong production values for the placeholder shared/Strapi/admin secrets and the Meilisearch master key in .env before deploy.",
     "Nexoris Technologies logo source files: re-export a crisp vector and pull the Covyvo/GLEEN mockups when the Figma quota resets."
