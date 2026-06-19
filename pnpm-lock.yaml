@@ -39,6 +39,9 @@ importers:
       '@nestjs/platform-express':
         specifier: 10.4.15
         version: 10.4.15(@nestjs/common@10.4.15(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.15)
+      '@nexoris/recommend':
+        specifier: workspace:*
+        version: link:../../packages/recommend
       pg:
         specifier: 8.13.1
         version: 8.13.1
