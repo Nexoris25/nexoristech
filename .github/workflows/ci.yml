@@ -43,10 +43,19 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # The SEO and accessibility gates block merges. They are failing stubs until Stage 1 and
-      # Stage 2 implement them, at which point they assert every rule across every route.
+      # The SEO and accessibility gates block merges, asserting every rule across every route.
       - name: SEO gate (check:seo)
         run: pnpm check:seo
 
       - name: Accessibility gate (check:a11y)
         run: pnpm check:a11y
+
+      # Route-level a11y and the Lighthouse budgets run against the built site in a real browser.
+      - name: Install Playwright Chromium
+        run: pnpm --filter @nexoris/web exec playwright install --with-deps chromium
+
+      - name: Route accessibility pass (Playwright axe)
+        run: pnpm --filter @nexoris/web test:a11y
+
+      - name: Lighthouse budgets (Core Web Vitals)
+        run: pnpm --filter @nexoris/web lhci

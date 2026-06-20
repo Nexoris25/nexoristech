@@ -14,7 +14,9 @@
     "test": "vitest run",
     "seo:manifest": "tsx scripts/build-seo-manifest.ts",
     "seo:static": "tsx scripts/gen-static-seo.ts",
-    "kb:export": "tsx scripts/export-kb.ts"
+    "kb:export": "tsx scripts/export-kb.ts",
+    "test:a11y": "playwright test",
+    "lhci": "lhci autorun"
   },
   "dependencies": {
     "@nexoris/kb": "workspace:*",
@@ -29,7 +31,10 @@
     "remark-gfm": "4.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.1",
+    "@lhci/cli": "0.14.0",
     "@nexoris/config": "workspace:*",
+    "@playwright/test": "1.49.1",
     "@types/node": "22.10.2",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",

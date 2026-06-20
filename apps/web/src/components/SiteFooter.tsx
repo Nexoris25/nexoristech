@@ -158,13 +158,13 @@ export function SiteFooter(): ReactNode {
             </p>
             <div className="mt-4 flex flex-col gap-3">
               <Button href="/contact">Start a project</Button>
-              <Button
+              {/* Quiet light button on the dark footer: explicit colours so it stays legible. */}
+              <Link
                 href="/contact"
-                variant="ghost"
-                className="text-purple-100 hover:bg-ink-800"
+                className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-card border border-ink-800 px-4 py-2 text-label font-600 text-purple-100 hover:bg-ink-800 hover:text-white"
               >
                 Find the right service
-              </Button>
+              </Link>
             </div>
             <form className="mt-6 flex flex-col gap-2">
               <label className="text-label text-purple-100">
