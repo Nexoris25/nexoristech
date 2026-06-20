@@ -19,9 +19,12 @@ import { resolveProof } from "@nexoris/pseo";
 import type { PseoPage } from "../lib/cms.js";
 import { JsonLd } from "./JsonLd.js";
 import { Markdown } from "./Markdown.js";
+import { resolveDateTokens } from "../lib/date.js";
 
 export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
   const path = `/${page.slug}`;
+  const h1 = resolveDateTokens(page.h1);
+  const summary = page.summary ? resolveDateTokens(page.summary) : undefined;
   const serviceType = [page.techLabel, "development", page.industryLabel]
     .filter(Boolean)
     .join(" ");
@@ -34,7 +37,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
 
   const nodes: JsonLdNode[] = [
     serviceNode({
-      name: page.h1,
+      name: h1,
       path,
       ...(serviceType ? { serviceType } : {}),
       ...(page.industryLabel ? { audience: page.industryLabel } : {}),
@@ -45,7 +48,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
   nodes.push(
     breadcrumbNode([
       { name: "Solutions", path: "/contact" },
-      { name: page.h1, path },
+      { name: h1, path },
     ]),
   );
 
@@ -54,13 +57,13 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
       <JsonLd graph={buildGraph(nodes)} />
       <Section>
         <Container className="max-w-article">
-          {page.h1 ? (
+          {h1 ? (
             <h1 className="font-jakarta text-hero font-700 text-ink-950">
-              {page.h1}
+              {h1}
             </h1>
           ) : null}
-          {page.summary ? (
-            <p className="mt-4 text-body text-neutral-700">{page.summary}</p>
+          {summary ? (
+            <p className="mt-4 text-body text-neutral-700">{summary}</p>
           ) : null}
 
           {page.painPoints ? (

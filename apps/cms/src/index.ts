@@ -2,15 +2,18 @@ import type { Core } from "@strapi/strapi";
 import { grantPublicReadPermissions } from "./bootstrap/public-permissions";
 import { registerWebhooks } from "./webhooks/notify";
 import { registerPublishGuard } from "./pseo/publish-guard";
+import { registerReservedSlugGuard } from "./guards/reserved-slugs";
 
 export default {
   /**
    * Runs before the application is initialized. Registers the publish webhooks (revalidate the
-   * website and re-ingest into Oge) and the programmatic-page quality gate.
+   * website and re-ingest into Oge), the programmatic-page quality gate, and the reserved-slug
+   * guard that protects every routable path.
    */
   register({ strapi }: { strapi: Core.Strapi }) {
     registerWebhooks(strapi);
     registerPublishGuard(strapi);
+    registerReservedSlugGuard(strapi);
   },
 
   /**

@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { buildMetadata } from "@nexoris/seo";
+import { resolveDateTokens } from "../../lib/date.js";
 import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
 import { JsonLd } from "../../components/JsonLd.js";
@@ -62,11 +63,14 @@ export async function generateMetadata({
   const pseo = await getPseoPage(key.replace(/^\//, ""));
   if (pseo) {
     return buildMetadata({
-      title: pseo.metaTitle ?? `${pseo.h1} | Nexoris Technologies`,
-      description:
+      title: resolveDateTokens(
+        pseo.metaTitle ?? `${pseo.h1} | Nexoris Technologies`,
+      ),
+      description: resolveDateTokens(
         pseo.metaDescription ??
-        pseo.summary ??
-        `${pseo.h1} from Nexoris Technologies.`,
+          pseo.summary ??
+          `${pseo.h1} from Nexoris Technologies.`,
+      ),
       path: key,
       ogType: "website",
       noindex: pseo.noIndex,

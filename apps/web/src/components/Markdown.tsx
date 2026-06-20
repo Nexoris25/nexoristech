@@ -6,6 +6,7 @@
 import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { resolveDateTokens } from "../lib/date.js";
 
 const components = {
   h2: ({ children }: { children?: ReactNode }) => (
@@ -48,7 +49,7 @@ const components = {
 export function Markdown({ children }: { children: string }): ReactNode {
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-      {children}
+      {resolveDateTokens(children)}
     </ReactMarkdown>
   );
 }
