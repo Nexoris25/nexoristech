@@ -23,6 +23,12 @@ export interface FlyoutProps {
   panelClassName?: string;
   /** Extra classes for the trigger. */
   triggerClassName?: string;
+  /**
+   * How the panel is anchored. "start" and "end" tuck a narrow dropdown under the left or right
+   * edge of the trigger. "mega" centres a wide panel under the header so it never overflows the
+   * viewport, however near the right edge its trigger sits.
+   */
+  align?: "start" | "end" | "mega";
 }
 
 export function Flyout({
@@ -30,6 +36,7 @@ export function Flyout({
   children,
   panelClassName,
   triggerClassName,
+  align = "start",
 }: FlyoutProps): ReactNode {
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -109,7 +116,14 @@ export function Flyout({
           ref={panelRef}
           id={panelId}
           className={cn(
-            "absolute left-0 top-full z-50 mt-2 rounded-card border border-purple-200 bg-white p-6 shadow-medium",
+            "z-50 origin-top animate-[flyout_160ms_ease-out] rounded-2xl border border-purple-200 bg-white p-6 shadow-prominent",
+            // Narrow dropdowns anchor to the trigger edge; wide mega panels centre under the
+            // header and clamp to the viewport so they never spill off-screen.
+            align === "mega"
+              ? "fixed left-1/2 top-[68px] max-w-[calc(100vw-2rem)] -translate-x-1/2 md:top-[80px]"
+              : "absolute top-full mt-2",
+            align === "start" && "left-0",
+            align === "end" && "right-0",
             panelClassName,
           )}
         >

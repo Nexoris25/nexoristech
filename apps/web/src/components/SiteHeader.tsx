@@ -175,10 +175,10 @@ export function SiteHeader(): ReactNode {
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-          <Flyout label="Services" triggerClassName={triggerClass}>
+          <Flyout label="Services" align="mega" triggerClassName={triggerClass}>
             <ServicesPanel />
           </Flyout>
-          <Flyout label="Industries" triggerClassName={triggerClass}>
+          <Flyout label="Industries" align="mega" triggerClassName={triggerClass}>
             <IndustriesPanel />
           </Flyout>
           <Link
@@ -187,7 +187,7 @@ export function SiteHeader(): ReactNode {
           >
             Insights
           </Link>
-          <Flyout label="Company" triggerClassName={triggerClass}>
+          <Flyout label="Company" align="end" triggerClassName={triggerClass}>
             <CompanyPanel />
           </Flyout>
           <Button href="/contact" className="ml-2">

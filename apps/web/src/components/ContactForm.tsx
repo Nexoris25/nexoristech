@@ -8,7 +8,7 @@
  */
 import { useId, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { Button } from "@nexoris/ui";
+import { Button, Field, Input, Select, Textarea } from "@nexoris/ui";
 import type { Section } from "../content/types.js";
 
 type FormSection = Extract<Section, { kind: "form" }>;
@@ -93,28 +93,21 @@ export function ContactForm({ section }: { section: FormSection }): ReactNode {
       <h2 className="font-jakarta text-section font-700 text-ink-950">
         {section.heading}
       </h2>
-      <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
+      <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-5">
         {section.fields.map((field) => {
-          const fieldId = `${baseId}-${field.label}`;
+          const fieldId = `${baseId}-${field.label.replace(/\s+/g, "-").toLowerCase()}`;
           return (
-            <div key={field.label} className="flex flex-col gap-1">
-              <label
-                htmlFor={fieldId}
-                className="text-label font-600 text-ink-950"
-              >
-                {field.label}
-              </label>
-              {field.microcopy ? (
-                <span className="text-label text-neutral-600">
-                  {field.microcopy}
-                </span>
-              ) : null}
+            <Field
+              key={field.label}
+              label={field.label}
+              htmlFor={fieldId}
+              {...(field.microcopy ? { hint: field.microcopy } : {})}
+            >
               {field.options ? (
-                <select
+                <Select
                   id={fieldId}
                   value={get(field.label)}
                   onChange={(event) => set(field.label, event.target.value)}
-                  className="cursor-pointer rounded-card border border-purple-200 p-3 text-body"
                 >
                   <option value="">Choose one</option>
                   {field.options.map((option) => (
@@ -122,17 +115,15 @@ export function ContactForm({ section }: { section: FormSection }): ReactNode {
                       {option}
                     </option>
                   ))}
-                </select>
+                </Select>
               ) : field.label === MESSAGE_LABEL ? (
-                <textarea
+                <Textarea
                   id={fieldId}
-                  rows={5}
                   value={get(field.label)}
                   onChange={(event) => set(field.label, event.target.value)}
-                  className="rounded-card border border-purple-200 p-3 text-body"
                 />
               ) : (
-                <input
+                <Input
                   id={fieldId}
                   type={
                     field.label === "Email address"
@@ -143,14 +134,13 @@ export function ContactForm({ section }: { section: FormSection }): ReactNode {
                   }
                   value={get(field.label)}
                   onChange={(event) => set(field.label, event.target.value)}
-                  className="rounded-card border border-purple-200 p-3 text-body"
                 />
               )}
-            </div>
+            </Field>
           );
         })}
 
-        <div className="rounded-card border border-purple-200 bg-purple-100 p-6">
+        <div className="rounded-2xl border border-purple-200 bg-purple-100 p-6">
           <h3 className="font-jakarta text-subhead font-600 text-ink-950">
             {section.briefBuilder.heading}
           </h3>

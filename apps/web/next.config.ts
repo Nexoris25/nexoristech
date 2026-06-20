@@ -44,12 +44,18 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@nexoris/ui", "@nexoris/seo"],
   poweredByHeader: false,
   images: {
-    // Media is served as WebP from the VPS filesystem, no CDN (PRD 16).
+    // Media is served as WebP from the VPS filesystem, no CDN (PRD 16). Marketing
+    // photography is sourced from Unsplash (free commercial licence) and optimised on demand.
     remotePatterns: [
       {
         protocol: "https",
         hostname: "nexoristech.com",
         pathname: "/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
       },
     ],
   },

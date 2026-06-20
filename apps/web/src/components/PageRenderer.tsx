@@ -6,12 +6,14 @@
  * the no-fabrication rule (absent proof renders nothing).
  */
 import type { ReactNode } from "react";
-import { Button, Container, Section } from "@nexoris/ui";
+import Image from "next/image";
+import { Button, Container, Field, Input, Section, Select } from "@nexoris/ui";
 import type {
   Cta,
   MarketingPage,
   Section as PageSection,
 } from "../content/types.js";
+import { heroPhoto, img } from "../content/media.js";
 
 function CtaButton({
   cta,
@@ -30,39 +32,73 @@ function CtaButton({
 function Hero({ page }: { page: MarketingPage }): ReactNode {
   const { hero } = page;
   return (
-    <header className="relative overflow-hidden bg-ink-950 text-white">
-      {/* Soft radial purple glow behind the headline (PRD 14.6). */}
+    <header className="bg-aurora bg-dotgrid relative overflow-hidden text-white">
+      {/* A second soft glow adds depth to the mesh without turning the hero purple. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[480px] -translate-x-1/2 rounded-full opacity-20 blur-3xl"
+        className="pointer-events-none absolute -right-32 top-1/4 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
         style={{
           background:
-            "radial-gradient(circle, #6A55F2 0%, #543CDA 60%, transparent 100%)",
+            "radial-gradient(circle, #6A55F2 0%, #543CDA 55%, transparent 100%)",
         }}
       />
       {/* Extra top padding clears the fixed header that overlays the hero (PRD 7.1). */}
-      <Container className="relative pb-16 pt-28 md:pb-30 md:pt-40">
-        <h1 className="max-w-[20ch] font-jakarta text-hero font-700 text-white">
-          {hero.h1}
-        </h1>
-        {hero.subline ? (
-          <p className="mt-6 max-w-[60ch] text-body text-purple-100">
-            {hero.subline}
-          </p>
-        ) : null}
-        {hero.primaryCta || hero.secondaryCta ? (
-          <div className="mt-8 flex flex-wrap gap-4">
-            {hero.primaryCta ? (
-              <CtaButton cta={hero.primaryCta} variant="primary" />
-            ) : null}
-            {hero.secondaryCta ? (
-              <CtaButton cta={hero.secondaryCta} variant="secondary" />
-            ) : null}
+      <Container className="relative grid items-center gap-12 pb-16 pt-28 md:pb-30 md:pt-40 lg:grid-cols-[1.05fr_0.95fr]">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-label font-600 text-purple-100 backdrop-blur">
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-mint-400"
+            />
+            Nexoris Technologies
+          </span>
+          <h1 className="mt-5 max-w-[18ch] font-jakarta text-hero font-700 text-white">
+            {hero.h1}
+          </h1>
+          {hero.subline ? (
+            <p className="mt-6 max-w-[56ch] text-body text-purple-100">
+              {hero.subline}
+            </p>
+          ) : null}
+          {hero.primaryCta || hero.secondaryCta ? (
+            <div className="mt-8 flex flex-wrap gap-4">
+              {hero.primaryCta ? (
+                <CtaButton cta={hero.primaryCta} variant="primary" />
+              ) : null}
+              {hero.secondaryCta ? (
+                <CtaButton cta={hero.secondaryCta} variant="secondary" />
+              ) : null}
+            </div>
+          ) : null}
+          {hero.trustStrip ? (
+            <p className="mt-10 border-t border-white/10 pt-6 text-label text-purple-200">
+              {hero.trustStrip}
+            </p>
+          ) : null}
+        </div>
+
+        {/* Companion photography, framed and lifted off the mesh. Shown from lg up so the mobile
+            hero stays fast and headline-first. */}
+        <div className="relative hidden lg:block">
+          <div
+            aria-hidden="true"
+            className="absolute -inset-4 rounded-[28px] bg-gradient-to-tr from-purple-600/30 to-mint-400/10 blur-2xl"
+          />
+          <div className="image-frame relative aspect-[4/3]">
+            <Image
+              src={img(heroPhoto.id, 1100)}
+              alt={heroPhoto.alt}
+              fill
+              priority
+              sizes="(min-width: 1024px) 46vw, 100vw"
+              className="object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-ink-950/40 to-transparent"
+            />
           </div>
-        ) : null}
-        {hero.trustStrip ? (
-          <p className="mt-8 text-label text-purple-200">{hero.trustStrip}</p>
-        ) : null}
+        </div>
       </Container>
     </header>
   );
@@ -149,14 +185,19 @@ function renderSectionInner(section: PageSection): ReactNode {
               {section.intro}
             </p>
           ) : null}
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {section.cards.map((card, index) => (
-              <div
-                key={index}
-                className="rounded-card border border-purple-200 bg-white p-6 shadow-subtle"
-              >
+              <div key={index} className="card-surface flex flex-col p-7">
                 {card.title ? (
-                  <h3 className="font-jakarta text-subhead font-600 text-ink-950">
+                  <span
+                    aria-hidden="true"
+                    className="font-mono text-label font-600 text-purple-600"
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                ) : null}
+                {card.title ? (
+                  <h3 className="mt-3 font-jakarta text-subhead font-600 text-ink-950">
                     {card.title}
                   </h3>
                 ) : null}
@@ -170,14 +211,20 @@ function renderSectionInner(section: PageSection): ReactNode {
                   {card.body}
                 </p>
                 {card.links && card.links.length > 0 ? (
-                  <ul className="mt-4 flex flex-col gap-1">
+                  <ul className="mt-5 flex flex-col gap-2 border-t border-purple-100 pt-4">
                     {card.links.map((link) => (
                       <li key={link.href}>
                         <a
                           href={link.href}
-                          className="cursor-pointer text-label font-600 text-purple-600 hover:text-purple-700"
+                          className="group inline-flex cursor-pointer items-center gap-1.5 text-label font-600 text-purple-600 hover:text-purple-700"
                         >
                           {link.label}
+                          <span
+                            aria-hidden="true"
+                            className="transition-transform group-hover:translate-x-0.5"
+                          >
+                            &rarr;
+                          </span>
                         </a>
                       </li>
                     ))}
@@ -214,25 +261,35 @@ function renderSectionInner(section: PageSection): ReactNode {
               {section.intro}
             </p>
           ) : null}
-          <ol className="mt-8 flex flex-col gap-6">
-            {section.steps.map((step, index) => (
-              <li key={index} className="flex gap-4">
-                <span
-                  aria-hidden="true"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-600 font-mono text-label font-600 text-white"
-                >
-                  {index + 1}
-                </span>
-                <div>
-                  <h3 className="font-jakarta text-subhead font-600 text-ink-950">
-                    {step.title}
-                  </h3>
-                  <p className="mt-1 max-w-article text-body text-neutral-600">
-                    {step.body}
-                  </p>
-                </div>
-              </li>
-            ))}
+          <ol className="mt-10 flex flex-col">
+            {section.steps.map((step, index) => {
+              const last = index === section.steps.length - 1;
+              return (
+                <li key={index} className="relative flex gap-5 pb-8 last:pb-0">
+                  {/* The connecting line traces the process down the numbered nodes. */}
+                  {!last ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-[19px] top-10 bottom-0 w-px bg-gradient-to-b from-purple-200 to-transparent"
+                    />
+                  ) : null}
+                  <span
+                    aria-hidden="true"
+                    className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-600 font-mono text-label font-600 text-white shadow-[0_4px_12px_rgba(84,60,218,0.3)]"
+                  >
+                    {index + 1}
+                  </span>
+                  <div className="pt-1.5">
+                    <h3 className="font-jakarta text-subhead font-600 text-ink-950">
+                      {step.title}
+                    </h3>
+                    <p className="mt-1 max-w-article text-body text-neutral-600">
+                      {step.body}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
           {section.link ? (
             <p className="mt-8">
@@ -250,13 +307,22 @@ function renderSectionInner(section: PageSection): ReactNode {
       return (
         <div className="max-w-article">
           <SectionHeading>{section.heading}</SectionHeading>
-          <dl className="mt-8 flex flex-col gap-6">
+          <dl className="mt-10 flex flex-col gap-4">
             {section.items.map((item, index) => (
-              <div key={index} className="border-b border-purple-200 pb-6">
-                <dt className="font-jakarta text-subhead font-600 text-ink-950">
+              <div
+                key={index}
+                className="rounded-2xl border border-purple-100 bg-white p-6 shadow-subtle"
+              >
+                <dt className="flex gap-3 font-jakarta text-subhead font-600 text-ink-950">
+                  <span
+                    aria-hidden="true"
+                    className="select-none font-mono text-purple-600"
+                  >
+                    Q
+                  </span>
                   {item.question}
                 </dt>
-                <dd className="mt-2 text-body text-neutral-600">
+                <dd className="mt-2 pl-7 text-body text-neutral-600">
                   {item.answer}
                 </dd>
               </div>
@@ -266,17 +332,23 @@ function renderSectionInner(section: PageSection): ReactNode {
       );
     case "cta-band":
       return (
-        <div className="rounded-card bg-ink-950 p-8 text-center md:p-12">
-          <h2 className="mx-auto max-w-[28ch] font-jakarta text-section font-700 text-white">
-            {section.heading}
-          </h2>
-          {section.body ? (
-            <p className="mx-auto mt-4 max-w-[60ch] text-body text-purple-100">
-              {section.body}
-            </p>
-          ) : null}
-          <div className="mt-8 flex justify-center">
-            <CtaButton cta={section.button} variant="primary" />
+        <div className="bg-aurora bg-dotgrid relative overflow-hidden rounded-3xl px-8 py-14 text-center md:px-12 md:py-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-purple-500/30 blur-3xl"
+          />
+          <div className="relative">
+            <h2 className="mx-auto max-w-[28ch] font-jakarta text-section font-700 text-white">
+              {section.heading}
+            </h2>
+            {section.body ? (
+              <p className="mx-auto mt-4 max-w-[60ch] text-body text-purple-100">
+                {section.body}
+              </p>
+            ) : null}
+            <div className="mt-8 flex justify-center">
+              <CtaButton cta={section.button} variant="primary" />
+            </div>
           </div>
         </div>
       );
@@ -286,36 +358,34 @@ function renderSectionInner(section: PageSection): ReactNode {
           <h2 className="font-jakarta text-section font-700 text-ink-950">
             {section.heading}
           </h2>
-          {/* The interactive submission, smart assistant, and brief builder are wired in Stage 5. */}
-          <form className="mt-8 flex flex-col gap-4">
-            {section.fields.map((field) => (
-              <div key={field.label} className="flex flex-col gap-1">
-                <label className="text-label font-600 text-ink-950">
-                  {field.label}
-                </label>
-                {field.microcopy ? (
-                  <span className="text-label text-neutral-600">
-                    {field.microcopy}
-                  </span>
-                ) : null}
-                {field.options ? (
-                  <select
-                    className="rounded-card border border-purple-200 p-3 text-body"
-                    aria-label={field.label}
-                  >
-                    {field.options.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    className="rounded-card border border-purple-200 p-3 text-body"
-                    aria-label={field.label}
-                  />
-                )}
-              </div>
-            ))}
-            <div className="rounded-card border border-purple-200 bg-purple-100 p-6">
+          {/* The interactive submission and brief builder are layered in by the ContactForm slot;
+              this static markup is the no-JavaScript fallback. */}
+          <form className="mt-8 flex flex-col gap-5">
+            {section.fields.map((field) => {
+              const id = `static-${field.label.replace(/\s+/g, "-").toLowerCase()}`;
+              return (
+                <Field
+                  key={field.label}
+                  label={field.label}
+                  htmlFor={id}
+                  {...(field.microcopy ? { hint: field.microcopy } : {})}
+                >
+                  {field.options ? (
+                    <Select id={id} aria-label={field.label} defaultValue="">
+                      <option value="">Choose one</option>
+                      {field.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Input id={id} aria-label={field.label} />
+                  )}
+                </Field>
+              );
+            })}
+            <div className="rounded-2xl border border-purple-200 bg-purple-100 p-6">
               <h3 className="font-jakarta text-subhead font-600 text-ink-950">
                 {section.briefBuilder.heading}
               </h3>

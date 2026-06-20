@@ -44,6 +44,77 @@
 }
 
 @layer components {
+  /*
+   * Brand visual language helpers (Stage 12 redesign). Purple stays the voltage: these add
+   * depth and atmosphere without turning the page purple. All decorative, none carry meaning.
+   */
+
+  /* Aurora mesh used behind dark hero and closing bands. */
+  .bg-aurora {
+    background-color: #0d0a1c;
+    background-image:
+      radial-gradient(60% 70% at 12% 8%, rgba(106, 85, 242, 0.45) 0%, transparent 60%),
+      radial-gradient(50% 60% at 90% 0%, rgba(84, 60, 218, 0.4) 0%, transparent 55%),
+      radial-gradient(55% 60% at 78% 92%, rgba(46, 230, 168, 0.12) 0%, transparent 60%);
+  }
+
+  /* A faint dotted grid for texture on dark surfaces. */
+  .bg-dotgrid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* The standard content card: hairline border, soft purple-tinted shadow, gentle lift on hover. */
+  .card-surface {
+    background-color: #ffffff;
+    border: 1px solid #ece9fc;
+    border-radius: 16px;
+    box-shadow:
+      0 1px 2px rgba(84, 60, 218, 0.04),
+      0 2px 8px rgba(84, 60, 218, 0.04);
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease,
+      border-color 200ms ease;
+  }
+  .card-surface:hover {
+    transform: translateY(-3px);
+    border-color: #dcd6f9;
+    box-shadow:
+      0 8px 24px rgba(84, 60, 218, 0.08),
+      0 16px 48px rgba(84, 60, 218, 0.06);
+  }
+
+  /* Gradient ink-to-purple text for select display headings. */
+  .text-gradient {
+    background-image: linear-gradient(100deg, #0d0a1c 0%, #543cda 60%, #6a55f2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Framed photography: rounded, hairline ring, layered shadow. */
+  .image-frame {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 24px 60px rgba(13, 10, 28, 0.18);
+    outline: 1px solid rgba(220, 214, 249, 0.6);
+    outline-offset: -1px;
+  }
+
+  /* Header flyout entrance: a short, calm fade. Opacity only, so the centred mega panel keeps
+     its own transform. Off under reduced-motion (base rule). */
+  @keyframes flyout {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* The skip-to-content link: first in the DOM, visible only when focused (PRD 15). */
   .skip-link {
     position: absolute;
