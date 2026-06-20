@@ -12,7 +12,8 @@
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed:admin": "tsx scripts/seed-admin.ts"
   },
   "dependencies": {
     "@nexoris/ui": "workspace:*",

@@ -1,10 +1,11 @@
 /**
  * The CRM lead list (PRD Part Three, 2): the scored leads Oge delivers, ordered by score so the
- * hottest sit at the top (the SLA board view comes next). Reads nexoris_admin directly. Sign-in
- * and role gating are wired in the next step; this view is the system of record for leads.
+ * hottest sit at the top. Reads nexoris_admin directly; gated by the dashboard layout. Each row
+ * links to the lead detail. This view is the sales system of record.
  */
 import type { ReactNode } from "react";
-import { db } from "../../lib/db.js";
+import Link from "next/link";
+import { db } from "../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
 
@@ -59,10 +60,13 @@ export default async function CrmPage(): Promise<ReactNode> {
               {rows.map((lead) => (
                 <tr key={lead.id} className="border-t border-neutral-200">
                   <td className="px-4 py-3">
-                    <span className="block font-600 text-ink-950">
+                    <Link
+                      href={`/crm/${lead.id}`}
+                      className="cursor-pointer font-600 text-purple-700 hover:text-purple-600"
+                    >
                       {lead.name ?? "Unnamed"}
-                    </span>
-                    <span className="text-neutral-600">
+                    </Link>
+                    <span className="block text-neutral-600">
                       {[lead.company, lead.email].filter(Boolean).join(" · ")}
                     </span>
                   </td>
