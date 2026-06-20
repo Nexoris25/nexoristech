@@ -97,6 +97,9 @@ importers:
 
   apps/cms:
     dependencies:
+      '@nexoris/pseo':
+        specifier: workspace:*
+        version: link:../../packages/pseo
       '@strapi/plugin-cloud':
         specifier: 5.48.1
         version: 5.48.1(i65z3ymh6mk5mvdmtmv7tca7pm)
@@ -278,6 +281,21 @@ importers:
         version: 8.18.2(eslint@9.17.0(jiti@1.21.7))(typescript@5.7.2)
 
   packages/kb:
+    devDependencies:
+      '@nexoris/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: 9.17.0
+        version: 9.17.0(jiti@1.21.7)
+      typescript:
+        specifier: 5.7.2
+        version: 5.7.2
+      vitest:
+        specifier: 2.1.8
+        version: 2.1.8(@types/node@22.10.2)(jsdom@25.0.1)(terser@5.48.0)
+
+  packages/pseo:
     devDependencies:
       '@nexoris/config':
         specifier: workspace:*

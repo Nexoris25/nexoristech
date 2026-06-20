@@ -135,12 +135,14 @@ async function notify(
   // Re-fetch with the fields the text extractor needs (the action result is not fully populated).
   let entry: Entry = result;
   if (action !== "delete" && documentId) {
-    const full = (await strapi
-      .documents(uid as Parameters<typeof strapi.documents>[0])
-      .findOne({
-        documentId,
-        populate: cfg.populate ?? [],
-      })) as Entry | null;
+    // Cast to a loose query surface: Strapi's generated populate typing rejects a plain array.
+    const docs = strapi.documents(
+      uid as Parameters<typeof strapi.documents>[0],
+    ) as unknown as { findOne: (args: unknown) => Promise<Entry | null> };
+    const full = await docs.findOne({
+      documentId,
+      populate: cfg.populate ?? [],
+    });
     if (full) entry = full;
   }
 

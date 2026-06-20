@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_shared_sources",
+  "info": {
+    "displayName": "Source",
+    "icon": "link",
+    "description": "A cited data source or a local data point: a short label and an optional URL."
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}

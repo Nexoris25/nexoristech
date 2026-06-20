@@ -1,14 +1,16 @@
 import type { Core } from "@strapi/strapi";
 import { grantPublicReadPermissions } from "./bootstrap/public-permissions";
 import { registerWebhooks } from "./webhooks/notify";
+import { registerPublishGuard } from "./pseo/publish-guard";
 
 export default {
   /**
-   * Runs before the application is initialized. Registers the publish webhooks that revalidate the
-   * website and re-ingest content into the Oge knowledge base.
+   * Runs before the application is initialized. Registers the publish webhooks (revalidate the
+   * website and re-ingest into Oge) and the programmatic-page quality gate.
    */
   register({ strapi }: { strapi: Core.Strapi }) {
     registerWebhooks(strapi);
+    registerPublishGuard(strapi);
   },
 
   /**
