@@ -36,6 +36,8 @@ const nextConfig: NextConfig = {
   },
   // The design system ships as TypeScript source and is transpiled here.
   transpilePackages: ["@nexoris/ui"],
+  // Keep the PDF renderer external so its bundled standard fonts resolve at runtime.
+  serverExternalPackages: ["@react-pdf/renderer"],
   poweredByHeader: false,
   eslint: {
     // Linting runs as its own workspace task; do not run it again during the build.

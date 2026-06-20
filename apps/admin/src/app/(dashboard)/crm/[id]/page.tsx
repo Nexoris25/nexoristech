@@ -11,6 +11,7 @@ import { assignLead, autoAssignLead } from "../../../../lib/people-actions.js";
 import { recommendationForLead } from "../../../../lib/lead-recommendation.js";
 import { StageControl } from "./StageControl.js";
 import { DraftReply } from "./DraftReply.js";
+import { GenerateDocument } from "./GenerateDocument.js";
 
 export const dynamic = "force-dynamic";
 
@@ -177,6 +178,21 @@ export default async function LeadDetailPage({
               </h2>
               <div className="mt-3">
                 <DraftReply leadId={lead.id} />
+              </div>
+            </section>
+          ) : null}
+
+          {/* Branded document engine (PRD Part Three, 5). */}
+          {canDraft ? (
+            <section className="rounded-card border border-neutral-200 p-5">
+              <h2 className="text-eyebrow uppercase text-neutral-600">
+                Documents
+              </h2>
+              <div className="mt-3">
+                <GenerateDocument
+                  {...(lead.name ? { defaultName: lead.name } : {})}
+                  {...(lead.company ? { defaultCompany: lead.company } : {})}
+                />
               </div>
             </section>
           ) : null}
