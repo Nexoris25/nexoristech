@@ -30,6 +30,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@nexoris/recommend':
+        specifier: workspace:*
+        version: link:../../packages/recommend
       '@nexoris/ui':
         specifier: workspace:*
         version: link:../../packages/ui

@@ -7,7 +7,9 @@
 import { revalidatePath } from "next/cache";
 import { db } from "./db.js";
 import { requireStaff } from "./auth.js";
-import { STAGES, type StageState } from "./crm-constants.js";
+import { draftReply } from "./oge.js";
+import { recommendationForLead } from "./lead-recommendation.js";
+import { STAGES, type StageState, type DraftState } from "./crm-constants.js";
 
 export async function updateLeadStage(
   _prev: StageState,
@@ -76,4 +78,49 @@ export async function updateLeadStage(
   revalidatePath(`/crm/${leadId}`);
   revalidatePath("/crm");
   return { ok: true };
+}
+
+/**
+ * Draft a reply for a lead via the Oge CRM Worker (PRD 3.2). Drafts only: the salesperson reviews
+ * and sends. Grounds the draft in the lead's words and the deterministic service match.
+ */
+export async function draftLeadReply(
+  _prev: DraftState,
+  formData: FormData,
+): Promise<DraftState> {
+  const staff = await requireStaff();
+  if (staff.role === "viewer") {
+    return { error: "Viewers cannot draft replies." };
+  }
+  const leadId = String(formData.get("leadId") ?? "");
+  if (!leadId) return { error: "Missing lead." };
+
+  const { rows } = await db().query<{
+    name: string | null;
+    company: string | null;
+    message: string | null;
+    finder: Record<string, unknown> | null;
+  }>("SELECT name, company, message, finder FROM lead WHERE id = $1", [leadId]);
+  const lead = rows[0];
+  if (!lead) return { error: "That lead no longer exists." };
+
+  const rec = recommendationForLead(lead.finder);
+  const matchedServices = rec ? rec.services.map((s) => s.label) : [];
+  const message =
+    (lead.message ?? "").trim() ||
+    (matchedServices.length > 0
+      ? `Interested in ${matchedServices.join(", ")}.`
+      : "A new enquiry with limited detail.");
+
+  const result = await draftReply({
+    ...(lead.name ? { name: lead.name } : {}),
+    ...(lead.company ? { company: lead.company } : {}),
+    message,
+    matchedServices,
+    ...(rec ? { industry: rec.industry.label } : {}),
+  });
+  if (!result) {
+    return { error: "Could not draft a reply right now. Please try again." };
+  }
+  return { draft: result.draft, draftedBy: result.draftedBy };
 }

@@ -38,3 +38,9 @@ export interface StaffFormState {
 
 /** A lead is "open" (counts toward capacity) until it is Won or Lost. */
 export const CLOSED_STAGES = ["Won", "Lost"] as const;
+
+export interface DraftState {
+  error?: string;
+  draft?: string;
+  draftedBy?: "ai" | "template";
+}

@@ -155,8 +155,18 @@ async function callSlot(
 }
 
 /**
+ * Enforce the house rule that no generated text contains an em dash, regardless of the prompt
+ * (models occasionally ignore the instruction). The em dash is replaced with a comma and space,
+ * which reads naturally in its usual parenthetical or appositive use.
+ */
+export function stripEmDash(text: string): string {
+  return text.replace(/\s*—\s*/g, ", ");
+}
+
+/**
  * Generate a grounded answer over a generation group, walking the fallback chain. An empty
- * completion is treated as a service error so the chain advances to the next slot.
+ * completion is treated as a service error so the chain advances to the next slot. The em-dash
+ * house rule is enforced on every returned answer.
  */
 export async function generateGrounded(
   group: GenerationGroup,
@@ -164,7 +174,7 @@ export async function generateGrounded(
   options: GenerateOptions,
 ): Promise<ChainResult<string>> {
   return runChain(group, env, async ({ slot, modelId, apiKey }) => {
-    const text = (await callSlot(slot, modelId, apiKey, options)).trim();
+    const text = stripEmDash((await callSlot(slot, modelId, apiKey, options)).trim());
     if (text.length === 0) {
       throw new ProviderUnavailableError(
         "empty completion",

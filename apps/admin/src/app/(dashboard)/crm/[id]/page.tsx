@@ -8,7 +8,9 @@ import { notFound } from "next/navigation";
 import { db } from "../../../../lib/db.js";
 import { getCurrentStaff } from "../../../../lib/auth.js";
 import { assignLead, autoAssignLead } from "../../../../lib/people-actions.js";
+import { recommendationForLead } from "../../../../lib/lead-recommendation.js";
 import { StageControl } from "./StageControl.js";
+import { DraftReply } from "./DraftReply.js";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +78,9 @@ export default async function LeadDetailPage({
       ).rows
     : [];
 
+  const recommendation = recommendationForLead(lead.finder);
+  const canDraft = staff !== null && staff.role !== "viewer";
+
   const { rows: activity } = await pool.query<ActivityRow>(
     `SELECT la.type, la.note, la.created_at, s.name AS actor
        FROM lead_activity la
@@ -137,6 +142,44 @@ export default async function LeadDetailPage({
               <dd className="text-ink-950">{dateTime(lead.created_at)}</dd>
             </dl>
           </section>
+
+          {/* Deterministic service recommendation (PRD 3.3). */}
+          {recommendation ? (
+            <section className="rounded-card border border-neutral-200 p-5">
+              <h2 className="text-eyebrow uppercase text-neutral-600">
+                Recommended services
+              </h2>
+              <ul className="mt-2 flex flex-col gap-1 text-label">
+                {recommendation.services.map((service) => (
+                  <li key={service.slug}>
+                    <a
+                      href={`https://nexoristech.com${service.href}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-pointer text-purple-700 underline hover:text-purple-600"
+                    >
+                      {service.label}
+                    </a>
+                  </li>
+                ))}
+                <li className="mt-1 text-neutral-600">
+                  Industry: {recommendation.industry.label}
+                </li>
+              </ul>
+            </section>
+          ) : null}
+
+          {/* Auto-response drafting (PRD 3.2). */}
+          {canDraft ? (
+            <section className="rounded-card border border-neutral-200 p-5">
+              <h2 className="text-eyebrow uppercase text-neutral-600">
+                Draft a reply
+              </h2>
+              <div className="mt-3">
+                <DraftReply leadId={lead.id} />
+              </div>
+            </section>
+          ) : null}
 
           {/* The activity log. */}
           <section className="rounded-card border border-neutral-200 p-5">
