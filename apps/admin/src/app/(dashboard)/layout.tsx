@@ -26,6 +26,14 @@ export default async function DashboardLayout({
           >
             CRM
           </Link>
+          {staff.role === "admin" ? (
+            <Link
+              href="/people"
+              className="cursor-pointer rounded-card px-3 py-2 text-label text-purple-100 hover:bg-ink-800 hover:text-white"
+            >
+              People
+            </Link>
+          ) : null}
         </nav>
         <div className="mt-auto border-t border-ink-800 pt-4 text-label">
           <p className="text-purple-100">{staff.name}</p>

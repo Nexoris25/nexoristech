@@ -27,3 +27,14 @@ export interface StageState {
   error?: string;
   ok?: boolean;
 }
+
+export const ROLES = ["admin", "salesperson", "viewer"] as const;
+export type Role = (typeof ROLES)[number];
+
+export interface StaffFormState {
+  error?: string;
+  ok?: boolean;
+}
+
+/** A lead is "open" (counts toward capacity) until it is Won or Lost. */
+export const CLOSED_STAGES = ["Won", "Lost"] as const;

@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "../../../../lib/db.js";
+import { getCurrentStaff } from "../../../../lib/auth.js";
+import { assignLead, autoAssignLead } from "../../../../lib/people-actions.js";
 import { StageControl } from "./StageControl.js";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +30,8 @@ interface LeadDetail {
   lost_reason: string | null;
   nurture_date: string | null;
   created_at: string;
+  assigned_to: string | null;
+  assignee_name: string | null;
 }
 
 interface ActivityRow {
@@ -48,16 +52,29 @@ export default async function LeadDetailPage({
 }): Promise<ReactNode> {
   const { id } = await params;
   const pool = db();
+  const staff = await getCurrentStaff();
+  const isAdmin = staff?.role === "admin";
 
   const { rows } = await pool.query<LeadDetail>(
-    `SELECT id, source, page, name, email, phone, company, message, finder,
-            score, band, justification, scored_by, status, lost_reason,
-            nurture_date, created_at
-       FROM lead WHERE id = $1`,
+    `SELECT l.id, l.source, l.page, l.name, l.email, l.phone, l.company, l.message,
+            l.finder, l.score, l.band, l.justification, l.scored_by, l.status,
+            l.lost_reason, l.nurture_date, l.created_at, l.assigned_to,
+            s.name AS assignee_name
+       FROM lead l
+       LEFT JOIN staff s ON s.id = l.assigned_to
+      WHERE l.id = $1`,
     [id],
   );
   const lead = rows[0];
   if (!lead) notFound();
+
+  const salespeople = isAdmin
+    ? (
+        await pool.query<{ id: string; name: string }>(
+          "SELECT id, name FROM staff WHERE active = true AND role = 'salesperson' ORDER BY name",
+        )
+      ).rows
+    : [];
 
   const { rows: activity } = await pool.query<ActivityRow>(
     `SELECT la.type, la.note, la.created_at, s.name AS actor
@@ -160,6 +177,47 @@ export default async function LeadDetailPage({
               <p className="mt-3 text-label text-neutral-600">
                 Revisit on {lead.nurture_date}
               </p>
+            ) : null}
+          </section>
+
+          <section className="rounded-card border border-neutral-200 p-5">
+            <h2 className="text-eyebrow uppercase text-neutral-600">Owner</h2>
+            <p className="mt-1 text-label text-ink-950">
+              {lead.assignee_name ?? "Unassigned"}
+            </p>
+            {isAdmin ? (
+              <div className="mt-4 flex flex-col gap-3">
+                <form action={assignLead} className="flex flex-col gap-2">
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <select
+                    name="staffId"
+                    defaultValue={lead.assigned_to ?? ""}
+                    className="cursor-pointer rounded-card border border-neutral-300 p-2 text-label"
+                  >
+                    <option value="">Unassigned</option>
+                    {salespeople.map((person) => (
+                      <option key={person.id} value={person.id}>
+                        {person.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-card bg-purple-600 px-3 py-2 text-label font-600 text-white hover:bg-purple-700"
+                  >
+                    Assign
+                  </button>
+                </form>
+                <form action={autoAssignLead}>
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <button
+                    type="submit"
+                    className="cursor-pointer text-label text-purple-700 underline hover:text-purple-600"
+                  >
+                    Auto-assign by fit and capacity
+                  </button>
+                </form>
+              </div>
             ) : null}
           </section>
         </div>
