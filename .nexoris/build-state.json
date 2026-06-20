@@ -146,13 +146,13 @@
     {
       "id": "stage-10",
       "title": "Hardening + launch runbook",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
         { "id": "cwv-lighthouse-gates", "status": "not_started", "notes": "Core Web Vitals + Lighthouse CI budgets enforced." },
-        { "id": "security-headers", "status": "not_started", "notes": "Security headers, CORS, CSRF, rate limits." },
-        { "id": "cookie-consent", "status": "not_started", "notes": "Granular cookie consent banner wired to legal copy." },
-        { "id": "error-pages", "status": "not_started", "notes": "404 and error pages in the house voice." },
-        { "id": "launch-runbook", "status": "not_started", "notes": "Env, deploy sequence, webhooks, DNS, Search Console, sitemaps, KB ingest, fallback smoke tests." }
+        { "id": "security-headers", "status": "done", "notes": "Security headers on apps/web and apps/admin via next.config headers(): CSP (same-origin, frame-ancestors none), HSTS, X-Content-Type-Options, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy. Verified live on apps/web. Rate limiting DONE: in-memory per-IP limiter on the public endpoints (/api/chat 20/min graceful SSE notice, /api/contact 5/min -> 429), verified live; the oge quota governor remains the per-provider/session layer." },
+        { "id": "cookie-consent", "status": "done", "notes": "CookieConsent banner (granular necessary/analytics/personalisation toggles, Accept all / Reject non-essential / Save choices), choice stored in a first-party nx-consent cookie so the server can gate analytics and personalisation, linked to /cookie-policy, shown once. Mounted in the web layout." },
+        { "id": "error-pages", "status": "done", "notes": "404 and error pages in the house voice (delivered in Stage 4)." },
+        { "id": "launch-runbook", "status": "done", "notes": "docs/RUNBOOK.md: env, build, DB migrations + admin seed, service start sequence, KB ingest, webhooks, DNS/Search Console/sitemaps, provider-fallback smoke tests, post-launch. Remaining stage-10: Lighthouse/CWV CI budgets, route-level Playwright axe, share-debugger checks." }
       ]
     },
     {

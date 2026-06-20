@@ -5,25 +5,21 @@
  * broken state or a technical error.
  */
 import type { NextRequest } from "next/server";
+import { rateLimit, clientIp } from "../../../lib/rate-limit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const GATEWAY = process.env.OGE_GATEWAY_URL ?? "http://localhost:4000";
 
-function offlineStream(): Response {
+/** A one-off SSE stream carrying a single notice and done, for graceful degradation. */
+function noticeStream(message: string): Response {
   const encoder = new TextEncoder();
   const event = (data: unknown): Uint8Array =>
     encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
   const stream = new ReadableStream({
     start(controller) {
-      controller.enqueue(
-        event({
-          type: "notice",
-          message:
-            "Our assistant is offline right now. You can reach the team on WhatsApp or the contact page.",
-        }),
-      );
+      controller.enqueue(event({ type: "notice", message }));
       controller.enqueue(
         event({
           type: "handoff",
@@ -43,7 +39,19 @@ function offlineStream(): Response {
   });
 }
 
+function offlineStream(): Response {
+  return noticeStream(
+    "Our assistant is offline right now. You can reach the team on WhatsApp or the contact page.",
+  );
+}
+
 export async function POST(request: NextRequest): Promise<Response> {
+  if (!rateLimit(`chat:${clientIp(request)}`, 20, 60_000)) {
+    return noticeStream(
+      "You have sent a lot of messages in a short time. Please wait a moment, or reach the team on WhatsApp or the contact page.",
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

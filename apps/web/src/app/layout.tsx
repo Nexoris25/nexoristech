@@ -10,6 +10,7 @@ import { SITE_ORIGIN } from "@nexoris/seo";
 import { SiteHeader } from "../components/SiteHeader.js";
 import { SiteFooter } from "../components/SiteFooter.js";
 import { OgeWidget } from "../components/OgeWidget.js";
+import { CookieConsent } from "../components/CookieConsent.js";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
         <main id="main-content">{children}</main>
         <SiteFooter />
         <OgeWidget />
+        <CookieConsent />
       </body>
     </html>
   );

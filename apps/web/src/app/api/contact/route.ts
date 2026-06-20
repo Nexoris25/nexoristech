@@ -4,6 +4,7 @@
  * unreachable the client shows a plain "please email us" fallback so a lead is never silently lost.
  */
 import type { NextRequest } from "next/server";
+import { rateLimit, clientIp } from "../../../lib/rate-limit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +12,10 @@ export const dynamic = "force-dynamic";
 const GATEWAY = process.env.OGE_GATEWAY_URL ?? "http://localhost:4000";
 
 export async function POST(request: NextRequest): Promise<Response> {
+  if (!rateLimit(`contact:${clientIp(request)}`, 5, 60_000)) {
+    return Response.json({ error: "rate-limited" }, { status: 429 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
