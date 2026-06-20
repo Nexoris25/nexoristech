@@ -158,10 +158,10 @@
     {
       "id": "stage-11",
       "title": "Programmatic SEO layer",
-      "status": "not_started",
+      "status": "in_progress",
       "tasks": [
-        { "id": "template-route-guard", "status": "not_started", "notes": "Template route with quality-gate publish guard and data-readiness gate; unpublished by default." },
-        { "id": "proof-ladder", "status": "not_started", "notes": "Substitution ladder so no page renders empty and none fabricates." },
+        { "id": "template-route-guard", "status": "in_progress", "notes": "The non-negotiable quality gate + data-readiness gate done as a pure tested module (apps/web/src/lib/pseo/quality-gate.ts): evaluatePublishable enforces named author, fact-checker for claim pages, >=3 distinct sources or proprietary+public, honest feature-matrix rows, intent depth (pricing table for cost / comparison matrix for comparison), distinct local data for location pages, and the more-than-half-unique floor; unpublished by default. Remaining: the pseo-page Strapi type, the template render route, the publish guard hook, hubs, and the split programmatic sitemap." },
+        { "id": "proof-ladder", "status": "done", "notes": "Proof substitution ladder done as a pure tested module (apps/web/src/lib/pseo/proof-ladder.ts): resolveProof returns the highest real tier (exact client proof -> adjacent, honestly labelled -> in-house Covyvo/GLEEN + day-one capability proof), never empty and never fabricating a client result. 14 pSEO tests." },
         { "id": "first-wave", "status": "not_started", "notes": "Roughly 10 to 20 fully data-complete permutation and cost pages from in-house products and strongest local data." },
         { "id": "readiness-dashboard", "status": "not_started", "notes": "CMS readiness dashboard; article-derived pipeline; quarterly AI-visibility tracking; first annual report." }
       ]
