@@ -13,6 +13,7 @@ const COLLECTION_READ = [
   "api::case-study.case-study",
   "api::job.job",
   "api::pseo-page.pseo-page",
+  "api::redirect.redirect",
 ];
 
 const SINGLE_READ = [
