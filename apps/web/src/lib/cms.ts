@@ -362,3 +362,105 @@ export async function getLegalPage(type: LegalType): Promise<LegalPage | null> {
     ...opt("effectiveDate", str(r.effectiveDate)),
   };
 }
+
+// ----------------------------------------------------------------------------------------------------
+// Programmatic SEO pages (PRD 9.4 to 9.7). Only published (gate-passed) pages are returned.
+// ----------------------------------------------------------------------------------------------------
+
+export interface MatrixRow {
+  feature: string;
+  value: string;
+}
+export interface PseoSource {
+  label: string;
+  url?: string;
+}
+export interface PseoPage {
+  slug: string;
+  h1: string;
+  intent: "capability" | "cost" | "comparison";
+  industryLabel?: string;
+  techLabel?: string;
+  location?: string;
+  summary?: string;
+  body?: string;
+  painPoints?: string;
+  pricing?: string;
+  comparison?: string;
+  featureMatrix: MatrixRow[];
+  dataSources: PseoSource[];
+  localDataPoints: PseoSource[];
+  faq: FaqItem[];
+  author?: Author;
+  factChecker?: Author;
+  metaTitle?: string;
+  metaDescription?: string;
+  noIndex: boolean;
+}
+
+function toSources(value: unknown): PseoSource[] {
+  return Array.isArray(value)
+    ? (value as Record<string, unknown>[])
+        .map((s) => ({
+          label: str(s.label) ?? "",
+          ...opt("url", str(s.url)),
+        }))
+        .filter((s) => s.label)
+    : [];
+}
+
+export async function getPseoSlugs(): Promise<string[]> {
+  const rows = await fetchCollection(
+    `/pseo-pages?fields[0]=slug&pagination[limit]=500`,
+  );
+  return rows.map((r) => str(r.slug)).filter((s): s is string => Boolean(s));
+}
+
+export async function getPseoPage(slug: string): Promise<PseoPage | null> {
+  const rows = await fetchCollection(
+    `/pseo-pages?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=*`,
+  );
+  const r = rows[0];
+  if (!r) return null;
+  const h1 = str(r.h1);
+  const intent = str(r.intent);
+  if (!h1 || (intent !== "capability" && intent !== "cost" && intent !== "comparison")) {
+    return null;
+  }
+  const seo =
+    typeof r.seo === "object" && r.seo !== null
+      ? (r.seo as Record<string, unknown>)
+      : {};
+  return {
+    slug,
+    h1,
+    intent,
+    featureMatrix: Array.isArray(r.featureMatrix)
+      ? (r.featureMatrix as Record<string, unknown>[])
+          .map((m) => ({ feature: str(m.label) ?? "", value: str(m.value) ?? "" }))
+          .filter((m) => m.feature && m.value)
+      : [],
+    dataSources: toSources(r.dataSources),
+    localDataPoints: toSources(r.localDataPoints),
+    faq: Array.isArray(r.faq)
+      ? (r.faq as Record<string, unknown>[])
+          .map((f) => ({ question: str(f.question) ?? "", answer: str(f.answer) ?? "" }))
+          .filter((f) => f.question && f.answer)
+      : [],
+    noIndex: Boolean(seo.noIndex),
+    ...opt("industryLabel", str(r.industryLabel)),
+    ...opt("techLabel", str(r.techLabel)),
+    ...opt("location", str(r.location)),
+    ...opt("summary", str(r.summary)),
+    ...opt("body", str(r.body)),
+    ...opt("painPoints", str(r.painPoints)),
+    ...opt("pricing", str(r.pricing)),
+    ...opt("comparison", str(r.comparison)),
+    ...(toAuthor(r.author) ? { author: toAuthor(r.author) as Author } : {}),
+    ...(toAuthor(r.factChecker)
+      ? { factChecker: toAuthor(r.factChecker) as Author }
+      : {}),
+    ...opt("metaTitle", str(seo.metaTitle)),
+    ...opt("metaDescription", str(seo.metaDescription)),
+  };
+}

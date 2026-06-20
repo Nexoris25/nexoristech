@@ -7,6 +7,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { buildMetadata } from "@nexoris/seo";
 import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
 import { JsonLd } from "../../components/JsonLd.js";
@@ -16,11 +17,16 @@ import { ContactForm } from "../../components/ContactForm.js";
 import { ProofBand } from "../../components/ProofBand.js";
 import { Testimonials } from "../../components/Testimonials.js";
 import { LatestInsights } from "../../components/LatestInsights.js";
+import { PseoPageView } from "../../components/PseoPageView.js";
+import { getPseoPage, getPseoSlugs } from "../../lib/cms.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
   slug?: string[];
 }
+
+// New published programmatic pages render on demand; the gate keeps the rest unpublished.
+export const dynamicParams = true;
 
 /** Resolve the optional catch-all segments to a content-module slug ("/", "/about", ...). */
 function toSlug(segments: string[] | undefined): string {
@@ -30,12 +36,16 @@ function toSlug(segments: string[] | undefined): string {
   return `/${segments.join("/")}`;
 }
 
-export function generateStaticParams(): RouteParams[] {
-  return allHardcodedPages.map((page) =>
+export async function generateStaticParams(): Promise<RouteParams[]> {
+  const hardcoded: RouteParams[] = allHardcodedPages.map((page) =>
     page.meta.slug === "/"
       ? { slug: [] }
       : { slug: page.meta.slug.replace(/^\//, "").split("/") },
   );
+  const pseo: RouteParams[] = (await getPseoSlugs()).map((s) => ({
+    slug: [s],
+  }));
+  return [...hardcoded, ...pseo];
 }
 
 export async function generateMetadata({
@@ -44,11 +54,25 @@ export async function generateMetadata({
   params: Promise<RouteParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const page = pagesBySlug[toSlug(slug)];
-  if (!page) {
-    return {};
+  const key = toSlug(slug);
+  const page = pagesBySlug[key];
+  if (page) {
+    return metadataForPage(page) as Metadata;
   }
-  return metadataForPage(page) as Metadata;
+  const pseo = await getPseoPage(key.replace(/^\//, ""));
+  if (pseo) {
+    return buildMetadata({
+      title: pseo.metaTitle ?? `${pseo.h1} | Nexoris Technologies`,
+      description:
+        pseo.metaDescription ??
+        pseo.summary ??
+        `${pseo.h1} from Nexoris Technologies.`,
+      path: key,
+      ogType: "website",
+      noindex: pseo.noIndex,
+    }) as Metadata;
+  }
+  return {};
 }
 
 export default async function MarketingRoute({
@@ -57,8 +81,12 @@ export default async function MarketingRoute({
   params: Promise<RouteParams>;
 }): Promise<ReactNode> {
   const { slug } = await params;
-  const page = pagesBySlug[toSlug(slug)];
+  const key = toSlug(slug);
+  const page = pagesBySlug[key];
   if (!page) {
+    // Not a hardcoded page: try a published programmatic page before giving up.
+    const pseo = await getPseoPage(key.replace(/^\//, ""));
+    if (pseo) return <PseoPageView page={pseo} />;
     notFound();
   }
   // The home page injects the industries grid and the Solution Finder; the contact page injects

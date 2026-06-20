@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@nexoris/kb": "workspace:*",
+    "@nexoris/pseo": "workspace:*",
     "@nexoris/recommend": "workspace:*",
     "@nexoris/seo": "workspace:*",
     "@nexoris/ui": "workspace:*",
