@@ -21,6 +21,12 @@ export default async function DashboardLayout({
         <p className="font-jakarta text-subhead font-700">Nexoris Admin</p>
         <nav className="mt-10 flex flex-col gap-1" aria-label="Modules">
           <Link
+            href="/dashboard"
+            className="cursor-pointer rounded-card px-3 py-2 text-label text-purple-100 hover:bg-ink-800 hover:text-white"
+          >
+            Dashboard
+          </Link>
+          <Link
             href="/crm"
             className="cursor-pointer rounded-card px-3 py-2 text-label text-purple-100 hover:bg-ink-800 hover:text-white"
           >
