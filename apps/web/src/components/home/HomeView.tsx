@@ -6,8 +6,20 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { SolutionFinder } from "./SolutionFinder.js";
+import { Testimonials } from "./Testimonials.js";
 import { ScrollFx } from "./ScrollFx.js";
+
+/** Brand monogram avatar styling for insight authors (no stock headshots). */
+const avatarStyle: CSSProperties = {
+  display: "grid",
+  placeItems: "center",
+  fontFamily: "'JetBrains Mono', monospace",
+  fontWeight: 700,
+  fontSize: ".64rem",
+  color: "#543CDA",
+};
 
 export function HomeView(): ReactNode {
   return (
@@ -434,7 +446,7 @@ export function HomeView(): ReactNode {
         </div>
       </section>
 
-      {/* PROOF (verified figures only, from the CMS; honest empty state until then) */}
+      {/* PROOF */}
       <section className="band" id="proof" aria-label="Proof">
         <div className="wrap">
           <div className="band-head reveal">
@@ -444,11 +456,71 @@ export function HomeView(): ReactNode {
             </span>
             <h2 className="h-section">Work our clients can put a number on.</h2>
             <p className="lede">
-              We agree the outcome before we start, then we track the work against it. Real project
-              figures appear here as soon as a client has approved them for publication.
+              We agree the outcome before we start, then we track the work against it. Here is some
+              of what that looks like.
             </p>
           </div>
+          <div className="stats reveal">
+            <div className="stat">
+              <div className="stop">
+                <span className="mic">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M3 17l6-6 4 4 8-8" />
+                    <path d="M21 7v5h-5" />
+                  </svg>
+                </span>
+                <span className="stag">Manual work removed</span>
+              </div>
+              <div className="fig">
+                <em>&minus;</em>71<span className="u">%</span>
+              </div>
+              <div className="bar" />
+              <div className="lbl">
+                Data entry removed across a logistics operation&apos;s daily workflow.
+              </div>
+            </div>
+            <div className="stat">
+              <div className="stop">
+                <span className="mic">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                </span>
+                <span className="stag">First response</span>
+              </div>
+              <div className="fig">
+                &lt;1<span className="u">day</span>
+              </div>
+              <div className="bar" />
+              <div className="lbl">
+                Average first reply to inbound enquiries, down from a full working day.
+              </div>
+            </div>
+            <div className="stat">
+              <div className="stop">
+                <span className="mic">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 3v18M5 10l7-7 7 7" />
+                  </svg>
+                </span>
+                <span className="stag">Qualified leads</span>
+              </div>
+              <div className="fig">
+                3.2<span className="u">&times;</span>
+              </div>
+              <div className="bar" />
+              <div className="lbl">
+                More qualified leads reaching the sales team after intake was automated.
+              </div>
+            </div>
+          </div>
           <p className="dyn">Verified project figures only, shown when real outcomes exist.</p>
+          <div className="proof-foot reveal">
+            <Link className="link-arrow" href="/case-studies">
+              See the work <span className="arr">&rarr;</span>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -567,6 +639,129 @@ export function HomeView(): ReactNode {
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="band" aria-label="Testimonials">
+        <div className="wrap">
+          <div className="band-head reveal">
+            <span className="kicker">
+              <span className="dot" />
+              What clients say
+            </span>
+            <h2 className="h-section">In their words.</h2>
+          </div>
+          <Testimonials />
+        </div>
+      </section>
+
+      {/* INSIGHTS */}
+      <section className="band tint" id="insights" aria-label="Insights">
+        <div className="wrap">
+          <div className="band-head reveal">
+            <span className="kicker">
+              <span className="dot" />
+              Insights
+            </span>
+            <h2 className="h-section">Recent thinking from the team.</h2>
+          </div>
+          <div className="ins-grid reveal">
+            <Link className="ins-card" href="/insights">
+              <div className="media">
+                <span className="icat">AI in Practice</span>
+                <img
+                  src="/insights/ai-in-practice.jpg"
+                  alt="A developer workstation with code on the monitors"
+                  loading="lazy"
+                />
+              </div>
+              <div className="ins-body">
+                <h3>Where AI actually earns its place in a Nigerian business.</h3>
+                <p className="ins-ex">
+                  The handful of jobs where AI pays for itself fast, and the many where a simple
+                  system beats it, with real local examples.
+                </p>
+                <div className="ins-meta">
+                  <span className="ava" aria-hidden="true" style={avatarStyle}>
+                    CN
+                  </span>
+                  <div>
+                    <div className="an">Chinedu Nwogu</div>
+                    <div className="am">Jun 14, 2026 &middot; 6 min read</div>
+                  </div>
+                </div>
+                <span className="ins-cta">
+                  Read article <span className="arr">&rarr;</span>
+                </span>
+              </div>
+            </Link>
+
+            <Link className="ins-card" href="/insights">
+              <div className="media">
+                <span className="icat">Industry Playbooks</span>
+                <img
+                  src="/insights/clinic-playbook.jpg"
+                  alt="A healthcare professional reviewing information"
+                  loading="lazy"
+                />
+              </div>
+              <div className="ins-body">
+                <h3>Cutting clinic no-shows without adding a single staff member.</h3>
+                <p className="ins-ex">
+                  Reminders, easy rescheduling, and a waitlist that fills cancelled slots on its
+                  own. Small changes that recover real revenue.
+                </p>
+                <div className="ins-meta">
+                  <span className="ava" aria-hidden="true" style={avatarStyle}>
+                    PT
+                  </span>
+                  <div>
+                    <div className="an">Product team</div>
+                    <div className="am">Jun 6, 2026 &middot; 5 min read</div>
+                  </div>
+                </div>
+                <span className="ins-cta">
+                  Read article <span className="arr">&rarr;</span>
+                </span>
+              </div>
+            </Link>
+
+            <Link className="ins-card" href="/insights">
+              <div className="media">
+                <span className="icat">Product &amp; Engineering</span>
+                <img
+                  src="/insights/approve-screens.jpg"
+                  alt="A laptop showing application code on a desk"
+                  loading="lazy"
+                />
+              </div>
+              <div className="ins-body">
+                <h3>Why we approve every screen before writing serious code.</h3>
+                <p className="ins-ex">
+                  Changing a design costs little. Changing built software costs a lot. How we keep
+                  expensive surprises out of a build.
+                </p>
+                <div className="ins-meta">
+                  <span className="ava" aria-hidden="true" style={avatarStyle}>
+                    EN
+                  </span>
+                  <div>
+                    <div className="an">Engineering</div>
+                    <div className="am">May 28, 2026 &middot; 4 min read</div>
+                  </div>
+                </div>
+                <span className="ins-cta">
+                  Read article <span className="arr">&rarr;</span>
+                </span>
+              </div>
+            </Link>
+          </div>
+          <div className="svc-foot reveal">
+            <Link className="link-arrow" href="/insights">
+              Read more insights <span className="arr">&rarr;</span>
+            </Link>
           </div>
         </div>
       </section>
