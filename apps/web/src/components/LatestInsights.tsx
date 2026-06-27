@@ -19,7 +19,7 @@ export async function LatestInsights(): Promise<ReactNode> {
             href={`/insights/${insight.slug}`}
             className="group flex h-full cursor-pointer flex-col rounded-card border border-purple-200 p-6 transition hover:border-purple-600"
           >
-            <h3 className="font-syne text-subhead font-700 text-ink-950 group-hover:text-purple-700">
+            <h3 className="font-roboto text-subhead font-700 text-ink-950 group-hover:text-purple-700">
               {insight.title}
             </h3>
             {insight.excerpt ? (

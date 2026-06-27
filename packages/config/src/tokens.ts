@@ -76,9 +76,9 @@ export const shadows = {
  * font-display swap and size-adjusted fallbacks so nothing shifts on load.
  */
 export const fontFamilies = {
-  // Display face for all headings across marketing and dashboards (PRD 14.1, updated).
-  syne: ["Syne", "ui-sans-serif", "system-ui", "sans-serif"],
-  // Retained for any non-heading display use; headings now use Syne.
+  // Heading face for all headings (Roboto, per the design handoff) across marketing and dashboards (PRD 14.1, updated).
+  roboto: ["Roboto", "ui-sans-serif", "system-ui", "sans-serif"],
+  // Retained for any non-heading display use; headings now use Roboto.
   jakarta: ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"],
   // Marketing body, and all dashboard text.
   inter: ["Inter", "system-ui", "sans-serif"],

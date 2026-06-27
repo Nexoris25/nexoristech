@@ -38,7 +38,7 @@ export function EmptyState({
 }: EmptyStateProps): ReactNode {
   return (
     <div className="rounded-card border border-purple-200 bg-white p-8 text-center">
-      <p className="font-syne text-subhead font-600 text-ink-950">{title}</p>
+      <p className="font-roboto text-subhead font-600 text-ink-950">{title}</p>
       {message ? (
         <p className="mt-2 text-body text-neutral-600">{message}</p>
       ) : null}
@@ -60,7 +60,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps): ReactNode {
       role="alert"
       className="rounded-card border border-purple-200 bg-white p-8 text-center"
     >
-      <p className="font-syne text-subhead font-600 text-ink-950">
+      <p className="font-roboto text-subhead font-600 text-ink-950">
         Something went wrong on our side.
       </p>
       <p className="mt-2 text-body text-neutral-600">

@@ -85,7 +85,7 @@ export default async function JobPage({
             <span>{job.title}</span>
           </nav>
 
-          <h1 className="mt-6 font-syne text-hero font-700 text-ink-950">
+          <h1 className="mt-6 font-roboto text-hero font-700 text-ink-950">
             {job.title}
           </h1>
           <p className="mt-2 text-label text-neutral-600">

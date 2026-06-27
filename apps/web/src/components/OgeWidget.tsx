@@ -204,7 +204,7 @@ export function OgeWidget(): ReactNode {
       }}
     >
       <div className="flex items-center justify-between bg-ink-950 px-4 py-3 text-white">
-        <span className="font-syne text-label font-700">
+        <span className="font-roboto text-label font-700">
           Oge, the Nexoris Technologies assistant
         </span>
         <button

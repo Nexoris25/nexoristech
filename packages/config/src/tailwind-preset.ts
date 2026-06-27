@@ -39,7 +39,7 @@ const preset: Partial<Config> = {
         prominent: shadows.prominent,
       },
       fontFamily: {
-        syne: [...fontFamilies.syne],
+        roboto: [...fontFamilies.roboto],
         jakarta: [...fontFamilies.jakarta],
         inter: [...fontFamilies.inter],
         lora: [...fontFamilies.lora],

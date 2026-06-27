@@ -21,7 +21,7 @@ export async function LegalPageView({
   return (
     <Section>
       <Container className="max-w-article">
-        <h1 className="font-syne text-hero font-700 text-ink-950">
+        <h1 className="font-roboto text-hero font-700 text-ink-950">
           {page?.title ?? heading}
         </h1>
         {page?.effectiveDate ? (
@@ -42,7 +42,7 @@ export async function LegalPageView({
           <div className="mt-8 flex flex-col gap-10">
             {page.sections.map((section) => (
               <section key={section.heading}>
-                <h2 className="font-syne text-section font-700 text-ink-950">
+                <h2 className="font-roboto text-section font-700 text-ink-950">
                   {section.heading}
                 </h2>
                 {section.plainSummary ? (

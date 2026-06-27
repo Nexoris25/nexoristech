@@ -70,7 +70,7 @@ function FooterCol({
 }): ReactNode {
   return (
     <div className="foot-col">
-      <h5>{heading}</h5>
+      <h2>{heading}</h2>
       {items.map((i) => (
         <Link key={i.href} href={i.href}>
           {i.label}
@@ -143,7 +143,7 @@ export function SiteFooter(): ReactNode {
           />
 
           <div className="foot-col">
-            <h5>Company</h5>
+            <h2>Company</h2>
             {company.map((c) => (
               <Link key={c.href} href={c.href}>
                 {c.label}

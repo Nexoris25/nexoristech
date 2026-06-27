@@ -9,12 +9,12 @@
  */
 
 @font-face {
-  /* Syne: the display face for all marketing and dashboard headings (modern, distinctive). */
-  font-family: "Syne";
+  /* Roboto: the heading face for all marketing and dashboard headings (modern, distinctive). */
+  font-family: "Roboto";
   font-style: normal;
   font-display: swap;
   font-weight: 400 800;
-  src: url("/fonts/syne.woff2") format("woff2");
+  src: url("/fonts/roboto.woff2") format("woff2");
 }
 
 @font-face {

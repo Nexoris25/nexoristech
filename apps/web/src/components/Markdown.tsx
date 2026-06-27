@@ -10,12 +10,12 @@ import { resolveDateTokens } from "../lib/date.js";
 
 const components = {
   h2: ({ children }: { children?: ReactNode }) => (
-    <h2 className="mt-8 font-syne text-section font-700 text-ink-950">
+    <h2 className="mt-8 font-roboto text-section font-700 text-ink-950">
       {children}
     </h2>
   ),
   h3: ({ children }: { children?: ReactNode }) => (
-    <h3 className="mt-6 font-syne text-subhead font-600 text-ink-950">
+    <h3 className="mt-6 font-roboto text-subhead font-600 text-ink-950">
       {children}
     </h3>
   ),

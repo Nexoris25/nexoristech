@@ -1,7 +1,7 @@
 /*
  * Nexoris Technologies marketing design system, ported verbatim from the approved HTML/CSS
- * design handoff (2026-06-27). Heading face is Syne per the owner's explicit request (the
- * handoff used Syne). Inter, JetBrains Mono, and Syne are all self-hosted (see fonts.css).
+ * design handoff (2026-06-27). Heading face is Roboto, matching the design handoff (the
+ * handoff specifies Roboto). Roboto, Inter, and JetBrains Mono are all self-hosted (see fonts.css).
  */
 :root{
   --ink-950:#0D0A1C;--ink-800:#1C1438;--ink-700:#2A2350;
@@ -28,7 +28,7 @@ a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%;height:auto}
 svg{display:block}
 ::selection{background:var(--purple-600);color:#fff}
-h1,h2,h3,h4,.font-head{font-family:'Syne','Inter',sans-serif}
+h1,h2,h3,h4,.font-head{font-family:'Roboto','Inter',sans-serif}
 .mono{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum"}
 a:focus-visible,button:focus-visible{outline:2px solid var(--purple-500);outline-offset:2px;border-radius:4px}
 .skip{position:absolute;left:-9999px;top:0;background:var(--purple-600);color:#fff;padding:10px 16px;z-index:300;border-radius:0 0 8px 0}
@@ -88,7 +88,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .has-flyout:hover>.mega,.has-flyout.open>.mega{transform:translateX(-50%) translateY(0)}
 .mega-services{grid-template-columns:1fr 1fr 0.9fr}
 .mega-industries{grid-template-columns:repeat(4,1fr) 1.1fr}
-.mcol h6{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;padding:0 8px}
+.mcol .mh{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;padding:0 8px}
 .mitem{display:block;padding:9px 8px;border-radius:9px;transition:background .14s}
 .mitem:hover{background:var(--purple-100)}
 .mitem b{font-size:.875rem;font-weight:600;color:var(--ink-950);display:block}
@@ -99,7 +99,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .mfeat::before{content:"";position:absolute;top:-40%;right:-25%;width:85%;height:130%;background:radial-gradient(circle,rgba(106,85,242,.45),transparent 64%);filter:blur(22px);pointer-events:none}
 .mf-ic{width:40px;height:40px;border-radius:11px;background:rgba(106,85,242,.28);border:1px solid rgba(106,85,242,.45);display:grid;place-items:center;margin-bottom:14px;position:relative}
 .mf-ic svg{width:21px;height:21px;stroke:#d4c9fb;fill:none;stroke-width:1.7}
-.mfeat h6{font-family:'Syne',sans-serif;font-size:1.0625rem;font-weight:700;color:#fff;margin-bottom:8px;position:relative;letter-spacing:-.01em}
+.mfeat .mf-title{font-family:'Roboto',sans-serif;font-size:1.0625rem;font-weight:700;color:#fff;margin-bottom:8px;position:relative;letter-spacing:-.01em}
 .mfeat p{font-size:.82rem;color:rgba(255,255,255,.72);line-height:1.5;margin-bottom:16px;position:relative}
 .mfeat .btn{font-size:.84rem;padding:11px 16px;position:relative;align-self:flex-start}
 .dropdown{top:calc(100% + 8px);right:0;min-width:230px;padding:8px}
@@ -142,7 +142,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
   background:radial-gradient(ellipse at center,rgba(106,85,242,.26),rgba(84,60,218,.08) 48%,transparent 72%);filter:blur(46px)}
 .hero-inner{position:relative;z-index:2;max-width:74ch;margin:0 auto;text-align:center;display:flex;flex-direction:column;align-items:center}
 .hero-inner .kicker{justify-content:center}
-.hero h1{font-family:'Syne',sans-serif;font-size:var(--fs-hero);font-weight:700;line-height:1.07;letter-spacing:-.02em;max-width:24ch;text-wrap:balance}
+.hero h1{font-family:'Roboto',sans-serif;font-size:var(--fs-hero);font-weight:700;line-height:1.07;letter-spacing:-.02em;max-width:24ch;text-wrap:balance}
 .hero .lede{color:rgba(255,255,255,.86);margin-top:20px;max-width:62ch;font-size:var(--fs-body)}
 .hero-cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap;justify-content:center}
 .trust{margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14);font-size:.84rem;color:rgba(255,255,255,.66);display:flex;align-items:center;gap:11px;max-width:62ch;text-align:left}
@@ -166,7 +166,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .pain-ic svg{width:23px;height:23px;stroke:var(--purple-600);fill:none;stroke-width:1.6}
 .pain-card h3{font-size:1.1875rem;font-weight:700;letter-spacing:-.01em;margin-bottom:11px}
 .pain-card p{color:var(--ink-2);font-size:.9375rem;line-height:1.6}
-.pain-close{margin-top:30px;font-family:'Syne',sans-serif;font-size:var(--fs-sub);font-weight:600;letter-spacing:-.01em;max-width:30ch}
+.pain-close{margin-top:30px;font-family:'Roboto',sans-serif;font-size:var(--fs-sub);font-weight:600;letter-spacing:-.01em;max-width:30ch}
 .pain-close b{color:var(--purple-600)}
 
 /* SOLUTION FINDER */
@@ -174,7 +174,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
   display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,48px);align-items:center;position:relative;overflow:hidden;box-shadow:var(--sh-lg)}
 .finder .fglow{position:absolute;top:-30%;right:-10%;width:60%;height:90%;background:radial-gradient(circle,rgba(106,85,242,.3),transparent 65%);filter:blur(40px);pointer-events:none}
 .finder .fc{position:relative;z-index:2}
-.finder h2{font-family:'Syne',sans-serif;font-size:var(--fs-sub);font-weight:700;line-height:1.16;margin:12px 0 12px;letter-spacing:-.01em}
+.finder h2{font-family:'Roboto',sans-serif;font-size:var(--fs-sub);font-weight:700;line-height:1.16;margin:12px 0 12px;letter-spacing:-.01em}
 .finder p{color:rgba(255,255,255,.68);font-size:.9375rem;line-height:1.6;max-width:46ch}
 .cat-chips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;max-width:30rem}
 .cat-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-size:.8rem;font-weight:500;color:rgba(255,255,255,.85)}
@@ -189,7 +189,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .fp-dots{display:flex;gap:6px}
 .fp-dots i{width:7px;height:7px;border-radius:50%;background:var(--ink-700);transition:background .3s}
 .fp-dots i.on{background:var(--purple-500)}
-.fp-q{font-family:'Syne',sans-serif;font-size:1.1875rem;font-weight:600;margin:16px 0 16px;min-height:50px}
+.fp-q{font-family:'Roboto',sans-serif;font-size:1.1875rem;font-weight:600;margin:16px 0 16px;min-height:50px}
 .fp-opts{display:flex;flex-direction:column;gap:10px}
 .fp-opt{display:flex;align-items:center;gap:12px;text-align:left;background:#241B45;border:1px solid var(--ink-700);color:#fff;font-family:inherit;font-size:.9rem;padding:13px 15px;border-radius:9px;cursor:pointer;transition:border-color .15s,background .15s}
 .fp-opt:hover{border-color:var(--purple-500);background:#2A2150}
@@ -199,7 +199,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .fp-result .ric{width:50px;height:50px;border-radius:13px;display:grid;place-items:center;margin-bottom:14px}
 .fp-result .ric svg{width:25px;height:25px;fill:none;stroke-width:1.7}
 .fp-result .rk{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
-.fp-result h4{font-family:'Syne',sans-serif;font-size:1.375rem;font-weight:700;margin:8px 0 10px}
+.fp-result h3{font-family:'Roboto',sans-serif;font-size:1.375rem;font-weight:700;margin:8px 0 10px}
 .fp-result p{color:rgba(255,255,255,.68);font-size:.9rem;margin-bottom:18px}
 .fp-restart{background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.08em;cursor:pointer;text-transform:uppercase;margin-top:12px}
 .fp-restart:hover{color:#fff}
@@ -341,7 +341,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .cta .photo img{width:100%;height:100%;object-fit:cover;opacity:.14;filter:saturate(.5) brightness(.7)}
 .cta .glow{position:absolute;top:8%;left:50%;transform:translateX(-50%);width:80%;height:90%;background:radial-gradient(ellipse,rgba(106,85,242,.3),transparent 65%);filter:blur(50px)}
 .cta-inner{position:relative;z-index:2}
-.cta h2{font-family:'Syne',sans-serif;font-size:clamp(1.75rem,3.8vw,2.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;max-width:18ch;margin:0 auto}
+.cta h2{font-family:'Roboto',sans-serif;font-size:clamp(1.75rem,3.8vw,2.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;max-width:18ch;margin:0 auto}
 .cta p{color:rgba(255,255,255,.74);font-size:1.03rem;line-height:1.6;max-width:52ch;margin:20px auto 0}
 .cta .btn{margin-top:28px}
 
@@ -357,7 +357,7 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .soc{width:36px;height:36px;border-radius:9px;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;color:rgba(255,255,255,.62);transition:color .15s,border-color .15s,background .15s}
 .soc:hover{color:#fff;border-color:var(--purple-500);background:rgba(106,85,242,.18)}
 .soc svg{width:17px;height:17px}
-.foot-col h5{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.58);margin-bottom:14px}
+.foot-col h2{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.58);margin-bottom:14px}
 .foot-col a{display:block;font-size:.86rem;color:rgba(255,255,255,.66);padding:6px 0;transition:color .15s}
 .foot-col a:hover{color:#fff}
 .foot-col a.foot-more{color:var(--purple-300);font-weight:600;margin-top:4px}

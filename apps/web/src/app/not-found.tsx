@@ -10,7 +10,7 @@ export default function NotFound(): ReactNode {
   return (
     <Container className="flex min-h-[60vh] flex-col items-start justify-center pb-16 pt-28 md:pt-40">
       <p className="text-eyebrow uppercase text-purple-600">404</p>
-      <h1 className="mt-2 max-w-[24ch] font-syne text-hero font-700 text-ink-950">
+      <h1 className="mt-2 max-w-[24ch] font-roboto text-hero font-700 text-ink-950">
         We could not find that page.
       </h1>
       <p className="mt-4 max-w-[60ch] text-body text-neutral-600">

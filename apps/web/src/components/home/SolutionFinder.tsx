@@ -213,7 +213,7 @@ export function SolutionFinder(): ReactNode {
               <svg viewBox="0 0 24 24">{rec.path}</svg>
             </div>
             <div className="rk">Recommended for you</div>
-            <h4>{rec.title}</h4>
+            <h3>{rec.title}</h3>
             <p>{rec.desc}</p>
             <Link className="btn btn-primary" href="/contact">
               Start this conversation <span className="arr">&rarr;</span>

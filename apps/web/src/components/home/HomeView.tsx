@@ -17,7 +17,11 @@ export function HomeView(): ReactNode {
       {/* HERO */}
       <section className="hero" aria-label="Hero">
         <div className="bgphoto">
-          <img src="/hero-robot.jpg" alt="" loading="eager" />
+          <img
+            src="/home-hero.jpg"
+            alt="Lines of application source code on a developer's screen"
+            loading="eager"
+          />
         </div>
         <div className="glow" />
         <div className="wrap">
@@ -570,7 +574,11 @@ export function HomeView(): ReactNode {
       {/* CLOSING CTA */}
       <section className="cta" id="cta" aria-label="Closing CTA">
         <div className="photo">
-          <img src="/hero-robot.jpg" alt="" loading="lazy" />
+          <img
+            src="/home-hero.jpg"
+            alt="Application source code on a screen, representing the software Nexoris Technologies builds"
+            loading="lazy"
+          />
         </div>
         <div className="glow" />
         <div className="wrap cta-inner reveal">

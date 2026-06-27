@@ -21,7 +21,7 @@ export default function Error({
 
   return (
     <Container className="flex min-h-[60vh] flex-col items-start justify-center pb-16 pt-28 md:pt-40">
-      <h1 className="max-w-[24ch] font-syne text-hero font-700 text-ink-950">
+      <h1 className="max-w-[24ch] font-roboto text-hero font-700 text-ink-950">
         Something went wrong on our side.
       </h1>
       <p className="mt-4 max-w-[60ch] text-body text-neutral-600">

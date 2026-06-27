@@ -79,7 +79,7 @@ export function SiteHeader(): ReactNode {
             </button>
             <div className="flyout mega mega-services" role="menu">
               <div className="mcol">
-                <h6>Most asked for</h6>
+                <p className="mh">Most asked for</p>
                 {servicesColumnOne.map((s) => (
                   <Link key={s.href} className="mitem" href={s.href}>
                     <b>{s.label}</b>
@@ -88,7 +88,7 @@ export function SiteHeader(): ReactNode {
                 ))}
               </div>
               <div className="mcol">
-                <h6>More services</h6>
+                <p className="mh">More services</p>
                 {servicesColumnTwo.map((s) => (
                   <Link key={s.href} className="mitem" href={s.href}>
                     <b>{s.label}</b>
@@ -103,7 +103,7 @@ export function SiteHeader(): ReactNode {
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
                 </span>
-                <h6>Not sure which fits?</h6>
+                <p className="mf-title">Not sure which fits?</p>
                 <p>{servicesFeatured.text}</p>
                 <Link className="btn btn-primary" href={servicesFeatured.cta.href}>
                   {servicesFeatured.cta.label}
@@ -127,7 +127,7 @@ export function SiteHeader(): ReactNode {
             <div className="flyout mega mega-industries" role="menu">
               {industryGroups.map((group) => (
                 <div key={group.heading} className="mcol">
-                  <h6>{group.heading}</h6>
+                  <p className="mh">{group.heading}</p>
                   {group.items.map((item) => (
                     <Link key={item.href} className="mitem" href={item.href}>
                       <b>{item.label}</b>
@@ -141,7 +141,7 @@ export function SiteHeader(): ReactNode {
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </span>
-                <h6>Not listed here?</h6>
+                <p className="mf-title">Not listed here?</p>
                 <p>{industriesFeatured.text}</p>
                 <Link className="btn btn-primary" href={industriesFeatured.cta.href}>
                   {industriesFeatured.cta.label}

@@ -80,7 +80,7 @@ export function ContactForm({ section }: { section: FormSection }): ReactNode {
         className="max-w-article rounded-card border border-purple-200 bg-purple-100 p-6"
         role="status"
       >
-        <h2 className="font-syne text-section font-700 text-ink-950">
+        <h2 className="font-roboto text-section font-700 text-ink-950">
           {section.heading}
         </h2>
         <p className="mt-4 text-body text-ink-950">{section.afterSubmit}</p>
@@ -90,7 +90,7 @@ export function ContactForm({ section }: { section: FormSection }): ReactNode {
 
   return (
     <div className="max-w-article">
-      <h2 className="font-syne text-section font-700 text-ink-950">
+      <h2 className="font-roboto text-section font-700 text-ink-950">
         {section.heading}
       </h2>
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-5">
@@ -141,7 +141,7 @@ export function ContactForm({ section }: { section: FormSection }): ReactNode {
         })}
 
         <div className="rounded-2xl border border-purple-200 bg-purple-100 p-6">
-          <h3 className="font-syne text-subhead font-600 text-ink-950">
+          <h3 className="font-roboto text-subhead font-600 text-ink-950">
             {section.briefBuilder.heading}
           </h3>
           <p className="mt-2 text-body text-neutral-600">

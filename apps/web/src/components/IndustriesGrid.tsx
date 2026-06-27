@@ -36,7 +36,7 @@ export function IndustriesGrid(): ReactNode {
                 className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/35 to-transparent"
               />
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5">
-                <h3 className="font-syne text-subhead font-700 text-white">
+                <h3 className="font-roboto text-subhead font-700 text-white">
                   {group.heading}
                 </h3>
                 <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-label font-600 text-white backdrop-blur">
