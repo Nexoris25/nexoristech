@@ -13,6 +13,7 @@ import { OgeWidget } from "../components/OgeWidget.js";
 import { CookieConsent } from "../components/CookieConsent.js";
 import "./globals.css";
 import "../styles/design.css";
+import "../styles/service.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

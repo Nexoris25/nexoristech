@@ -12,6 +12,8 @@ import { resolveDateTokens } from "../../lib/date.js";
 import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
 import { HomeView } from "../../components/home/HomeView.js";
+import { ServiceView } from "../../components/service/ServiceView.js";
+import { servicePages } from "../../content/service-pages/index.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { ContactForm } from "../../components/ContactForm.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
@@ -96,6 +98,17 @@ export default async function MarketingRoute({
       <>
         <JsonLd graph={graphForPage(page)} />
         <HomeView />
+      </>
+    );
+  }
+  // Fully ported service pages render from the design-handoff template; metadata and JSON-LD
+  // still come from the content module above.
+  const service = servicePages[page.meta.slug];
+  if (service) {
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <ServiceView content={service} />
       </>
     );
   }
