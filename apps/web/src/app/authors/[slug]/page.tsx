@@ -75,7 +75,7 @@ export default async function AuthorPage({
               {author.role}
             </p>
           ) : null}
-          <h1 className="mt-2 font-jakarta text-hero font-700 text-ink-950">
+          <h1 className="mt-2 font-syne text-hero font-700 text-ink-950">
             {author.name}
           </h1>
           {author.bio ? (
@@ -98,7 +98,7 @@ export default async function AuthorPage({
             <section className="mt-12" aria-labelledby="by-author">
               <h2
                 id="by-author"
-                className="font-jakarta text-section font-700 text-ink-950"
+                className="font-syne text-section font-700 text-ink-950"
               >
                 Articles by {author.name}
               </h2>
@@ -109,7 +109,7 @@ export default async function AuthorPage({
                       href={`/insights/${article.slug}`}
                       className="group cursor-pointer"
                     >
-                      <span className="font-jakarta text-subhead font-600 text-ink-950 group-hover:text-purple-700">
+                      <span className="font-syne text-subhead font-600 text-ink-950 group-hover:text-purple-700">
                         {article.title}
                       </span>
                       {article.publishedAt ? (

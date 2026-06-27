@@ -66,12 +66,12 @@ function personRef(author: Author): PersonRef {
 
 const markdownComponents = {
   h2: ({ children }: { children?: ReactNode }) => (
-    <h2 className="mt-8 font-jakarta text-section font-700 text-ink-950">
+    <h2 className="mt-8 font-syne text-section font-700 text-ink-950">
       {children}
     </h2>
   ),
   h3: ({ children }: { children?: ReactNode }) => (
-    <h3 className="mt-6 font-jakarta text-subhead font-600 text-ink-950">
+    <h3 className="mt-6 font-syne text-subhead font-600 text-ink-950">
       {children}
     </h3>
   ),
@@ -154,7 +154,7 @@ export default async function ArticlePage({
               {article.category}
             </p>
           ) : null}
-          <h1 className="mt-2 font-jakarta text-hero font-700 text-ink-950">
+          <h1 className="mt-2 font-syne text-hero font-700 text-ink-950">
             {article.title}
           </h1>
 
@@ -187,14 +187,14 @@ export default async function ArticlePage({
             <section className="mt-12" aria-labelledby="faq-heading">
               <h2
                 id="faq-heading"
-                className="font-jakarta text-section font-700 text-ink-950"
+                className="font-syne text-section font-700 text-ink-950"
               >
                 Common questions
               </h2>
               <dl className="mt-6 flex flex-col gap-6">
                 {article.faq.map((item) => (
                   <div key={item.question}>
-                    <dt className="font-jakarta text-subhead font-600 text-ink-950">
+                    <dt className="font-syne text-subhead font-600 text-ink-950">
                       {item.question}
                     </dt>
                     <dd className="mt-2 text-body text-neutral-700">

@@ -9,6 +9,15 @@
  */
 
 @font-face {
+  /* Syne: the display face for all marketing and dashboard headings (modern, distinctive). */
+  font-family: "Syne";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 800;
+  src: url("/fonts/syne.woff2") format("woff2");
+}
+
+@font-face {
   font-family: "Plus Jakarta Sans";
   font-style: normal;
   font-display: swap;

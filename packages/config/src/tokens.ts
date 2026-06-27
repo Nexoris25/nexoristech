@@ -76,7 +76,9 @@ export const shadows = {
  * font-display swap and size-adjusted fallbacks so nothing shifts on load.
  */
 export const fontFamilies = {
-  // Marketing pages: hero headlines and feature subheads.
+  // Display face for all headings across marketing and dashboards (PRD 14.1, updated).
+  syne: ["Syne", "ui-sans-serif", "system-ui", "sans-serif"],
+  // Retained for any non-heading display use; headings now use Syne.
   jakarta: ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"],
   // Marketing body, and all dashboard text.
   inter: ["Inter", "system-ui", "sans-serif"],

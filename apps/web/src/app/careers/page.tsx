@@ -29,7 +29,7 @@ export default async function CareersPage(): Promise<ReactNode> {
     <Section>
       <Container>
         <p className="text-eyebrow uppercase text-purple-600">Careers</p>
-        <h1 className="mt-2 max-w-[24ch] font-jakarta text-hero font-700 text-ink-950">
+        <h1 className="mt-2 max-w-[24ch] font-syne text-hero font-700 text-ink-950">
           Build things that matter, with people who care.
         </h1>
         <p className="mt-4 max-w-[60ch] text-body text-neutral-600">
@@ -51,7 +51,7 @@ export default async function CareersPage(): Promise<ReactNode> {
                   href={`/careers/${job.slug}`}
                   className="group flex flex-col gap-1 rounded-card border border-purple-200 p-6 transition hover:border-purple-600"
                 >
-                  <span className="font-jakarta text-subhead font-700 text-ink-950 group-hover:text-purple-700">
+                  <span className="font-syne text-subhead font-700 text-ink-950 group-hover:text-purple-700">
                     {job.title}
                   </span>
                   <span className="text-label text-neutral-600">

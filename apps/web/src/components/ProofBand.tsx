@@ -19,7 +19,7 @@ export async function ProofBand(): Promise<ReactNode> {
           href={`/case-studies/${study.slug}`}
           className="group cursor-pointer rounded-card border border-purple-200 p-6 transition hover:border-purple-600"
         >
-          <h3 className="font-jakarta text-subhead font-700 text-ink-950 group-hover:text-purple-700">
+          <h3 className="font-syne text-subhead font-700 text-ink-950 group-hover:text-purple-700">
             {study.title}
           </h3>
           {study.summary ? (
@@ -29,7 +29,7 @@ export async function ProofBand(): Promise<ReactNode> {
             <ul className="mt-4 flex flex-wrap gap-4">
               {study.metrics.slice(0, 3).map((metric) => (
                 <li key={metric.label}>
-                  <span className="block font-jakarta text-subhead font-700 text-purple-700">
+                  <span className="block font-syne text-subhead font-700 text-purple-700">
                     {metric.value}
                   </span>
                   <span className="text-label text-neutral-600">

@@ -17,7 +17,7 @@ export type ButtonVariant = "primary" | "secondary" | "ghost";
 export type ButtonSize = "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-card font-jakarta font-600 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px]";
+  "inline-flex items-center justify-center gap-2 rounded-card font-syne font-600 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px]";
 
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-purple-600 text-white hover:bg-purple-700",

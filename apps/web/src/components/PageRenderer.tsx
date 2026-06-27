@@ -52,7 +52,7 @@ function Hero({ page }: { page: MarketingPage }): ReactNode {
             />
             Nexoris Technologies
           </span>
-          <h1 className="mt-5 max-w-[18ch] font-jakarta text-hero font-700 text-white">
+          <h1 className="mt-5 max-w-[18ch] font-syne text-hero font-700 text-white">
             {hero.h1}
           </h1>
           {hero.subline ? (
@@ -106,7 +106,7 @@ function Hero({ page }: { page: MarketingPage }): ReactNode {
 
 function SectionHeading({ children }: { children: ReactNode }): ReactNode {
   return (
-    <h2 className="font-jakarta text-section font-700 text-ink-950">
+    <h2 className="font-syne text-section font-700 text-ink-950">
       {children}
     </h2>
   );
@@ -149,7 +149,7 @@ function renderSectionInner(section: PageSection): ReactNode {
           {section.heading ? (
             <h2
               id={`${section.id}-heading`}
-              className="font-jakarta text-section font-700 text-ink-950"
+              className="font-syne text-section font-700 text-ink-950"
             >
               {section.heading}
             </h2>
@@ -197,7 +197,7 @@ function renderSectionInner(section: PageSection): ReactNode {
                   </span>
                 ) : null}
                 {card.title ? (
-                  <h3 className="mt-3 font-jakarta text-subhead font-600 text-ink-950">
+                  <h3 className="mt-3 font-syne text-subhead font-600 text-ink-950">
                     {card.title}
                   </h3>
                 ) : null}
@@ -280,7 +280,7 @@ function renderSectionInner(section: PageSection): ReactNode {
                     {index + 1}
                   </span>
                   <div className="pt-1.5">
-                    <h3 className="font-jakarta text-subhead font-600 text-ink-950">
+                    <h3 className="font-syne text-subhead font-600 text-ink-950">
                       {step.title}
                     </h3>
                     <p className="mt-1 max-w-article text-body text-neutral-600">
@@ -313,7 +313,7 @@ function renderSectionInner(section: PageSection): ReactNode {
                 key={index}
                 className="rounded-2xl border border-purple-100 bg-white p-6 shadow-subtle"
               >
-                <dt className="flex gap-3 font-jakarta text-subhead font-600 text-ink-950">
+                <dt className="flex gap-3 font-syne text-subhead font-600 text-ink-950">
                   <span
                     aria-hidden="true"
                     className="select-none font-mono text-purple-600"
@@ -338,7 +338,7 @@ function renderSectionInner(section: PageSection): ReactNode {
             className="pointer-events-none absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-purple-500/30 blur-3xl"
           />
           <div className="relative">
-            <h2 className="mx-auto max-w-[28ch] font-jakarta text-section font-700 text-white">
+            <h2 className="mx-auto max-w-[28ch] font-syne text-section font-700 text-white">
               {section.heading}
             </h2>
             {section.body ? (
@@ -355,7 +355,7 @@ function renderSectionInner(section: PageSection): ReactNode {
     case "form":
       return (
         <div className="max-w-article">
-          <h2 className="font-jakarta text-section font-700 text-ink-950">
+          <h2 className="font-syne text-section font-700 text-ink-950">
             {section.heading}
           </h2>
           {/* The interactive submission and brief builder are layered in by the ContactForm slot;
@@ -386,7 +386,7 @@ function renderSectionInner(section: PageSection): ReactNode {
               );
             })}
             <div className="rounded-2xl border border-purple-200 bg-purple-100 p-6">
-              <h3 className="font-jakarta text-subhead font-600 text-ink-950">
+              <h3 className="font-syne text-subhead font-600 text-ink-950">
                 {section.briefBuilder.heading}
               </h3>
               <p className="mt-2 text-body text-neutral-600">

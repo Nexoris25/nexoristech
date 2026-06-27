@@ -58,7 +58,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
       <Section>
         <Container className="max-w-article">
           {h1 ? (
-            <h1 className="font-jakarta text-hero font-700 text-ink-950">
+            <h1 className="font-syne text-hero font-700 text-ink-950">
               {h1}
             </h1>
           ) : null}
@@ -81,7 +81,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
             <section className="mt-10" aria-labelledby="matrix">
               <h2
                 id="matrix"
-                className="font-jakarta text-section font-700 text-ink-950"
+                className="font-syne text-section font-700 text-ink-950"
               >
                 What this includes
               </h2>
@@ -104,7 +104,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
 
           {page.intent === "cost" && page.pricing ? (
             <section className="mt-10">
-              <h2 className="font-jakarta text-section font-700 text-ink-950">
+              <h2 className="font-syne text-section font-700 text-ink-950">
                 What it costs
               </h2>
               <div className="mt-4">
@@ -115,7 +115,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
 
           {page.intent === "comparison" && page.comparison ? (
             <section className="mt-10">
-              <h2 className="font-jakarta text-section font-700 text-ink-950">
+              <h2 className="font-syne text-section font-700 text-ink-950">
                 How the options compare
               </h2>
               <div className="mt-4">
@@ -126,7 +126,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
 
           {/* Proof, from the substitution ladder. Never empty, never fabricated. */}
           <section className="mt-10">
-            <h2 className="font-jakarta text-section font-700 text-ink-950">
+            <h2 className="font-syne text-section font-700 text-ink-950">
               Why Nexoris Technologies
             </h2>
             <ul className="mt-4 flex flex-col gap-4">
@@ -146,14 +146,14 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
             <section className="mt-10" aria-labelledby="faq">
               <h2
                 id="faq"
-                className="font-jakarta text-section font-700 text-ink-950"
+                className="font-syne text-section font-700 text-ink-950"
               >
                 Common questions
               </h2>
               <dl className="mt-6 flex flex-col gap-6">
                 {page.faq.map((item) => (
                   <div key={item.question}>
-                    <dt className="font-jakarta text-subhead font-600 text-ink-950">
+                    <dt className="font-syne text-subhead font-600 text-ink-950">
                       {item.question}
                     </dt>
                     <dd className="mt-2 text-body text-neutral-700">

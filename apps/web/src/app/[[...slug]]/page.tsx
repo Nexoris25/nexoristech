@@ -11,13 +11,9 @@ import { buildMetadata } from "@nexoris/seo";
 import { resolveDateTokens } from "../../lib/date.js";
 import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
+import { HomeView } from "../../components/home/HomeView.js";
 import { JsonLd } from "../../components/JsonLd.js";
-import { IndustriesGrid } from "../../components/IndustriesGrid.js";
-import { SolutionFinder } from "../../components/SolutionFinder.js";
 import { ContactForm } from "../../components/ContactForm.js";
-import { ProofBand } from "../../components/ProofBand.js";
-import { Testimonials } from "../../components/Testimonials.js";
-import { LatestInsights } from "../../components/LatestInsights.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
 import { getPseoPage, getPseoSlugs } from "../../lib/cms.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
@@ -93,18 +89,19 @@ export default async function MarketingRoute({
     if (pseo) return <PseoPageView page={pseo} />;
     notFound();
   }
-  // The home page injects the industries grid and the Solution Finder; the contact page injects
-  // the interactive lead-capture form into its form section.
-  let sectionSlots: Record<string, ReactNode> | undefined;
+  // The home page now renders the fully ported design-handoff homepage (its own section set),
+  // keeping the page's JSON-LD graph for SEO.
   if (page.meta.slug === "/") {
-    sectionSlots = {
-      industries: <IndustriesGrid />,
-      "solution-finder": <SolutionFinder />,
-      proof: <ProofBand />,
-      testimonials: <Testimonials />,
-      insights: <LatestInsights />,
-    };
-  } else if (page.meta.slug === "/contact") {
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <HomeView />
+      </>
+    );
+  }
+  // The contact page injects the interactive lead-capture form into its form section.
+  let sectionSlots: Record<string, ReactNode> | undefined;
+  if (page.meta.slug === "/contact") {
     const formSection = page.sections.find((s) => s.kind === "form");
     if (formSection?.kind === "form") {
       sectionSlots = { [formSection.id]: <ContactForm section={formSection} /> };

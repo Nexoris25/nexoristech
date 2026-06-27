@@ -1,238 +1,250 @@
 "use client";
 /**
- * Site header for the Nexoris Technologies marketing site (PRD 7.1 to 7.7).
- *
- * Sticky header, transparent over the dark hero and solid white with a soft shadow once the
- * page scrolls, with the logo switching white to purple at the same point. The Services and
- * Industries mega-flyouts and the Company dropdown are keyboard-correct disclosures from the
- * design system. On mobile a hamburger opens the full-screen drawer with accordions and a
- * sticky Start a project and WhatsApp bar.
+ * Site header for the Nexoris Technologies marketing site, ported from the approved design
+ * handoff (2026-06-27). Dark sticky bar with blur, Services and Industries mega flyouts and a
+ * Company dropdown that open on hover and on click (Esc and outside-click close), plus a
+ * full-screen mobile drawer. Styling lives in styles/design.css; this owns structure and
+ * behaviour. The wordmark hides at <=1080px (design rule) via the .nav-links breakpoint.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
-  AccordionItem,
-  Button,
-  Flyout,
-  MegaMenu,
-  MegaMenuItem,
-  MobileNav,
-} from "@nexoris/ui";
-import {
-  WHATSAPP_HREF,
   companyLinks,
   industriesFeatured,
   industryGroups,
   servicesColumnOne,
   servicesColumnTwo,
   servicesFeatured,
+  WHATSAPP_HREF,
 } from "../content/catalogue.js";
-import type { NavItem } from "../content/catalogue.js";
 
-function ServicesPanel(): ReactNode {
-  return (
-    <div className="w-[min(86vw,680px)]">
-      <MegaMenu columns={2}>
-        <div>
-          {servicesColumnOne.map((item) => (
-            <MegaMenuItem
-              key={item.href}
-              as={Link}
-              href={item.href}
-              label={item.label}
-              {...(item.summary ? { description: item.summary } : {})}
-            />
-          ))}
-        </div>
-        <div>
-          {servicesColumnTwo.map((item) => (
-            <MegaMenuItem
-              key={item.href}
-              as={Link}
-              href={item.href}
-              label={item.label}
-              {...(item.summary ? { description: item.summary } : {})}
-            />
-          ))}
-        </div>
-      </MegaMenu>
-      <div className="mt-4 flex flex-col gap-3 rounded-card bg-purple-100 p-4 md:flex-row md:items-center md:justify-between">
-        <p className="text-label text-ink-950">{servicesFeatured.text}</p>
-        <Button href={servicesFeatured.cta.href}>
-          {servicesFeatured.cta.label}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function IndustriesPanel(): ReactNode {
-  return (
-    <div className="w-[min(90vw,920px)]">
-      <MegaMenu columns={4}>
-        {industryGroups.map((group) => (
-          <div key={group.heading}>
-            <p className="px-3 pb-1 text-eyebrow uppercase text-neutral-600">
-              {group.heading}
-            </p>
-            {group.items.map((item) => (
-              <MegaMenuItem
-                key={item.href}
-                as={Link}
-                href={item.href}
-                label={item.label}
-              />
-            ))}
-          </div>
-        ))}
-      </MegaMenu>
-      <div className="mt-4 flex flex-col gap-3 rounded-card bg-purple-100 p-4 md:flex-row md:items-center md:justify-between">
-        <p className="text-label text-ink-950">{industriesFeatured.text}</p>
-        <Button href={industriesFeatured.cta.href} variant="ghost">
-          {industriesFeatured.cta.label}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function CompanyPanel(): ReactNode {
-  return (
-    <div className="w-56">
-      <MegaMenu columns={1}>
-        {companyLinks.map((item) => (
-          <MegaMenuItem
-            key={item.href}
-            as={Link}
-            href={item.href}
-            label={item.label}
-          />
-        ))}
-      </MegaMenu>
-    </div>
-  );
-}
-
-function MobileNavLinks({ items }: { items: NavItem[] }): ReactNode {
-  return (
-    <ul className="flex flex-col gap-1 pb-2">
-      {items.map((item) => (
-        <li key={item.href}>
-          <Link
-            href={item.href}
-            className="block min-h-[44px] cursor-pointer rounded-card px-3 py-2 text-body text-ink-950 hover:bg-purple-100"
-          >
-            {item.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
+type FlyoutId = "services" | "industries" | "company";
 
 export function SiteHeader(): ReactNode {
-  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState<FlyoutId | null>(null);
+  const [drawer, setDrawer] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
+  // Outside-click and Escape close any open flyout.
   useEffect(() => {
-    const onScroll = (): void => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    function onClick(e: MouseEvent): void {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpen(null);
+    }
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === "Escape") setOpen(null);
+    }
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
-  const triggerClass = scrolled
-    ? "text-ink-950"
-    : "text-white hover:text-purple-100";
+  // Lock body scroll while the drawer is open.
+  useEffect(() => {
+    document.body.style.overflow = drawer ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawer]);
+
+  const toggle = (id: FlyoutId): void => setOpen((cur) => (cur === id ? null : id));
+  const cls = (id: FlyoutId, base: string): string =>
+    `${base}${open === id ? " open" : ""}`;
 
   return (
-    <header
-      className={[
-        "fixed inset-x-0 top-0 z-50 h-16 transition-colors md:h-[72px]",
-        scrolled ? "bg-white shadow-medium" : "bg-transparent",
-      ].join(" ")}
-    >
-      <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-4 md:px-8">
-        <Link href="/" className="flex items-center gap-2">
-          {/* The logo switches with the header state (PRD 7.1). Mark is decorative; the wordmark
-              carries the accessible name. */}
-          <img
-            src={
-              scrolled
-                ? "/brand/nexoris-logo-purple.png"
-                : "/brand/nexoris-logo-white.png"
-            }
-            alt=""
-            width={29}
-            height={32}
-            className="h-8 w-auto"
-          />
-          <span
-            className={`font-jakarta text-subhead font-700 ${scrolled ? "text-ink-950" : "text-white"}`}
-          >
-            Nexoris Technologies
+    <header>
+      <div className="wrap nav">
+        <Link className="brand" href="/" aria-label="Nexoris Technologies home">
+          <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies" />
+          <span className="wm">
+            Nexoris <span>Technologies</span>
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-          <Flyout label="Services" align="mega" triggerClassName={triggerClass}>
-            <ServicesPanel />
-          </Flyout>
-          <Flyout label="Industries" align="mega" triggerClassName={triggerClass}>
-            <IndustriesPanel />
-          </Flyout>
-          <Link
-            href="/insights"
-            className={`rounded-card px-3 py-2 text-label font-600 ${triggerClass}`}
+        <nav className="nav-links" aria-label="Primary" ref={navRef}>
+          <div
+            className={cls("services", "has-flyout has-mega")}
+            onMouseLeave={() => setOpen((c) => (c === "services" ? null : c))}
           >
-            Insights
-          </Link>
-          <Flyout label="Company" align="end" triggerClassName={triggerClass}>
-            <CompanyPanel />
-          </Flyout>
-          <Button href="/contact" className="ml-2">
-            Start a project
-          </Button>
-        </nav>
-
-        <div className="lg:hidden">
-          <MobileNav
-            footer={
-              <div className="flex flex-col gap-3">
-                <Button href="/contact">Start a project</Button>
-                <Button href={WHATSAPP_HREF} variant="secondary">
-                  WhatsApp
-                </Button>
+            <button
+              className="navlink"
+              aria-haspopup="true"
+              aria-expanded={open === "services"}
+              onClick={() => toggle("services")}
+            >
+              Services <span className="cv" />
+            </button>
+            <div className="flyout mega mega-services" role="menu">
+              <div className="mcol">
+                <h6>Most asked for</h6>
+                {servicesColumnOne.map((s) => (
+                  <Link key={s.href} className="mitem" href={s.href}>
+                    <b>{s.label}</b>
+                    {s.summary ? <span>{s.summary}</span> : null}
+                  </Link>
+                ))}
               </div>
-            }
+              <div className="mcol">
+                <h6>More services</h6>
+                {servicesColumnTwo.map((s) => (
+                  <Link key={s.href} className="mitem" href={s.href}>
+                    <b>{s.label}</b>
+                    {s.summary ? <span>{s.summary}</span> : null}
+                  </Link>
+                ))}
+              </div>
+              <div className="mfeat">
+                <span className="mf-ic">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.3-4.3" />
+                  </svg>
+                </span>
+                <h6>Not sure which fits?</h6>
+                <p>{servicesFeatured.text}</p>
+                <Link className="btn btn-primary" href={servicesFeatured.cta.href}>
+                  {servicesFeatured.cta.label}
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={cls("industries", "has-flyout has-mega")}
+            onMouseLeave={() => setOpen((c) => (c === "industries" ? null : c))}
           >
-            <AccordionItem title="Services">
-              <MobileNavLinks
-                items={[...servicesColumnOne, ...servicesColumnTwo]}
-              />
-            </AccordionItem>
-            <AccordionItem title="Industries">
+            <button
+              className="navlink"
+              aria-haspopup="true"
+              aria-expanded={open === "industries"}
+              onClick={() => toggle("industries")}
+            >
+              Industries <span className="cv" />
+            </button>
+            <div className="flyout mega mega-industries" role="menu">
               {industryGroups.map((group) => (
-                <div key={group.heading} className="pb-2">
-                  <p className="px-3 pt-2 text-eyebrow uppercase text-neutral-600">
-                    {group.heading}
-                  </p>
-                  <MobileNavLinks items={group.items} />
+                <div key={group.heading} className="mcol">
+                  <h6>{group.heading}</h6>
+                  {group.items.map((item) => (
+                    <Link key={item.href} className="mitem" href={item.href}>
+                      <b>{item.label}</b>
+                    </Link>
+                  ))}
                 </div>
               ))}
-            </AccordionItem>
-            <AccordionItem title="Company">
-              <MobileNavLinks items={companyLinks} />
-            </AccordionItem>
-            <div className="pt-2">
-              <Link
-                href="/insights"
-                className="block min-h-[44px] rounded-card px-3 py-2 text-subhead font-600 text-ink-950 hover:bg-purple-100"
-              >
-                Insights
-              </Link>
+              <div className="mfeat">
+                <span className="mf-ic">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </span>
+                <h6>Not listed here?</h6>
+                <p>{industriesFeatured.text}</p>
+                <Link className="btn btn-primary" href={industriesFeatured.cta.href}>
+                  {industriesFeatured.cta.label}
+                </Link>
+              </div>
             </div>
-          </MobileNav>
+          </div>
+
+          <Link className="navlink" href="/insights">
+            Insights
+          </Link>
+
+          <div
+            className={cls("company", "has-flyout has-dropdown")}
+            onMouseLeave={() => setOpen((c) => (c === "company" ? null : c))}
+          >
+            <button
+              className="navlink"
+              aria-haspopup="true"
+              aria-expanded={open === "company"}
+              onClick={() => toggle("company")}
+            >
+              Company <span className="cv" />
+            </button>
+            <div className="flyout dropdown" role="menu">
+              {companyLinks.map((c) => (
+                <Link key={c.href} href={c.href}>
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </nav>
+
+        <div className="nav-right">
+          <Link className="btn btn-primary" href="/contact">
+            Start a project
+          </Link>
+          <button
+            className="nav-toggle"
+            aria-label={drawer ? "Close menu" : "Open menu"}
+            aria-expanded={drawer}
+            onClick={() => setDrawer((d) => !d)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
+      </div>
+
+      <div className={`drawer${drawer ? " open" : ""}`} onClick={() => setDrawer(false)}>
+        <div className="drawer-scroll" onClick={(e) => e.stopPropagation()}>
+          <details className="acc">
+            <summary>
+              Services <span className="pm">+</span>
+            </summary>
+            <div className="acc-body">
+              {[...servicesColumnOne, ...servicesColumnTwo].map((s) => (
+                <Link key={s.href} href={s.href} onClick={() => setDrawer(false)}>
+                  {s.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+          <details className="acc">
+            <summary>
+              Industries <span className="pm">+</span>
+            </summary>
+            <div className="acc-body">
+              {industryGroups.flatMap((g) => g.items).map((item) => (
+                <Link key={item.href} href={item.href} onClick={() => setDrawer(false)}>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+          <Link className="dlink" href="/insights" onClick={() => setDrawer(false)}>
+            Insights
+          </Link>
+          <details className="acc">
+            <summary>
+              Company <span className="pm">+</span>
+            </summary>
+            <div className="acc-body">
+              {companyLinks.map((c) => (
+                <Link key={c.href} href={c.href} onClick={() => setDrawer(false)}>
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+        </div>
+        <div className="drawer-cta">
+          <Link className="btn btn-primary" href="/contact" onClick={() => setDrawer(false)}>
+            Start a project <span className="arr">&rarr;</span>
+          </Link>
+          <a className="btn btn-wa" href={WHATSAPP_HREF}>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.5 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1.1.1-1.7-.1-.4-.1-1-.3-1.6-.6-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.4.5c-.2.2-.4.4-.2.7.2.3.7 1.1 1.5 1.8 1 .9 1.8 1.1 2.1 1.3.2.1.4.1.5-.1l.7-.8c.2-.2.3-.2.6-.1l1.9.9c.3.1.4.2.5.3.1.3.1.6-.1 1.2z" />
+            </svg>{" "}
+            WhatsApp
+          </a>
         </div>
       </div>
     </header>

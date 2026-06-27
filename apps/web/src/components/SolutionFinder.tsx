@@ -126,7 +126,7 @@ export function SolutionFinder(): ReactNode {
   if (result) {
     return (
       <div className="mt-8 rounded-card border border-purple-200 bg-white p-6 shadow-subtle md:p-8">
-        <h3 className="font-jakarta text-subhead font-700 text-ink-950">
+        <h3 className="font-syne text-subhead font-700 text-ink-950">
           Here is what we suggest
         </h3>
         <p className="mt-3 max-w-article text-body text-neutral-600">

@@ -1,205 +1,166 @@
 /**
- * Site footer for the Nexoris Technologies marketing site (PRD 7.8). Five columns plus a bottom
- * bar: the company and contact details with the white logo and social profiles; all 11 services;
- * the top 10 industries; the company links; and the start-a-conversation column with the
- * newsletter capture. The newsletter submission is wired to the lead pipeline in a later stage.
+ * Site footer for the Nexoris Technologies marketing site, ported from the approved design
+ * handoff (2026-06-27). Four columns: brand (logo + wordmark always shown, description, address,
+ * socials), Services, Industries, Company, then a bottom bar. Styling lives in styles/design.css.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Button } from "@nexoris/ui";
-import {
-  allServices,
-  footerCompanyLinks,
-  footerTopIndustries,
-} from "../content/catalogue.js";
-import type { NavItem } from "../content/catalogue.js";
 
-const social = [
-  { label: "WhatsApp", href: "https://wa.me/2349138133224" },
+const services = [
+  { label: "AI Product Development", href: "/ai-product-development" },
+  { label: "Chatbots & Assistants", href: "/ai-chatbots-virtual-assistants" },
+  { label: "Process Automation", href: "/business-process-automation" },
+  { label: "Data & Analytics", href: "/data-dashboards-predictive-analytics" },
+  { label: "Managed Operations", href: "/managed-technology-operations" },
+];
+
+const industries = [
+  { label: "Retail & E-Commerce", href: "/retail-ecommerce-software" },
+  { label: "Financial Services & Fintech", href: "/fintech-software" },
+  { label: "Healthcare & Clinics", href: "/healthcare-software" },
+  { label: "Logistics & Supply Chain", href: "/logistics-software" },
+  { label: "Government & Public Sector", href: "/government-digital-solutions" },
+];
+
+const company = [
+  { label: "About", href: "/about" },
+  { label: "How we work", href: "/how-we-work" },
+  { label: "Case studies", href: "/case-studies" },
+  { label: "Insights", href: "/insights" },
+  { label: "Careers", href: "/careers" },
+  { label: "Contact", href: "/contact" },
+];
+
+const socials = [
   {
     label: "LinkedIn",
     href: "https://www.linkedin.com/company/nexoris-technologies",
-  },
-  { label: "X", href: "https://x.com/Nexoristech" },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/nexoristechnologies/",
+    path: "M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.65h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.3-.03-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9z",
   },
   {
     label: "Facebook",
     href: "https://web.facebook.com/people/Nexoris-Technologies/61575547172687/",
+    path: "M14 9h3V5.5h-3c-2.3 0-4 1.8-4 4V11H7.5v3.5H10V22h4v-7.5h2.7l.5-3.5H14V9.5c0-.3.2-.5.5-.5z",
   },
-  { label: "TikTok", href: "https://www.tiktok.com/@nexoristechnologies" },
-  { label: "Threads", href: "https://www.threads.com/@nexoristechnologies" },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/nexoristechnologies/",
+    path: "ig",
+  },
+  {
+    label: "X",
+    href: "https://x.com/Nexoristech",
+    path: "M17.5 3h3.2l-7 8 8.2 10h-6.4l-5-6.1L8 21H4.7l7.5-8.6L4.3 3h6.6l4.5 5.7zM16.4 19h1.7L8 4.9H6.2z",
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@nexoristechnologies",
+    path: "M16 3c.35 2.1 1.6 3.7 3.7 4v3c-1.4 0-2.7-.4-3.7-1.1V15a6 6 0 1 1-6-6c.34 0 .67.03 1 .08v3.15c-.32-.1-.65-.16-1-.16a3 3 0 1 0 3 3V3z",
+  },
 ];
 
-const legal = [
-  { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms of Service", href: "/terms-of-service" },
-  { label: "Cookie Policy", href: "/cookie-policy" },
-];
-
-function LinkColumn({
+function FooterCol({
   heading,
   items,
+  more,
 }: {
   heading: string;
-  items: NavItem[];
+  items: { label: string; href: string }[];
+  more: { label: string; href: string };
 }): ReactNode {
   return (
-    <div>
-      <h2 className="text-eyebrow uppercase text-purple-200">{heading}</h2>
-      <ul className="mt-4 flex flex-col gap-2">
-        {items.map((item) => (
-          <li key={`${item.href}-${item.label}`}>
-            <Link
-              href={item.href}
-              className="cursor-pointer text-label text-purple-100 hover:text-white"
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="foot-col">
+      <h5>{heading}</h5>
+      {items.map((i) => (
+        <Link key={i.href} href={i.href}>
+          {i.label}
+        </Link>
+      ))}
+      <Link className="foot-more" href={more.href}>
+        {more.label}
+      </Link>
     </div>
   );
 }
 
 export function SiteFooter(): ReactNode {
   return (
-    <footer className="bg-ink-950 text-white">
-      <div className="mx-auto max-w-[1200px] px-4 py-16 md:px-8">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
-          {/* Column 1: company and contact. */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center gap-2">
-              <img
-                src="/brand/nexoris-logo-white.png"
-                alt=""
-                width={32}
-                height={36}
-                className="h-9 w-auto"
-              />
-              <span className="font-jakarta text-subhead font-700">
-                Nexoris Technologies
+    <footer>
+      <div className="wrap">
+        <div className="foot-top">
+          <div className="foot-brand">
+            <Link className="brand" href="/">
+              <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies" />{" "}
+              <span className="wm">
+                Nexoris <span>Technologies</span>
               </span>
-            </div>
-            <p className="mt-3 text-label text-purple-100">
-              We design and build custom software for businesses in Nigeria and
-              abroad.
+            </Link>
+            <p>
+              We design and build custom software for businesses in Nigeria and abroad.
             </p>
-            <div className="mt-4 flex flex-col gap-1 text-label text-purple-200">
-              <span>
-                5, Mojisola Dokpesi Street, Allied Garden Estate, Badore, Ajah,
-                Lagos State, Nigeria
-              </span>
-              <a
-                href="tel:+2349138133224"
-                className="cursor-pointer hover:text-white"
-              >
-                +234 913 813 3224
-              </a>
-              <a
-                href="mailto:hello@nexoristech.com"
-                className="cursor-pointer hover:text-white"
-              >
-                hello@nexoristech.com
-              </a>
-              <a
-                href="mailto:business@nexoristech.com"
-                className="cursor-pointer hover:text-white"
-              >
-                business@nexoristech.com
-              </a>
+            <div className="addr">
+              5, Mojisola Dokpesi Street, Badore, Ajah, Lagos, Nigeria
+              <br />
+              <a href="tel:+2349138133224">+234 913 813 3224</a>
+              <br />
+              <a href="mailto:hello@nexoristech.com">hello@nexoristech.com</a>
             </div>
-            <ul className="mt-4 flex flex-wrap gap-3">
-              {social.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-pointer text-label font-600 text-purple-200 hover:text-white"
-                  >
-                    {item.label}
-                  </a>
-                </li>
+            <div className="socials">
+              {socials.map((s) => (
+                <a
+                  key={s.label}
+                  className="soc"
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                >
+                  {s.path === "ig" ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <rect x="3" y="3" width="18" height="18" rx="5.2" />
+                      <circle cx="12" cy="12" r="4.2" />
+                      <circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d={s.path} />
+                    </svg>
+                  )}
+                </a>
               ))}
-            </ul>
-          </div>
-
-          {/* Column 2: services. */}
-          <LinkColumn heading="Services" items={allServices} />
-
-          {/* Column 3: industries (top 10) plus see-all. */}
-          <div>
-            <LinkColumn heading="Industries" items={footerTopIndustries} />
-            <p className="mt-3">
-              <Link
-                href="/#industries"
-                className="cursor-pointer text-label font-600 text-purple-100 hover:text-white"
-              >
-                See all 20 industries &rarr;
-              </Link>
-            </p>
-          </div>
-
-          {/* Column 4: company. */}
-          <LinkColumn heading="Company" items={footerCompanyLinks} />
-
-          {/* Column 5: start a conversation and newsletter. */}
-          <div>
-            <h2 className="text-eyebrow uppercase text-purple-200">
-              Start a conversation
-            </h2>
-            <p className="mt-4 text-label text-purple-100">
-              Tell us what you are trying to achieve. We will come back with a
-              clear suggestion and honest numbers.
-            </p>
-            <div className="mt-4 flex flex-col gap-3">
-              <Button href="/contact">Start a project</Button>
-              {/* Quiet light button on the dark footer: explicit colours so it stays legible. */}
-              <Link
-                href="/contact"
-                className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-card border border-ink-800 px-4 py-2 text-label font-600 text-purple-100 hover:bg-ink-800 hover:text-white"
-              >
-                Find the right service
-              </Link>
             </div>
-            <form className="mt-6 flex flex-col gap-2">
-              <label className="text-label text-purple-100">
-                One useful idea each month. You can unsubscribe any time.
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  aria-label="Your email address"
-                  placeholder="Your email address"
-                  className="min-w-0 flex-1 rounded-card border border-ink-800 bg-ink-800 p-3 text-label text-white placeholder:text-purple-200"
-                />
-                <Button type="submit">Subscribe</Button>
-              </div>
-            </form>
+          </div>
+
+          <FooterCol
+            heading="Services"
+            items={services}
+            more={{ label: "The four ways we help", href: "/#services" }}
+          />
+          <FooterCol
+            heading="Industries"
+            items={industries}
+            more={{ label: "View all industries", href: "/#industries" }}
+          />
+
+          <div className="foot-col">
+            <h5>Company</h5>
+            {company.map((c) => (
+              <Link key={c.href} href={c.href}>
+                {c.label}
+              </Link>
+            ))}
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-ink-800 pt-6 text-label text-purple-200 md:flex-row md:items-center md:justify-between">
-          <p>
-            &copy; {new Date().getFullYear()} Nexoris Technologies Ltd. Built in
-            Lagos. Working everywhere.
-          </p>
-          <ul className="flex flex-wrap gap-4">
-            {legal.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="cursor-pointer hover:text-white"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <div className="foot-bottom">
+          <span className="mono">
+            &copy; {new Date().getFullYear()} Nexoris Technologies Ltd &middot; nexoristech.com
+          </span>
+          <div className="links">
+            <Link href="/privacy-policy">Privacy Policy</Link>
+            <Link href="/terms-of-service">Terms of Service</Link>
+            <Link href="/cookie-policy">Cookie settings</Link>
+          </div>
         </div>
       </div>
     </footer>
