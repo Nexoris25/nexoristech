@@ -129,8 +129,8 @@ export function HomeView(): ReactNode {
         </div>
       </section>
 
-      {/* SOLUTION FINDER */}
-      <section className="band tint" id="finder" aria-label="Solution Finder">
+      {/* SOLUTION FINDER (deep-purple surface so the dark finder card sits in a matching band) */}
+      <section className="band" id="finder" aria-label="Solution Finder">
         <div className="wrap">
           <SolutionFinder />
         </div>
