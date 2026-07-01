@@ -431,3 +431,22 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 
 /* Solution Finder section: deep-purple surface so the dark finder card sits in a matching band. */
 #finder{background:linear-gradient(162deg,#241b57,#181139);border-bottom-color:var(--ink-800)}
+
+/* Hero product mockup (leads with real software instead of a stock photo). */
+.hero-home{background-image:radial-gradient(58% 60% at 50% -6%,rgba(106,85,242,.24),transparent 68%),radial-gradient(40% 50% at 88% 10%,rgba(84,60,218,.18),transparent 60%)}
+.hero-product{max-width:900px;margin:clamp(34px,5vw,56px) auto 0;position:relative;z-index:2}
+
+/* Homepage FAQ (design FAQ component; also used, scoped, on service pages). */
+.faq-head{max-width:640px;margin:0 auto;text-align:center}
+.faq-head .kicker{justify-content:center}
+.faq-head h2{font-size:var(--fs-h2);font-weight:700;line-height:1.12;letter-spacing:-.015em;margin-top:14px}
+.faq-head .lede{margin-top:14px;margin-left:auto;margin-right:auto;max-width:48ch}
+.faq-wrap{display:flex;flex-direction:column;gap:12px;max-width:820px;margin:40px auto 0}
+.faq{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-sm);overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.faq:hover{border-color:var(--purple-200)}
+.faq[open]{border-color:var(--purple-300);box-shadow:var(--sh-md)}
+.faq>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px clamp(20px,2.5vw,28px);font-family:'Roboto',sans-serif;font-size:1.06rem;font-weight:600;letter-spacing:-.01em;color:var(--ink-950)}
+.faq>summary::-webkit-details-marker{display:none}
+.faq>summary .fq-pm{width:26px;height:26px;border-radius:7px;background:var(--purple-100);color:var(--purple-600);display:grid;place-items:center;flex:none;font-size:1.2rem;line-height:1;transition:transform .2s}
+.faq[open]>summary .fq-pm{transform:rotate(45deg)}
+.faq .faq-a{padding:0 clamp(20px,2.5vw,28px) 24px;color:var(--ink-2);font-size:.97rem;line-height:1.65;max-width:70ch}

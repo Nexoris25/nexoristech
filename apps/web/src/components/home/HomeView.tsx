@@ -9,6 +9,9 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { SolutionFinder } from "./SolutionFinder.js";
 import { Testimonials } from "./Testimonials.js";
+import { ProductMockup } from "./ProductMockup.js";
+import { ProofStats } from "./ProofStats.js";
+import { AiMockup } from "./AiMockup.js";
 import { ScrollFx } from "./ScrollFx.js";
 
 /** Brand monogram avatar styling for insight authors (no stock headshots). */
@@ -27,14 +30,7 @@ export function HomeView(): ReactNode {
       <ScrollFx />
 
       {/* HERO */}
-      <section className="hero" aria-label="Hero">
-        <div className="bgphoto">
-          <img
-            src="/home-hero.jpg"
-            alt="Lines of application source code on a developer's screen"
-            loading="eager"
-          />
-        </div>
+      <section className="hero hero-home" aria-label="Hero">
         <div className="glow" />
         <div className="wrap">
           <div className="hero-inner reveal">
@@ -68,6 +64,7 @@ export function HomeView(): ReactNode {
               Trusted by founders, executives, operations leaders, and public institutions.
             </div>
           </div>
+          <ProductMockup />
         </div>
       </section>
 
@@ -460,61 +457,7 @@ export function HomeView(): ReactNode {
               of what that looks like.
             </p>
           </div>
-          <div className="stats reveal">
-            <div className="stat">
-              <div className="stop">
-                <span className="mic">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M3 17l6-6 4 4 8-8" />
-                    <path d="M21 7v5h-5" />
-                  </svg>
-                </span>
-                <span className="stag">Manual work removed</span>
-              </div>
-              <div className="fig">
-                <em>&minus;</em>71<span className="u">%</span>
-              </div>
-              <div className="bar" />
-              <div className="lbl">
-                Data entry removed across a logistics operation&apos;s daily workflow.
-              </div>
-            </div>
-            <div className="stat">
-              <div className="stop">
-                <span className="mic">
-                  <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 7v5l3 2" />
-                  </svg>
-                </span>
-                <span className="stag">First response</span>
-              </div>
-              <div className="fig">
-                &lt;1<span className="u">day</span>
-              </div>
-              <div className="bar" />
-              <div className="lbl">
-                Average first reply to inbound enquiries, down from a full working day.
-              </div>
-            </div>
-            <div className="stat">
-              <div className="stop">
-                <span className="mic">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M12 3v18M5 10l7-7 7 7" />
-                  </svg>
-                </span>
-                <span className="stag">Qualified leads</span>
-              </div>
-              <div className="fig">
-                3.2<span className="u">&times;</span>
-              </div>
-              <div className="bar" />
-              <div className="lbl">
-                More qualified leads reaching the sales team after intake was automated.
-              </div>
-            </div>
-          </div>
+          <ProofStats />
           <p className="dyn">Verified project figures only, shown when real outcomes exist.</p>
           <div className="proof-foot reveal">
             <Link className="link-arrow" href="/case-studies">
@@ -620,12 +563,7 @@ export function HomeView(): ReactNode {
               </p>
             </div>
             <div className="ai-media">
-              <img
-                src="/ai-assistant.webp"
-                alt="A robot at a workstation reading an AI dashboard, representing the AI features Nexoris Technologies builds"
-                loading="lazy"
-              />
-              <div className="ovl" />
+              <AiMockup />
               <div className="ai-chip">
                 <span className="aci">
                   <svg viewBox="0 0 24 24">
@@ -762,6 +700,58 @@ export function HomeView(): ReactNode {
             <Link className="link-arrow" href="/insights">
               Read more insights <span className="arr">&rarr;</span>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="band soft" id="faq" aria-label="Frequently asked questions">
+        <div className="wrap">
+          <div className="faq-head reveal">
+            <span className="kicker">
+              <span className="dot" />
+              Questions
+            </span>
+            <h2>The things people ask before they reach out.</h2>
+            <p className="lede">
+              Straight answers to what clients raise most often. If yours is not here, ask us
+              directly and a real person will reply.
+            </p>
+          </div>
+          <div className="faq-wrap reveal">
+            {[
+              {
+                q: "What does Nexoris Technologies actually do?",
+                a: "We design and build websites, web applications, mobile apps, and custom business systems for companies in Nigeria and abroad. Where AI can genuinely make the product better, we build it in. Where it cannot, we leave it out and tell you why.",
+              },
+              {
+                q: "Do I need to understand the technology to work with you?",
+                a: "No. Tell us the problem in plain words. We turn it into a clear scope, and the Solution Finder or a short call points you to the right service without the jargon.",
+              },
+              {
+                q: "How long does a project take, and what will it cost?",
+                a: "A business website is usually four to eight weeks. A custom system or app typically runs three to six months, delivered in stages so you see working software early. Every project starts with a written scope, timeline, and cost before work begins, so there are no surprise invoices.",
+              },
+              {
+                q: "Do I own what you build?",
+                a: "Yes, completely. All source code, designs, and project files are handed over to you at the end of the project. Nothing is held back, and your team can run it independently.",
+              },
+              {
+                q: "Do you force AI into every project?",
+                a: "No. We add AI only where it earns its place, like answering customers at any hour or warning you before stock runs out. If your project does not need it, we will say so before you pay for it.",
+              },
+              {
+                q: "What happens after launch?",
+                a: "You own everything and can run it yourself. Most clients also take a managed plan so we keep monitoring, updating, and improving the product. Either way, the choice is yours.",
+              },
+            ].map((item) => (
+              <details className="faq" key={item.q}>
+                <summary>
+                  {item.q} <span className="fq-pm">+</span>
+                </summary>
+                <div className="faq-a">{item.a}</div>
+              </details>
+            ))}
           </div>
         </div>
       </section>
