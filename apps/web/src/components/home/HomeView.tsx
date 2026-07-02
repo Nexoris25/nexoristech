@@ -11,7 +11,7 @@ import { SolutionFinder } from "./SolutionFinder.js";
 import { Testimonials } from "./Testimonials.js";
 import { ProductMockup } from "./ProductMockup.js";
 import { ProofStats } from "./ProofStats.js";
-import { AiMockup } from "./AiMockup.js";
+import { OgeChat } from "./OgeChat.js";
 import { ScrollFx } from "./ScrollFx.js";
 
 /** Brand monogram avatar styling for insight authors (no stock headshots). */
@@ -562,21 +562,7 @@ export function HomeView(): ReactNode {
                 warns you before stock runs out, we build it in <b>properly from the start</b>.
               </p>
             </div>
-            <div className="ai-media">
-              <AiMockup />
-              <div className="ai-chip">
-                <span className="aci">
-                  <svg viewBox="0 0 24 24">
-                    <rect x="5" y="7" width="14" height="11" rx="3" />
-                    <path d="M12 7V4M9 12h.01M15 12h.01M9 15h6M2 12h2M20 12h2" />
-                  </svg>
-                </span>
-                <span>
-                  <b>Built where it earns its place</b>
-                  <span>Never forced into every product</span>
-                </span>
-              </div>
-            </div>
+            <OgeChat />
           </div>
         </div>
       </section>

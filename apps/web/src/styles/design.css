@@ -450,3 +450,28 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .faq>summary .fq-pm{width:26px;height:26px;border-radius:7px;background:var(--purple-100);color:var(--purple-600);display:grid;place-items:center;flex:none;font-size:1.2rem;line-height:1;transition:transform .2s}
 .faq[open]>summary .fq-pm{transform:rotate(45deg)}
 .faq .faq-a{padding:0 clamp(20px,2.5vw,28px) 24px;color:var(--ink-2);font-size:.97rem;line-height:1.65;max-width:70ch}
+
+/* Interactive Oge chat in the "Our AI approach" section (replaces the robot image). */
+.oge-chat{position:relative;display:flex;flex-direction:column;min-height:380px;padding:18px;border-radius:20px;overflow:hidden;background:linear-gradient(158deg,var(--ink-800),var(--ink-950));border:1px solid var(--ink-700);box-shadow:var(--sh-lg)}
+.oge-chat-glow{position:absolute;top:-30%;right:-20%;width:70%;height:80%;background:radial-gradient(circle,rgba(106,85,242,.4),transparent 65%);filter:blur(40px);pointer-events:none}
+.oge-chat-head{position:relative;display:flex;align-items:center;gap:11px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.oge-chat-ava{position:relative;flex:none;line-height:0}
+.oge-chat-online{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:#1FAE54;border:2px solid var(--ink-950)}
+.oge-chat-id{display:flex;flex-direction:column;line-height:1.25}
+.oge-chat-id b{color:#fff;font-size:.95rem;font-weight:700}
+.oge-chat-id span{color:rgba(255,255,255,.55);font-size:.72rem}
+.oge-chat-tag{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.06em;color:#b3a6f5;background:rgba(106,85,242,.18);border:1px solid rgba(106,85,242,.3);border-radius:6px;padding:4px 8px;white-space:nowrap}
+.oge-chat-body{position:relative;flex:1;display:flex;flex-direction:column;gap:14px;padding:18px 2px}
+.oge-q{align-self:flex-end;max-width:82%;background:var(--purple-600);color:#fff;font-size:.86rem;line-height:1.45;padding:10px 14px;border-radius:14px 14px 4px 14px;box-shadow:0 4px 14px rgba(84,60,218,.3);animation:oge-in .3s ease}
+.oge-a{display:flex;align-items:flex-end;gap:9px;max-width:90%}
+.oge-a-ava{flex:none;line-height:0}
+.oge-a-bubble{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.92);font-size:.86rem;line-height:1.5;padding:10px 14px;border-radius:14px 14px 14px 4px;animation:oge-in .3s ease}
+.oge-typing{display:inline-flex;gap:5px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:13px 15px;border-radius:14px 14px 14px 4px}
+.oge-typing i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);animation:oge-blink 1.2s infinite}
+.oge-typing i:nth-child(2){animation-delay:.2s}
+.oge-typing i:nth-child(3){animation-delay:.4s}
+.oge-chat-input{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:9px 9px 9px 14px;color:rgba(255,255,255,.5);font-size:.82rem}
+.oge-send{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--purple-600);color:#fff;flex:none}
+@keyframes oge-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes oge-blink{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.oge-typing i,.oge-q,.oge-a-bubble{animation:none}}

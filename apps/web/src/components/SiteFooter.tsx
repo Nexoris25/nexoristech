@@ -99,7 +99,9 @@ export function SiteFooter(): ReactNode {
               We design and build custom software for businesses in Nigeria and abroad.
             </p>
             <div className="addr">
-              5, Mojisola Dokpesi Street, Badore, Ajah, Lagos, Nigeria
+              5, Mojisola Dokpesi Street, Badore, Ajah,
+              <br />
+              Lagos, Nigeria
               <br />
               <a href="tel:+2349138133224">+234 913 813 3224</a>
               <br />
