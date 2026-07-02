@@ -141,22 +141,104 @@ export const aiSeoGeo: ServiceContent = {
     foot: "Anyone promising page one rankings in thirty days is selling you something with an expiry date.",
   },
   process: {
-    h2: "How we work together.",
-    steps: [
+    h2: "Our service delivery process.",
+    stages: [
       {
-        title: "The Foundation",
-        body: "Stage one, a one-time engagement. We start with a full picture of where you stand: your content, technical health, authority signals, and AI readiness. We turn that into a complete content architecture and a 12-month roadmap. Every client starts here.",
+        title: "Discovery & Foundation Setup",
+        desc: "We establish the strategic and technical foundation for long-term search visibility. This includes understanding your business, audience, competitors, and current digital performance while identifying the highest-impact opportunities for growth.",
+        activities: [
+          "Business, audience, and competitor discovery",
+          "Technical SEO audit",
+          "AI search (GEO) readiness assessment",
+          "Website performance and crawlability audit",
+          "Keyword research and search intent analysis",
+          "Content gap analysis",
+          "Information architecture review",
+          "Analytics and tracking verification",
+          "Baseline performance benchmarking",
+        ],
+        deliverables: [
+          "Comprehensive SEO & GEO Audit Report",
+          "Technical Health Report",
+          "AI Search Readiness Assessment",
+          "Keyword Research & Topic Cluster Map",
+          "Competitor Insights",
+          "Baseline Performance Report",
+          "Prioritized 90-Day Action Plan",
+        ],
       },
       {
-        title: "Ongoing Growth",
-        body: "Stage two, a monthly retainer. Once the foundation is in place, we build on it every month: authority content, research, social distribution across LinkedIn and X, and a monthly report that tells you exactly where things stand.",
+        title: "Strategy & Planning",
+        desc: "Using insights gathered during the discovery phase, we develop a structured roadmap that aligns your content, website, and optimization efforts with your business objectives and customer journey.",
+        activities: [
+          "Content strategy development",
+          "Editorial calendar planning",
+          "Keyword clustering and topical mapping",
+          "User search intent mapping",
+          "Landing page planning",
+          "Internal linking strategy",
+          "Conversion pathway planning",
+          "KPI and success metric definition",
+        ],
+        deliverables: [
+          "SEO & GEO Strategy Document",
+          "Content Calendar",
+          "Keyword Cluster Plan",
+          "Search Intent Framework",
+          "Page Optimization Roadmap",
+          "Conversion Strategy",
+          "Performance KPI Framework",
+        ],
+      },
+      {
+        title: "Content Creation & Optimization",
+        desc: "We execute the strategy by creating and optimizing content while continuously improving your website's on-page experience, technical performance, and AI search visibility.",
+        activities: [
+          "SEO & GEO content creation",
+          "Existing content optimization",
+          "On-page SEO implementation",
+          "Metadata optimization",
+          "Internal linking improvements",
+          "Structured content optimization",
+          "Technical SEO enhancements",
+          "Content publishing or handover",
+        ],
+        deliverables: [
+          "SEO-Optimized Content Assets",
+          "Updated Website Pages",
+          "On-Page SEO Improvements",
+          "Technical Optimization Updates",
+          "Internal Linking Enhancements",
+          "Publication-Ready Content",
+        ],
+      },
+      {
+        title: "Performance Monitoring & Continuous Improvement",
+        desc: "We monitor performance, measure outcomes, and refine the strategy using real-world data to drive continuous improvements in visibility, traffic, engagement, and conversions.",
+        activities: [
+          "Organic ranking monitoring",
+          "AI search visibility tracking",
+          "Traffic and engagement analysis",
+          "Conversion performance review",
+          "Technical health monitoring",
+          "Content performance evaluation",
+          "Strategy refinement",
+          "Monthly optimization planning",
+        ],
+        deliverables: [
+          "Monthly Performance Report",
+          "Keyword Ranking Report",
+          "AI Visibility Report",
+          "Traffic & Conversion Analysis",
+          "Strategic Recommendations",
+          "Continuous Optimization Roadmap",
+        ],
       },
     ],
     note: (
       <>
-        Everything begins with a discovery session. We learn your situation, look at where you are
-        today, and scope the foundation work to your exact needs.{" "}
-        <b>The order matters: foundation first, then growth.</b>
+        Every engagement begins with a discovery session, and the order of these stages is what makes
+        the work compound. <b>Foundation first, then strategy, content, and continuous improvement.</b>
       </>
     ),
   },

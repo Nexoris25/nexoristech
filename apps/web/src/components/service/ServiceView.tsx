@@ -57,7 +57,13 @@ export interface ServiceContent {
   problem: { kicker: string; h2: string; quotes: { text: string; tag?: string }[]; close: ReactNode };
   scope: { kicker: string; h2: string; lede?: string; items: IconItem[] };
   ai: { kicker: string; h2: string; intro: string; feats: IconItem[]; foot: string };
-  process: { h2: string; steps: { title: string; body: string }[]; note: ReactNode };
+  process: {
+    h2: string;
+    steps?: { title: string; body: string }[];
+    /** Detailed delivery stages (title, description, and Activities/Deliverables lists). */
+    stages?: { title: string; desc: string; activities: string[]; deliverables: string[] }[];
+    note: ReactNode;
+  };
   proof: { kicker: string; h2: string; lede: string; cards: { tag: string; title: string }[] };
   industryLinks: { kicker: string; h2: string; lede: string; links: ServiceLink[] };
   faq: { kicker: string; h2: string; lede: string; items: { q: string; a: string }[] };
@@ -231,19 +237,51 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
             </span>
             <h2 className="h-section">{c.process.h2}</h2>
           </div>
-          <div className="proc-grid reveal">
-            {c.process.steps.map((s, i) => (
-              <div className="pstep" key={i}>
-                <span className="pnode">
-                  <span className="pn-badge">{String(i + 1).padStart(2, "0")}</span>
-                  <Svg>{STAGE_ICONS[i]}</Svg>
-                </span>
-                <div className="pnum">Stage {String(i + 1).padStart(2, "0")}</div>
-                <h3>{s.title}</h3>
-                <p>{s.body}</p>
-              </div>
-            ))}
-          </div>
+          {c.process.stages ? (
+            <div className="dstages reveal">
+              {c.process.stages.map((st, i) => (
+                <div className="dstage" key={i}>
+                  <div className="dstage-head">
+                    <span className="dstage-num">Stage {String(i + 1).padStart(2, "0")}</span>
+                    <h3>{st.title}</h3>
+                    <p>{st.desc}</p>
+                  </div>
+                  <div className="dstage-cols">
+                    <div className="dstage-col">
+                      <div className="dstage-label">Activities</div>
+                      <ul>
+                        {st.activities.map((a) => (
+                          <li key={a}>{a}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="dstage-col dstage-col-deliv">
+                      <div className="dstage-label">Deliverables</div>
+                      <ul>
+                        {st.deliverables.map((d) => (
+                          <li key={d}>{d}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : c.process.steps ? (
+            <div className="proc-grid reveal">
+              {c.process.steps.map((s, i) => (
+                <div className="pstep" key={i}>
+                  <span className="pnode">
+                    <span className="pn-badge">{String(i + 1).padStart(2, "0")}</span>
+                    <Svg>{STAGE_ICONS[i]}</Svg>
+                  </span>
+                  <div className="pnum">Stage {String(i + 1).padStart(2, "0")}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <div className="proc-note reveal">
             <span className="pn-ic">
               <Svg>

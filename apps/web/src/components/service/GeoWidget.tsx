@@ -154,23 +154,23 @@ export function GeoWidget(): ReactNode {
               </div>
               <div className="gaio-srcs">
                 <div className="gaio-src">
-                  <div className="gaio-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}>N</div>
+                  <div className="gaio-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}><img src="/logo-mark-white.png" alt="" style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
                   <div>
                     <div className="gaio-sname">nexoristech.com</div>
                     <div className="gaio-stitle">Nexoris Technologies · Custom Software</div>
                   </div>
                 </div>
                 <div className="gaio-src">
-                  <div className="gaio-fav" style={{ background: "#1a73e8", color: "#fff", fontSize: 9, fontWeight: 800 }}>T</div>
+                  <div className="gaio-fav" style={{ background: "#1a73e8", color: "#fff", fontSize: 9, fontWeight: 800 }}>L</div>
                   <div>
-                    <div className="gaio-sname">techcabal.com</div>
+                    <div className="gaio-sname">lagostechreview.com</div>
                     <div className="gaio-stitle">Top software companies in Lagos 2025</div>
                   </div>
                 </div>
                 <div className="gaio-src">
-                  <div className="gaio-fav" style={{ background: "#ff6900", color: "#fff", fontSize: 9, fontWeight: 800 }}>C</div>
+                  <div className="gaio-fav" style={{ background: "#ff6900", color: "#fff", fontSize: 9, fontWeight: 800 }}>V</div>
                   <div>
-                    <div className="gaio-sname">clutch.co</div>
+                    <div className="gaio-sname">verifiedsoftware.io</div>
                     <div className="gaio-stitle">Nexoris Technologies Reviews</div>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export function GeoWidget(): ReactNode {
                 </div>
                 <div className="gpt-fn">
                   <span className="gpt-fnnum">2</span>
-                  <span className="gpt-fnlink">clutch.co</span>
+                  <span className="gpt-fnlink">verifiedsoftware.io</span>
                   <span className="gpt-fntitle">Nexoris Technologies Reviews &amp; Profile</span>
                 </div>
               </div>
@@ -265,7 +265,7 @@ export function GeoWidget(): ReactNode {
                   <div className="ppx-src">
                     <span className="ppx-snum">1</span>
                     <div className="ppx-sinfo">
-                      <div className="ppx-sfav" style={{ background: "#543CDA", color: "#fff", fontSize: 8, fontWeight: 800 }}>N</div>
+                      <div className="ppx-sfav" style={{ background: "#543CDA", color: "#fff", fontSize: 8, fontWeight: 800 }}><img src="/logo-mark-white.png" alt="" style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
                       <div>
                         <div className="ppx-sname">nexoristech.com</div>
                         <div className="ppx-stitle">Nexoris Technologies</div>
@@ -275,9 +275,9 @@ export function GeoWidget(): ReactNode {
                   <div className="ppx-src">
                     <span className="ppx-snum">2</span>
                     <div className="ppx-sinfo">
-                      <div className="ppx-sfav" style={{ background: "#ff6900", color: "#fff", fontSize: 8, fontWeight: 800 }}>C</div>
+                      <div className="ppx-sfav" style={{ background: "#ff6900", color: "#fff", fontSize: 8, fontWeight: 800 }}>V</div>
                       <div>
-                        <div className="ppx-sname">clutch.co</div>
+                        <div className="ppx-sname">verifiedsoftware.io</div>
                         <div className="ppx-stitle">Nexoris Reviews</div>
                       </div>
                     </div>
@@ -319,12 +319,12 @@ export function GeoWidget(): ReactNode {
                     <div className="gem-src-head">Sources</div>
                     <div className="gem-src-row">
                       <span className="gem-src">
-                        <div className="gem-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}>N</div>
+                        <div className="gem-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}><img src="/logo-mark-white.png" alt="" style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
                         <span>nexoristech.com</span>
                       </span>
                       <span className="gem-src">
-                        <div className="gem-fav" style={{ background: "#ff6900", color: "#fff", fontSize: 9, fontWeight: 800 }}>C</div>
-                        <span>clutch.co</span>
+                        <div className="gem-fav" style={{ background: "#ff6900", color: "#fff", fontSize: 9, fontWeight: 800 }}>V</div>
+                        <span>verifiedsoftware.io</span>
                       </span>
                     </div>
                   </div>
