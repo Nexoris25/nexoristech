@@ -50,16 +50,18 @@ export interface ServiceContent {
     primaryCta: { label: string; href: string };
     secondaryCta: { label: string; href: string };
     stats: { value: ReactNode; label: string }[];
-    media: { src: string; alt: string; chipTitle: string; chipSub: string };
+    media?: { src: string; alt: string; chipTitle: string; chipSub: string };
   };
-  problem: { kicker: string; h2: string; quotes: { text: string; tag: string }[]; close: ReactNode };
-  scope: { kicker: string; h2: string; lede: string; items: IconItem[] };
+  /** Optional bespoke hero widget (e.g. the GEO platform-response widget); replaces the media image. */
+  heroWidget?: ReactNode;
+  problem: { kicker: string; h2: string; quotes: { text: string; tag?: string }[]; close: ReactNode };
+  scope: { kicker: string; h2: string; lede?: string; items: IconItem[] };
   ai: { kicker: string; h2: string; intro: string; feats: IconItem[]; foot: string };
   process: { h2: string; steps: { title: string; body: string }[]; note: ReactNode };
   proof: { kicker: string; h2: string; lede: string; cards: { tag: string; title: string }[] };
   industryLinks: { kicker: string; h2: string; lede: string; links: ServiceLink[] };
   faq: { kicker: string; h2: string; lede: string; items: { q: string; a: string }[] };
-  cta: { h2: string; body: string; button: { label: string; href: string }; media: { src: string; alt: string } };
+  cta: { h2: string; body: string; button: { label: string; href: string }; media?: { src: string; alt: string } };
 }
 
 function Svg({ children }: { children: ReactNode }): ReactNode {
@@ -97,30 +99,36 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
                   {c.hero.secondaryCta.label}
                 </a>
               </div>
-              <div className="hero-stats">
-                {c.hero.stats.map((s, i) => (
-                  <div className="hstat" key={i}>
-                    <div className="hn">{s.value}</div>
-                    <div className="hl">{s.label}</div>
-                  </div>
-                ))}
-              </div>
+              {c.hero.stats.length > 0 ? (
+                <div className="hero-stats">
+                  {c.hero.stats.map((s, i) => (
+                    <div className="hstat" key={i}>
+                      <div className="hn">{s.value}</div>
+                      <div className="hl">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
-            <div className="hero-media reveal">
-              <img src={c.hero.media.src} alt={c.hero.media.alt} loading="eager" />
-              <div className="ovl" />
-              <div className="hero-chip">
-                <span className="hci">
-                  <Svg>
-                    <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 6l-2 12" />
-                  </Svg>
-                </span>
-                <span>
-                  <b>{c.hero.media.chipTitle}</b>
-                  <span>{c.hero.media.chipSub}</span>
-                </span>
+            {c.heroWidget ? (
+              c.heroWidget
+            ) : c.hero.media ? (
+              <div className="hero-media reveal">
+                <img src={c.hero.media.src} alt={c.hero.media.alt} loading="eager" />
+                <div className="ovl" />
+                <div className="hero-chip">
+                  <span className="hci">
+                    <Svg>
+                      <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 6l-2 12" />
+                    </Svg>
+                  </span>
+                  <span>
+                    <b>{c.hero.media.chipTitle}</b>
+                    <span>{c.hero.media.chipSub}</span>
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -140,7 +148,7 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
               <article className="qcard" key={i}>
                 <div className="qm">&ldquo;</div>
                 <p>{q.text}</p>
-                <div className="qtag">{q.tag}</div>
+                {q.tag ? <div className="qtag">{q.tag}</div> : null}
               </article>
             ))}
           </div>
@@ -157,7 +165,7 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
               {c.scope.kicker}
             </span>
             <h2 className="h-section">{c.scope.h2}</h2>
-            <p className="lede">{c.scope.lede}</p>
+            {c.scope.lede ? <p className="lede">{c.scope.lede}</p> : null}
           </div>
           <div className="cover reveal">
             {c.scope.items.map((it, i) => (
@@ -337,9 +345,11 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
 
       {/* CLOSING CTA */}
       <section className="cta" id="cta" aria-label="Closing CTA">
-        <div className="photo">
-          <img src={c.cta.media.src} alt={c.cta.media.alt} loading="lazy" />
-        </div>
+        {c.cta.media ? (
+          <div className="photo">
+            <img src={c.cta.media.src} alt={c.cta.media.alt} loading="lazy" />
+          </div>
+        ) : null}
         <div className="glow" />
         <div className="wrap cta-inner reveal">
           <h2>{c.cta.h2}</h2>

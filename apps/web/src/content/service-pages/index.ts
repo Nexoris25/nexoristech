@@ -5,7 +5,9 @@
  */
 import type { ServiceContent } from "../../components/service/ServiceView.js";
 import { aiProductDevelopment } from "./ai-product-development.js";
+import { aiSeoGeo } from "./ai-seo-geo.js";
 
 export const servicePages: Record<string, ServiceContent> = {
   "/ai-product-development": aiProductDevelopment,
+  "/ai-seo-geo": aiSeoGeo,
 };

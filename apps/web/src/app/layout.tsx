@@ -14,6 +14,7 @@ import { CookieConsent } from "../components/CookieConsent.js";
 import "./globals.css";
 import "../styles/design.css";
 import "../styles/service.css";
+import "../styles/geo-widget.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

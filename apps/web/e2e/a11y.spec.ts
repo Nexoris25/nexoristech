@@ -9,6 +9,7 @@ import AxeBuilder from "@axe-core/playwright";
 const ROUTES = [
   "/",
   "/ai-product-development/",
+  "/ai-seo-geo/",
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",
