@@ -1,8 +1,9 @@
 /*
- * AI E-Commerce hero widget (smart storefront preview). Ported from the approved handoff. Unique
- * class prefix (storew-) so it is safe to load globally alongside the other widget styles. A light
- * store card sits in the dark hero: a browser frame, a platform toggle that swaps the product, an
- * add-to-cart micro-interaction, recommendations, and a cart-recovery toast. Responsive to 280px.
+ * AI E-Commerce hero widget (smart storefront preview). A light store card in the dark hero: a
+ * browser frame, a platform toggle that swaps the featured product, a real product-shot area with
+ * a detailed illustration, rating, sale price and stock, an add-to-cart micro-interaction,
+ * recommendation thumbnails, and a cart-recovery toast. Unique class prefix (storew-). Responsive
+ * to 280px.
  */
 
 .storew {
@@ -69,41 +70,142 @@
   border-color: var(--purple-600, #543cda);
 }
 .storew-body {
-  padding: 16px;
+  padding: 14px;
 }
-.storew-prod {
+
+/* product shot */
+.storew-shot {
+  position: relative;
+  border-radius: 13px;
+  overflow: hidden;
+  border: 1px solid var(--line, #e9e7f0);
+  background: radial-gradient(circle at 50% 32%, #fdfcff, #ece9f5);
+  aspect-ratio: 16 / 9;
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 14px;
-  align-items: center;
+  place-items: center;
 }
-.storew-img {
-  height: 96px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #6a55f2, #543cda);
-  transition: background 0.3s;
+.storew-shot .art {
+  width: 72%;
+  height: 82%;
 }
-.storew-prod h4 {
-  font-size: 1rem;
+.storew-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--purple-600, #543cda);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.storew-wish {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(13, 10, 28, 0.14);
+  display: grid;
+  place-items: center;
+}
+.storew-wish svg {
+  width: 15px;
+  height: 15px;
+  stroke: var(--ink-3, #6e6a7c);
+  fill: none;
+  stroke-width: 1.8;
+}
+.storew-dots {
+  position: absolute;
+  bottom: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+}
+.storew-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(13, 10, 28, 0.18);
+}
+.storew-dots i.on {
+  background: var(--purple-600, #543cda);
+  width: 14px;
+  border-radius: 3px;
+}
+
+/* product info */
+.storew-info {
+  margin-top: 13px;
+}
+.storew-info h4 {
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--ink-950, #0d0a1c);
+  line-height: 1.25;
 }
-.storew-prod .pr {
+.storew-rate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.storew-rate .stars {
+  display: inline-flex;
+  gap: 1px;
+}
+.storew-rate .stars svg {
+  width: 13px;
+  height: 13px;
+  fill: #f5a623;
+}
+.storew-rate .stars svg.off {
+  fill: #d9d5e4;
+}
+.storew-rate .rnum {
+  font-size: 0.74rem;
+  color: var(--ink-2, #3a3550);
+  font-weight: 600;
+}
+.storew-rate .rct {
+  font-size: 0.72rem;
+  color: var(--ink-3, #6e6a7c);
+}
+.storew-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 9px;
+}
+.storew-price .pr {
   font-family: "JetBrains Mono", monospace;
   font-weight: 700;
   color: var(--purple-700, #4330b8);
-  font-size: 1.05rem;
-  margin-top: 4px;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
 }
-.storew-prod .stk {
-  font-size: 0.72rem;
-  margin-top: 6px;
+.storew-price .was {
+  font-size: 0.82rem;
+  color: var(--ink-3, #6e6a7c);
+  text-decoration: line-through;
+}
+.storew-stk {
+  font-size: 0.74rem;
+  margin-top: 8px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  font-weight: 500;
 }
-.storew-prod .stk i {
+.storew-stk i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -111,21 +213,21 @@
   flex: none;
 }
 .storew-add {
-  margin-top: 14px;
+  margin-top: 13px;
   width: 100%;
   background: var(--purple-600, #543cda);
   color: #fff;
   border: 0;
-  border-radius: 9px;
-  padding: 11px;
+  border-radius: 10px;
+  padding: 12px;
   font-family: "Inter", sans-serif;
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   transition: background 0.18s, transform 0.12s;
 }
 .storew-add:hover {
@@ -138,20 +240,22 @@
   background: #0b6b45;
 }
 .storew-add svg {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   stroke: #fff;
   fill: none;
   stroke-width: 2.2;
 }
+
+/* recommendations */
 .storew-rec {
-  margin-top: 18px;
-  padding-top: 14px;
+  margin-top: 13px;
+  padding-top: 12px;
   border-top: 1px solid var(--line, #e9e7f0);
 }
 .storew-rec .rl {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--purple-600, #543cda);
@@ -166,36 +270,48 @@
 .storew-rec .rc {
   border: 1px solid var(--line, #e9e7f0);
   border-radius: 10px;
-  padding: 8px;
+  padding: 7px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.storew-rec .rc:hover {
+  border-color: var(--purple-300, #c3b8f4);
+  transform: translateY(-2px);
 }
 .storew-rec .rc .ri {
-  height: 46px;
+  height: 42px;
   border-radius: 7px;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
+  background: radial-gradient(circle at 50% 35%, #fbfaff, #edeaf5);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
-.storew-rec .rc:nth-child(1) .ri {
-  background: linear-gradient(135deg, #2d6be0, #5b8ef0);
+.storew-rec .rc .ri svg {
+  width: 74%;
+  height: 74%;
 }
-.storew-rec .rc:nth-child(2) .ri {
-  background: linear-gradient(135deg, #168f7c, #34b39e);
-}
-.storew-rec .rc:nth-child(3) .ri {
-  background: linear-gradient(135deg, #8a45d0, #a86ae0);
-}
-.storew-rec .rc span {
-  font-size: 0.64rem;
+.storew-rec .rc .rt {
+  font-size: 0.62rem;
   font-family: "JetBrains Mono", monospace;
   color: var(--ink-3, #6e6a7c);
+  display: block;
 }
+.storew-rec .rc .rp {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+}
+
+/* toast */
 .storew-toast {
-  margin: 14px;
+  margin: 8px 14px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   background: var(--purple-100, #eeebfc);
   border: 1px solid var(--purple-200, #dcd6f9);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 9px 12px;
 }
 .storew-toast .ti {
   width: 30px;
@@ -224,15 +340,14 @@
 }
 
 @media (max-width: 340px) {
-  .storew-prod {
-    grid-template-columns: 74px 1fr;
-    gap: 11px;
-  }
-  .storew-img {
-    height: 74px;
-  }
   .storew-toggle button {
     font-size: 0.66rem;
     padding: 7px 3px;
+  }
+  .storew-info h4 {
+    font-size: 0.98rem;
+  }
+  .storew-rec .rc .rt {
+    font-size: 0.58rem;
   }
 }
