@@ -10,6 +10,8 @@ const ROUTES = [
   "/",
   "/ai-product-development/",
   "/ai-seo-geo/",
+  "/ai-chatbots-virtual-assistants/",
+  "/business-process-automation/",
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",

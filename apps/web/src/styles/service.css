@@ -26,3 +26,12 @@
 .svc-page .proc-grid-4 .pstep:nth-child(4n)::before,.svc-page .proc-grid-4 .pstep:last-child::before{display:none}
 @media(min-width:561px) and (max-width:980px){.svc-page .proc-grid-4{grid-template-columns:1fr 1fr}.svc-page .proc-grid-4 .pstep:nth-child(2n)::before{display:none}.svc-page .proc-grid-4 .pstep:nth-child(3n)::before{display:block}}
 @media(max-width:560px){.svc-page .proc-grid-4{grid-template-columns:1fr}}
+
+/* Two-phase process: two balanced columns on desktop, stacked rail on mobile. */
+.svc-page .proc-grid-2{grid-template-columns:1fr 1fr;max-width:860px}
+@media(max-width:560px){.svc-page .proc-grid-2{grid-template-columns:1fr}}
+
+/* Four AI feature cards on one row (desktop), 2x2 on tablet, stacked on mobile. */
+.svc-page .ai-feats-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1024px){.svc-page .ai-feats-4{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.svc-page .ai-feats-4{grid-template-columns:1fr}}

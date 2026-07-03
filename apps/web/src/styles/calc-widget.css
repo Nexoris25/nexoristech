@@ -1,0 +1,120 @@
+/*
+ * Business Process Automation hero widget (manual-work cost calculator). Ported from the approved
+ * handoff. Unique class prefix (calcw-) so it is safe to load globally alongside the other widget
+ * styles. Three sliders drive a live annual-cost estimate. Fully responsive down to 280px.
+ */
+
+.calcw {
+  background: linear-gradient(168deg, #1a1336, #0f0b22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  padding: clamp(18px, 3vw, 30px);
+  width: 100%;
+}
+.calcw .ct {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c3b8f4;
+  font-weight: 600;
+}
+.calcw h3 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 10px 0 20px;
+}
+.calcw-field {
+  margin-bottom: 18px;
+}
+.calcw-field label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 9px;
+}
+.calcw-field label b {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  color: #fff;
+  white-space: nowrap;
+}
+.calcw-field input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+  margin: 0;
+}
+.calcw-field input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #6a55f2;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.calcw-field input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #6a55f2;
+  cursor: pointer;
+  border: 3px solid #fff;
+}
+.calcw-field input[type="range"]:focus-visible {
+  outline: 2px solid #8b78f0;
+  outline-offset: 4px;
+}
+.calcw-out {
+  margin-top: 22px;
+  background: rgba(106, 85, 242, 0.14);
+  border: 1px solid rgba(106, 85, 242, 0.4);
+  border-radius: 14px;
+  padding: 20px;
+}
+.calcw-out .ol {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+.calcw-out .ov {
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin-top: 4px;
+  line-height: 1;
+}
+.calcw-out .os {
+  font-size: 0.78rem;
+  color: #dcd6f9;
+  margin-top: 8px;
+}
+.calcw-note {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 320px) {
+  .calcw h3 {
+    font-size: 1.08rem;
+  }
+  .calcw-out {
+    padding: 16px;
+  }
+}

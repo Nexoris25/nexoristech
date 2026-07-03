@@ -204,7 +204,7 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
                 <p>{c.ai.intro}</p>
               </div>
             </div>
-            <div className="ai-feats">
+            <div className={`ai-feats${c.ai.feats.length === 4 ? " ai-feats-4" : ""}`}>
               {c.ai.feats.map((f, i) => (
                 <article className="afeat" key={i}>
                   <span className="ai-ic">
@@ -258,7 +258,15 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
               ))}
             </div>
           ) : c.process.steps ? (
-            <div className={`proc-grid reveal${c.process.steps.length === 4 ? " proc-grid-4" : ""}`}>
+            <div
+              className={`proc-grid reveal${
+                c.process.steps.length === 4
+                  ? " proc-grid-4"
+                  : c.process.steps.length === 2
+                    ? " proc-grid-2"
+                    : ""
+              }`}
+            >
               {c.process.steps.map((s, i) => (
                 <div className="pstep" key={i}>
                   <span className="pnode">

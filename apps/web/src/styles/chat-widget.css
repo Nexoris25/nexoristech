@@ -1,0 +1,432 @@
+/*
+ * AI Chatbots & Virtual Assistants hero widget (chat demo). Ported from the approved handoff.
+ * Unique class prefix (chatw-) so it is safe to load globally alongside the other widget styles.
+ * Website / WhatsApp / Voice channels with per-channel theming, a typing indicator, and a call
+ * waveform. Fully responsive down to 280px.
+ */
+
+.chatw {
+  position: relative;
+  background: linear-gradient(168deg, #1a1336, #0f0b22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  overflow: hidden;
+  width: 100%;
+}
+
+.chatw-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 12px 0;
+}
+.chatw-tab {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 9px 8px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.chatw-tab svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.chatw-tab.on {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: transparent;
+}
+
+.chatw-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.chatw-head .ava {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(106, 85, 242, 0.3);
+  border: 1px solid rgba(106, 85, 242, 0.5);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.chatw-head .ava svg {
+  width: 20px;
+  height: 20px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.8;
+}
+.chatw-head > div {
+  min-width: 0;
+  flex: 1;
+}
+.chatw-head b {
+  font-size: 0.9rem;
+  color: #fff;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chatw-head .sub {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chatw-head .live {
+  flex: none;
+}
+.chatw-head .live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d07f;
+  box-shadow: 0 0 0 3px rgba(52, 208, 127, 0.18);
+}
+
+.chatw-body {
+  padding: 18px;
+  height: 340px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.chatw-body::-webkit-scrollbar {
+  width: 6px;
+}
+.chatw-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+}
+.chatw-bub {
+  max-width: 80%;
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: chatw-bub 0.35s ease forwards;
+}
+@keyframes chatw-bub {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.chatw-bub.them {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 5px;
+}
+.chatw-bub.me {
+  align-self: flex-end;
+  background: var(--purple-600, #543cda);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.chatw-bub .tag {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #dcd6f9;
+  background: rgba(195, 184, 244, 0.16);
+  border-radius: 6px;
+  padding: 3px 8px;
+  margin-top: 9px;
+  line-height: 1.35;
+}
+
+.chatw-foot {
+  padding: 13px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.chatw-foot .fake-in {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chatw-foot .send {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--purple-600, #543cda);
+  display: grid;
+  place-items: center;
+  flex: none;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, transform 0.12s;
+}
+.chatw-foot .send:hover {
+  transform: scale(1.06);
+}
+.chatw-foot .send:active {
+  transform: scale(0.94);
+}
+.chatw-foot .send svg {
+  width: 16px;
+  height: 16px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* typing indicator */
+.chatw-bub.typing {
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 14px 15px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 5px;
+  max-width: fit-content;
+}
+.chatw-bub.typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  animation: chatw-typd 1.1s infinite ease-in-out;
+}
+.chatw-bub.typing i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.chatw-bub.typing i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+@keyframes chatw-typd {
+  0%,
+  65%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  32% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* channel note */
+.chatw-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.chatw-note svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+}
+.chatw-note span {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* language strip */
+.chatw-langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  align-items: center;
+}
+.chatw-langs .ll {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-right: 2px;
+}
+.chatw-langs .lchip {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* WhatsApp theme */
+.chatw.ch-wa {
+  background: linear-gradient(168deg, #0e2019, #07140f);
+}
+.chatw.ch-wa .chatw-body {
+  background-color: #0a1411;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1.4px);
+  background-size: 20px 20px;
+}
+.chatw.ch-wa .chatw-bub.me {
+  background: #0e7a57;
+}
+.chatw.ch-wa .chatw-foot .send {
+  background: #0e7a57;
+}
+.chatw.ch-wa .chatw-head .ava {
+  background: rgba(31, 174, 84, 0.2);
+  border-color: rgba(31, 174, 84, 0.42);
+}
+.chatw.ch-wa .chatw-head .ava svg {
+  stroke: #86e7b3;
+}
+.chatw.ch-wa .chatw-bub .tag {
+  color: #bff3d6;
+  background: rgba(134, 231, 179, 0.18);
+}
+.chatw.ch-wa .chatw-note {
+  color: rgba(134, 231, 179, 0.6);
+}
+
+/* Voice theme */
+.chatw.ch-voice {
+  background: linear-gradient(168deg, #1a1336, #0c0a1f);
+}
+.chatw.ch-voice .chatw-bub {
+  max-width: 88%;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 6px 2px;
+  border-radius: 0;
+}
+.chatw.ch-voice .chatw-bub.me {
+  align-self: flex-start;
+  color: rgba(255, 255, 255, 0.62);
+}
+.chatw.ch-voice .chatw-bub.them {
+  color: #fff;
+}
+.chatw.ch-voice .chatw-bub .who {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  color: #c3b8f4;
+}
+.chatw.ch-voice .chatw-bub.me .who {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* call waveform */
+.chatw-wave {
+  display: none;
+  align-items: flex-end;
+  gap: 2.5px;
+  margin-left: auto;
+  height: 20px;
+}
+.chatw.ch-voice .chatw-wave {
+  display: flex;
+}
+.chatw-wave i {
+  width: 2.5px;
+  border-radius: 2px;
+  background: #c3b8f4;
+  animation: chatw-wav 1s infinite ease-in-out;
+}
+.chatw-wave i:nth-child(1) { height: 7px; animation-delay: 0s; }
+.chatw-wave i:nth-child(2) { height: 14px; animation-delay: 0.12s; }
+.chatw-wave i:nth-child(3) { height: 20px; animation-delay: 0.24s; }
+.chatw-wave i:nth-child(4) { height: 11px; animation-delay: 0.36s; }
+.chatw-wave i:nth-child(5) { height: 17px; animation-delay: 0.06s; }
+.chatw-wave i:nth-child(6) { height: 9px; animation-delay: 0.3s; }
+.chatw-wave i:nth-child(7) { height: 13px; animation-delay: 0.18s; }
+@keyframes chatw-wav {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+@media (max-width: 420px) {
+  .chatw-tabs { padding: 10px 8px 0; gap: 3px; }
+  .chatw-tab { font-size: 0.72rem; padding: 8px 4px; gap: 5px; }
+  .chatw-tab svg { width: 13px; height: 13px; }
+  .chatw-head { padding: 12px 13px; gap: 9px; }
+  .chatw-head .ava { width: 34px; height: 34px; }
+  .chatw-head .ava svg { width: 18px; height: 18px; }
+  .chatw-body { padding: 14px; height: 300px; gap: 10px; }
+  .chatw-bub { max-width: 90%; font-size: 0.82rem; padding: 10px 12px; }
+  .chatw-foot { padding: 11px 12px; gap: 8px; }
+  .chatw-foot .fake-in { font-size: 0.78rem; }
+  .chatw-langs { padding: 10px 12px 12px; }
+  .chatw-langs .lchip { font-size: 0.68rem; padding: 3px 9px; }
+}
+@media (max-width: 320px) {
+  .chatw-tab span.lbl { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatw-wave i,
+  .chatw-bub.typing i,
+  .chatw-bub {
+    animation: none;
+  }
+  .chatw-bub {
+    opacity: 1;
+    transform: none;
+  }
+}
