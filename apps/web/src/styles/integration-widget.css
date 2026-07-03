@@ -1,0 +1,169 @@
+/*
+ * AI & Systems Integration hero widget (connection board). Ported from the approved handoff. Unique
+ * class prefix (intw-) so it is safe to load globally alongside the other widget styles. A central
+ * integration hub with a pulsing ring, system nodes on each side, a rotating "active" highlight to
+ * suggest live syncing, and a monitored-sync indicator. Responsive to 280px.
+ */
+
+.intw {
+  background: linear-gradient(168deg, #17122f, #100c24);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  padding: clamp(20px, 3vw, 30px);
+  width: 100%;
+}
+.intw-t {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--purple-300, #c3b8f4);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.intw-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.intw-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.intw-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  padding: 11px 13px;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.intw-node svg {
+  width: 18px;
+  height: 18px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.7;
+  flex: none;
+}
+.intw-node .nx {
+  min-width: 0;
+}
+.intw-node b {
+  font-size: 0.8rem;
+  color: #fff;
+  font-weight: 600;
+  display: block;
+}
+.intw-node span {
+  font-size: 0.64rem;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+}
+.intw-node.active {
+  background: rgba(106, 85, 242, 0.18);
+  border-color: var(--purple-500, #6a55f2);
+  box-shadow: 0 0 0 1px rgba(106, 85, 242, 0.4), 0 8px 22px rgba(106, 85, 242, 0.22);
+}
+.intw-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.intw-hub {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  background: radial-gradient(circle at 30% 30%, var(--purple-500, #6a55f2), var(--purple-700, #4330b8));
+  display: grid;
+  place-items: center;
+  position: relative;
+  box-shadow: 0 0 0 8px rgba(106, 85, 242, 0.12), 0 10px 30px rgba(13, 10, 28, 0.4);
+}
+.intw-hub::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 30px;
+  border: 1px solid rgba(106, 85, 242, 0.4);
+  animation: intw-pulse 2.4s ease-out infinite;
+}
+@keyframes intw-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+.intw-hub svg {
+  width: 40px;
+  height: 40px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.6;
+}
+.intw-hubl {
+  text-align: center;
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 10px;
+  font-family: "JetBrains Mono", monospace;
+  line-height: 1.4;
+}
+.intw-sync {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+.intw-sync .live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d07f;
+  flex: none;
+  animation: intw-livep 2s ease-out infinite;
+}
+@keyframes intw-livep {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 208, 127, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(52, 208, 127, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 208, 127, 0);
+  }
+}
+
+@media (max-width: 420px) {
+  .intw-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .intw-center {
+    order: 0;
+    margin: 4px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intw-hub::before,
+  .intw-sync .live {
+    animation: none;
+  }
+}

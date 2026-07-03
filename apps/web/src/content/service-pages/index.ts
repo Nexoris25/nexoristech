@@ -9,6 +9,7 @@ import { aiSeoGeo } from "./ai-seo-geo.js";
 import { aiChatbotsVirtualAssistants } from "./ai-chatbots-virtual-assistants.js";
 import { businessProcessAutomation } from "./business-process-automation.js";
 import { aiEcommerceDevelopment } from "./ai-ecommerce-development.js";
+import { aiSystemsIntegration } from "./ai-systems-integration.js";
 
 export const servicePages: Record<string, ServiceContent> = {
   "/ai-product-development": aiProductDevelopment,
@@ -16,4 +17,5 @@ export const servicePages: Record<string, ServiceContent> = {
   "/ai-chatbots-virtual-assistants": aiChatbotsVirtualAssistants,
   "/business-process-automation": businessProcessAutomation,
   "/ai-ecommerce-development": aiEcommerceDevelopment,
+  "/ai-systems-integration": aiSystemsIntegration,
 };
