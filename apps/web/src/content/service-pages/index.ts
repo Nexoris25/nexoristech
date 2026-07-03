@@ -10,6 +10,7 @@ import { aiChatbotsVirtualAssistants } from "./ai-chatbots-virtual-assistants.js
 import { businessProcessAutomation } from "./business-process-automation.js";
 import { aiEcommerceDevelopment } from "./ai-ecommerce-development.js";
 import { aiSystemsIntegration } from "./ai-systems-integration.js";
+import { dataDashboardsPredictiveAnalytics } from "./data-dashboards-predictive-analytics.js";
 
 export const servicePages: Record<string, ServiceContent> = {
   "/ai-product-development": aiProductDevelopment,
@@ -18,4 +19,5 @@ export const servicePages: Record<string, ServiceContent> = {
   "/business-process-automation": businessProcessAutomation,
   "/ai-ecommerce-development": aiEcommerceDevelopment,
   "/ai-systems-integration": aiSystemsIntegration,
+  "/data-dashboards-predictive-analytics": dataDashboardsPredictiveAnalytics,
 };

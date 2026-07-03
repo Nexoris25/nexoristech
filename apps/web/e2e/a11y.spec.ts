@@ -14,6 +14,7 @@ const ROUTES = [
   "/business-process-automation/",
   "/ai-ecommerce-development/",
   "/ai-systems-integration/",
+  "/data-dashboards-predictive-analytics/",
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",

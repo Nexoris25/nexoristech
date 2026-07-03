@@ -19,6 +19,7 @@ import "../styles/chat-widget.css";
 import "../styles/calc-widget.css";
 import "../styles/store-widget.css";
 import "../styles/integration-widget.css";
+import "../styles/dashboard-widget.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

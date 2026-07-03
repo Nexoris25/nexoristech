@@ -1,0 +1,169 @@
+/*
+ * Data Dashboards & Predictive Analytics hero widget (live dashboard preview). Ported from the
+ * approved handoff. Unique class prefix (dashw-) so it is safe to load globally alongside the other
+ * widget styles. A natural-language ask bar, KPI tiles, and a bar chart with actual and dashed
+ * forecast bars that grow on a loop. Responsive to 280px.
+ */
+
+.dashw {
+  background: linear-gradient(168deg, #17122f, #100c24);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  padding: clamp(16px, 2.4vw, 22px);
+  width: 100%;
+}
+.dashw-ask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 13px;
+  margin-bottom: 16px;
+  min-height: 54px;
+}
+.dashw-ask svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--purple-300, #c3b8f4);
+  fill: none;
+  stroke-width: 1.8;
+  flex: none;
+}
+.dashw-ask span {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dashw-ask span b {
+  color: #fff;
+  font-weight: 600;
+}
+.dashw-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dashw-kpi {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 13px;
+}
+.dashw-kpi .kl {
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.04em;
+}
+.dashw-kpi .kv {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 5px;
+  letter-spacing: -0.02em;
+}
+.dashw-kpi .kd {
+  font-size: 0.66rem;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.dashw-kpi .kd.up {
+  color: #4ade9a;
+}
+.dashw-kpi .kd.dn {
+  color: #ff8f8f;
+}
+.dashw-chart {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+}
+.dashw-ct {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dashw-ct b {
+  font-size: 0.82rem;
+  color: #fff;
+  font-weight: 600;
+}
+.dashw-ct .leg {
+  font-size: 0.62rem;
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(255, 255, 255, 0.6);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.dashw-ct .leg i {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--purple-500, #6a55f2);
+}
+.dashw-ct .leg i.f {
+  background: repeating-linear-gradient(90deg, var(--purple-300, #c3b8f4) 0 4px, transparent 4px 7px);
+}
+.dashw-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 96px;
+}
+.dashw-bars .bar {
+  flex: 1;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(180deg, var(--purple-500, #6a55f2), var(--purple-700, #4330b8));
+  height: var(--h);
+  animation: dashw-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dashw-bars .bar.fc {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(195, 184, 244, 0.6);
+}
+@keyframes dashw-grow {
+  from {
+    height: 0;
+  }
+}
+.dashw-xax {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.dashw-xax span {
+  flex: 1;
+  text-align: center;
+  font-size: 0.58rem;
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+@media (max-width: 480px) {
+  .dashw-kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashw-kpi .kv {
+    font-size: 1.05rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashw-bars .bar {
+    animation: none;
+  }
+}
