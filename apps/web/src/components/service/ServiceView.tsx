@@ -258,7 +258,7 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
               ))}
             </div>
           ) : c.process.steps ? (
-            <div className="proc-grid reveal">
+            <div className={`proc-grid reveal${c.process.steps.length === 4 ? " proc-grid-4" : ""}`}>
               {c.process.steps.map((s, i) => (
                 <div className="pstep" key={i}>
                   <span className="pnode">
