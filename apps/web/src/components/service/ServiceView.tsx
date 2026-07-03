@@ -60,8 +60,8 @@ export interface ServiceContent {
   process: {
     h2: string;
     steps?: { title: string; body: string }[];
-    /** Detailed delivery stages (title, description, and Activities/Deliverables lists). */
-    stages?: { title: string; desc: string; activities: string[]; deliverables: string[] }[];
+    /** Delivery stages: title + description, with deliverables shown as compact pill tags. */
+    stages?: { title: string; desc: string; activities?: string[]; deliverables?: string[] }[];
     note: ReactNode;
   };
   proof: { kicker: string; h2: string; lede: string; cards: { tag: string; title: string }[] };
@@ -241,29 +241,19 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
             <div className="dstages reveal">
               {c.process.stages.map((st, i) => (
                 <div className="dstage" key={i}>
-                  <div className="dstage-head">
-                    <span className="dstage-num">Stage {String(i + 1).padStart(2, "0")}</span>
-                    <h3>{st.title}</h3>
-                    <p>{st.desc}</p>
-                  </div>
-                  <div className="dstage-cols">
-                    <div className="dstage-col">
-                      <div className="dstage-label">Activities</div>
-                      <ul>
-                        {st.activities.map((a) => (
-                          <li key={a}>{a}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="dstage-col dstage-col-deliv">
+                  <span className="dstage-num">{String(i + 1).padStart(2, "0")}</span>
+                  <h3>{st.title}</h3>
+                  <p>{st.desc}</p>
+                  {st.deliverables && st.deliverables.length > 0 ? (
+                    <>
                       <div className="dstage-label">Deliverables</div>
-                      <ul>
+                      <div className="dstage-pills">
                         {st.deliverables.map((d) => (
-                          <li key={d}>{d}</li>
+                          <span key={d}>{d}</span>
                         ))}
-                      </ul>
-                    </div>
-                  </div>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               ))}
             </div>

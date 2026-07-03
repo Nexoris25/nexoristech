@@ -4,26 +4,18 @@
  * Industry links point to the existing industry routes. Consumed by the ServiceView template.
  */
 import type { ServiceContent } from "../../components/service/ServiceView.js";
+import { ProductBuilder } from "../../components/service/ProductBuilder.js";
 
 export const aiProductDevelopment: ServiceContent = {
   breadcrumb: "AI Product Development",
+  heroWidget: <ProductBuilder />,
   hero: {
     kicker: "Build new software · Our main service",
     h1: "We build the software your business has been working around.",
     lede: "Most software forces your team to change how they work. We do the opposite. We learn how your business runs, then design websites, web applications, mobile apps, and custom systems around it. If AI can make the product genuinely better, we build it in. If it cannot, we leave it out and tell you why.",
     primaryCta: { label: "Scope my product", href: "/contact" },
     secondaryCta: { label: "Find the right service", href: "/#finder" },
-    stats: [
-      { value: <><em>4&ndash;8</em> wks</>, label: "Typical business website" },
-      { value: <><em>3&ndash;6</em> mos</>, label: "Custom system or app, in stages" },
-      { value: <><em>100%</em></>, label: "Code and designs handed to you" },
-    ],
-    media: {
-      src: "/services/ai-product-development.jpg",
-      alt: "A workstation building custom software with AI assistance",
-      chipTitle: "Designed around you, then engineered",
-      chipSub: "AI added only where it earns its place",
-    },
+    stats: [],
   },
   problem: {
     kicker: "Heard in discovery",
@@ -317,8 +309,8 @@ export const aiProductDevelopment: ServiceContent = {
     body: "Let us design the right one. Tell us what you are trying to achieve, and we will reply within one business day with a short call, a suggested approach, and a realistic sense of timeline and cost.",
     button: { label: "Scope my product", href: "/contact" },
     media: {
-      src: "/services/ai-product-development.jpg",
-      alt: "A developer workstation where Nexoris Technologies builds custom software",
+      src: "/services/ai-product-development-cta.jpg",
+      alt: "A product designer pinning interface wireframes on a planning wall",
     },
   },
 };
