@@ -1,0 +1,468 @@
+/*
+ * Oge assistant widget — floating launcher and chat panel. Redesigned to the approved "Meet Oge"
+ * handoff: the Oge avatar on the launcher and in the header, a calm dark panel, purple visitor
+ * bubbles and dark grounded-answer bubbles with source chips, a lead-capture confirmation step, and
+ * a graceful fallback. Unique class prefix (ogw-) so it loads globally without collisions. The
+ * widget keeps its existing /api/chat (SSE) and /api/contact wiring; this owns the look.
+ */
+
+/* Launcher */
+.ogw-launch {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 60;
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  box-shadow: 0 14px 34px rgba(84, 60, 218, 0.42);
+  transition: transform 0.16s;
+}
+.ogw-launch:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+.ogw-launch .ogw-av {
+  display: block;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.ogw-launch .ogw-online {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1fae54;
+  border: 3px solid #0d0a1c;
+}
+.ogw-launch .ogw-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 22px;
+  border: 1px solid rgba(106, 85, 242, 0.5);
+  animation: ogw-pulse 3s infinite;
+  pointer-events: none;
+}
+@keyframes ogw-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Panel */
+.ogw-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  width: 372px;
+  max-width: calc(100vw - 24px);
+  height: min(600px, calc(100vh - 40px));
+  background: linear-gradient(168deg, #17122f, #0d0a1c);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.6);
+  overflow: hidden;
+  font-family: "Inter", sans-serif;
+}
+
+/* Header */
+.ogw-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex: none;
+}
+.ogw-head .ogw-av {
+  border-radius: 12px;
+  overflow: hidden;
+  flex: none;
+}
+.ogw-head .ogw-online {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #1fae54;
+  border: 2px solid #17122f;
+}
+.ogw-avwrap {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+.ogw-head .hx {
+  min-width: 0;
+}
+.ogw-head b {
+  font-family: "Roboto", sans-serif;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+  line-height: 1.2;
+}
+.ogw-head .sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 2px;
+}
+.ogw-head .sub i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1fae54;
+  flex: none;
+}
+.ogw-head .ogw-close {
+  margin-left: auto;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+.ogw-head .ogw-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.ogw-head .ogw-close svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Log */
+.ogw-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.ogw-log::-webkit-scrollbar {
+  width: 6px;
+}
+.ogw-log::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+}
+
+/* Messages */
+.ogw-row {
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+}
+.ogw-row.me {
+  justify-content: flex-end;
+}
+.ogw-row .ogw-mav {
+  border-radius: 9px;
+  overflow: hidden;
+  flex: none;
+}
+.ogw-bub {
+  max-width: 80%;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  border-radius: 13px;
+  padding: 10px 13px;
+}
+.ogw-bub.oge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+  border-bottom-left-radius: 4px;
+}
+.ogw-bub.oge b {
+  color: #cdbffb;
+}
+.ogw-bub.me {
+  background: linear-gradient(150deg, #543cda, #4330b8);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.ogw-bub p {
+  white-space: pre-wrap;
+}
+
+/* Source chips */
+.ogw-srcs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+.ogw-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  color: #b3a6f5;
+  background: rgba(106, 85, 242, 0.14);
+  border: 1px solid rgba(106, 85, 242, 0.3);
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ogw-src:hover {
+  background: rgba(106, 85, 242, 0.24);
+}
+
+/* Typing indicator */
+.ogw-typing {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.ogw-typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: ogw-typd 1.1s infinite ease-in-out;
+}
+.ogw-typing i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.ogw-typing i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+@keyframes ogw-typd {
+  0%,
+  65%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  32% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* Handoff / lead action buttons inside a bubble */
+.ogw-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 10px;
+}
+.ogw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.15s, background 0.15s;
+}
+.ogw-btn:hover {
+  filter: brightness(1.08);
+}
+.ogw-btn.primary {
+  background: #543cda;
+  color: #fff;
+}
+.ogw-btn.wa {
+  background: #1fae54;
+  color: #fff;
+}
+.ogw-btn.ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Lead capture confirm card */
+.ogw-lead {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  padding: 13px;
+}
+.ogw-lead .lk {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c3b8f4;
+  margin-bottom: 10px;
+}
+.ogw-lead label {
+  display: block;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 10px 0 5px;
+}
+.ogw-lead input,
+.ogw-lead select {
+  width: 100%;
+  font-family: "Inter", sans-serif;
+  font-size: 0.84rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  padding: 9px 11px;
+}
+.ogw-lead input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.ogw-lead input:focus,
+.ogw-lead select:focus {
+  outline: 2px solid #6a55f2;
+  outline-offset: 1px;
+}
+.ogw-lead select option {
+  color: #0d0a1c;
+}
+.ogw-conf {
+  margin-top: 4px;
+}
+.ogw-conf .cl {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.78rem;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ogw-conf .cl:last-child {
+  border-bottom: 0;
+}
+.ogw-conf .cl span {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.66rem;
+}
+.ogw-conf .cl b {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* Footer input */
+.ogw-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex: none;
+}
+.ogw-foot input {
+  flex: 1;
+  min-width: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 0.86rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 11px;
+  padding: 11px 13px;
+}
+.ogw-foot input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.ogw-foot input:focus {
+  outline: 2px solid #6a55f2;
+  outline-offset: 1px;
+}
+.ogw-send {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: none;
+  background: #543cda;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+}
+.ogw-send:hover {
+  background: #4330b8;
+}
+.ogw-send:active {
+  transform: scale(0.94);
+}
+.ogw-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ogw-send svg {
+  width: 17px;
+  height: 17px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2;
+}
+
+@media (max-width: 420px) {
+  .ogw-panel {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    height: min(560px, calc(100vh - 24px));
+  }
+  .ogw-launch {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ogw-launch .ogw-ring,
+  .ogw-typing i {
+    animation: none;
+  }
+}

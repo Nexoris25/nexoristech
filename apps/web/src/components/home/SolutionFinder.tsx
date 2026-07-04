@@ -218,6 +218,15 @@ export function SolutionFinder(): ReactNode {
             <Link className="btn btn-primary" href="/contact">
               Start this conversation <span className="arr">&rarr;</span>
             </Link>
+            <button
+              type="button"
+              className="fp-ask"
+              onClick={() =>
+                window.Oge?.ask(`I think I need ${rec.title}. What would that involve for my business?`)
+              }
+            >
+              Ask Oge about this <span aria-hidden="true">&rarr;</span>
+            </button>
             <button className="fp-restart" onClick={restart}>
               &#8634; Start over
             </button>
