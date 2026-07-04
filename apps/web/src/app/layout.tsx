@@ -25,6 +25,7 @@ import "../styles/govtech-widget.css";
 import "../styles/monitor-widget.css";
 import "../styles/ops-widget.css";
 import "../styles/oge-widget.css";
+import "../styles/oge-page.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

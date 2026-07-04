@@ -19,6 +19,7 @@ const ROUTES = [
   "/govtech-platforms/",
   "/iot-development/",
   "/managed-technology-operations/",
+  "/oge/",
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",

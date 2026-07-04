@@ -1,0 +1,410 @@
+/*
+ * "Meet Oge" showcase page. Ported from the approved handoff (Oge Assistant.html). Rendered inside
+ * .svc-page so it reuses the shared hero/band/cta primitives; these ogp- classes add the bespoke
+ * avatar stage, the icon/avatar spec grid, the capability cards, and the three conversation-state
+ * panels. Prefixed so they load globally without collisions.
+ */
+
+/* avatar showcase stage (hero, right column) */
+.ogp-stage {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid var(--ink-700, #2a2350);
+  background: linear-gradient(158deg, #1c1438, #0d0a1c);
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.5);
+}
+.ogp-stage::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(106, 85, 242, 0.4), transparent 62%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+.ogp-avhero {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(84, 60, 218, 0.5);
+}
+.ogp-avhero .ring {
+  position: absolute;
+  inset: -10px;
+  border-radius: 40px;
+  border: 1px solid rgba(106, 85, 242, 0.4);
+  animation: ogp-pulse 3s infinite;
+}
+@keyframes ogp-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.ogp-avhero .st {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1fae54;
+  border: 4px solid #0d0a1c;
+}
+.ogp-name {
+  position: relative;
+  text-align: center;
+}
+.ogp-name b {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.ogp-name span {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--purple-200, #dcd6f9);
+  margin-top: 6px;
+}
+.ogp-bubble {
+  position: relative;
+  background: #fff;
+  color: var(--ink-800, #1c1438);
+  border-radius: 14px 14px 14px 4px;
+  padding: 13px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.45;
+  max-width: 300px;
+  box-shadow: 0 10px 30px rgba(13, 10, 28, 0.18);
+}
+.ogp-bubble b {
+  color: var(--purple-700, #4330b8);
+}
+
+/* icon & avatar spec grid */
+.ogp-specs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+.ogp-spec {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: 24px;
+  box-shadow: var(--sh-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.ogp-spec .mk {
+  display: grid;
+  place-items: center;
+  height: 84px;
+}
+.ogp-spec .mk span {
+  border-radius: 14px;
+  overflow: hidden;
+  display: inline-flex;
+}
+.ogp-spec b {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.ogp-spec .sn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--ink-3, #6e6a7c);
+}
+.ogp-spec.dark {
+  background: var(--ink-950, #0d0a1c);
+  border-color: var(--ink-700, #2a2350);
+}
+.ogp-spec.dark b {
+  color: #fff;
+}
+.ogp-spec.dark .sn {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* meaning cards */
+.ogp-meaning {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.ogp-mc {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(22px, 2.6vw, 28px);
+  box-shadow: var(--sh-sm);
+}
+.ogp-mc h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 9px;
+}
+.ogp-mc p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.95rem;
+  line-height: 1.62;
+}
+.ogp-swatches {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.ogp-sw {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--ink-2, #3a3550);
+  background: var(--bg, #fafafc);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 8px;
+  padding: 7px 11px;
+}
+.ogp-sw i {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  flex: none;
+}
+
+/* capability cards */
+.ogp-caps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+.ogp-cap {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(22px, 2.6vw, 28px);
+  box-shadow: var(--sh-sm);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+.ogp-cap:hover {
+  box-shadow: var(--sh-md);
+  transform: translateY(-2px);
+  border-color: var(--purple-300, #c3b8f4);
+}
+.ogp-cap .ci {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+.ogp-cap .ci svg {
+  width: 23px;
+  height: 23px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.7;
+}
+.ogp-cap h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.ogp-cap p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+/* conversation-state panels */
+.ogp-states {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+.ogp-mini {
+  background: #0d0a1c;
+  border: 1px solid var(--ink-700, #2a2350);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.5);
+}
+.ogp-mini-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  background: linear-gradient(150deg, #1c1438, #0d0a1c);
+  border-bottom: 1px solid var(--ink-700, #2a2350);
+}
+.ogp-mini-h span.av {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  overflow: hidden;
+  flex: none;
+  display: inline-flex;
+}
+.ogp-mini-h b {
+  font-family: "Roboto", sans-serif;
+  font-size: 0.92rem;
+  color: #fff;
+  font-weight: 700;
+}
+.ogp-mini-h .sub {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: block;
+  margin-top: 2px;
+}
+.ogp-mini-b {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-height: 240px;
+}
+.ogp-tag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--purple-300, #c3b8f4);
+  align-self: flex-start;
+  background: rgba(106, 85, 242, 0.16);
+  border: 1px solid rgba(106, 85, 242, 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.ogp-bot {
+  background: var(--ink-800, #1c1438);
+  border: 1px solid var(--ink-700, #2a2350);
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  padding: 11px 13px;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+.ogp-bot b {
+  color: #cdbffb;
+}
+.ogp-me {
+  align-self: flex-end;
+  background: linear-gradient(150deg, #543cda, #4330b8);
+  color: #fff;
+  border-radius: 12px;
+  border-bottom-right-radius: 4px;
+  padding: 10px 13px;
+  font-size: 0.83rem;
+  max-width: 80%;
+}
+.ogp-srcchip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  color: #b3a6f5;
+  background: rgba(106, 85, 242, 0.14);
+  border: 1px solid rgba(106, 85, 242, 0.3);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.ogp-conf {
+  background: #15102b;
+  border: 1px solid var(--ink-700, #2a2350);
+  border-radius: 10px;
+  padding: 12px;
+}
+.ogp-conf .cl {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--ink-800, #1c1438);
+}
+.ogp-conf .cl:last-child {
+  border: 0;
+}
+.ogp-conf .cl span {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+}
+.ogp-conf .cl b {
+  color: #fff;
+}
+.ogp-btn {
+  margin-top: 4px;
+  background: var(--purple-600, #543cda);
+  color: #fff;
+  border-radius: 9px;
+  padding: 9px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.ogp-btn.wa {
+  background: #0e7a50;
+}
+
+@media (max-width: 1080px) {
+  .ogp-specs {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ogp-caps,
+  .ogp-states {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .ogp-specs,
+  .ogp-meaning {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ogp-avhero .ring {
+    animation: none;
+  }
+}
