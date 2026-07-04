@@ -14,6 +14,7 @@ import { dataDashboardsPredictiveAnalytics } from "./data-dashboards-predictive-
 import { dataInfrastructureAiReadiness } from "./data-infrastructure-ai-readiness.js";
 import { govtechPlatforms } from "./govtech-platforms.js";
 import { iotDevelopment } from "./iot-development.js";
+import { managedTechnologyOperations } from "./managed-technology-operations.js";
 
 export const servicePages: Record<string, ServiceContent> = {
   "/ai-product-development": aiProductDevelopment,
@@ -26,4 +27,5 @@ export const servicePages: Record<string, ServiceContent> = {
   "/data-infrastructure-ai-readiness": dataInfrastructureAiReadiness,
   "/govtech-platforms": govtechPlatforms,
   "/iot-development": iotDevelopment,
+  "/managed-technology-operations": managedTechnologyOperations,
 };

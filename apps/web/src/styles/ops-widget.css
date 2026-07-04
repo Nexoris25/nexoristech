@@ -1,0 +1,165 @@
+/*
+ * Managed Technology Operations hero widget (live ops console). Ported from the approved handoff.
+ * Unique class prefix (opsw-) so it is safe to load globally alongside the other widget styles. A
+ * platform-health console with an uptime pill, three stats, and a streaming activity log
+ * (ok / warn / incident). Responsive to 280px.
+ */
+
+.opsw {
+  background: linear-gradient(168deg, #1a1336, #0f0b22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  overflow: hidden;
+  width: 100%;
+}
+.opsw-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 16px clamp(18px, 2.4vw, 22px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.opsw-head .live {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d07f;
+  flex: none;
+  box-shadow: 0 0 0 3px rgba(52, 208, 127, 0.18);
+}
+.opsw-head b {
+  font-size: 0.92rem;
+  color: #fff;
+  font-family: "Roboto", sans-serif;
+}
+.opsw-head .up {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: #74e0b8;
+  background: rgba(31, 169, 126, 0.14);
+  border: 1px solid rgba(31, 169, 126, 0.3);
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex: none;
+}
+.opsw-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.opsw-stat {
+  background: #130e29;
+  padding: 18px clamp(14px, 2vw, 18px);
+  min-width: 0;
+}
+.opsw-stat .sv {
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(1.2rem, 4.5vw, 1.7rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.opsw-stat .sl {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 6px;
+  line-height: 1.3;
+}
+.opsw-log {
+  padding: 8px clamp(18px, 2.4vw, 22px) 6px;
+  min-height: 208px;
+}
+.opsw-line {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 11px;
+  align-items: start;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.8rem;
+  animation: opsw-ln 0.35s ease;
+}
+@keyframes opsw-ln {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.opsw-line:last-child {
+  border-bottom: 0;
+}
+.opsw-line .od {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex: none;
+}
+.opsw-line .od.ok {
+  background: #1fa97e;
+}
+.opsw-line .od.warn {
+  background: #e0a23b;
+}
+.opsw-line .od.inc {
+  background: #6a55f2;
+}
+.opsw-line .ot {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.opsw-line .om {
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.4;
+  min-width: 0;
+}
+.opsw-line .om b {
+  color: #fff;
+}
+.opsw-foot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px clamp(18px, 2.4vw, 22px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+.opsw-foot svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: #74e0b8;
+  stroke-width: 2;
+}
+.opsw-foot b {
+  color: #fff;
+}
+
+@media (max-width: 360px) {
+  .opsw-stat {
+    padding: 14px 9px;
+  }
+  .opsw-stat .sv {
+    font-size: 1.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opsw-line {
+    animation: none;
+  }
+}
