@@ -1,0 +1,226 @@
+/*
+ * Data Infrastructure & AI Readiness hero widget (data-health scan). Ported from the approved
+ * handoff. Unique class prefix (scanw-) so it is safe to load globally alongside the other widget
+ * styles. A conic-gradient readiness gauge, a verdict, and dimension rows with progress bars and
+ * good/bad chips, switchable between "Before audit" and "After Nexoris". Responsive to 280px.
+ */
+
+@property --scanw-p {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.scanw {
+  background: linear-gradient(168deg, #1a1336, #0f0b22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  overflow: hidden;
+  width: 100%;
+}
+.scanw-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 12px 0;
+}
+.scanw-tab {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 10px 8px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.scanw-tab.on {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: transparent;
+}
+.scanw-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px clamp(18px, 2.4vw, 24px);
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.scanw-gauge {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  flex: none;
+  background: conic-gradient(
+    var(--scanw-ring, #6a55f2) calc(var(--scanw-p) * 1%),
+    rgba(255, 255, 255, 0.12) 0
+  );
+  transition: --scanw-p 0.9s ease, background 0.4s;
+}
+.scanw-gauge .inner {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: #150f2e;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+.scanw-gauge .sv {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+.scanw-gauge .inner i {
+  display: block;
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: normal;
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+.scanw-meta {
+  min-width: 0;
+}
+.scanw-meta .sk {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--purple-300, #c3b8f4);
+  font-weight: 600;
+}
+.scanw-meta .verdict {
+  display: block;
+  font-family: "Roboto", sans-serif;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 8px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.scanw-meta .vsub {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 8px;
+}
+.scanw-meta .vsub .vd {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--scanw-ring, #6a55f2);
+  flex: none;
+  transition: background 0.4s;
+}
+.scanw-rows {
+  padding: 16px clamp(18px, 2.4vw, 24px) 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.scanw-row {
+  display: grid;
+  grid-template-columns: 118px 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+.scanw-row .sn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.86);
+}
+.scanw-row .sbar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.scanw-row .sbar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--scanw-ring, #6a55f2);
+  width: var(--w, 0);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s;
+}
+.scanw-row .schip {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.scanw-row .schip.bad {
+  color: #f0b765;
+  background: rgba(224, 162, 59, 0.14);
+  border: 1px solid rgba(224, 162, 59, 0.3);
+}
+.scanw-row .schip.good {
+  color: #74e0b8;
+  background: rgba(31, 169, 126, 0.16);
+  border: 1px solid rgba(31, 169, 126, 0.34);
+}
+.scanw-foot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px clamp(18px, 2.4vw, 24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+.scanw-foot svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: var(--scanw-ring, #6a55f2);
+  stroke-width: 2;
+  transition: stroke 0.4s;
+}
+
+@media (max-width: 460px) {
+  .scanw-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "name chip" "bar bar";
+    gap: 6px 10px;
+  }
+  .scanw-row .sn {
+    grid-area: name;
+  }
+  .scanw-row .schip {
+    grid-area: chip;
+  }
+  .scanw-row .sbar {
+    grid-area: bar;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanw-gauge,
+  .scanw-row .sbar i {
+    transition: none;
+  }
+}
