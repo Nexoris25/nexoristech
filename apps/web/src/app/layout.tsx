@@ -21,6 +21,7 @@ import "../styles/store-widget.css";
 import "../styles/integration-widget.css";
 import "../styles/dashboard-widget.css";
 import "../styles/readiness-widget.css";
+import "../styles/govtech-widget.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

@@ -55,7 +55,7 @@ export interface ServiceContent {
   /** Optional bespoke hero widget (e.g. the GEO platform-response widget); replaces the media image. */
   heroWidget?: ReactNode;
   problem: { kicker: string; h2: string; quotes: { text: string; tag?: string }[]; close: ReactNode };
-  scope: { kicker: string; h2: string; lede?: string; items: IconItem[] };
+  scope: { kicker: string; h2: string; lede?: ReactNode; items: IconItem[] };
   ai: { kicker: string; h2: string; intro: string; feats: IconItem[]; foot: string };
   process: {
     h2: string;

@@ -1,0 +1,225 @@
+/*
+ * GovTech Platforms hero widget (service-request tracker). Ported from the approved handoff. Unique
+ * class prefix (trkw-) so it is safe to load globally alongside the other widget styles. A citizen
+ * service request moving through timeline steps (done / active / stuck / pending), switchable
+ * between "On the portal" (fast, animated) and "At the counter" (stuck). Responsive to 280px.
+ */
+
+.trkw {
+  background: linear-gradient(168deg, #1a1336, #0f0b22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(13, 10, 28, 0.55);
+  overflow: hidden;
+  width: 100%;
+}
+.trkw-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 12px 0;
+}
+.trkw-tab {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: "Inter", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 10px 8px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.trkw-tab.on {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: transparent;
+}
+.trkw-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 15px clamp(18px, 2.4vw, 22px);
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.trkw-head .doc {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(106, 85, 242, 0.22);
+  border: 1px solid rgba(106, 85, 242, 0.42);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.trkw-head .doc svg {
+  width: 18px;
+  height: 18px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.7;
+}
+.trkw-head .hx {
+  min-width: 0;
+}
+.trkw-head b {
+  font-size: 0.9rem;
+  color: #fff;
+  display: block;
+  font-family: "Roboto", sans-serif;
+}
+.trkw-head .ref {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.trkw-head .pill {
+  margin-left: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex: none;
+}
+.trkw-head .pill.ok {
+  color: #74e0b8;
+  background: rgba(31, 169, 126, 0.16);
+  border: 1px solid rgba(31, 169, 126, 0.34);
+}
+.trkw-head .pill.warn {
+  color: #f0b765;
+  background: rgba(224, 162, 59, 0.14);
+  border: 1px solid rgba(224, 162, 59, 0.32);
+}
+.trkw-steps {
+  padding: 20px clamp(18px, 2.4vw, 24px) 8px;
+  position: relative;
+}
+.trkw-step {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 14px;
+  padding-bottom: 18px;
+  position: relative;
+}
+.trkw-step::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 30px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.trkw-step:last-child::before {
+  display: none;
+}
+.trkw-step .td {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  transition: background 0.3s, border-color 0.3s;
+}
+.trkw-step .td svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke-width: 2.4;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.trkw-step .tl {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.62);
+  font-weight: 600;
+  padding-top: 5px;
+  transition: color 0.3s;
+}
+.trkw-step .tm {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  margin-top: 3px;
+}
+.trkw-step.done .td {
+  background: #1fa97e;
+  border-color: #1fa97e;
+}
+.trkw-step.done .td svg {
+  opacity: 1;
+  stroke: #fff;
+}
+.trkw-step.done .tl {
+  color: #fff;
+}
+.trkw-step.active .td {
+  background: rgba(106, 85, 242, 0.3);
+  border-color: var(--purple-500, #6a55f2);
+  animation: trkw-pulse 1.4s infinite;
+}
+.trkw-step.active .tl {
+  color: #fff;
+}
+.trkw-step.stuck .td {
+  background: rgba(224, 162, 59, 0.22);
+  border-color: #e0a23b;
+}
+.trkw-step.stuck .tm {
+  color: #f0b765;
+}
+@keyframes trkw-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(106, 85, 242, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(106, 85, 242, 0);
+  }
+}
+.trkw-foot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px clamp(18px, 2.4vw, 24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+.trkw-foot svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: var(--purple-300, #c3b8f4);
+  stroke-width: 2;
+}
+.trkw-foot b {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trkw-step.active .td {
+    animation: none;
+  }
+}
