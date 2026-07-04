@@ -17,6 +17,7 @@ const ROUTES = [
   "/data-dashboards-predictive-analytics/",
   "/data-infrastructure-ai-readiness/",
   "/govtech-platforms/",
+  "/iot-development/",
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",
