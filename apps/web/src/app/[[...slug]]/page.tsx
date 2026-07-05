@@ -14,6 +14,7 @@ import { PageRenderer } from "../../components/PageRenderer.js";
 import { HomeView } from "../../components/home/HomeView.js";
 import { ServiceView } from "../../components/service/ServiceView.js";
 import { servicePages } from "../../content/service-pages/index.js";
+import { HowWeWorkView } from "../../components/company/HowWeWorkView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { ContactForm } from "../../components/ContactForm.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
@@ -109,6 +110,16 @@ export default async function MarketingRoute({
       <>
         <JsonLd graph={graphForPage(page)} />
         <ServiceView content={service} />
+      </>
+    );
+  }
+  // The How We Work page renders from its design-handoff view; metadata and JSON-LD still come
+  // from the content module above.
+  if (page.meta.slug === "/how-we-work") {
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <HowWeWorkView />
       </>
     );
   }
