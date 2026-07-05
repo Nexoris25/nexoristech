@@ -1,0 +1,493 @@
+/*
+ * About Us page. Ported from the approved handoff (About Us.html). Rendered inside .svc-page so it
+ * reuses the shared hero/band/cta/hero-stats/hero-media primitives; these abt- classes add the
+ * story, mission/vision, values, stack, team, and careers-teaser sections. The photo slots render
+ * as on-brand panels (and a CN initials avatar for the founder) until real photos are supplied.
+ * Prefixed so they load globally without collisions.
+ */
+
+/* branded media panels (stand in for photos) */
+.abt-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, #1c1438, #0d0a1c);
+}
+.abt-fill::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 70%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(106, 85, 242, 0.45), transparent 62%);
+  filter: blur(28px);
+}
+
+/* story */
+.abt-story {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: 40px;
+  align-items: start;
+}
+.abt-story-body p {
+  color: var(--ink-2, #3a3550);
+  font-size: 1.0625rem;
+  line-height: 1.72;
+  margin-top: 18px;
+  max-width: 60ch;
+}
+.abt-story-body p:first-child {
+  margin-top: 0;
+}
+.abt-story-body b {
+  color: var(--ink-950, #0d0a1c);
+  font-weight: 600;
+}
+.abt-story-aside {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.abt-story-media {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  border: 1px solid var(--line, #e9e7f0);
+  box-shadow: var(--sh-md);
+  background: linear-gradient(160deg, #eeebfc, #dcd6f9);
+}
+.abt-story-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 25%, rgba(84, 60, 218, 0.22), transparent 60%);
+}
+.abt-pull {
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  border-radius: 16px;
+  padding: 26px;
+  position: relative;
+  overflow: hidden;
+}
+.abt-pull::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -25%;
+  width: 80%;
+  height: 130%;
+  background: radial-gradient(circle, rgba(106, 85, 242, 0.4), transparent 64%);
+  filter: blur(26px);
+}
+.abt-pull .qm {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 2.2rem;
+  line-height: 0.4;
+  color: var(--purple-400, #8b78f0);
+  height: 20px;
+  position: relative;
+}
+.abt-pull p {
+  position: relative;
+  font-family: "Roboto", sans-serif;
+  font-size: 1.18rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  margin-top: 18px;
+}
+
+/* mission / vision */
+.abt-mv {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 40px;
+}
+.abt-mv-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(26px, 3vw, 34px);
+  box-shadow: var(--sh-sm);
+}
+.abt-mv-card .ic {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+.abt-mv-card .ic svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.6;
+}
+.abt-mv-card .k {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--purple-700, #4330b8);
+  font-weight: 600;
+}
+.abt-mv-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.abt-mv-card p {
+  color: var(--ink-2, #3a3550);
+  font-size: 1rem;
+  line-height: 1.62;
+}
+
+/* values */
+.abt-vals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+.abt-val {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(22px, 2.6vw, 28px);
+  box-shadow: var(--sh-sm);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s, background 0.2s;
+}
+.abt-val:hover {
+  box-shadow: var(--sh-md);
+  transform: translateY(-2px);
+  border-color: var(--purple-300, #c3b8f4);
+  background: linear-gradient(180deg, #fff, var(--purple-100, #eeebfc));
+}
+.abt-val-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.abt-val-ic {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+}
+.abt-val-ic svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: var(--purple-600, #543cda);
+  stroke-width: 1.6;
+}
+.abt-val-num {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--line, #e9e7f0);
+  line-height: 1;
+}
+.abt-val-num::before {
+  content: attr(data-n);
+}
+.abt-val:hover .abt-val-num {
+  color: var(--purple-300, #c3b8f4);
+}
+.abt-val h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 9px;
+}
+.abt-val p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+.abt-val.statement {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(180deg, #fff, var(--purple-100, #eeebfc));
+  border-color: var(--purple-200, #dcd6f9);
+}
+.abt-val.statement p {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-950, #0d0a1c);
+  line-height: 1.35;
+}
+
+/* stack */
+.abt-stack {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: 40px;
+  align-items: center;
+}
+.abt-stack-body p {
+  color: var(--ink-2, #3a3550);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  max-width: 48ch;
+}
+.abt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.abt-schip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: var(--sh-sm);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-950, #0d0a1c);
+}
+.abt-schip i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex: none;
+}
+
+/* team */
+.abt-team {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 40px;
+}
+.abt-founder {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  overflow: hidden;
+  box-shadow: var(--sh-md);
+}
+.abt-founder-photo {
+  position: relative;
+  background: linear-gradient(150deg, #543cda, #4330b8);
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+}
+.abt-founder-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.14), transparent 60%);
+}
+.abt-initials {
+  position: relative;
+  font-family: "Roboto", sans-serif;
+  font-size: 3.4rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.abt-founder-body {
+  padding: clamp(24px, 3vw, 34px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.abt-founder-body .role {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--purple-600, #543cda);
+  font-weight: 600;
+}
+.abt-founder-body h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 8px 0 14px;
+}
+.abt-founder-body p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.97rem;
+  line-height: 1.65;
+}
+.abt-founder-body .sig {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--purple-700, #4330b8);
+}
+.abt-founder-body .sig svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.8;
+  flex: none;
+}
+.abt-soon {
+  border: 1px dashed var(--purple-200, #dcd6f9);
+  border-radius: var(--r, 12px);
+  background: var(--purple-100, #eeebfc);
+  padding: clamp(24px, 3vw, 34px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.abt-soon .stripe {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, rgba(84, 60, 218, 0.05) 0 12px, transparent 12px 24px);
+}
+.abt-soon .ic {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 13px;
+  background: #fff;
+  border: 1px solid var(--purple-200, #dcd6f9);
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+.abt-soon .ic svg {
+  width: 25px;
+  height: 25px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.6;
+}
+.abt-soon h3 {
+  position: relative;
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+.abt-soon p {
+  position: relative;
+  color: var(--ink-2, #3a3550);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 38ch;
+}
+.abt-soon .link-arrow {
+  position: relative;
+  margin-top: 16px;
+}
+
+/* careers teaser */
+.abt-teaser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  border-radius: 18px;
+  padding: clamp(28px, 4vw, 44px);
+  position: relative;
+  overflow: hidden;
+  flex-wrap: wrap;
+}
+.abt-teaser::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  right: -6%;
+  width: 50%;
+  height: 150%;
+  background: radial-gradient(circle, rgba(106, 85, 242, 0.3), transparent 64%);
+  filter: blur(40px);
+}
+.abt-teaser .tz {
+  position: relative;
+  z-index: 2;
+  max-width: 46ch;
+}
+.abt-teaser h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+.abt-teaser p {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+.abt-teaser .btn {
+  position: relative;
+  z-index: 2;
+  flex: none;
+}
+
+@media (max-width: 1080px) {
+  .abt-story,
+  .abt-stack {
+    grid-template-columns: 1fr;
+  }
+  .abt-story-aside {
+    position: static;
+    flex-direction: row;
+  }
+  .abt-story-media {
+    flex: 1;
+  }
+  .abt-pull {
+    flex: 1;
+  }
+  .abt-vals {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .abt-mv,
+  .abt-vals,
+  .abt-team {
+    grid-template-columns: 1fr;
+  }
+  .abt-founder {
+    grid-template-columns: 1fr;
+  }
+  .abt-story-aside {
+    flex-direction: column;
+  }
+  .abt-teaser {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

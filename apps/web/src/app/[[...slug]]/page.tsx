@@ -15,6 +15,7 @@ import { HomeView } from "../../components/home/HomeView.js";
 import { ServiceView } from "../../components/service/ServiceView.js";
 import { servicePages } from "../../content/service-pages/index.js";
 import { HowWeWorkView } from "../../components/company/HowWeWorkView.js";
+import { AboutView } from "../../components/company/AboutView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { ContactForm } from "../../components/ContactForm.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
@@ -120,6 +121,14 @@ export default async function MarketingRoute({
       <>
         <JsonLd graph={graphForPage(page)} />
         <HowWeWorkView />
+      </>
+    );
+  }
+  if (page.meta.slug === "/about") {
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <AboutView />
       </>
     );
   }

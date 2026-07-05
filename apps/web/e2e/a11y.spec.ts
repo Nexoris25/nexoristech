@@ -20,6 +20,7 @@ const ROUTES = [
   "/iot-development/",
   "/managed-technology-operations/",
   "/oge/",
+  "/about/",
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",
