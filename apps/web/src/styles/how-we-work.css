@@ -37,115 +37,106 @@
   justify-content: center;
 }
 
-/* six-stage timeline */
+/* six-stage grid (interactive cards) */
 .hwk-stages {
   margin-top: 44px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(14px, 2vw, 18px);
 }
 .hwk-stage {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: clamp(18px, 3vw, 32px);
-  align-items: start;
-}
-.hwk-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.hwk-node {
-  width: 60px;
-  height: 60px;
-  border-radius: 17px;
   background: var(--surface, #fff);
   border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(22px, 2.4vw, 28px);
+  box-shadow: var(--sh-sm);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+.hwk-stage:hover {
+  box-shadow: var(--sh-md);
+  transform: translateY(-3px);
+  border-color: var(--purple-300, #c3b8f4);
+}
+.hwk-stage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.hwk-node {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--purple-100, #eeebfc);
   display: grid;
   place-items: center;
-  box-shadow: var(--sh-sm);
-  position: relative;
-  z-index: 2;
-  transition: background 0.22s, border-color 0.22s, transform 0.22s;
+  flex: none;
+  transition: background 0.22s;
 }
 .hwk-node svg {
-  width: 27px;
-  height: 27px;
+  width: 25px;
+  height: 25px;
   stroke: var(--purple-600, #543cda);
   fill: none;
   stroke-width: 1.7;
   transition: stroke 0.22s;
 }
-.hwk-node .badge {
-  position: absolute;
-  top: -9px;
-  right: -9px;
-  min-width: 23px;
-  height: 23px;
-  padding: 0 6px;
-  border-radius: 8px;
-  background: var(--purple-600, #543cda);
-  color: #fff;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 2px 6px rgba(84, 60, 218, 0.32);
-}
-.hwk-line {
-  flex: 1;
-  width: 2px;
-  background: repeating-linear-gradient(180deg, var(--purple-300, #c3b8f4) 0 7px, transparent 7px 13px);
-  margin: 6px 0;
-}
-.hwk-stage:last-child .hwk-line {
-  display: none;
-}
 .hwk-stage:hover .hwk-node {
   background: var(--purple-600, #543cda);
-  border-color: var(--purple-600, #543cda);
-  transform: translateY(-2px);
 }
 .hwk-stage:hover .hwk-node svg {
   stroke: #fff;
 }
-.hwk-card {
-  background: var(--surface, #fff);
-  border: 1px solid var(--line, #e9e7f0);
-  border-radius: var(--r, 12px);
-  padding: clamp(22px, 2.8vw, 30px);
-  box-shadow: var(--sh-sm);
-  margin-bottom: 6px;
-  transition: box-shadow 0.2s, border-color 0.2s;
-}
-.hwk-stage:hover .hwk-card {
-  box-shadow: var(--sh-md);
-  border-color: var(--purple-200, #dcd6f9);
-}
-.hwk-card .k {
+.hwk-num {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.68rem;
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--line, #e9e7f0);
+  line-height: 1;
+  transition: color 0.22s;
+}
+.hwk-num::before {
+  content: attr(data-n);
+}
+.hwk-stage:hover .hwk-num {
+  color: var(--purple-300, #c3b8f4);
+}
+.hwk-stage .k {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.66rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--purple-600, #543cda);
   font-weight: 600;
 }
-.hwk-card h3 {
-  font-size: 1.25rem;
+.hwk-stage h3 {
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin: 6px 0 11px;
+  margin: 5px 0 9px;
+  line-height: 1.28;
 }
-.hwk-card p {
+.hwk-stage p {
   color: var(--ink-2, #3a3550);
-  font-size: 0.98rem;
-  line-height: 1.66;
-  max-width: 70ch;
+  font-size: 0.93rem;
+  line-height: 1.62;
 }
-.hwk-card p b {
+.hwk-stage p b {
   color: var(--ink-950, #0d0a1c);
   font-weight: 600;
+}
+
+@media (max-width: 980px) {
+  .hwk-stages {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 620px) {
+  .hwk-stages {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* commitments (dark card) */

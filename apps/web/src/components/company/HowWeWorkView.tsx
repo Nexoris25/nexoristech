@@ -265,18 +265,15 @@ export function HowWeWorkView(): ReactNode {
           <div className="hwk-stages reveal">
             {STAGES.map((s, i) => (
               <article className="hwk-stage" key={s.title}>
-                <div className="hwk-rail">
+                <div className="hwk-stage-top">
                   <div className="hwk-node">
-                    <span className="badge">{String(i + 1).padStart(2, "0")}</span>
                     <svg viewBox="0 0 24 24">{s.icon}</svg>
                   </div>
-                  <div className="hwk-line" />
+                  <span className="hwk-num" aria-hidden="true" data-n={String(i + 1).padStart(2, "0")} />
                 </div>
-                <div className="hwk-card">
-                  <div className="k">Stage {String(i + 1).padStart(2, "0")}</div>
-                  <h3>{s.title}</h3>
-                  <p>{s.body}</p>
-                </div>
+                <div className="k">Stage {String(i + 1).padStart(2, "0")}</div>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
               </article>
             ))}
           </div>
