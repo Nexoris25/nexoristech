@@ -59,16 +59,119 @@ const VALUES: { title: string; body: string; icon: ReactNode }[] = [
   },
 ];
 
-const STACK: { name: string; color: string }[] = [
-  { name: "Next.js", color: "#543CDA" },
-  { name: "React", color: "#6A55F2" },
-  { name: "TypeScript", color: "#6A55F2" },
-  { name: "NestJS", color: "#8B78F0" },
-  { name: "PostgreSQL", color: "#6A55F2" },
-  { name: "Prisma", color: "#8B78F0" },
-  { name: "Tailwind CSS", color: "#543CDA" },
-  { name: "Figma", color: "#c3b8f4" },
+const TOOLS: { name: string; mark: string; color: string; kind: string }[] = [
+  { name: "Next.js", mark: "N", color: "#0d0a1c", kind: "Framework" },
+  { name: "React", mark: "R", color: "#0b7a99", kind: "Frontend" },
+  { name: "TypeScript", mark: "TS", color: "#2d67b2", kind: "Language" },
+  { name: "Tailwind CSS", mark: "Tw", color: "#0e7490", kind: "Styling" },
+  { name: "Node.js", mark: "Nd", color: "#2e7d32", kind: "Runtime" },
+  { name: "NestJS", mark: "Ns", color: "#c2183c", kind: "Backend" },
+  { name: "Python", mark: "Py", color: "#2e6da4", kind: "Language" },
+  { name: "Django", mark: "Dj", color: "#0c4b33", kind: "Backend" },
+  { name: "PHP", mark: "PHP", color: "#565a9e", kind: "Language" },
+  { name: "Laravel", mark: "Lv", color: "#d42c1e", kind: "Backend" },
+  { name: "PostgreSQL", mark: "Pg", color: "#2f5d8a", kind: "Database" },
+  { name: "MySQL", mark: "My", color: "#00618a", kind: "Database" },
+  { name: "Prisma", mark: "Pr", color: "#2d3748", kind: "ORM" },
+  { name: "Docker", mark: "Dk", color: "#1e77c7", kind: "Infra" },
+  { name: "Figma", mark: "Fg", color: "#7a3fcc", kind: "Design" },
 ];
+
+/* Original brand illustration standing in for a team photo (a diverse Lagos team at work). */
+const TEAM_ART: ReactNode = (
+  <svg
+    className="abt-art"
+    viewBox="0 0 400 300"
+    preserveAspectRatio="xMidYMid slice"
+    role="img"
+    aria-label="An illustration of the Nexoris Technologies team at work in Lagos"
+  >
+    <defs>
+      <linearGradient id="abt-bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#241a5c" />
+        <stop offset="1" stopColor="#120d2b" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="300" fill="url(#abt-bg)" />
+    <circle cx="300" cy="70" r="120" fill="#6a55f2" opacity="0.18" />
+    {/* floating UI cards */}
+    <g transform="translate(40 44)">
+      <rect width="120" height="66" rx="12" fill="#fff" opacity="0.96" />
+      <rect x="14" y="14" width="60" height="9" rx="4" fill="#c3b8f4" />
+      <rect x="14" y="34" width="92" height="7" rx="3" fill="#e9e7f0" />
+      <rect x="14" y="46" width="70" height="7" rx="3" fill="#e9e7f0" />
+    </g>
+    <g transform="translate(250 40)">
+      <rect width="110" height="72" rx="12" fill="#fff" opacity="0.96" />
+      <rect x="14" y="46" width="12" height="14" rx="2" fill="#6a55f2" />
+      <rect x="34" y="34" width="12" height="26" rx="2" fill="#543cda" />
+      <rect x="54" y="22" width="12" height="38" rx="2" fill="#4330b8" />
+      <rect x="74" y="30" width="12" height="30" rx="2" fill="#6a55f2" />
+      <circle cx="94" cy="18" r="7" fill="#2ee6a8" />
+    </g>
+    {/* three team members */}
+    {[
+      { x: 96, skin: "#8b5634", hair: "#1d1233", shirt: "#6a55f2" },
+      { x: 200, skin: "#a06a42", hair: "#2a1622", shirt: "#c3b8f4" },
+      { x: 304, skin: "#6b4226", hair: "#150f2e", shirt: "#8b78f0" },
+    ].map((p, i) => (
+      <g key={i} transform={`translate(${p.x} 300)`}>
+        <path d={`M-52 0 a52 44 0 0 1 104 0 z`} fill={p.shirt} />
+        <ellipse cx="0" cy="-58" rx="30" ry="33" fill={p.skin} />
+        <path d="M-30 -66 a30 30 0 0 1 60 0 q-30 -18 -60 0 z" fill={p.hair} />
+        <ellipse cx="-11" cy="-58" rx="3" ry="3.6" fill="#2a1622" />
+        <ellipse cx="11" cy="-58" rx="3" ry="3.6" fill="#2a1622" />
+        <path d="M-9 -46 q9 7 18 0" stroke="#5a2f1a" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      </g>
+    ))}
+  </svg>
+);
+
+/* Original brand illustration standing in for a workspace photo. */
+const WORKSPACE_ART: ReactNode = (
+  <svg
+    className="abt-art"
+    viewBox="0 0 300 375"
+    preserveAspectRatio="xMidYMid slice"
+    role="img"
+    aria-label="An illustration of a Nexoris Technologies workspace"
+  >
+    <defs>
+      <linearGradient id="abt-wbg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#efeafc" />
+        <stop offset="1" stopColor="#dcd6f9" />
+      </linearGradient>
+    </defs>
+    <rect width="300" height="375" fill="url(#abt-wbg)" />
+    <circle cx="70" cy="80" r="90" fill="#6a55f2" opacity="0.12" />
+    {/* desk */}
+    <rect x="0" y="286" width="300" height="10" fill="#c3b8f4" />
+    {/* monitor with a dashboard */}
+    <g transform="translate(72 96)">
+      <rect width="156" height="112" rx="10" fill="#17122f" />
+      <rect x="10" y="10" width="136" height="92" rx="6" fill="#0f0b22" />
+      <rect x="22" y="22" width="52" height="8" rx="4" fill="#c3b8f4" />
+      <rect x="22" y="74" width="18" height="14" rx="2" fill="#6a55f2" />
+      <rect x="46" y="60" width="18" height="28" rx="2" fill="#543cda" />
+      <rect x="70" y="48" width="18" height="40" rx="2" fill="#4330b8" />
+      <rect x="94" y="56" width="18" height="32" rx="2" fill="#6a55f2" />
+      <circle cx="120" cy="34" r="9" fill="#2ee6a8" />
+      <rect x="66" y="112" width="24" height="18" fill="#17122f" />
+      <rect x="46" y="130" width="64" height="8" rx="4" fill="#17122f" />
+    </g>
+    {/* plant */}
+    <g transform="translate(238 226)">
+      <path d="M6 60 h20 l-3 -30 h-14 z" fill="#543cda" />
+      <path d="M16 30 q-22 -8 -18 -34 q18 4 18 34z" fill="#3e8e6e" />
+      <path d="M16 30 q22 -8 18 -34 q-18 4 -18 34z" fill="#2f6f54" />
+    </g>
+    {/* coffee */}
+    <g transform="translate(44 258)">
+      <rect x="0" y="0" width="30" height="24" rx="5" fill="#fff" />
+      <path d="M30 6 h7 a6 6 0 0 1 0 12 h-7" fill="none" stroke="#fff" strokeWidth="4" />
+    </g>
+  </svg>
+);
 
 export function AboutView(): ReactNode {
   return (
@@ -125,8 +228,8 @@ export function AboutView(): ReactNode {
                 </div>
               </div>
             </div>
-            <div className="hero-media reveal" role="img" aria-label="Nexoris Technologies, built in Lagos and used everywhere">
-              <div className="abt-fill" />
+            <div className="hero-media reveal">
+              {TEAM_ART}
               <div className="ovl" />
               <div className="hero-chip">
                 <span className="hci">
@@ -179,7 +282,7 @@ export function AboutView(): ReactNode {
               </p>
             </div>
             <div className="abt-story-aside reveal">
-              <div className="abt-story-media" role="img" aria-label="A Nexoris Technologies workspace" />
+              <div className="abt-story-media">{WORKSPACE_ART}</div>
               <div className="abt-pull">
                 <div className="qm">&ldquo;</div>
                 <p>We begin with the problem and the people, and only then choose the technology.</p>
@@ -282,18 +385,21 @@ export function AboutView(): ReactNode {
             <h2 className="h-section">The tools we build with.</h2>
           </div>
           <div className="abt-stack">
-            <div className="abt-stack-body reveal">
-              <p>
-                We chose these tools for performance and easy long-term maintenance, and we adjust
-                them to fit each project rather than forcing every project to fit them.
-              </p>
-            </div>
-            <div className="abt-chips reveal">
-              {STACK.map((s) => (
-                <span className="abt-schip" key={s.name}>
-                  <i style={{ background: s.color }} />
-                  {s.name}
-                </span>
+            <p className="abt-stack-lede reveal">
+              We chose these tools for performance and easy long-term maintenance, and we adjust them
+              to fit each project rather than forcing every project to fit them.
+            </p>
+            <div className="abt-tools reveal">
+              {TOOLS.map((t) => (
+                <div className="abt-tool" key={t.name}>
+                  <span className="mk" style={{ background: t.color }} aria-hidden="true">
+                    {t.mark}
+                  </span>
+                  <span className="tn">
+                    <b>{t.name}</b>
+                    <span>{t.kind}</span>
+                  </span>
+                </div>
               ))}
             </div>
           </div>
