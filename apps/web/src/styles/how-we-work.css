@@ -22,11 +22,20 @@
 .hwk-hero-inner .kicker {
   justify-content: center;
 }
-.hwk-hero-inner h1 {
-  max-width: 24ch;
+/* Beat the generic `.svc-page .hero h1` (which forces text-wrap:balance into a narrow column)
+ * with a higher-specificity rule so the long title spreads across more width on desktop. */
+.svc-page .hwk-hero-inner h1 {
+  max-width: 30ch;
   text-wrap: balance;
+  overflow-wrap: break-word;
   margin-left: auto;
   margin-right: auto;
+}
+@media (min-width: 900px) {
+  .svc-page .hwk-hero-inner h1 {
+    max-width: 62ch;
+    text-wrap: pretty;
+  }
 }
 .hwk-hero-inner .lede {
   margin-left: auto;

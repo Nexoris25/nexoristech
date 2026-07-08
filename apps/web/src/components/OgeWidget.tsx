@@ -10,7 +10,6 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { OgeMark } from "./home/OgeMark.js";
 
 interface Source {
@@ -79,10 +78,7 @@ function nextId(): string {
   return `m${messageCounter}`;
 }
 
-const cleanTitle = (t: string): string => t.replace(" | Nexoris Technologies", "");
-
 export function OgeWidget(): ReactNode {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pulse, setPulse] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -352,15 +348,6 @@ export function OgeWidget(): ReactNode {
                 ) : (
                   <p>…</p>
                 )}
-                {m.sources && m.sources.length > 0 ? (
-                  <div className="ogw-srcs">
-                    {m.sources.slice(0, 3).map((s) => (
-                      <button type="button" className="ogw-src" key={s.url} onClick={() => router.push(s.url)}>
-                        ☉ {cleanTitle(s.title)}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
                 {m.handoff ? (
                   <div className="ogw-actions">
                     <a className="ogw-btn wa" href={m.handoff.whatsapp} target="_blank" rel="noopener noreferrer">

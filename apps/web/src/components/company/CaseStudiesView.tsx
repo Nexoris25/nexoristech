@@ -139,22 +139,17 @@ export function CaseStudiesView(): ReactNode {
               </div>
               <div className="ih-body">
                 <div className="ih-head">
-                  <span
-                    className="ih-logo"
-                    style={{ background: "linear-gradient(150deg,#6a55f2,#4330b8)" }}
-                    aria-hidden="true"
-                  >
-                    C
-                  </span>
-                  <span className="ih-name">Covyvo</span>
+                  <img className="ih-logo-img" src="/case-studies/covyvo-logo.webp" alt="Covyvo" />
                 </div>
                 <div className="ih-tag">Payroll, e-invoicing &amp; core business tools</div>
                 <p>
-                  Payroll, e-invoicing, and core business tools in one platform, built for small and
-                  medium businesses in Nigeria. The Nigeria Tax Act 2025 changed the compliance
-                  rules, and most SME tools have not caught up, so we built one that has. Covyvo
-                  handles payroll around current Nigerian tax and statutory requirements, e-invoicing
-                  designed for the new rules, and the everyday tools a small business runs on, all as
+                  Covyvo brings payroll, e-invoicing, and the everyday tools a business runs on into
+                  one platform, built for small and medium businesses in Nigeria.
+                </p>
+                <p>
+                  The Nigeria Tax Act 2025 changed the compliance rules, and most SME tools have not
+                  caught up, so we built one that has. Covyvo handles payroll around current Nigerian
+                  tax and statutory requirements, and e-invoicing designed for the new rules, all on
                   a subscription with no large upfront cost.
                 </p>
                 <div className="ih-meta">
@@ -189,19 +184,22 @@ export function CaseStudiesView(): ReactNode {
                   </span>
                   <span className="ih-name">GLEEN</span>
                 </div>
-                <div className="ih-tag">Exam preparation for Nigerian students</div>
+                <div className="ih-tag">Gamified exam preparation for Nigerian students</div>
                 <p>
-                  An exam preparation platform for Nigerian students sitting WAEC, NECO, JAMB, and
-                  Post-UTME. Cramming the week before has never worked, and students know it too, so
-                  GLEEN is built around consistency: content matched to the actual syllabuses,
-                  progress tracking students can see, and rewards that make regular study a habit
-                  rather than a struggle.
+                  GLEEN is a gamified learning platform for students sitting WAEC, NECO, JAMB, and
+                  Post-UTME. Users take on their friends in one-on-one quiz battles, join study
+                  crews, and earn XP for completing a course or winning a challenge.
+                </p>
+                <p>
+                  That XP can be withdrawn as airtime, so the reward is real. The gamification is
+                  designed to make studying something students actually want to come back to,
+                  instead of a struggle they put off until the week before.
                 </p>
                 <div className="ih-meta">
-                  <span className="ih-chip">WAEC</span>
-                  <span className="ih-chip">NECO</span>
-                  <span className="ih-chip">JAMB</span>
-                  <span className="ih-chip">Post-UTME</span>
+                  <span className="ih-chip">1v1 quiz battles</span>
+                  <span className="ih-chip">Study crews</span>
+                  <span className="ih-chip">XP as airtime</span>
+                  <span className="ih-chip">WAEC / JAMB</span>
                 </div>
                 <div className="ih-foot">
                   <div className="ehint">Under active development &middot; early access is open</div>

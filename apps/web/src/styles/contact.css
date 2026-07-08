@@ -477,7 +477,7 @@
   width: 42px;
   height: 42px;
   border-radius: 11px;
-  background: var(--ink-950, #0d0a1c);
+  background: linear-gradient(150deg, var(--purple-500, #6a55f2), var(--purple-700, #4330b8));
   color: #fff;
   font-family: "JetBrains Mono", monospace;
   font-weight: 700;

@@ -126,9 +126,9 @@ export function ProductMockup(): ReactNode {
         </div>
 
         {/* App shell */}
-        <div className="grid grid-cols-[1fr] bg-neutral-50 sm:grid-cols-[160px_1fr]">
+        <div className="grid grid-cols-[1fr] bg-neutral-50 min-[675px]:grid-cols-[160px_1fr]">
           {/* Sidebar */}
-          <aside className="hidden flex-col bg-ink-950 p-2.5 text-purple-100 sm:flex">
+          <aside className="hidden flex-col bg-ink-950 p-2.5 text-purple-100 min-[675px]:flex">
             <div className="mb-1 flex items-center gap-2 px-1.5 py-1">
               <img src="/logo-mark-white.png" alt="" className="h-5 w-auto" />
               <span className="font-roboto text-[10px] font-700 leading-tight text-white">
@@ -191,7 +191,7 @@ export function ProductMockup(): ReactNode {
                     Here&apos;s what&apos;s happening across Nexoris Technologies today.
                   </div>
                 </div>
-                <div className="hidden items-center gap-2 sm:flex">
+                <div className="hidden items-center gap-2 min-[675px]:flex">
                   <span className="rounded-md border border-purple-100 bg-white px-2 py-1 text-[8.5px] text-neutral-600">
                     May 20, 2025
                   </span>
@@ -203,7 +203,7 @@ export function ProductMockup(): ReactNode {
               </div>
 
               {/* KPIs */}
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="mt-3 grid grid-cols-2 gap-2 min-[675px]:grid-cols-3 lg:grid-cols-5">
                 <Kpi label="Sales Won Value (MTD)" value="₦45,000,000" up sub={<span className="text-[#0e7a5b]">↑ 18.6% vs Apr</span>} />
                 <Kpi label="Recognized Revenue" value="₦28,750,000" up sub={<span className="text-[#0e7a5b]">↑ 12.2% vs Apr</span>} />
                 <Kpi label="Open Invoices" value="₦35,200,000" sub="31 invoices" up={false} />

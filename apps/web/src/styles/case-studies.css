@@ -261,6 +261,11 @@
   font-weight: 700;
   letter-spacing: -0.015em;
 }
+.case-studies-page .ih-logo-img {
+  display: block;
+  height: 30px;
+  width: auto;
+}
 .case-studies-page .ih-tag {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
@@ -272,7 +277,10 @@
 .case-studies-page .ih-body p {
   color: var(--ink-2, #3a3550);
   font-size: 0.96rem;
-  line-height: 1.65;
+  line-height: 1.68;
+}
+.case-studies-page .ih-body p + p {
+  margin-top: 14px;
 }
 .case-studies-page .ih-meta {
   margin-top: 18px;
@@ -352,5 +360,9 @@
   .case-studies-page .cs-note {
     flex-direction: column;
     gap: 14px;
+  }
+  /* the "Product screenshot" overlay label crowds the small mobile thumb — hide it there */
+  .case-studies-page .ih-badge {
+    display: none;
   }
 }

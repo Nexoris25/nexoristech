@@ -74,10 +74,10 @@ function NewsletterSignup(): ReactNode {
           <span className="dot" />
           Newsletter
         </span>
-        <h2>Practical writing, no noise.</h2>
+        <h2>Get our new articles by email.</h2>
         <p>
-          Occasional articles on software, automation, and AI for businesses in Nigeria and beyond.
-          Leave any time.
+          We will send you an email when we publish something on software, automation, or AI for
+          businesses in Nigeria and beyond. You can unsubscribe whenever you like.
         </p>
       </div>
       <form className="nl-form" onSubmit={onSubmit}>

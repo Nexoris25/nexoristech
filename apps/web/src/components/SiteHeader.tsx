@@ -55,8 +55,9 @@ export function SiteHeader(): ReactNode {
     `${base}${open === id ? " open" : ""}`;
 
   return (
-    <header>
-      <div className="wrap nav">
+    <>
+      <header>
+        <div className="wrap nav">
         <Link className="brand" href="/" aria-label="Nexoris Technologies home">
           <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies" />
           <span className="wm">
@@ -192,6 +193,7 @@ export function SiteHeader(): ReactNode {
           </button>
         </div>
       </div>
+      </header>
 
       <div className={`drawer${drawer ? " open" : ""}`} onClick={() => setDrawer(false)}>
         <div className="drawer-scroll" onClick={(e) => e.stopPropagation()}>
@@ -247,6 +249,6 @@ export function SiteHeader(): ReactNode {
           </a>
         </div>
       </div>
-    </header>
+    </>
   );
 }

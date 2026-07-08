@@ -138,8 +138,10 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
                 <span className="bi">
                   <svg viewBox="0 0 24 24">{b.icon}</svg>
                 </span>
-                <b>{b.title}</b>
-                <span>{b.sub}</span>
+                <span className="bt">
+                  <b>{b.title}</b>
+                  <span>{b.sub}</span>
+                </span>
               </div>
             ))}
           </div>
