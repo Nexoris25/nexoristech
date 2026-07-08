@@ -1,0 +1,277 @@
+/*
+ * Legal pages (Privacy, Terms, Cookie). Ported from the approved handoff (assets/legal.css). The
+ * content is still driven by Strapi single-types through LegalPageView; this only restyles the
+ * presentation to the handoff: a dark legal hero, a sticky table of contents, and numbered policy
+ * sections. Scoped under .legal-page so the generic class names cannot collide globally.
+ */
+.legal-page .legal-hero {
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(36px, 4.5vw, 52px) 0 clamp(30px, 4vw, 44px);
+}
+.legal-page .legal-hero .glow {
+  position: absolute;
+  top: -20%;
+  right: -6%;
+  width: 54%;
+  height: 120%;
+  background: radial-gradient(ellipse, rgba(106, 85, 242, 0.24), transparent 68%);
+  filter: blur(44px);
+  pointer-events: none;
+}
+.legal-page .legal-hero .crumb {
+  position: relative;
+  z-index: 2;
+}
+.legal-page .legal-head {
+  position: relative;
+  z-index: 2;
+  max-width: 780px;
+  margin-top: 24px;
+}
+.legal-page .legal-head h1 {
+  font-family: "Roboto", sans-serif;
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin-top: 14px;
+}
+.legal-page .legal-head p {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-top: 14px;
+  max-width: 60ch;
+}
+.legal-page .legal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.legal-page .legal-meta .lm {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.legal-page .legal-meta .lm svg {
+  width: 15px;
+  height: 15px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.legal-page .legal-layout {
+  display: grid;
+  grid-template-columns: 0.32fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: 40px;
+  align-items: start;
+}
+.legal-page .toc {
+  position: sticky;
+  top: 96px;
+}
+.legal-page .toc h2 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6a6580);
+  margin-bottom: 14px;
+}
+.legal-page .toc ol {
+  list-style: none;
+  counter-reset: t;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.legal-page .toc li {
+  counter-increment: t;
+}
+.legal-page .toc a {
+  display: flex;
+  gap: 11px;
+  align-items: baseline;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: var(--ink-2, #3a3550);
+  font-weight: 500;
+  line-height: 1.35;
+  transition: background 0.15s, color 0.15s;
+}
+.legal-page .toc a::before {
+  content: counter(t, decimal-leading-zero);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--purple-500, #6a55f2);
+  font-weight: 700;
+  flex: none;
+}
+.legal-page .toc a:hover {
+  background: var(--purple-100, #eeebfc);
+  color: var(--purple-700, #4330b8);
+}
+
+.legal-page .legal-body {
+  max-width: 740px;
+}
+.legal-page .legal-intro {
+  background: var(--purple-100, #eeebfc);
+  border: 1px solid var(--purple-200, #dcd6f9);
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin-bottom: 32px;
+}
+.legal-page .legal-intro p {
+  color: var(--ink-950, #0d0a1c);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.legal-page .legal-sec {
+  padding-top: 14px;
+  margin-bottom: 34px;
+  scroll-margin-top: 90px;
+}
+.legal-page .legal-sec h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink-950, #0d0a1c);
+  line-height: 1.2;
+  display: flex;
+  gap: 13px;
+  align-items: baseline;
+}
+.legal-page .legal-sec h2 .sn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  color: var(--purple-500, #6a55f2);
+  font-weight: 700;
+  flex: none;
+}
+.legal-page .legal-short {
+  background: var(--purple-100, #eeebfc);
+  border: 1px solid var(--purple-200, #dcd6f9);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 16px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-950, #0d0a1c);
+}
+.legal-page .legal-short b {
+  font-weight: 700;
+}
+.legal-page .legal-sec h3 {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 22px 0 8px;
+  letter-spacing: -0.01em;
+}
+.legal-page .legal-sec p {
+  color: var(--ink-2, #3a3550);
+  font-size: 1.02rem;
+  line-height: 1.72;
+  margin-top: 14px;
+}
+.legal-page .legal-sec p:first-of-type {
+  margin-top: 16px;
+}
+.legal-page .legal-sec a {
+  color: var(--purple-600, #543cda);
+  font-weight: 600;
+}
+.legal-page .legal-sec ul {
+  list-style: none;
+  margin-top: 14px;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.legal-page .legal-sec ul li {
+  position: relative;
+  padding-left: 26px;
+  color: var(--ink-2, #3a3550);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+.legal-page .legal-sec ul li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.6em;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--purple-500, #6a55f2);
+}
+.legal-page .legal-sec ul li b,
+.legal-page .legal-sec ul li strong {
+  color: var(--ink-950, #0d0a1c);
+  font-weight: 600;
+}
+.legal-page .legal-sec ol {
+  margin-top: 14px;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  color: var(--ink-2, #3a3550);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+.legal-page .review-note {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--ink-3, #6a6580);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--line, #e9e7f0);
+  padding-top: 22px;
+  line-height: 1.5;
+}
+.legal-page .review-note::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--purple-500, #6a55f2);
+  flex: none;
+}
+.legal-page .legal-interim {
+  color: var(--ink-2, #3a3550);
+  font-size: 1.02rem;
+  line-height: 1.72;
+}
+
+@media (max-width: 880px) {
+  .legal-page .legal-layout {
+    grid-template-columns: 1fr;
+  }
+  .legal-page .toc {
+    position: static;
+    background: var(--surface, #fff);
+    border: 1px solid var(--line, #e9e7f0);
+    border-radius: 12px;
+    padding: 18px;
+  }
+}

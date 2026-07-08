@@ -25,6 +25,9 @@ const ROUTES = [
   "/how-we-work/",
   "/contact/",
   "/case-studies/",
+  "/privacy-policy/",
+  "/cookie-policy/",
+  "/terms-of-service/",
 ];
 
 for (const route of ROUTES) {
