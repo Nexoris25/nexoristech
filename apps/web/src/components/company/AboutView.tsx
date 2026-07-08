@@ -9,6 +9,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   siNextdotjs,
   siReact,
@@ -153,13 +154,15 @@ export function AboutView(): ReactNode {
               </div>
             </div>
             <div className="hero-media reveal">
-              <img
-                src="/about/team-meeting.jpg"
+              <Image
+                src="/about/team-meeting.webp"
                 alt="Members of the Nexoris Technologies team discussing a project together over laptops in the office"
-                loading="eager"
+                fill
+                sizes="(max-width: 900px) 100vw, 42vw"
+                priority
               />
               <div className="ovl" />
-              <div className="hero-chip">
+              <div className="hero-chip abt-hero-chip">
                 <span className="hci">
                   <svg viewBox="0 0 24 24">
                     <path d="M3 12a9 9 0 0 1 18 0M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z" />
@@ -211,11 +214,12 @@ export function AboutView(): ReactNode {
             </div>
             <div className="abt-story-aside reveal">
               <div className="abt-story-media">
-                <img
+                <Image
                   className="abt-art"
-                  src="/about/team-collaborating.jpg"
+                  src="/about/team-collaborating.webp"
                   alt="Nexoris Technologies team members reviewing work together on a laptop"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 1080px) 60vw, 30vw"
                 />
               </div>
               <div className="abt-pull">
@@ -350,10 +354,17 @@ export function AboutView(): ReactNode {
           </div>
           <div className="abt-team reveal">
             <article className="abt-founder">
-              <div className="abt-founder-photo" role="img" aria-label="Chinedu Nwogu, Founder and Chief Executive Officer">
+              <div className="abt-founder-photo">
                 <span className="abt-initials" aria-hidden="true">
                   CN
                 </span>
+                <Image
+                  className="abt-founder-img"
+                  src="/about/founder-chinedu-nwogu.webp"
+                  alt="Chinedu Nwogu, Founder and Chief Executive Officer of Nexoris Technologies"
+                  fill
+                  sizes="(max-width: 760px) 100vw, 30vw"
+                />
               </div>
               <div className="abt-founder-body">
                 <div className="role">Founder &amp; Chief Executive Officer</div>

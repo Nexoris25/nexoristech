@@ -6,6 +6,14 @@
  * monogram by design. Prefixed so they load globally without collisions.
  */
 
+/* hero: on phones and small tablets the media panel is small, so the "Built in Lagos" chip
+ * covers the team photo. Hide it there (it stays as a non-obstructing accent on desktop). */
+@media (max-width: 768px) {
+  .svc-page .hero-chip.abt-hero-chip {
+    display: none;
+  }
+}
+
 /* story */
 .abt-story {
   display: grid;
@@ -280,13 +288,9 @@
   }
 }
 
-/* story photo fills its 4/5 frame. In-flow with its own aspect-ratio so it drives the
- * frame height reliably (an absolutely-positioned img with height:100% does not resolve
- * against an aspect-ratio container). Specific enough to beat the base img{height:auto}. */
+/* story photo (next/image fill) covers its frame; the frame height comes from the container
+ * (4/5 on tablet/mobile, flex-filled on desktop). */
 .abt-story-media img.abt-art {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: cover;
 }
 
@@ -326,6 +330,12 @@
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.02em;
+}
+/* Real founder photo (next/image fill) covers the panel; the CN monogram sits behind it as a
+ * fallback. next/image fill supplies the absolute positioning and sizing. */
+.abt-founder-img {
+  object-fit: cover;
+  object-position: center 20%;
 }
 .abt-founder-body {
   padding: clamp(24px, 3vw, 34px);
@@ -504,5 +514,25 @@
   .abt-teaser {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+/* Desktop two-column story: stretch both columns to equal height and let the photo fill
+ * only the space that balances the text, with the quote pinned directly beneath it (no forced
+ * aspect ratio, no empty gap). Tablet/mobile keep the base 4/5 photo. */
+@media (min-width: 1081px) {
+  .abt-story {
+    align-items: stretch;
+  }
+  .abt-story-aside {
+    height: 100%;
+  }
+  .abt-story-media {
+    aspect-ratio: auto;
+    flex: 1 1 auto;
+    min-height: 260px;
+  }
+  .abt-pull {
+    flex: none;
   }
 }
