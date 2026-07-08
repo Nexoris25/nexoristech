@@ -6,11 +6,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Button, Container, Section } from "@nexoris/ui";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { buildMetadata, buildGraph, jobPostingNode } from "@nexoris/seo";
 import type { JobInput } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
-import { Markdown } from "../../../components/Markdown.js";
 import { getJob, getJobSlugs } from "../../../lib/cms.js";
 
 export const revalidate = 300;
@@ -71,47 +71,100 @@ export default async function JobPage({
     : job.applyEmail
       ? `mailto:${job.applyEmail}`
       : "/contact";
+  const external = Boolean(job.applyUrl);
+  const employment = job.employmentType
+    ? (EMPLOYMENT_LABELS[job.employmentType] ?? job.employmentType)
+    : undefined;
 
   return (
-    <>
+    <div className="svc-page job-page">
       <JsonLd graph={buildGraph([jobPostingNode(jobInput)])} />
-      <Section>
-        <Container className="max-w-article">
-          <nav className="text-label text-neutral-600" aria-label="Breadcrumb">
-            <Link href="/careers" className="cursor-pointer hover:text-purple-700">
-              Careers
-            </Link>
-            <span aria-hidden="true"> / </span>
-            <span>{job.title}</span>
+
+      <section className="job-hero" aria-label={job.title}>
+        <div className="glow" />
+        <div className="wrap">
+          <nav className="crumb" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <span className="sep">/</span>
+            <Link href="/careers">Careers</Link>
+            <span className="sep">/</span>
+            <span className="here">{job.title}</span>
           </nav>
-
-          <h1 className="mt-6 font-roboto text-hero font-700 text-ink-950">
-            {job.title}
-          </h1>
-          <p className="mt-2 text-label text-neutral-600">
-            {[
-              job.department,
-              job.location,
-              job.remote ? "Remote" : undefined,
-              job.employmentType
-                ? (EMPLOYMENT_LABELS[job.employmentType] ?? job.employmentType)
-                : undefined,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-
-          {job.description ? (
-            <div className="mt-8">
-              <Markdown>{job.description}</Markdown>
+          <div className="job-head">
+            {job.department ? <span className="team-pill">{job.department}</span> : null}
+            <h1>{job.title}</h1>
+            <div className="job-facts">
+              {job.location ? (
+                <span className="fact">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                  </svg>
+                  {job.location}
+                </span>
+              ) : null}
+              {job.remote ? (
+                <span className="fact">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="12" rx="2" />
+                    <path d="M8 20h8M12 16v4" />
+                  </svg>
+                  Remote-friendly
+                </span>
+              ) : null}
+              {employment ? (
+                <span className="fact">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="3" y="7" width="18" height="13" rx="2" />
+                    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  {employment}
+                </span>
+              ) : null}
             </div>
-          ) : null}
-
-          <div className="mt-10">
-            <Button href={applyHref}>Apply for this role</Button>
           </div>
-        </Container>
-      </Section>
-    </>
+        </div>
+      </section>
+
+      <section className="band" aria-label="Role details">
+        <div className="wrap">
+          <div className="job-layout">
+            <div className="job-body">
+              {job.description ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{job.description}</ReactMarkdown>
+              ) : (
+                <p>
+                  Full details for this role are being finalised. In the meantime, reach out and we
+                  will tell you everything you want to know.
+                </p>
+              )}
+            </div>
+
+            <aside className="apply">
+              <div className="apply-h">
+                <b>Apply for this role</b>
+                <span>A real person reads every application, and you hear back within one week.</span>
+              </div>
+              <div className="apply-b">
+                <a
+                  className="btn btn-primary"
+                  href={applyHref}
+                  {...(external
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  {job.applyEmail && !job.applyUrl ? "Email your application" : "Start your application"}{" "}
+                  <span className="arr">&rarr;</span>
+                </a>
+                <p className="apply-note">
+                  Send your CV and something you have built or written. We reply to every
+                  application.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
