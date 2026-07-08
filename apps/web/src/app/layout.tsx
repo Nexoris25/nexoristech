@@ -33,6 +33,7 @@ import "../styles/case-studies.css";
 import "../styles/legal.css";
 import "../styles/careers.css";
 import "../styles/insights.css";
+import "../styles/article.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

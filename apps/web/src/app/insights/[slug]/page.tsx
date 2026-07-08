@@ -9,7 +9,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Container, Section } from "@nexoris/ui";
 import {
   buildMetadata,
   buildGraph,
@@ -64,38 +63,48 @@ function personRef(author: Author): PersonRef {
   };
 }
 
+/** Flatten a React node tree to its text, so an h2's slug id matches the TOC entry. */
+function nodeText(node: ReactNode): string {
+  if (node == null || node === false) return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return nodeText((node as { props: { children?: ReactNode } }).props.children);
+  }
+  return "";
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Section headings (## lines) from the markdown body, for the table of contents. */
+function headingsFrom(body: string): { text: string; id: string }[] {
+  return body
+    .split("\n")
+    .map((line) => /^## +(.+)$/.exec(line.trim()))
+    .filter((m): m is RegExpExecArray => m !== null)
+    .map((m) => {
+      const text = (m[1] ?? "").trim();
+      return { text, id: slugify(text) };
+    });
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 const markdownComponents = {
   h2: ({ children }: { children?: ReactNode }) => (
-    <h2 className="mt-8 font-roboto text-section font-700 text-ink-950">
-      {children}
-    </h2>
-  ),
-  h3: ({ children }: { children?: ReactNode }) => (
-    <h3 className="mt-6 font-roboto text-subhead font-600 text-ink-950">
-      {children}
-    </h3>
-  ),
-  p: ({ children }: { children?: ReactNode }) => (
-    <p className="mt-4 text-body text-neutral-700">{children}</p>
-  ),
-  ul: ({ children }: { children?: ReactNode }) => (
-    <ul className="mt-4 list-disc pl-6 text-body text-neutral-700">{children}</ul>
-  ),
-  ol: ({ children }: { children?: ReactNode }) => (
-    <ol className="mt-4 list-decimal pl-6 text-body text-neutral-700">
-      {children}
-    </ol>
-  ),
-  li: ({ children }: { children?: ReactNode }) => (
-    <li className="mt-1">{children}</li>
-  ),
-  a: ({ href, children }: { href?: string; children?: ReactNode }) => (
-    <a
-      href={href}
-      className="cursor-pointer text-purple-700 underline hover:text-purple-600"
-    >
-      {children}
-    </a>
+    <h2 id={slugify(nodeText(children))}>{children}</h2>
   ),
 };
 
@@ -136,89 +145,159 @@ export default async function ArticlePage({
     ]),
   );
 
-  return (
-    <>
-      <JsonLd graph={buildGraph(nodes)} />
-      <Section>
-        <Container className="max-w-article">
-          <nav className="text-label text-neutral-600" aria-label="Breadcrumb">
-            <Link href="/insights" className="cursor-pointer hover:text-purple-700">
-              Insights
-            </Link>
-            <span aria-hidden="true"> / </span>
-            <span>{article.title}</span>
-          </nav>
+  const toc = headingsFrom(article.body);
+  const people = [
+    article.author ? { kind: "Written by", person: article.author } : null,
+    article.factChecker ? { kind: "Fact-checked by", person: article.factChecker } : null,
+  ].filter((p): p is { kind: string; person: Author } => p !== null);
 
-          {article.category ? (
-            <p className="mt-6 text-eyebrow uppercase text-purple-600">
-              {article.category}
-            </p>
-          ) : null}
-          <h1 className="mt-2 font-roboto text-hero font-700 text-ink-950">
-            {article.title}
-          </h1>
+  const reading = (
+    <div className="reading">
+      {article.tldr ? (
+        <div className="tldr">
+          <h2>
+            <svg viewBox="0 0 24 24">
+              <path d="M9 11l3 3 8-8M5 13l3 3 1-1" />
+            </svg>
+            The short version
+          </h2>
+          <p>{article.tldr}</p>
+        </div>
+      ) : null}
 
-          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-label text-neutral-600">
-            {article.author ? <span>By {article.author.name}</span> : null}
-            {article.factChecker ? (
-              <span>Fact-checked by {article.factChecker.name}</span>
-            ) : null}
-            {article.publishedAt ? (
-              <span>{formatLagosDate(article.publishedAt)}</span>
-            ) : null}
+      <div className="prose">
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+          {article.body}
+        </ReactMarkdown>
+      </div>
+
+      {article.faq.length > 0 ? (
+        <section className="faq-block" aria-labelledby="faq-heading">
+          <h2 id="faq-heading">Common questions</h2>
+          <div className="faq-wrap">
+            {article.faq.map((item) => (
+              <details className="faq" key={item.question}>
+                <summary>
+                  {item.question} <span className="fq-pm">+</span>
+                </summary>
+                <div className="faq-a">{item.answer}</div>
+              </details>
+            ))}
           </div>
+        </section>
+      ) : null}
 
-          {article.tldr ? (
-            <div className="mt-8 rounded-card border border-purple-200 bg-purple-100 p-6">
-              <h2 className="text-eyebrow uppercase text-purple-700">
-                The short version
-              </h2>
-              <p className="mt-2 text-body text-ink-950">{article.tldr}</p>
+      {people.length > 0 ? (
+        <section className="people" aria-label="About the people behind this article">
+          {people.map(({ kind, person }) => (
+            <div className="pcard" key={kind}>
+              <div className="pc-head">
+                <span className="avatar" aria-hidden="true">
+                  {initials(person.name)}
+                </span>
+                <div className="pc-id">
+                  <div className="pk">{kind}</div>
+                  <h3>{person.name}</h3>
+                </div>
+              </div>
+              {person.bio ? <p>{person.bio}</p> : person.role ? <p>{person.role}</p> : null}
+              {person.slug ? (
+                <Link className="pmore" href={`/authors/${person.slug}`}>
+                  Read full profile &rarr;
+                </Link>
+              ) : null}
             </div>
-          ) : null}
+          ))}
+        </section>
+      ) : null}
+    </div>
+  );
 
-          <div className="mt-8">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-              {article.body}
-            </ReactMarkdown>
-          </div>
+  return (
+    <div className="svc-page article-page">
+      <JsonLd graph={buildGraph(nodes)} />
 
-          {article.faq.length > 0 ? (
-            <section className="mt-12" aria-labelledby="faq-heading">
-              <h2
-                id="faq-heading"
-                className="font-roboto text-section font-700 text-ink-950"
-              >
-                Common questions
-              </h2>
-              <dl className="mt-6 flex flex-col gap-6">
-                {article.faq.map((item) => (
-                  <div key={item.question}>
-                    <dt className="font-roboto text-subhead font-600 text-ink-950">
-                      {item.question}
-                    </dt>
-                    <dd className="mt-2 text-body text-neutral-700">
-                      {item.answer}
-                    </dd>
+      <section className="art-hero" aria-label={article.title}>
+        <div className="glow" />
+        <div className="wrap">
+          <nav className="crumb" aria-label="Breadcrumb">
+            <Link href="/insights">Insights</Link>
+            <span className="sep">/</span>
+            <span className="here">{article.title}</span>
+          </nav>
+          <div className="art-head">
+            {article.category ? <span className="cat-pill">{article.category}</span> : null}
+            <h1>{article.title}</h1>
+            {article.excerpt ? <p className="sub">{article.excerpt}</p> : null}
+
+            {people.length > 0 ? (
+              <div className="byline">
+                {people.map(({ kind, person }) => (
+                  <div className="bperson" key={kind}>
+                    <span className="avatar" aria-hidden="true">
+                      {initials(person.name)}
+                    </span>
+                    <div>
+                      <div className="role">{kind}</div>
+                      <div className="nm">{person.name}</div>
+                    </div>
                   </div>
                 ))}
-              </dl>
-            </section>
-          ) : null}
+              </div>
+            ) : null}
 
-          {article.author?.bio ? (
-            <aside className="mt-12 rounded-card border border-purple-200 p-6">
-              <h2 className="text-eyebrow uppercase text-purple-600">
-                About the author
-              </h2>
-              <p className="mt-2 font-600 text-ink-950">{article.author.name}</p>
-              <p className="mt-2 text-body text-neutral-700">
-                {article.author.bio}
-              </p>
-            </aside>
+            <div className="art-facts">
+              {article.publishedAt ? (
+                <span className="f">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="4" y="5" width="16" height="16" rx="2" />
+                    <path d="M16 3v4M8 3v4M4 11h16" />
+                  </svg>
+                  Published {formatLagosDate(article.publishedAt)}
+                </span>
+              ) : null}
+              {article.updatedAt && article.updatedAt !== article.publishedAt ? (
+                <span className="f">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" />
+                  </svg>
+                  Updated {formatLagosDate(article.updatedAt)}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {article.coverUrl ? (
+            <div className="art-figure">
+              {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={article.coverUrl} alt="" />
+            </div>
           ) : null}
-        </Container>
-      </Section>
-    </>
+        </div>
+      </section>
+
+      <div className="wrap">
+        {toc.length > 0 ? (
+          <div className="art-layout">
+            <aside className="toc-aside" aria-label="On this page">
+              <h4>On this page</h4>
+              <ol>
+                {toc.map((h) => (
+                  <li key={h.id}>
+                    <a href={`#${h.id}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </aside>
+            {reading}
+          </div>
+        ) : (
+          <div className="art-layout" style={{ gridTemplateColumns: "1fr", maxWidth: "760px" }}>
+            {reading}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
