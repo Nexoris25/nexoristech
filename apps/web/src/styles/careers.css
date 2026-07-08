@@ -1,0 +1,375 @@
+/*
+ * Careers page. Ported from the approved handoff (Careers.html). Rendered inside
+ * .svc-page.careers-page so it reuses the shared hero/band/cta primitives; the cr- classes add the
+ * culture cards, benefits grid, the CMS-driven roles list with a team filter, and the hiring
+ * process. Roles come from Strapi (getJobs); an honest empty state shows when a team has none.
+ * cr- prefixes avoid colliding with the global homepage .pstep/.proc classes.
+ */
+
+/* centered hero */
+.careers-page .hero .crumb {
+  justify-content: center;
+}
+.careers-page .hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 74ch;
+  margin: 26px auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.careers-page .hero-inner .kicker {
+  justify-content: center;
+}
+.careers-page .hero-inner h1 {
+  max-width: 24ch;
+  text-wrap: balance;
+  margin-left: auto;
+  margin-right: auto;
+}
+.careers-page .hero-inner .lede {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 62ch;
+}
+.careers-page .hero-inner .hero-cta {
+  justify-content: center;
+}
+
+/* culture */
+.cr-cult-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+.cr-cult {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(24px, 3vw, 32px);
+  box-shadow: var(--sh-sm);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+.cr-cult:hover {
+  box-shadow: var(--sh-md);
+  transform: translateY(-2px);
+  border-color: var(--purple-300, #c3b8f4);
+}
+.cr-cult .ci {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+.cr-cult .ci svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.6;
+}
+.cr-cult h3 {
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 9px;
+}
+.cr-cult p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.97rem;
+  line-height: 1.62;
+}
+
+/* benefits */
+.cr-ben-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 40px;
+}
+.cr-ben {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 14px;
+  padding: 22px 20px;
+  box-shadow: var(--sh-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cr-ben .bi {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--ink-950, #0d0a1c);
+  display: grid;
+  place-items: center;
+}
+.cr-ben .bi svg {
+  width: 21px;
+  height: 21px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.6;
+}
+.cr-ben b {
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.cr-ben span {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* roles */
+.cr-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.cr-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cr-tab {
+  font-family: "Inter", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink-2, #3a3550);
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 999px;
+  padding: 9px 15px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.cr-tab:hover {
+  border-color: var(--purple-200, #dcd6f9);
+  color: var(--purple-700, #4330b8);
+}
+.cr-tab.on {
+  background: var(--purple-600, #543cda);
+  border-color: var(--purple-600, #543cda);
+  color: #fff;
+}
+.cr-cms-note {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--ink-3, #6a6580);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cr-cms-note::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--purple-500, #6a55f2);
+}
+.cr-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+.cr-role-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 14px;
+  padding: 22px clamp(20px, 2.6vw, 28px);
+  box-shadow: var(--sh-sm);
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+}
+.cr-role-row:hover {
+  box-shadow: var(--sh-md);
+  border-color: var(--purple-300, #c3b8f4);
+  transform: translateY(-1px);
+}
+.cr-role-row h3 {
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink-950, #0d0a1c);
+}
+.cr-role-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.cr-rtag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--ink-2, #3a3550);
+  background: var(--bg, #faf9fe);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 7px;
+  padding: 5px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cr-rtag i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+.cr-ra {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cr-team-pill {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--purple-700, #4330b8);
+  background: var(--purple-100, #eeebfc);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-weight: 600;
+}
+.cr-empty {
+  text-align: center;
+  background: var(--purple-100, #eeebfc);
+  border: 1px dashed var(--purple-200, #dcd6f9);
+  border-radius: 14px;
+  padding: 36px 24px;
+  margin-top: 24px;
+}
+.cr-empty svg {
+  width: 38px;
+  height: 38px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.5;
+  margin: 0 auto 12px;
+}
+.cr-empty h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.cr-empty p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.96rem;
+  line-height: 1.6;
+  margin: 9px auto 0;
+  max-width: 46ch;
+}
+.cr-empty a {
+  color: var(--purple-700, #4330b8);
+  font-weight: 600;
+}
+
+/* hiring process */
+.cr-proc {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 40px;
+}
+.cr-pstep {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: 24px 22px;
+  box-shadow: var(--sh-sm);
+  position: relative;
+}
+.cr-pstep .pn {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 1.05rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+.cr-pstep h3 {
+  font-size: 1.04rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.cr-pstep p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.9rem;
+  line-height: 1.56;
+}
+.cr-proc-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 0.92rem;
+  color: var(--ink-2, #3a3550);
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: var(--sh-sm);
+}
+.cr-proc-note b {
+  color: var(--ink-950, #0d0a1c);
+}
+.cr-proc-note .pi {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.cr-proc-note .pi svg {
+  width: 19px;
+  height: 19px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.8;
+}
+
+@media (max-width: 980px) {
+  .cr-ben-grid,
+  .cr-proc {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .cr-cult-grid,
+  .cr-ben-grid,
+  .cr-proc {
+    grid-template-columns: 1fr;
+  }
+  .cr-role-row {
+    grid-template-columns: 1fr;
+  }
+  .cr-role-row .cr-ra {
+    justify-content: space-between;
+  }
+}

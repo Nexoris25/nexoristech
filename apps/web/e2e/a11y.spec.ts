@@ -28,6 +28,7 @@ const ROUTES = [
   "/privacy-policy/",
   "/cookie-policy/",
   "/terms-of-service/",
+  "/careers/",
 ];
 
 for (const route of ROUTES) {
