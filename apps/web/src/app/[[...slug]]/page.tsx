@@ -16,8 +16,8 @@ import { ServiceView } from "../../components/service/ServiceView.js";
 import { servicePages } from "../../content/service-pages/index.js";
 import { HowWeWorkView } from "../../components/company/HowWeWorkView.js";
 import { AboutView } from "../../components/company/AboutView.js";
+import { ContactView } from "../../components/company/ContactView.js";
 import { JsonLd } from "../../components/JsonLd.js";
-import { ContactForm } from "../../components/ContactForm.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
 import { getPseoPage, getPseoSlugs } from "../../lib/cms.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
@@ -132,18 +132,19 @@ export default async function MarketingRoute({
       </>
     );
   }
-  // The contact page injects the interactive lead-capture form into its form section.
-  let sectionSlots: Record<string, ReactNode> | undefined;
+  // The contact page renders from its design-handoff view (interactive brief form inside).
   if (page.meta.slug === "/contact") {
-    const formSection = page.sections.find((s) => s.kind === "form");
-    if (formSection?.kind === "form") {
-      sectionSlots = { [formSection.id]: <ContactForm section={formSection} /> };
-    }
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <ContactView />
+      </>
+    );
   }
   return (
     <>
       <JsonLd graph={graphForPage(page)} />
-      <PageRenderer page={page} {...(sectionSlots ? { sectionSlots } : {})} />
+      <PageRenderer page={page} />
     </>
   );
 }

@@ -1,0 +1,533 @@
+/*
+ * Contact page. Ported from the approved handoff (Contact.html). Rendered inside
+ * .svc-page.contact-page so it reuses the shared hero/band/cta/faq primitives; these contact-
+ * specific classes add the compact centered hero, the form card, the aside cards (promise,
+ * channels, stylized map), and the "what happens next" steps. Scoped under .contact-page so the
+ * generic handoff class names (form-card, field, chan, next-step) cannot collide globally.
+ */
+
+/* compact, centered hero */
+.contact-page .hero {
+  padding: clamp(40px, 5vw, 60px) 0 clamp(40px, 5vw, 68px);
+}
+.contact-page .hero .crumb {
+  justify-content: center;
+}
+.contact-page .hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 74ch;
+  margin: 26px auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.contact-page .hero-inner .kicker {
+  justify-content: center;
+}
+.contact-page .hero-inner h1 {
+  max-width: 24ch;
+  text-wrap: balance;
+  margin-left: auto;
+  margin-right: auto;
+}
+.contact-page .hero-inner .lede {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 62ch;
+}
+
+/* layout */
+.contact-page .contact-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: clamp(24px, 3.5vw, 48px);
+  margin-top: 40px;
+  align-items: start;
+}
+
+/* form card */
+.contact-page .form-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 16px;
+  box-shadow: var(--sh-md);
+  padding: clamp(24px, 3.2vw, 40px);
+}
+.contact-page .form-card h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.contact-page .form-card .fc-sub {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.96rem;
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.contact-page .f-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 22px;
+}
+.contact-page .field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.contact-page .field.full {
+  grid-column: 1 / -1;
+}
+.contact-page .field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-950, #0d0a1c);
+  letter-spacing: -0.005em;
+}
+.contact-page .field label .opt {
+  color: var(--ink-3, #6a6580);
+  font-weight: 500;
+}
+.contact-page .field input,
+.contact-page .field select,
+.contact-page .field textarea {
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  color: var(--ink-950, #0d0a1c);
+  background: var(--bg, #faf9fe);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+.contact-page .field textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.55;
+}
+.contact-page .field input:focus,
+.contact-page .field select:focus,
+.contact-page .field textarea:focus {
+  outline: none;
+  border-color: var(--purple-500, #6a55f2);
+  box-shadow: 0 0 0 3px rgba(106, 85, 242, 0.16);
+}
+.contact-page .field .micro {
+  font-size: 0.78rem;
+  color: var(--ink-3, #6a6580);
+  line-height: 1.45;
+}
+.contact-page .field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B8799' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+  padding-right: 40px;
+}
+
+/* smart hint */
+.contact-page .smart-hint {
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--purple-100, #eeebfc);
+  border: 1px solid var(--purple-200, #dcd6f9);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 0.84rem;
+  color: var(--purple-700, #4330b8);
+  line-height: 1.45;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.25s, max-height 0.25s, margin 0.25s;
+}
+.contact-page .smart-hint.on {
+  opacity: 1;
+  max-height: 140px;
+}
+.contact-page .smart-hint .sh-ic {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1px solid var(--purple-200, #dcd6f9);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.contact-page .smart-hint .sh-ic svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 2;
+}
+
+/* brief builder */
+.contact-page .brief {
+  margin-top: 20px;
+  background: linear-gradient(158deg, var(--ink-800, #241a3f), var(--ink-950, #0d0a1c));
+  border: 1px solid var(--ink-700, #322650);
+  border-radius: 14px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+}
+.contact-page .brief::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 70%;
+  height: 130%;
+  background: radial-gradient(circle, rgba(106, 85, 242, 0.4), transparent 64%);
+  filter: blur(26px);
+}
+.contact-page .brief-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.contact-page .brief-head .bh-ic {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(106, 85, 242, 0.3);
+  border: 1px solid rgba(106, 85, 242, 0.45);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.contact-page .brief-head .bh-ic svg {
+  width: 20px;
+  height: 20px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.7;
+}
+.contact-page .brief-head h3 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.contact-page .brief p {
+  position: relative;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin-top: 12px;
+}
+.contact-page .brief-btns {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.contact-page .brief-btns .btn {
+  font-size: 0.86rem;
+  padding: 11px 16px;
+}
+.contact-page .btn-glass {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.contact-page .btn-glass:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.contact-page .submit-row {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.contact-page .submit-row .btn {
+  font-size: 1rem;
+  padding: 14px 26px;
+}
+.contact-page .privacy-note {
+  font-size: 0.8rem;
+  color: var(--ink-3, #6a6580);
+  line-height: 1.5;
+  max-width: 34ch;
+}
+.contact-page .form-error {
+  margin-top: 16px;
+  color: var(--purple-700, #4330b8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* thank-you state */
+.contact-page .thanks {
+  text-align: center;
+  padding: 20px 10px;
+}
+.contact-page .thanks .tk-ic {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+}
+.contact-page .thanks .tk-ic svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.8;
+}
+.contact-page .thanks h3 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.contact-page .thanks p {
+  color: var(--ink-2, #3a3550);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 12px auto 0;
+  max-width: 42ch;
+}
+
+/* aside */
+.contact-page .c-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 96px;
+}
+.contact-page .aside-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: 24px;
+  box-shadow: var(--sh-sm);
+}
+.contact-page .aside-card h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6a6580);
+  margin-bottom: 16px;
+}
+.contact-page .chan {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-2, #f0eef7);
+}
+.contact-page .chan:last-child {
+  border-bottom: none;
+}
+.contact-page .chan .ch-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.contact-page .chan .ch-ic svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.7;
+}
+.contact-page .chan .ch-l {
+  font-size: 0.74rem;
+  color: var(--ink-3, #6a6580);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.02em;
+  display: block;
+}
+.contact-page .chan .ch-v {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink-950, #0d0a1c);
+  margin-top: 2px;
+  display: block;
+}
+.contact-page a.chan:hover .ch-v {
+  color: var(--purple-700, #4330b8);
+}
+
+/* stylized map + address */
+.contact-page .addr-map {
+  position: relative;
+  height: 150px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: #e9e7f5;
+}
+.contact-page .addr-map .map-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(84, 60, 218, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(84, 60, 218, 0.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.contact-page .addr-map .road {
+  position: absolute;
+  background: rgba(84, 60, 218, 0.16);
+}
+.contact-page .addr-map .r1 {
+  top: 46%;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+.contact-page .addr-map .r2 {
+  top: 0;
+  bottom: 0;
+  left: 38%;
+  width: 9px;
+}
+.contact-page .addr-map .r3 {
+  top: 0;
+  bottom: 0;
+  left: 72%;
+  width: 6px;
+  background: rgba(84, 60, 218, 0.1);
+}
+.contact-page .addr-map .pin {
+  position: absolute;
+  top: 46%;
+  left: 38%;
+  transform: translate(-50%, -100%);
+  z-index: 2;
+}
+.contact-page .addr-map .pin svg {
+  width: 30px;
+  height: 30px;
+  filter: drop-shadow(0 3px 6px rgba(84, 60, 218, 0.4));
+}
+.contact-page .addr-txt {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink-2, #3a3550);
+}
+.contact-page .addr-txt b {
+  color: var(--ink-950, #0d0a1c);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 3px;
+}
+
+/* promise card (purple) */
+.contact-page .resp {
+  background: linear-gradient(158deg, var(--purple-600, #543cda), var(--purple-700, #4330b8));
+  color: #fff;
+  border: none;
+}
+.contact-page .resp h3 {
+  color: rgba(255, 255, 255, 0.7);
+}
+.contact-page .resp .resp-big {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.contact-page .resp p {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.84);
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+/* next steps */
+.contact-page .next-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+.contact-page .next-step {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: var(--r, 12px);
+  padding: clamp(22px, 2.8vw, 30px);
+  box-shadow: var(--sh-sm);
+  position: relative;
+}
+.contact-page .next-step .ns-n {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 1.05rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+.contact-page .next-step h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 9px;
+}
+.contact-page .next-step p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 980px) {
+  .contact-page .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  .contact-page .c-aside {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .contact-page .c-aside .aside-card {
+    flex: 1;
+    min-width: 240px;
+  }
+}
+@media (max-width: 760px) {
+  .contact-page .f-row {
+    grid-template-columns: 1fr;
+  }
+  .contact-page .next-grid {
+    grid-template-columns: 1fr;
+  }
+  .contact-page .c-aside {
+    flex-direction: column;
+  }
+  .contact-page .submit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .contact-page .submit-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
