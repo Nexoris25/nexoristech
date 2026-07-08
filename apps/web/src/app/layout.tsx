@@ -29,6 +29,7 @@ import "../styles/oge-page.css";
 import "../styles/how-we-work.css";
 import "../styles/about.css";
 import "../styles/contact.css";
+import "../styles/case-studies.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

@@ -24,6 +24,7 @@ const ROUTES = [
   "/healthcare-software/",
   "/how-we-work/",
   "/contact/",
+  "/case-studies/",
 ];
 
 for (const route of ROUTES) {

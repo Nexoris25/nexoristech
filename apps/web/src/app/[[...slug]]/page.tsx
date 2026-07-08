@@ -17,6 +17,7 @@ import { servicePages } from "../../content/service-pages/index.js";
 import { HowWeWorkView } from "../../components/company/HowWeWorkView.js";
 import { AboutView } from "../../components/company/AboutView.js";
 import { ContactView } from "../../components/company/ContactView.js";
+import { CaseStudiesView } from "../../components/company/CaseStudiesView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
 import { getPseoPage, getPseoSlugs } from "../../lib/cms.js";
@@ -138,6 +139,15 @@ export default async function MarketingRoute({
       <>
         <JsonLd graph={graphForPage(page)} />
         <ContactView />
+      </>
+    );
+  }
+  // The case studies hub renders from its design-handoff view (honest empty grid + in-house products).
+  if (page.meta.slug === "/case-studies") {
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <CaseStudiesView />
       </>
     );
   }
