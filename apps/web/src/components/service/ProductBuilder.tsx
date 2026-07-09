@@ -143,7 +143,7 @@ export function ProductBuilder(): ReactNode {
               alt={current.alt}
               fill
               sizes="(max-width: 1024px) 100vw, 46vw"
-              className="object-cover object-top"
+              className="object-contain object-top lg:object-cover"
             />
           </div>
         </div>

@@ -6,11 +6,9 @@
  * the ServiceView template.
  */
 import type { ServiceContent } from "../../components/service/ServiceView.js";
-import { EcommerceStore } from "../../components/service/EcommerceStore.js";
 
 export const aiEcommerceDevelopment: ServiceContent = {
   breadcrumb: "AI E-Commerce",
-  heroWidget: <EcommerceStore />,
   hero: {
     kicker: "Build new software · Selling online",
     h1: "An online store that keeps selling after you close for the day.",
@@ -18,6 +16,12 @@ export const aiEcommerceDevelopment: ServiceContent = {
     primaryCta: { label: "Plan my store", href: "/contact" },
     secondaryCta: { label: "Find the right service", href: "/#finder" },
     stats: [],
+    media: {
+      src: "/services/ecommerce-hero.webp",
+      alt: "A shopper comparing products and paying by card on an online store",
+      chipTitle: "Built to keep selling",
+      chipSub: "Storefronts that work day and night",
+    },
   },
   problem: {
     kicker: "Where the sales go",
