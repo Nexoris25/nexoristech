@@ -596,7 +596,7 @@ export function HomeView(): ReactNode {
               <div className="media">
                 <span className="icat">AI in Practice</span>
                 <img
-                  src="/insights/ai-in-practice.jpg"
+                  src="/insights/ai-in-practice.webp"
                   alt="A developer workstation with code on the monitors"
                   loading="lazy"
                 />
@@ -626,7 +626,7 @@ export function HomeView(): ReactNode {
               <div className="media">
                 <span className="icat">Industry Playbooks</span>
                 <img
-                  src="/insights/clinic-playbook.jpg"
+                  src="/insights/clinic-playbook.webp"
                   alt="A healthcare professional reviewing information"
                   loading="lazy"
                 />
@@ -656,7 +656,7 @@ export function HomeView(): ReactNode {
               <div className="media">
                 <span className="icat">Product &amp; Engineering</span>
                 <img
-                  src="/insights/approve-screens.jpg"
+                  src="/insights/approve-screens.webp"
                   alt="A laptop showing application code on a desk"
                   loading="lazy"
                 />
@@ -746,7 +746,7 @@ export function HomeView(): ReactNode {
       <section className="cta" id="cta" aria-label="Closing CTA">
         <div className="photo">
           <img
-            src="/home-hero.jpg"
+            src="/home-hero.webp"
             alt="Application source code on a screen, representing the software Nexoris Technologies builds"
             loading="lazy"
           />

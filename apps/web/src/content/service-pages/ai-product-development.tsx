@@ -309,7 +309,7 @@ export const aiProductDevelopment: ServiceContent = {
     body: "Let us design the right one. Tell us what you are trying to achieve, and we will reply within one business day with a short call, a suggested approach, and a realistic sense of timeline and cost.",
     button: { label: "Scope my product", href: "/contact" },
     media: {
-      src: "/services/ai-product-development-cta.jpg",
+      src: "/services/ai-product-development-cta.webp",
       alt: "A product designer pinning interface wireframes on a planning wall",
     },
   },
