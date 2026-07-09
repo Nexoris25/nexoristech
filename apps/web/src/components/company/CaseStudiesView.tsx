@@ -175,14 +175,7 @@ export function CaseStudiesView(): ReactNode {
               </div>
               <div className="ih-body">
                 <div className="ih-head">
-                  <span
-                    className="ih-logo"
-                    style={{ background: "linear-gradient(150deg,#1aa17e,#0f6f60)" }}
-                    aria-hidden="true"
-                  >
-                    G
-                  </span>
-                  <span className="ih-name">GLEEN</span>
+                  <img className="ih-logo-img gleen" src="/case-studies/gleen-logo.webp" alt="GLEEN" />
                 </div>
                 <div className="ih-tag">Gamified exam preparation for Nigerian students</div>
                 <p>

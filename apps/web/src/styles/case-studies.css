@@ -266,6 +266,11 @@
   height: 30px;
   width: auto;
 }
+/* the Gleen lockup carries a stacked mark, so its wordmark reads smaller at the same height;
+ * give it a little more height for optical balance with the Covyvo wordmark. */
+.case-studies-page .ih-logo-img.gleen {
+  height: 44px;
+}
 .case-studies-page .ih-tag {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
