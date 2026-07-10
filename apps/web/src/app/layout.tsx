@@ -44,7 +44,11 @@ export const metadata: Metadata = {
     template: "%s",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.png", type: "image/png", sizes: "64x64" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+    ],
+    shortcut: "/favicon.png",
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",

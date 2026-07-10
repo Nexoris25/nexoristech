@@ -85,6 +85,9 @@ export function OgeWidget(): ReactNode {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [lead, setLead] = useState<Lead | null>(null);
+  const [greetingPhase, setGreetingPhase] = useState<"idle" | "typing" | "done">("idle");
+  const [typedGreeting, setTypedGreeting] = useState("");
+  const greetingStarted = useRef(false);
   const sessionId = useRef<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -104,6 +107,32 @@ export function OgeWidget(): ReactNode {
       localStorage.setItem("oge-seen", "1");
       inputRef.current?.focus();
     }
+  }, [open]);
+
+  // Type the greeting out in real time the first time the panel opens: a brief "thinking" pause
+  // showing the typing dots, then the text streams in, and only then does "Talk to the team" appear.
+  useEffect(() => {
+    if (!open || greetingStarted.current) return;
+    greetingStarted.current = true;
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const start = setTimeout(() => {
+      setGreetingPhase("typing");
+      let i = 0;
+      interval = setInterval(() => {
+        i += 2;
+        if (i >= GREETING.length) {
+          setTypedGreeting(GREETING);
+          setGreetingPhase("done");
+          if (interval) clearInterval(interval);
+        } else {
+          setTypedGreeting(GREETING.slice(0, i));
+        }
+      }, 18);
+    }, 500);
+    return () => {
+      clearTimeout(start);
+      if (interval) clearInterval(interval);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -315,12 +344,22 @@ export function OgeWidget(): ReactNode {
             <OgeMark size={26} />
           </span>
           <div className="ogw-bub oge">
-            <p>{GREETING}</p>
-            <div className="ogw-actions">
-              <button type="button" className="ogw-btn ghost" onClick={startLead}>
-                Talk to the team
-              </button>
-            </div>
+            {greetingPhase === "idle" ? (
+              <span className="ogw-typing" aria-label="Oge is typing">
+                <i />
+                <i />
+                <i />
+              </span>
+            ) : (
+              <p aria-hidden={greetingPhase !== "done"}>{typedGreeting}</p>
+            )}
+            {greetingPhase === "done" ? (
+              <div className="ogw-actions">
+                <button type="button" className="ogw-btn ghost" onClick={startLead}>
+                  Talk to the team
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
 

@@ -10,27 +10,18 @@
 import { useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 
-const INDUSTRIES = [
-  "Retail & E-Commerce",
-  "Restaurants & QSR",
-  "Hospitality & Short-Lets",
-  "Real Estate",
-  "Automotive",
-  "Events & Weddings",
-  "Media & Entertainment",
-  "Healthcare & Clinics",
-  "Education & EdTech",
-  "Fitness, Beauty & Wellness",
-  "Professional Services",
-  "Insurance",
-  "Logistics & Supply Chain",
-  "Manufacturing",
-  "Construction & Engineering",
-  "Agriculture & Agritech",
-  "Financial Services & Fintech",
-  "Government & Public Sector",
-  "NGOs & Non-Profits",
-  "Faith Organisations",
+const SERVICES = [
+  "AI Product Development",
+  "AI Chatbots & Virtual Assistants",
+  "Business Process Automation",
+  "AI E-Commerce",
+  "Data Dashboards & Analytics",
+  "AI & Systems Integration",
+  "Data Infrastructure & AI Readiness",
+  "IoT Development",
+  "GovTech Platforms",
+  "AI Content, SEO & GEO",
+  "Managed Technology Operations",
   "Something else",
 ];
 
@@ -56,7 +47,7 @@ const HINT_MAP: [RegExp, string][] = [
 
 export function ContactFormView(): ReactNode {
   const [need, setNeed] = useState("");
-  const [industry, setIndustry] = useState("");
+  const [service, setService] = useState("");
   const [start, setStart] = useState("");
   const [hint, setHint] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -89,8 +80,8 @@ export function ContactFormView(): ReactNode {
       needRef.current?.focus();
       return;
     }
-    const sector = industry || "your sector";
-    let brief = `My goal:\n${v}\n\nCurrent situation:\nWe work in ${sector} and want this handled properly.`;
+    const focus = service ? `We are looking at ${service}` : "We want this handled properly";
+    let brief = `My goal:\n${v}\n\nCurrent situation:\n${focus} and want it done well.`;
     if (start) brief += `\n\nTiming:\n${start}.`;
     brief += "\n\nA sensible first step:\nA short scoping call to agree the approach and honest numbers.";
     setNeed(brief);
@@ -100,7 +91,7 @@ export function ContactFormView(): ReactNode {
 
   function composeMessage(fd: FormData): string {
     const extras: string[] = [];
-    if (industry) extras.push(`Industry: ${industry}`);
+    if (service) extras.push(`Service: ${service}`);
     const budget = String(fd.get("budget") ?? "").trim();
     if (budget) extras.push(`Budget: ${budget}`);
     if (start) extras.push(`Timeframe: ${start}`);
@@ -190,17 +181,17 @@ export function ContactFormView(): ReactNode {
         </div>
         <div className="f-row">
           <div className="field">
-            <label htmlFor="f-industry">Your industry</label>
+            <label htmlFor="f-service">Which service do you need?</label>
             <select
-              id="f-industry"
-              name="industry"
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
+              id="f-service"
+              name="service"
+              value={service}
+              onChange={(e) => setService(e.target.value)}
             >
               <option value="" disabled>
                 Select one
               </option>
-              {INDUSTRIES.map((opt) => (
+              {SERVICES.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>

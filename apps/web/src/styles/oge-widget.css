@@ -67,12 +67,14 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 60;
+  /* above the sticky header (z-index 200) so the panel head and close button are never hidden */
+  z-index: 210;
   display: flex;
   flex-direction: column;
   width: 372px;
   max-width: calc(100vw - 24px);
-  height: min(600px, calc(100vh - 40px));
+  /* leave room for the header so the top of the panel never slides under the navbar */
+  height: min(600px, calc(100dvh - 96px));
   background: linear-gradient(168deg, #17122f, #0d0a1c);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
@@ -356,6 +358,9 @@
 .ogw-lead select:focus {
   outline: 2px solid #6a55f2;
   outline-offset: 1px;
+}
+.ogw-lead select {
+  cursor: pointer;
 }
 .ogw-lead select option {
   color: #0d0a1c;
