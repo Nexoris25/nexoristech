@@ -12,7 +12,8 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { ICONS } from "./industryIcons.js";
-import { SolutionFinder } from "../home/SolutionFinder.js";
+import { IndustrySolutionFinder, type FinderService } from "./IndustrySolutionFinder.js";
+import { industryLabel as sectorLabel, isIndustrySlug } from "@nexoris/recommend";
 import type { MarketingPage, Section } from "../../content/types.js";
 
 interface Service {
@@ -21,6 +22,10 @@ interface Service {
   href: string;
   blurb: string;
   iconKey: string;
+  /** Plain-language outcome shown as a finder option. */
+  goal: string;
+  /** What we would do, shown when this service is recommended. */
+  result: string;
 }
 
 /** All 11 services, with a keyword to resolve the free-text "Built with these services" notes. */
@@ -31,6 +36,9 @@ const SERVICES: Service[] = [
     href: "/ai-product-development",
     blurb: "Custom websites, web apps, mobile apps, and business systems built around how you work.",
     iconKey: "cube",
+    goal: "Build a new product, app, or internal system",
+    result:
+      "We would design and build it around how your business actually works, in stages you can see and use as they ship.",
   },
   {
     key: /chatbot|assistant/i,
@@ -38,6 +46,9 @@ const SERVICES: Service[] = [
     href: "/ai-chatbots-virtual-assistants",
     blurb: "Assistants that answer from your own content and hand off to a human when needed.",
     iconKey: "chat",
+    goal: "Answer customers instantly, day and night",
+    result:
+      "We would build an assistant trained on your own content that answers every enquiry, at any hour, and hands over to a person when it needs to.",
   },
   {
     key: /automation|process/i,
@@ -45,6 +56,9 @@ const SERVICES: Service[] = [
     href: "/business-process-automation",
     blurb: "Automate the repetitive, manual workflows quietly eating your team's hours.",
     iconKey: "gear",
+    goal: "Take repetitive manual work off my team",
+    result:
+      "We would map the busywork your team does by hand and take it off them, so people get their time back for the work that matters.",
   },
   {
     key: /e-?commerce/i,
@@ -52,6 +66,9 @@ const SERVICES: Service[] = [
     href: "/ai-ecommerce-development",
     blurb: "Online stores built around your catalogue, with payments and renewals handled.",
     iconKey: "cart",
+    goal: "Sell more online and take payments",
+    result:
+      "We would build an online store around your catalogue, with payments, delivery, and renewals handled properly.",
   },
   {
     key: /dashboard|analytics/i,
@@ -59,6 +76,9 @@ const SERVICES: Service[] = [
     href: "/data-dashboards-predictive-analytics",
     blurb: "Your numbers in one live view, with forecasts you can actually act on.",
     iconKey: "chart",
+    goal: "See my numbers and forecasts clearly",
+    result:
+      "We would turn your data into live dashboards and forecasts you can act on, so you stop running this quarter on last quarter's figures.",
   },
   {
     key: /integration|systems/i,
@@ -66,6 +86,9 @@ const SERVICES: Service[] = [
     href: "/ai-systems-integration",
     blurb: "Connect the tools and data you already use so they finally talk to each other.",
     iconKey: "nodes",
+    goal: "Make my existing tools work together",
+    result:
+      "We would connect the tools and data you already use so they finally talk to each other, with no more double entry.",
   },
   {
     key: /infrastructure|readiness/i,
@@ -73,6 +96,9 @@ const SERVICES: Service[] = [
     href: "/data-infrastructure-ai-readiness",
     blurb: "Clean, structured, well-governed data, the groundwork everything else needs.",
     iconKey: "db",
+    goal: "Get my data clean and ready for AI",
+    result:
+      "We would clean, structure, and govern your data so every dashboard, automation, and AI feature can safely build on it.",
   },
   {
     key: /iot/i,
@@ -80,6 +106,9 @@ const SERVICES: Service[] = [
     href: "/iot-development",
     blurb: "Sensors and connected devices that report what is happening on the ground.",
     iconKey: "sensor",
+    goal: "Track assets, stock, or equipment live",
+    result:
+      "We would put sensors and connected devices in place that report what is happening on the ground, in real time.",
   },
   {
     key: /govtech|government/i,
@@ -87,6 +116,9 @@ const SERVICES: Service[] = [
     href: "/govtech-platforms",
     blurb: "Citizen services, registries, and revenue platforms built for institutions.",
     iconKey: "bank",
+    goal: "Deliver citizen or public-sector services",
+    result:
+      "We would build the citizen services, registries, and revenue platforms institutions need, securely and at scale.",
   },
   {
     key: /seo|geo|content|found/i,
@@ -94,6 +126,9 @@ const SERVICES: Service[] = [
     href: "/ai-seo-geo",
     blurb: "Get found on Google and surfaced inside AI tools when customers search.",
     iconKey: "search",
+    goal: "Get found on Google and AI tools",
+    result:
+      "We would build the content and technical SEO that puts you in front of customers on Google, and inside AI assistants, exactly when they search.",
   },
   {
     key: /managed|operations/i,
@@ -101,6 +136,9 @@ const SERVICES: Service[] = [
     href: "/managed-technology-operations",
     blurb: "We keep it running, monitored, and improving long after launch.",
     iconKey: "shield",
+    goal: "Keep my software running and supported",
+    result:
+      "We would run, monitor, and keep improving your software long after launch, so it stays fast, secure, and reliable.",
   },
 ];
 
@@ -399,12 +437,30 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
   const { hero, meta } = page;
   const slug = meta.slug.replace(/^\//, "");
   const label = industryLabel(meta.title);
+  // The hero kicker names the specific sector (from the registry) instead of a generic "Industry".
+  const sector = isIndustrySlug(slug) ? sectorLabel(slug) : "Industry";
+
+  // The finder recommends only from the services this industry needs (always incl. AI Content,
+  // SEO & GEO), resolved from its own "Built with these services" note.
+  const linkSection = page.sections.find(
+    (s): s is Extract<Section, { kind: "dynamic" }> =>
+      s.kind === "dynamic" && s.id === "services-links",
+  );
+  const finderServices: FinderService[] = (
+    linkSection ? resolveServices(linkSection.note) : SERVICES.slice(0, 6)
+  ).map((s) => ({
+    title: s.title,
+    href: s.href,
+    iconKey: s.iconKey,
+    goal: s.goal,
+    result: s.result,
+  }));
 
   const body: ReactNode[] = [];
   for (const section of page.sections) {
     const node = renderSection(section, slug);
     if (node) body.push(node);
-    // Drop in the exact homepage Solution Finder right after "what we build", where the hero's
+    // Drop the industry-tailored Solution Finder in right after "what we build", where the hero's
     // "Find the right service" CTA lands.
     if (section.kind === "cards" && section.id === "solutions") {
       body.push(
@@ -415,7 +471,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
           key="finder"
         >
           <div className="wrap">
-            <SolutionFinder />
+            <IndustrySolutionFinder services={finderServices} />
           </div>
         </section>,
       );
@@ -439,7 +495,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
           <div className="hero-inner reveal">
             <span className="kicker on-dark">
               <span className="dot" />
-              Industry
+              {sector}
             </span>
             <h1>{hero.h1}</h1>
             {hero.subline ? <p className="lede">{hero.subline}</p> : null}

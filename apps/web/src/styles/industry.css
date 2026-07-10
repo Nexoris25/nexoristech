@@ -323,11 +323,8 @@
 .industry-page .cta p {
   max-width: 64ch;
 }
-/* Keep a long button label inside narrow screens (e.g. 280px) instead of overflowing. */
 .industry-page .cta .btn {
   max-width: 100%;
-  white-space: normal;
-  text-align: center;
 }
 
 /* responsive */
@@ -367,6 +364,17 @@
   .industry-page .hero-inner .hero-cta .btn {
     width: 100%;
     justify-content: center;
+  }
+}
+@media (max-width: 360px) {
+  /* Narrow screens: drop the CTA arrow (and tighten the button) so the label stays on one line. */
+  .industry-page .cta .btn {
+    padding-left: 14px;
+    padding-right: 14px;
+    font-size: 0.84rem;
+  }
+  .industry-page .cta .btn .arr {
+    display: none;
   }
 }
 @media (max-width: 340px) {
