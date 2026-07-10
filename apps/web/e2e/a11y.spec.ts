@@ -30,6 +30,10 @@ const ROUTES = [
   "/terms-of-service/",
   "/careers/",
   "/insights/",
+  "/agritech-software/",
+  "/fintech-software/",
+  "/retail-ecommerce-software/",
+  "/government-digital-solutions/",
 ];
 
 for (const route of ROUTES) {

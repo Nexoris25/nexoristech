@@ -36,6 +36,7 @@ import "../styles/insights.css";
 import "../styles/article.css";
 import "../styles/author.css";
 import "../styles/job.css";
+import "../styles/industry.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

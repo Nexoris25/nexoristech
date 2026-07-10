@@ -1,0 +1,329 @@
+/*
+ * Industry pages (all 20). One brand-consistent editorial template rendered from each industry's
+ * content module (routeClass "industry"): a centered dark hero, editorial pain quotes, a numbered
+ * "what we build" list, a dark "where AI helps" grid, an outcomes prose block, service links, and
+ * the FAQ. Deliberately uses ONLY the brand purple / ink / neutral tokens (no teal, amber, red, or
+ * blue accents from the original bespoke mocks). Scoped under .industry-page; responsive to 280px.
+ */
+
+/* centered hero (reuses the shared .hero dark + glow) */
+.industry-page .hero .crumb {
+  justify-content: center;
+}
+.industry-page .hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 74ch;
+  margin: 22px auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.industry-page .hero-inner .kicker {
+  justify-content: center;
+}
+.industry-page .hero-inner h1 {
+  max-width: 22ch;
+  text-wrap: balance;
+  margin-left: auto;
+  margin-right: auto;
+}
+.industry-page .hero-inner .lede {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 62ch;
+}
+.industry-page .hero-inner .hero-cta {
+  justify-content: center;
+}
+
+/* PAIN — editorial numbered quotes */
+.industry-page .ind-pain {
+  margin-top: clamp(28px, 3.5vw, 40px);
+  border-top: 1px solid var(--line, #e9e7f0);
+}
+.industry-page .ind-pain-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 clamp(16px, 3vw, 32px);
+  align-items: start;
+  padding: clamp(22px, 3vw, 34px) 0;
+  border-bottom: 1px solid var(--line, #e9e7f0);
+}
+.industry-page .ind-pain-row .pn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--purple-600, #543cda);
+  padding-top: 0.5em;
+}
+.industry-page .ind-pain-row .pq {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.1rem, 1rem + 0.6vw, 1.42rem);
+  line-height: 1.42;
+  letter-spacing: -0.012em;
+  color: var(--ink-950, #0d0a1c);
+}
+.industry-page .ind-pclose {
+  margin-top: 30px;
+  font-size: var(--fs-sub);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  max-width: 62ch;
+  color: var(--ink-2, #3a3550);
+  line-height: 1.5;
+}
+.industry-page .ind-pclose b {
+  color: var(--purple-600, #543cda);
+  font-weight: 700;
+}
+
+/* SOLUTIONS — editorial numbered list */
+.industry-page .ind-sol {
+  margin-top: clamp(28px, 3.5vw, 40px);
+  border-top: 1px solid var(--line, #e9e7f0);
+}
+.industry-page .ind-sol-item {
+  display: grid;
+  grid-template-columns: clamp(30px, 3.5vw, 46px) 1fr;
+  gap: 0 clamp(14px, 2.4vw, 28px);
+  align-items: start;
+  padding: clamp(20px, 2.8vw, 30px) 0;
+  border-bottom: 1px solid var(--line, #e9e7f0);
+  transition: padding-left 0.2s;
+}
+.industry-page .ind-sol-item:hover {
+  padding-left: 8px;
+}
+.industry-page .ind-sol-item .sn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  /* purple-600 (not 500) so the small number clears 4.5:1 on the soft band */
+  color: var(--purple-600, #543cda);
+  padding-top: 5px;
+}
+.industry-page .ind-sol-item h3 {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.02rem, 1rem + 0.15vw, 1.14rem);
+  letter-spacing: -0.012em;
+  color: var(--ink-950, #0d0a1c);
+  margin-bottom: 6px;
+}
+.industry-page .ind-sol-item p {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* AI — dark band + rows */
+.industry-page .band.ink {
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  border-bottom: 1px solid var(--ink-800, #241a3f);
+}
+.industry-page .band.ink .h-section {
+  color: #fff;
+}
+.industry-page .ind-ai-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 clamp(32px, 4vw, 60px);
+  margin-top: clamp(28px, 3.5vw, 40px);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.industry-page .ind-ai-row {
+  display: flex;
+  gap: 14px;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.industry-page .ind-ai-row .ri {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(106, 85, 242, 0.18);
+  border: 1px solid rgba(106, 85, 242, 0.36);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.industry-page .ind-ai-row .ri svg {
+  width: 18px;
+  height: 18px;
+  stroke: #cdbffb;
+  fill: none;
+  stroke-width: 1.8;
+}
+.industry-page .ind-ai-row b {
+  font-family: "Roboto", sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.industry-page .ind-ai-row p {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.industry-page .ind-ai-note {
+  margin-top: clamp(24px, 3vw, 34px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(106, 85, 242, 0.08);
+  border: 1px solid rgba(106, 85, 242, 0.28);
+  border-radius: 13px;
+  padding: 16px 20px;
+  max-width: 78ch;
+}
+.industry-page .ind-ai-note .ck {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: rgba(106, 85, 242, 0.22);
+  border: 1px solid rgba(106, 85, 242, 0.42);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.industry-page .ind-ai-note .ck svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--purple-200, #dcd6f9);
+  fill: none;
+  stroke-width: 2;
+}
+.industry-page .ind-ai-note p {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* OUTCOMES — prose */
+.industry-page .ind-out {
+  margin-top: 8px;
+  max-width: 68ch;
+}
+.industry-page .ind-out p {
+  color: var(--ink-2, #3a3550);
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  margin-top: 16px;
+}
+.industry-page .ind-out p:first-child {
+  margin-top: 0;
+}
+.industry-page .ind-out p b {
+  color: var(--ink-950, #0d0a1c);
+  font-weight: 600;
+}
+
+/* SERVICES — link cards */
+.industry-page .ind-svc {
+  margin-top: clamp(28px, 3.5vw, 40px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 clamp(28px, 4vw, 56px);
+  border-top: 1px solid var(--line, #e9e7f0);
+}
+.industry-page .ind-svc-a {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 0 clamp(14px, 2vw, 20px);
+  align-items: start;
+  padding: clamp(20px, 2.6vw, 26px) 0;
+  border-bottom: 1px solid var(--line, #e9e7f0);
+  transition: padding-left 0.2s, background 0.2s;
+  color: inherit;
+}
+.industry-page .ind-svc-a:hover {
+  padding-left: 10px;
+  background: var(--purple-100, #eeebfc);
+}
+.industry-page .ind-svc-a .si {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--purple-100, #eeebfc);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.industry-page .ind-svc-a:hover .si {
+  background: #fff;
+}
+.industry-page .ind-svc-a .si svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--purple-600, #543cda);
+  fill: none;
+  stroke-width: 1.7;
+}
+.industry-page .ind-svc-a b {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--ink-950, #0d0a1c);
+  letter-spacing: -0.01em;
+  display: block;
+  margin-bottom: 3px;
+}
+.industry-page .ind-svc-a span {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  display: block;
+}
+.industry-page .ind-svc-a .arr {
+  color: var(--purple-500, #6a55f2);
+  align-self: center;
+  transition: transform 0.2s;
+}
+.industry-page .ind-svc-a:hover .arr {
+  transform: translateX(4px);
+  color: var(--purple-700, #4330b8);
+}
+
+/* responsive */
+@media (max-width: 880px) {
+  .industry-page .ind-ai-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+@media (max-width: 680px) {
+  .industry-page .ind-svc {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .industry-page .hero-inner .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .industry-page .hero-inner .hero-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 340px) {
+  .industry-page .ind-sol-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .industry-page .ind-svc-a {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .industry-page .ind-svc-a .arr {
+    display: none;
+  }
+}

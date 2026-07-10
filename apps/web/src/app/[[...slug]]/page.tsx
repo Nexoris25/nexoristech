@@ -18,6 +18,7 @@ import { HowWeWorkView } from "../../components/company/HowWeWorkView.js";
 import { AboutView } from "../../components/company/AboutView.js";
 import { ContactView } from "../../components/company/ContactView.js";
 import { CaseStudiesView } from "../../components/company/CaseStudiesView.js";
+import { IndustryView } from "../../components/company/IndustryView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
 import { getPseoPage, getPseoSlugs } from "../../lib/cms.js";
@@ -148,6 +149,15 @@ export default async function MarketingRoute({
       <>
         <JsonLd graph={graphForPage(page)} />
         <CaseStudiesView />
+      </>
+    );
+  }
+  // All 20 industry pages render from one brand-consistent editorial template.
+  if (page.meta.routeClass === "industry") {
+    return (
+      <>
+        <JsonLd graph={graphForPage(page)} />
+        <IndustryView page={page} />
       </>
     );
   }
