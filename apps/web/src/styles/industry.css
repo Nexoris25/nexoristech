@@ -323,6 +323,12 @@
 .industry-page .cta p {
   max-width: 64ch;
 }
+/* Keep a long button label inside narrow screens (e.g. 280px) instead of overflowing. */
+.industry-page .cta .btn {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
 
 /* responsive */
 @media (max-width: 980px) {

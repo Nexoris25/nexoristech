@@ -12,8 +12,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { ICONS } from "./industryIcons.js";
-import { SolutionFinder } from "../SolutionFinder.js";
-import { isIndustrySlug } from "@nexoris/recommend";
+import { SolutionFinder } from "../home/SolutionFinder.js";
 import type { MarketingPage, Section } from "../../content/types.js";
 
 interface Service {
@@ -400,15 +399,13 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
   const { hero, meta } = page;
   const slug = meta.slug.replace(/^\//, "");
   const label = industryLabel(meta.title);
-  // Lock the shared Solution Finder to this industry so it keeps the homepage pattern and standard.
-  const lockedIndustry = isIndustrySlug(slug) ? slug : undefined;
 
   const body: ReactNode[] = [];
   for (const section of page.sections) {
     const node = renderSection(section, slug);
     if (node) body.push(node);
-    // Drop the same Solution Finder used on the homepage in right after "what we build",
-    // where the hero's "Find the right service" CTA lands. The industry is fixed here.
+    // Drop in the exact homepage Solution Finder right after "what we build", where the hero's
+    // "Find the right service" CTA lands.
     if (section.kind === "cards" && section.id === "solutions") {
       body.push(
         <section
@@ -418,7 +415,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
           key="finder"
         >
           <div className="wrap">
-            <SolutionFinder {...(lockedIndustry ? { lockedIndustry } : {})} />
+            <SolutionFinder />
           </div>
         </section>,
       );

@@ -71,14 +71,9 @@ function Field({
   );
 }
 
-export function SolutionFinder({
-  lockedIndustry,
-}: {
-  /** When set (e.g. on an industry page), the industry is fixed and its question is hidden. */
-  lockedIndustry?: IndustrySlug;
-} = {}): ReactNode {
+export function SolutionFinder(): ReactNode {
   const baseId = useId();
-  const [industry, setIndustry] = useState(lockedIndustry ?? "");
+  const [industry, setIndustry] = useState("");
   const [headache, setHeadache] = useState("");
   const [companySize, setCompanySize] = useState("");
   const [urgency, setUrgency] = useState("");
@@ -148,29 +143,14 @@ export function SolutionFinder({
               </Link>
             </li>
           ))}
-          {result.services.every((s) => s.slug !== "ai-seo-geo") ? (
-            <li>
-              <Link
-                href="/ai-seo-geo"
-                className="cursor-pointer font-600 text-purple-600 hover:text-purple-700"
-              >
-                AI Content, SEO &amp; GEO &rarr;
-              </Link>
-              <span className="ml-2 text-label text-neutral-600">
-                so customers actually find you on Google and AI tools
-              </span>
-            </li>
-          ) : null}
-          {lockedIndustry ? null : (
-            <li>
-              <Link
-                href={result.industry.href}
-                className="cursor-pointer font-600 text-purple-600 hover:text-purple-700"
-              >
-                How we help in {result.industry.label} &rarr;
-              </Link>
-            </li>
-          )}
+          <li>
+            <Link
+              href={result.industry.href}
+              className="cursor-pointer font-600 text-purple-600 hover:text-purple-700"
+            >
+              How we help in {result.industry.label} &rarr;
+            </Link>
+          </li>
         </ul>
         <div className="mt-8 flex flex-wrap gap-4">
           <Button href="/contact">Talk to us about this</Button>
@@ -188,16 +168,14 @@ export function SolutionFinder({
       className="mt-8 rounded-card border border-purple-200 bg-white p-6 shadow-subtle md:p-8"
     >
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        {lockedIndustry ? null : (
-          <Field
-            id={`${baseId}-industry`}
-            label="What kind of business are you?"
-            value={industry}
-            onChange={setIndustry}
-            options={INDUSTRY_OPTIONS}
-            placeholder="Choose your industry"
-          />
-        )}
+        <Field
+          id={`${baseId}-industry`}
+          label="What kind of business are you?"
+          value={industry}
+          onChange={setIndustry}
+          options={INDUSTRY_OPTIONS}
+          placeholder="Choose your industry"
+        />
         <Field
           id={`${baseId}-headache`}
           label="What is frustrating you most right now?"
