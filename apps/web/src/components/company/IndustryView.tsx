@@ -1,155 +1,193 @@
 /**
  * One brand-consistent industry page, rendered from any industry content module (routeClass
  * "industry"). It lays out the editorial template used across all 20 industries: a centered dark
- * hero, editorial pain quotes, a numbered "what we build" list, a dark "where AI helps" grid, an
- * outcomes prose block, "built with these services" links, and the FAQ. Uses only brand tokens (no
- * per-industry accent colours). Proof/case-study sections are data-driven and omitted here until a
- * client approves real figures (no fabricated testimonials). Server component; ScrollFx adds reveals.
+ * hero, premium "problem" cards (with an industry-aligned icon set), redesigned "what we build"
+ * cards, a live per-industry service finder, a dark "where AI helps" grid, an outcomes prose block,
+ * "built with these services" links, and the FAQ. Uses only brand tokens (no per-industry accent
+ * colours). Every industry's service list always includes AI Content, SEO & GEO because every
+ * industry needs to be found. Proof/case-study sections are data-driven and omitted here until a
+ * client approves real figures (no fabricated testimonials). ScrollFx adds reveals.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
+import { ICONS } from "./industryIcons.js";
+import { IndustryFinder, type FinderService } from "./IndustryFinder.js";
 import type { MarketingPage, Section } from "../../content/types.js";
 
+interface Service {
+  key: RegExp;
+  title: string;
+  href: string;
+  blurb: string;
+  need: string;
+  iconKey: string;
+}
+
 /** All 11 services, with a keyword to resolve the free-text "Built with these services" notes. */
-const SERVICES: { key: RegExp; title: string; href: string; blurb: string; icon: ReactNode }[] = [
+const SERVICES: Service[] = [
   {
     key: /product development|custom software|websites?, apps/i,
     title: "AI Product Development",
     href: "/ai-product-development",
     blurb: "Custom websites, web apps, mobile apps, and business systems built around how you work.",
-    icon: (
-      <>
-        <path d="M4 7l8-4 8 4-8 4z" />
-        <path d="M4 7v10l8 4 8-4V7" />
-        <path d="M12 11v10" />
-      </>
-    ),
+    need: "Build a new website, app, or internal system",
+    iconKey: "cube",
   },
   {
     key: /chatbot|assistant/i,
     title: "AI Chatbots & Virtual Assistants",
     href: "/ai-chatbots-virtual-assistants",
     blurb: "Assistants that answer from your own content and hand off to a human when needed.",
-    icon: (
-      <>
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        <path d="M8 9h8M8 12h5" />
-      </>
-    ),
+    need: "Answer customers automatically, day and night",
+    iconKey: "chat",
   },
   {
     key: /automation|process/i,
     title: "Business Process Automation",
     href: "/business-process-automation",
     blurb: "Automate the repetitive, manual workflows quietly eating your team's hours.",
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="3.2" />
-        <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
-      </>
-    ),
+    need: "Cut out repetitive manual work",
+    iconKey: "gear",
   },
   {
     key: /e-?commerce/i,
     title: "AI E-Commerce",
     href: "/ai-ecommerce-development",
     blurb: "Online stores built around your catalogue, with payments and renewals handled.",
-    icon: (
-      <>
-        <path d="M3 4h2l2.2 11.2a1.5 1.5 0 0 0 1.5 1.2h8.1a1.5 1.5 0 0 0 1.5-1.2L21 7H6" />
-        <circle cx="9" cy="20" r="1.4" />
-        <circle cx="18" cy="20" r="1.4" />
-      </>
-    ),
+    need: "Sell online and take payments",
+    iconKey: "cart",
   },
   {
     key: /dashboard|analytics/i,
     title: "Data Dashboards & Analytics",
     href: "/data-dashboards-predictive-analytics",
     blurb: "Your numbers in one live view, with forecasts you can actually act on.",
-    icon: <path d="M4 19V5M4 19h16M8 16V9M12 16v-5M16 16v-9" />,
+    need: "See my numbers and forecasts in one place",
+    iconKey: "chart",
   },
   {
     key: /integration|systems/i,
     title: "AI & Systems Integration",
     href: "/ai-systems-integration",
     blurb: "Connect the tools and data you already use so they finally talk to each other.",
-    icon: (
-      <>
-        <circle cx="6" cy="12" r="2.5" />
-        <circle cx="18" cy="6" r="2.5" />
-        <circle cx="18" cy="18" r="2.5" />
-        <path d="M8 11l8-4M8 13l8 4" />
-      </>
-    ),
+    need: "Make my existing tools talk to each other",
+    iconKey: "nodes",
   },
   {
     key: /infrastructure|readiness/i,
     title: "Data Infrastructure & AI Readiness",
     href: "/data-infrastructure-ai-readiness",
     blurb: "Clean, structured, well-governed data, the groundwork everything else needs.",
-    icon: (
-      <>
-        <ellipse cx="12" cy="6" rx="8" ry="3" />
-        <path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" />
-      </>
-    ),
+    need: "Get my data clean and ready for AI",
+    iconKey: "db",
   },
   {
     key: /iot/i,
     title: "IoT Development",
     href: "/iot-development",
     blurb: "Sensors and connected devices that report what is happening on the ground.",
-    icon: (
-      <>
-        <rect x="7" y="7" width="10" height="10" rx="2" />
-        <path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2" />
-      </>
-    ),
+    need: "Track assets, stock, or equipment live",
+    iconKey: "sensor",
   },
   {
     key: /govtech|government/i,
     title: "GovTech Platforms",
     href: "/govtech-platforms",
     blurb: "Citizen services, registries, and revenue platforms built for institutions.",
-    icon: <path d="M3 9l9-5 9 5M5 9v9M19 9v9M9 18v-6M15 18v-6M3 21h18" />,
+    need: "Deliver citizen or public-sector services",
+    iconKey: "bank",
   },
   {
-    key: /seo|geo|content/i,
+    key: /seo|geo|content|found/i,
     title: "AI Content, SEO & GEO",
     href: "/ai-seo-geo",
     blurb: "Get found on Google and surfaced inside AI tools when customers search.",
-    icon: (
-      <>
-        <circle cx="11" cy="11" r="7" />
-        <path d="M21 21l-4.3-4.3" />
-      </>
-    ),
+    need: "Get found on Google and AI tools",
+    iconKey: "search",
   },
   {
     key: /managed|operations/i,
     title: "Managed Technology Operations",
     href: "/managed-technology-operations",
     blurb: "We keep it running, monitored, and improving long after launch.",
-    icon: (
-      <>
-        <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
-        <path d="M9 12l2 2 4-4" />
-      </>
-    ),
+    need: "Keep my software running and supported",
+    iconKey: "shield",
   },
 ];
 
-/** Resolve the "Built with these services" note into ordered, de-duplicated service links. */
-function resolveServices(note: string): typeof SERVICES {
+const SEO_SERVICE = SERVICES.find((s) => s.href === "/ai-seo-geo") as Service;
+
+/**
+ * Resolve the "Built with these services" note into ordered, de-duplicated service links. AI
+ * Content, SEO & GEO is always appended (if not already named) because every industry needs to be
+ * found on Google and inside AI tools.
+ */
+function resolveServices(note: string): Service[] {
   const after = note.replace(/^[^:]*:/, "");
-  const picked: typeof SERVICES = [];
+  const picked: Service[] = [];
   for (const part of after.split(",")) {
     const svc = SERVICES.find((s) => s.key.test(part));
     if (svc && !picked.includes(svc)) picked.push(svc);
   }
-  return picked.length > 0 ? picked : SERVICES.slice(0, 6);
+  if (picked.length === 0) picked.push(...SERVICES.slice(0, 5));
+  if (!picked.includes(SEO_SERVICE)) picked.push(SEO_SERVICE);
+  return picked;
+}
+
+/** Per-industry glyph set for the "problem" cards, so each page's variant matches its sector. */
+const PAIN_ICONS: Record<string, string[]> = {
+  "agritech-software": ["leaf", "cloud", "shield", "coins"],
+  "automotive-software": ["car", "wrench", "calendar", "coins"],
+  "church-management-software": ["church", "users", "calendar", "heart"],
+  "construction-software": ["hardhat", "ruler", "truck", "chart"],
+  "education-software": ["book", "users", "screen", "chart"],
+  "events-software": ["calendar", "ticket", "users", "camera"],
+  "fintech-software": ["coins", "shield", "chart", "phone"],
+  "fitness-wellness-software": ["dumbbell", "calendar", "heart", "users"],
+  "government-digital-solutions": ["bank", "doc", "users", "shield"],
+  "healthcare-software": ["pulse", "stethoscope", "calendar", "shield"],
+  "hospitality-software": ["home", "calendar", "star", "users"],
+  "insurance-software": ["shield", "doc", "scale", "chart"],
+  "logistics-software": ["truck", "box", "pin", "gauge"],
+  "manufacturing-software": ["factory", "gauge", "box", "wrench"],
+  "media-entertainment-software": ["play", "camera", "users", "chart"],
+  "ngo-software": ["heart", "users", "doc", "coins"],
+  "professional-services-software": ["briefcase", "doc", "clock", "users"],
+  "real-estate-software": ["home", "key", "users", "chart"],
+  "restaurant-software": ["utensils", "cart", "clock", "users"],
+  "retail-ecommerce-software": ["cart", "tag", "box", "chart"],
+};
+const PAIN_FALLBACK = ["gauge", "chart", "shield", "users"];
+
+function painIcon(slug: string, index: number): string {
+  const set = PAIN_ICONS[slug] ?? PAIN_FALLBACK;
+  return set[index % set.length] ?? "gauge";
+}
+
+/** Choose a "what we build" card icon from keywords in the solution title. */
+const SOLUTION_ICON_RULES: { re: RegExp; icon: string }[] = [
+  { re: /marketplace|market\b|store|shop/i, icon: "cart" },
+  { re: /credit|pay|loan|invoice|billing|payment|wallet|finance/i, icon: "coins" },
+  { re: /traceab|complian|audit|record|certif/i, icon: "shield" },
+  { re: /offline|field|mobile|app\b/i, icon: "phone" },
+  { re: /portal|website|site\b|booking/i, icon: "screen" },
+  { re: /dashboard|report|analytic|forecast/i, icon: "chart" },
+  { re: /sensor|iot|device|telemetr|track/i, icon: "sensor" },
+  { re: /integrat|connect|sync|api/i, icon: "nodes" },
+  { re: /automation|automate|workflow|schedul/i, icon: "gear" },
+  { re: /calendar|appointment|reservation|event/i, icon: "calendar" },
+  { re: /data|database|infrastructure|warehouse/i, icon: "db" },
+  { re: /member|customer|patient|student|donor|citizen|guest|tenant|crm/i, icon: "users" },
+  { re: /content|seo|search/i, icon: "search" },
+  { re: /manage|admin|operations|scheme/i, icon: "grid" },
+];
+
+function solutionIcon(title: string): string {
+  for (const rule of SOLUTION_ICON_RULES) {
+    if (rule.re.test(title)) return rule.icon;
+  }
+  return "cube";
 }
 
 /** Short industry label for the breadcrumb, from the meta title. */
@@ -157,7 +195,12 @@ function industryLabel(title: string): string {
   return (title.split("|")[0] ?? "Industry").replace(/\bin Nigeria\b/i, "").trim();
 }
 
-function renderSection(section: Section): ReactNode {
+/** A short, lower-case noun phrase for the finder copy (e.g. "farm", "clinic"). */
+function finderNoun(label: string): string {
+  return label.replace(/\s*(&|and)\s*.*/i, "").trim().toLowerCase() || "business";
+}
+
+function renderSection(section: Section, slug: string): ReactNode {
   if (section.kind === "cards" && section.id === "pain") {
     return (
       <section className="band" aria-label="The problem" key={section.id}>
@@ -171,10 +214,17 @@ function renderSection(section: Section): ReactNode {
           </div>
           <div className="ind-pain reveal">
             {section.cards.map((c, i) => (
-              <div className="ind-pain-row" key={c.body}>
-                <span className="pn">{String(i + 1).padStart(2, "0")}</span>
-                <p className="pq">&ldquo;{c.body}&rdquo;</p>
-              </div>
+              <article className="ind-pain-card" key={c.body}>
+                <div className="ind-pain-top">
+                  <span className="ind-pain-ic">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      {ICONS[painIcon(slug, i)] ?? ICONS.gauge}
+                    </svg>
+                  </span>
+                  <span className="ind-pain-n">{String(i + 1).padStart(2, "0")}</span>
+                </div>
+                <p className="ind-pain-q">&ldquo;{c.body}&rdquo;</p>
+              </article>
             ))}
           </div>
           {section.closingLine ? <p className="ind-pclose reveal">{section.closingLine}</p> : null}
@@ -196,14 +246,16 @@ function renderSection(section: Section): ReactNode {
             {section.intro ? <p className="lede">{section.intro}</p> : null}
           </div>
           <div className="ind-sol reveal">
-            {section.cards.map((c, i) => (
-              <div className="ind-sol-item" key={(c.title ?? "") + c.body}>
-                <span className="sn">{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  {c.title ? <h3>{c.title.replace(/\.$/, "")}</h3> : null}
-                  <p>{c.body}</p>
-                </div>
-              </div>
+            {section.cards.map((c) => (
+              <article className="ind-sol-card" key={(c.title ?? "") + c.body}>
+                <span className="ind-sol-ic">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    {ICONS[solutionIcon(c.title ?? c.body)] ?? ICONS.cube}
+                  </svg>
+                </span>
+                {c.title ? <h3>{c.title.replace(/\.$/, "")}</h3> : null}
+                <p>{c.body}</p>
+              </article>
             ))}
           </div>
         </div>
@@ -298,7 +350,7 @@ function renderSection(section: Section): ReactNode {
             {services.map((s) => (
               <Link className="ind-svc-a" href={s.href} key={s.href}>
                 <span className="si">
-                  <svg viewBox="0 0 24 24">{s.icon}</svg>
+                  <svg viewBox="0 0 24 24">{ICONS[s.iconKey] ?? ICONS.cube}</svg>
                 </span>
                 <span>
                   <b>{s.title}</b>
@@ -362,11 +414,41 @@ function renderSection(section: Section): ReactNode {
 
 export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
   const { hero, meta } = page;
+  const slug = meta.slug.replace(/^\//, "");
+  const label = industryLabel(meta.title);
+
+  // The finder offers the same services this industry is built with (always incl. SEO & GEO).
+  const linkSection = page.sections.find(
+    (s): s is Extract<Section, { kind: "dynamic" }> =>
+      s.kind === "dynamic" && s.id === "services-links",
+  );
+  const finderServices: FinderService[] = (
+    linkSection ? resolveServices(linkSection.note) : SERVICES
+  ).map((s) => ({
+    title: s.title,
+    href: s.href,
+    blurb: s.blurb,
+    need: s.need,
+    iconKey: s.iconKey,
+  }));
+
+  const body: ReactNode[] = [];
+  for (const section of page.sections) {
+    const node = renderSection(section, slug);
+    if (node) body.push(node);
+    // Drop the live finder in right after "what we build", where the hero CTA lands.
+    if (section.kind === "cards" && section.id === "solutions") {
+      body.push(
+        <IndustryFinder key="finder" services={finderServices} industry={finderNoun(label)} />,
+      );
+    }
+  }
+
   return (
     <div className="svc-page industry-page">
       <ScrollFx />
 
-      <section className="hero" aria-label={industryLabel(meta.title)}>
+      <section className="hero" aria-label={label}>
         <div className="glow" />
         <div className="wrap">
           <nav className="crumb reveal" aria-label="Breadcrumb">
@@ -374,7 +456,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
             <span className="sep">/</span>
             <Link href="/#industries">Industries</Link>
             <span className="sep">/</span>
-            <span className="here">{industryLabel(meta.title)}</span>
+            <span className="here">{label}</span>
           </nav>
           <div className="hero-inner reveal">
             <span className="kicker on-dark">
@@ -387,7 +469,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
               <Link className="btn btn-primary" href={hero.primaryCta?.href ?? "/contact"}>
                 {hero.primaryCta?.label ?? "Talk to us"} <span className="arr">&rarr;</span>
               </Link>
-              <Link className="btn btn-ghost on-dark" href="/#finder">
+              <Link className="btn btn-ghost on-dark" href="#solution-finder">
                 Find the right service
               </Link>
             </div>
@@ -401,7 +483,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
         </div>
       </section>
 
-      {page.sections.map((section) => renderSection(section))}
+      {body}
     </div>
   );
 }

@@ -34,6 +34,12 @@ const ROUTES = [
   "/fintech-software/",
   "/retail-ecommerce-software/",
   "/government-digital-solutions/",
+  "/logistics-software/",
+  "/restaurant-software/",
+  "/real-estate-software/",
+  "/education-software/",
+  "/church-management-software/",
+  "/ngo-software/",
 ];
 
 for (const route of ROUTES) {

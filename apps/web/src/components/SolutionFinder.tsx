@@ -143,6 +143,19 @@ export function SolutionFinder(): ReactNode {
               </Link>
             </li>
           ))}
+          {result.services.every((s) => s.slug !== "ai-seo-geo") ? (
+            <li>
+              <Link
+                href="/ai-seo-geo"
+                className="cursor-pointer font-600 text-purple-600 hover:text-purple-700"
+              >
+                AI Content, SEO &amp; GEO &rarr;
+              </Link>
+              <span className="ml-2 text-label text-neutral-600">
+                so customers actually find you on Google and AI tools
+              </span>
+            </li>
+          ) : null}
           <li>
             <Link
               href={result.industry.href}

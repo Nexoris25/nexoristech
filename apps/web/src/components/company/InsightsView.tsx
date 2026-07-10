@@ -19,7 +19,9 @@ function ArticleCard({ a }: { a: InsightCard }): ReactNode {
   return (
     <article className="card">
       <span className="thumb">
-        {a.coverUrl ? <img src={a.coverUrl} alt="" loading="lazy" /> : null}
+        {a.coverUrl ? (
+          <img src={a.coverUrl} alt={`Cover image for the article ${a.title}`} loading="lazy" />
+        ) : null}
       </span>
       <div className="card-body">
         <h3>
@@ -188,7 +190,9 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
               {featured ? (
                 <div className="feat reveal">
                   <Link className="feat-thumb" href={`/insights/${featured.slug}`} aria-label={featured.title}>
-                    {featured.coverUrl ? <img src={featured.coverUrl} alt="" /> : null}
+                    {featured.coverUrl ? (
+                      <img src={featured.coverUrl} alt={`Cover image for the article ${featured.title}`} />
+                    ) : null}
                   </Link>
                   <div className="feat-body">
                     <span className="ed-pick">

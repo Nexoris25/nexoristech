@@ -142,7 +142,7 @@ export default async function AuthorPage({
                   <span className="thumb">
                     {article.coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={article.coverUrl} alt="" loading="lazy" />
+                      <img src={article.coverUrl} alt={`Cover image for the article ${article.title}`} loading="lazy" />
                     ) : null}
                   </span>
                   <div className="card-body">

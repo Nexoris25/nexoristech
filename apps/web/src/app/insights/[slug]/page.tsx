@@ -271,7 +271,7 @@ export default async function ArticlePage({
             <div className="art-figure">
               {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={article.coverUrl} alt="" />
+              <img src={article.coverUrl} alt={`Cover image for ${article.title}`} />
             </div>
           ) : null}
         </div>
