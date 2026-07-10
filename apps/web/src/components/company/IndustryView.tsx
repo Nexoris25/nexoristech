@@ -8,7 +8,7 @@
  * industry needs to be found. Proof/case-study sections are data-driven and omitted here until a
  * client approves real figures (no fabricated testimonials). ScrollFx adds reveals.
  */
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { ICONS } from "./industryIcons.js";
@@ -199,14 +199,11 @@ function renderSection(section: Section, slug: string): ReactNode {
           <div className="ind-pain reveal">
             {section.cards.map((c, i) => (
               <article className="ind-pain-card" key={c.body}>
-                <div className="ind-pain-top">
-                  <span className="ind-pain-ic">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      {ICONS[painIcon(slug, i)] ?? ICONS.gauge}
-                    </svg>
-                  </span>
-                  <span className="ind-pain-n">{String(i + 1).padStart(2, "0")}</span>
-                </div>
+                <span className="ind-pain-ic">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    {ICONS[painIcon(slug, i)] ?? ICONS.gauge}
+                  </svg>
+                </span>
                 <p className="ind-pain-q">&ldquo;{c.body}&rdquo;</p>
               </article>
             ))}
@@ -229,9 +226,12 @@ function renderSection(section: Section, slug: string): ReactNode {
             {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
             {section.intro ? <p className="lede">{section.intro}</p> : null}
           </div>
-          <div className="ind-sol reveal">
+          <div
+            className="ind-sol reveal"
+            style={{ "--sol-cols": Math.min(4, Math.ceil(section.cards.length / 2)) } as CSSProperties}
+          >
             {section.cards.map((c) => (
-              <article className="ind-sol-card" key={(c.title ?? "") + c.body}>
+              <div className="ind-sol-item" key={(c.title ?? "") + c.body}>
                 <span className="ind-sol-ic">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     {ICONS[solutionIcon(c.title ?? c.body)] ?? ICONS.cube}
@@ -239,7 +239,7 @@ function renderSection(section: Section, slug: string): ReactNode {
                 </span>
                 {c.title ? <h3>{c.title.replace(/\.$/, "")}</h3> : null}
                 <p>{c.body}</p>
-              </article>
+              </div>
             ))}
           </div>
         </div>
@@ -411,19 +411,13 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
     // where the hero's "Find the right service" CTA lands. The industry is fixed here.
     if (section.kind === "cards" && section.id === "solutions") {
       body.push(
-        <section className="band" id="solution-finder" aria-label="Service finder" key="finder">
+        <section
+          className="band ind-finder-band"
+          id="solution-finder"
+          aria-label="Solution Finder"
+          key="finder"
+        >
           <div className="wrap">
-            <div className="band-head reveal">
-              <span className="kicker">
-                <span className="dot" />
-                Service finder
-              </span>
-              <h2 className="h-section">Not sure which service fits? Let us point you.</h2>
-              <p className="lede">
-                Answer a couple of quick questions and we will suggest the right service to start
-                with, plus honest next steps.
-              </p>
-            </div>
             <SolutionFinder {...(lockedIndustry ? { lockedIndustry } : {})} />
           </div>
         </section>,
