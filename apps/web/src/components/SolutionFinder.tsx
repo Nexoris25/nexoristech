@@ -71,9 +71,14 @@ function Field({
   );
 }
 
-export function SolutionFinder(): ReactNode {
+export function SolutionFinder({
+  lockedIndustry,
+}: {
+  /** When set (e.g. on an industry page), the industry is fixed and its question is hidden. */
+  lockedIndustry?: IndustrySlug;
+} = {}): ReactNode {
   const baseId = useId();
-  const [industry, setIndustry] = useState("");
+  const [industry, setIndustry] = useState(lockedIndustry ?? "");
   const [headache, setHeadache] = useState("");
   const [companySize, setCompanySize] = useState("");
   const [urgency, setUrgency] = useState("");
@@ -156,14 +161,16 @@ export function SolutionFinder(): ReactNode {
               </span>
             </li>
           ) : null}
-          <li>
-            <Link
-              href={result.industry.href}
-              className="cursor-pointer font-600 text-purple-600 hover:text-purple-700"
-            >
-              How we help in {result.industry.label} &rarr;
-            </Link>
-          </li>
+          {lockedIndustry ? null : (
+            <li>
+              <Link
+                href={result.industry.href}
+                className="cursor-pointer font-600 text-purple-600 hover:text-purple-700"
+              >
+                How we help in {result.industry.label} &rarr;
+              </Link>
+            </li>
+          )}
         </ul>
         <div className="mt-8 flex flex-wrap gap-4">
           <Button href="/contact">Talk to us about this</Button>
@@ -181,14 +188,16 @@ export function SolutionFinder(): ReactNode {
       className="mt-8 rounded-card border border-purple-200 bg-white p-6 shadow-subtle md:p-8"
     >
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <Field
-          id={`${baseId}-industry`}
-          label="What kind of business are you?"
-          value={industry}
-          onChange={setIndustry}
-          options={INDUSTRY_OPTIONS}
-          placeholder="Choose your industry"
-        />
+        {lockedIndustry ? null : (
+          <Field
+            id={`${baseId}-industry`}
+            label="What kind of business are you?"
+            value={industry}
+            onChange={setIndustry}
+            options={INDUSTRY_OPTIONS}
+            placeholder="Choose your industry"
+          />
+        )}
         <Field
           id={`${baseId}-headache`}
           label="What is frustrating you most right now?"

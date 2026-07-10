@@ -12,7 +12,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { ICONS } from "./industryIcons.js";
-import { IndustryFinder, type FinderService } from "./IndustryFinder.js";
+import { SolutionFinder } from "../SolutionFinder.js";
+import { isIndustrySlug } from "@nexoris/recommend";
 import type { MarketingPage, Section } from "../../content/types.js";
 
 interface Service {
@@ -20,7 +21,6 @@ interface Service {
   title: string;
   href: string;
   blurb: string;
-  need: string;
   iconKey: string;
 }
 
@@ -31,7 +31,6 @@ const SERVICES: Service[] = [
     title: "AI Product Development",
     href: "/ai-product-development",
     blurb: "Custom websites, web apps, mobile apps, and business systems built around how you work.",
-    need: "Build a new website, app, or internal system",
     iconKey: "cube",
   },
   {
@@ -39,7 +38,6 @@ const SERVICES: Service[] = [
     title: "AI Chatbots & Virtual Assistants",
     href: "/ai-chatbots-virtual-assistants",
     blurb: "Assistants that answer from your own content and hand off to a human when needed.",
-    need: "Answer customers automatically, day and night",
     iconKey: "chat",
   },
   {
@@ -47,7 +45,6 @@ const SERVICES: Service[] = [
     title: "Business Process Automation",
     href: "/business-process-automation",
     blurb: "Automate the repetitive, manual workflows quietly eating your team's hours.",
-    need: "Cut out repetitive manual work",
     iconKey: "gear",
   },
   {
@@ -55,7 +52,6 @@ const SERVICES: Service[] = [
     title: "AI E-Commerce",
     href: "/ai-ecommerce-development",
     blurb: "Online stores built around your catalogue, with payments and renewals handled.",
-    need: "Sell online and take payments",
     iconKey: "cart",
   },
   {
@@ -63,7 +59,6 @@ const SERVICES: Service[] = [
     title: "Data Dashboards & Analytics",
     href: "/data-dashboards-predictive-analytics",
     blurb: "Your numbers in one live view, with forecasts you can actually act on.",
-    need: "See my numbers and forecasts in one place",
     iconKey: "chart",
   },
   {
@@ -71,7 +66,6 @@ const SERVICES: Service[] = [
     title: "AI & Systems Integration",
     href: "/ai-systems-integration",
     blurb: "Connect the tools and data you already use so they finally talk to each other.",
-    need: "Make my existing tools talk to each other",
     iconKey: "nodes",
   },
   {
@@ -79,7 +73,6 @@ const SERVICES: Service[] = [
     title: "Data Infrastructure & AI Readiness",
     href: "/data-infrastructure-ai-readiness",
     blurb: "Clean, structured, well-governed data, the groundwork everything else needs.",
-    need: "Get my data clean and ready for AI",
     iconKey: "db",
   },
   {
@@ -87,7 +80,6 @@ const SERVICES: Service[] = [
     title: "IoT Development",
     href: "/iot-development",
     blurb: "Sensors and connected devices that report what is happening on the ground.",
-    need: "Track assets, stock, or equipment live",
     iconKey: "sensor",
   },
   {
@@ -95,7 +87,6 @@ const SERVICES: Service[] = [
     title: "GovTech Platforms",
     href: "/govtech-platforms",
     blurb: "Citizen services, registries, and revenue platforms built for institutions.",
-    need: "Deliver citizen or public-sector services",
     iconKey: "bank",
   },
   {
@@ -103,7 +94,6 @@ const SERVICES: Service[] = [
     title: "AI Content, SEO & GEO",
     href: "/ai-seo-geo",
     blurb: "Get found on Google and surfaced inside AI tools when customers search.",
-    need: "Get found on Google and AI tools",
     iconKey: "search",
   },
   {
@@ -111,7 +101,6 @@ const SERVICES: Service[] = [
     title: "Managed Technology Operations",
     href: "/managed-technology-operations",
     blurb: "We keep it running, monitored, and improving long after launch.",
-    need: "Keep my software running and supported",
     iconKey: "shield",
   },
 ];
@@ -193,11 +182,6 @@ function solutionIcon(title: string): string {
 /** Short industry label for the breadcrumb, from the meta title. */
 function industryLabel(title: string): string {
   return (title.split("|")[0] ?? "Industry").replace(/\bin Nigeria\b/i, "").trim();
-}
-
-/** A short, lower-case noun phrase for the finder copy (e.g. "farm", "clinic"). */
-function finderNoun(label: string): string {
-  return label.replace(/\s*(&|and)\s*.*/i, "").trim().toLowerCase() || "business";
 }
 
 function renderSection(section: Section, slug: string): ReactNode {
@@ -416,30 +400,33 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
   const { hero, meta } = page;
   const slug = meta.slug.replace(/^\//, "");
   const label = industryLabel(meta.title);
-
-  // The finder offers the same services this industry is built with (always incl. SEO & GEO).
-  const linkSection = page.sections.find(
-    (s): s is Extract<Section, { kind: "dynamic" }> =>
-      s.kind === "dynamic" && s.id === "services-links",
-  );
-  const finderServices: FinderService[] = (
-    linkSection ? resolveServices(linkSection.note) : SERVICES
-  ).map((s) => ({
-    title: s.title,
-    href: s.href,
-    blurb: s.blurb,
-    need: s.need,
-    iconKey: s.iconKey,
-  }));
+  // Lock the shared Solution Finder to this industry so it keeps the homepage pattern and standard.
+  const lockedIndustry = isIndustrySlug(slug) ? slug : undefined;
 
   const body: ReactNode[] = [];
   for (const section of page.sections) {
     const node = renderSection(section, slug);
     if (node) body.push(node);
-    // Drop the live finder in right after "what we build", where the hero CTA lands.
+    // Drop the same Solution Finder used on the homepage in right after "what we build",
+    // where the hero's "Find the right service" CTA lands. The industry is fixed here.
     if (section.kind === "cards" && section.id === "solutions") {
       body.push(
-        <IndustryFinder key="finder" services={finderServices} industry={finderNoun(label)} />,
+        <section className="band" id="solution-finder" aria-label="Service finder" key="finder">
+          <div className="wrap">
+            <div className="band-head reveal">
+              <span className="kicker">
+                <span className="dot" />
+                Service finder
+              </span>
+              <h2 className="h-section">Not sure which service fits? Let us point you.</h2>
+              <p className="lede">
+                Answer a couple of quick questions and we will suggest the right service to start
+                with, plus honest next steps.
+              </p>
+            </div>
+            <SolutionFinder {...(lockedIndustry ? { lockedIndustry } : {})} />
+          </div>
+        </section>,
       );
     }
   }
