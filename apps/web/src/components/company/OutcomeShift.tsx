@@ -17,6 +17,7 @@ export function OutcomeShift(): ReactNode {
 
   return (
     <div className={`osx osx-${phase}`}>
+      <span className="osx-hint">Tap to compare</span>
       <div className="osx-toggle" role="group" aria-label="Compare before and after">
         <button
           type="button"
@@ -32,7 +33,7 @@ export function OutcomeShift(): ReactNode {
           aria-pressed={phase === "after"}
           onClick={() => setPhase("after")}
         >
-          With Nexoris
+          With Nexoris Technologies
         </button>
       </div>
 

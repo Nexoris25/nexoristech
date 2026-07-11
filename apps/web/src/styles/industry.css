@@ -283,29 +283,42 @@
   padding: clamp(18px, 2.4vw, 24px);
   box-shadow: var(--sh-md);
 }
+.industry-page .osx-hint {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6e6a7c);
+  margin-bottom: 10px;
+}
+/* Two distinct, clearly clickable pills (not a filled/greyed segmented control). */
 .industry-page .osx-toggle {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--purple-100, #eeebfc);
-  border: 1px solid var(--purple-200, #dcd6f9);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .industry-page .osx-toggle button {
   font-family: "Inter", sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--purple-700, #4330b8);
-  background: transparent;
-  border: none;
+  background: var(--surface, #fff);
+  border: 1.5px solid var(--purple-200, #dcd6f9);
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 8px 15px;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+.industry-page .osx-toggle button:hover {
+  border-color: var(--purple-500, #6a55f2);
+  background: var(--purple-100, #eeebfc);
 }
 .industry-page .osx-toggle button.on {
   background: var(--purple-600, #543cda);
+  border-color: var(--purple-600, #543cda);
   color: #fff;
+  box-shadow: var(--sh-sm);
 }
 .industry-page .osx-svg {
   display: block;
@@ -324,7 +337,7 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.32;
+  opacity: 0.5;
   transition: opacity 0.3s, stroke 0.3s;
 }
 .industry-page .osx-after,
@@ -348,11 +361,13 @@
   stroke: #fff;
   stroke-width: 2;
 }
-/* Emphasise whichever phase is selected. */
+/* Emphasise whichever phase is selected, but keep both lines clearly visible (never disabled). */
 .industry-page .osx-before .osx-after,
-.industry-page .osx-before .osx-area,
 .industry-page .osx-before .osx-dot {
-  opacity: 0.16;
+  opacity: 0.45;
+}
+.industry-page .osx-before .osx-area {
+  opacity: 0.35;
 }
 .industry-page .osx-before .osx-before {
   opacity: 1;
