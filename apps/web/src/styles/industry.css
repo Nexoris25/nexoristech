@@ -581,6 +581,16 @@
   .industry-page .cta .btn .arr {
     display: none;
   }
+  /* Finder result buttons: full-width and wrapping, overriding the .svc-page .btn nowrap so long
+     labels ("Start this conversation") never overflow the narrow panel. */
+  .industry-page .finder .fp-result .btn,
+  .industry-page .finder .fp-result .fp-ask {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
 }
 @media (max-width: 340px) {
   .industry-page .ind-svc-a {

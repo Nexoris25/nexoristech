@@ -428,6 +428,9 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
   .pain-card,.svc-card,.ind-card,.why-card{padding:20px}
   .finder{padding:18px}
   .proc-row{padding:18px 4px}
+  /* Solution Finder result: full-width buttons that wrap, so long labels like
+     "Start this conversation" never overflow the narrow panel. */
+  .fp-result .btn,.fp-result .fp-ask{display:flex;width:100%;justify-content:center;text-align:center;white-space:normal}
 }
 /* On the smallest screens no button carries a trailing arrow, so labels never get pushed off. */
 @media(max-width:320px){
