@@ -559,6 +559,12 @@
   .industry-page .ind-sol {
     grid-template-columns: 1fr;
   }
+  /* Stack the insight callout like the problem cards: icon on top, text full width. */
+  .industry-page .ind-pclose {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
 }
 @media (max-width: 480px) {
   .industry-page .hero-inner .hero-cta {
