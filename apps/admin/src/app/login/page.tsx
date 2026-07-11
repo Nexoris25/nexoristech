@@ -90,12 +90,14 @@ export default function LoginPage(): ReactNode {
                     className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-600"
                     aria-hidden="true"
                   />
+                  {/* Development convenience: prefilled with the local seed account. Remove before production. */}
                   <input
                     id="email"
                     name="email"
                     type="email"
                     autoComplete="username"
                     required
+                    defaultValue="admin@nexoristech.com"
                     placeholder="you@nexoristech.com"
                     className="w-full rounded-card border border-neutral-200 bg-white py-3 pl-10 pr-3 text-dash-data text-ink-950 placeholder:text-neutral-600/60 focus:border-purple-500"
                   />
@@ -113,12 +115,14 @@ export default function LoginPage(): ReactNode {
                     className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-600"
                     aria-hidden="true"
                   />
+                  {/* Development convenience: prefilled with the local seed password. Remove before production. */}
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
+                    defaultValue="NexorisAdmin2026!"
                     placeholder="Your password"
                     className="w-full rounded-card border border-neutral-200 bg-white py-3 pl-10 pr-11 text-dash-data text-ink-950 placeholder:text-neutral-600/60 focus:border-purple-500"
                   />
