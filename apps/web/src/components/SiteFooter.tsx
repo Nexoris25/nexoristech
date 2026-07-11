@@ -99,12 +99,10 @@ export function SiteFooter(): ReactNode {
               We design and build custom software for businesses in Nigeria and abroad.
             </p>
             <div className="addr">
-              5, Mojisola Dokpesi Street, Badore, Ajah,
-              <br />
-              Lagos, Nigeria
-              <br />
+              <span className="addr-line">
+                No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State.
+              </span>
               <a href="tel:+2349138133224">+234 913 813 3224</a>
-              <br />
               <a href="mailto:hello@nexoristech.com">hello@nexoristech.com</a>
             </div>
             <div className="socials">
@@ -156,7 +154,7 @@ export function SiteFooter(): ReactNode {
 
         <div className="foot-bottom">
           <span className="mono">
-            &copy; {new Date().getFullYear()} Nexoris Technologies Ltd &middot; nexoristech.com
+            &copy; {new Date().getFullYear()} Nexoris Technologies Ltd
           </span>
           <div className="links">
             <Link href="/privacy-policy">Privacy Policy</Link>

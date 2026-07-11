@@ -13,6 +13,7 @@ import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { ICONS } from "./industryIcons.js";
 import { IndustrySolutionFinder, type FinderService } from "./IndustrySolutionFinder.js";
+import { OutcomeShift } from "./OutcomeShift.js";
 import { industryLabel as sectorLabel, isIndustrySlug } from "@nexoris/recommend";
 import type { MarketingPage, Section } from "../../content/types.js";
 
@@ -245,7 +246,17 @@ function renderSection(section: Section, slug: string): ReactNode {
               </article>
             ))}
           </div>
-          {section.closingLine ? <p className="ind-pclose reveal">{section.closingLine}</p> : null}
+          {section.closingLine ? (
+            <div className="ind-pclose reveal">
+              <span className="ind-pclose-ic">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 18h6M10 21h4" />
+                  <path d="M12 3a6 6 0 0 0-3.8 10.6c.6.5 1 1.2 1.1 2.4h5.4c.1-1.2.5-1.9 1.1-2.4A6 6 0 0 0 12 3z" />
+                </svg>
+              </span>
+              <p>{section.closingLine}</p>
+            </div>
+          ) : null}
         </div>
       </section>
     );
@@ -338,17 +349,24 @@ function renderSection(section: Section, slug: string): ReactNode {
     return (
       <section className="band" aria-label="What changes" key={section.id}>
         <div className="wrap">
-          <div className="band-head reveal">
-            <span className="kicker">
-              <span className="dot" />
-              What changes
-            </span>
-            {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
-          </div>
-          <div className="ind-out reveal">
-            {(section.body ?? []).map((p) => (
-              <p key={p}>{p}</p>
-            ))}
+          <div className="ind-out-grid reveal">
+            <div className="ind-out-copy">
+              <div className="band-head">
+                <span className="kicker">
+                  <span className="dot" />
+                  What changes
+                </span>
+                {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
+              </div>
+              <div className="ind-out">
+                {(section.body ?? []).map((p) => (
+                  <p key={p}>{p}</p>
+                ))}
+              </div>
+            </div>
+            <div className="ind-out-viz">
+              <OutcomeShift />
+            </div>
           </div>
         </div>
       </section>

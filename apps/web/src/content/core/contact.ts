@@ -63,7 +63,7 @@ export const contact: MarketingPage = {
       heading: "Other ways to reach us.",
       body: [
         "WhatsApp: message us directly, we reply during business hours. Phone: +234 913 813 3224. General questions: hello@nexoristech.com. New business: business@nexoristech.com. LinkedIn: Nexoris Technologies.",
-        "5, Mojisola Dokpesi Street, Allied Garden Estate, Badore, Ajah, Lagos State, Nigeria.",
+        "No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State.",
       ],
     },
     {

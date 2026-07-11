@@ -153,8 +153,8 @@ export function ContactView(): ReactNode {
                   </span>
                 </div>
                 <p className="addr-txt">
-                  <b>Nexoris Technologies Ltd</b>5, Mojisola Dokpesi Street, Allied Garden Estate,
-                  Badore, Ajah, Lagos State, Nigeria.
+                  <b>Nexoris Technologies Ltd</b>No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos
+                  State.
                 </p>
               </div>
             </aside>

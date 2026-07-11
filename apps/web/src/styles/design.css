@@ -353,8 +353,9 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .foot-brand .brand{margin-bottom:16px}
 .foot-brand .brand .wm{display:inline-block}
 .foot-brand p{font-size:.9rem;line-height:1.6;color:rgba(255,255,255,.55);max-width:32ch}
-.foot-brand .addr{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:rgba(255,255,255,.56);margin-top:16px;line-height:1.85}
-.foot-brand .addr a{color:rgba(255,255,255,.6)}
+.foot-brand .addr{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:rgba(255,255,255,.56);margin-top:16px;line-height:1.75}
+.foot-brand .addr .addr-line{display:block;max-width:34ch;margin-bottom:8px}
+.foot-brand .addr a{display:block;color:rgba(255,255,255,.6);overflow-wrap:anywhere}
 .socials{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
 .soc{width:36px;height:36px;border-radius:9px;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;color:rgba(255,255,255,.62);transition:color .15s,border-color .15s,background .15s}
 .soc:hover{color:#fff;border-color:var(--purple-500);background:rgba(106,85,242,.18)}

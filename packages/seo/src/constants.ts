@@ -58,8 +58,7 @@ export const ORGANISATION = {
   careersEmail: "careers@nexoristech.com",
   telephone: "+2349138133224",
   address: {
-    streetAddress:
-      "5, Mojisola Dokpesi Street, Allied Garden Estate, Badore, Ajah",
+    streetAddress: "No. 5, Mojisola Dokpesi Street, Badore, Ajah",
     addressLocality: "Lagos",
     addressRegion: "Lagos State",
     addressCountry: COUNTRY_CODE,

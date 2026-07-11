@@ -160,7 +160,7 @@ export function NexorisDocument({
           style={styles.footer}
           fixed
           render={({ pageNumber, totalPages }) =>
-            `Nexoris Technologies Ltd  -  5, Mojisola Dokpesi Street, Allied Garden Estate, Badore, Ajah, Lagos  -  business@nexoristech.com  -  Page ${pageNumber} of ${totalPages}`
+            `Nexoris Technologies Ltd  -  No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State  -  business@nexoristech.com  -  Page ${pageNumber} of ${totalPages}`
           }
         />
       </Page>

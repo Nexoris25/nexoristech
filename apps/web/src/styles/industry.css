@@ -82,18 +82,46 @@
   line-height: 1.6;
   color: var(--ink-2, #3a3550);
 }
+/* The line that reframes the problem, presented as a premium insight callout. */
 .industry-page .ind-pclose {
-  margin-top: 30px;
-  font-size: var(--fs-sub);
-  font-weight: 400;
+  margin-top: clamp(26px, 3.2vw, 38px);
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 18px);
+  background: linear-gradient(135deg, var(--purple-100, #eeebfc), #fff 80%);
+  border: 1px solid var(--purple-200, #dcd6f9);
+  border-radius: 16px;
+  padding: clamp(20px, 2.6vw, 26px) clamp(20px, 3vw, 28px);
+  box-shadow: var(--sh-sm);
+}
+.industry-page .ind-pclose-ic {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: linear-gradient(150deg, var(--purple-500, #6a55f2), var(--purple-700, #4330b8));
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.industry-page .ind-pclose-ic svg {
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.industry-page .ind-pclose p {
+  color: var(--ink-950, #0d0a1c);
+  font-size: clamp(1rem, 0.96rem + 0.35vw, 1.16rem);
+  line-height: 1.55;
+  font-weight: 500;
   letter-spacing: -0.01em;
-  max-width: 66ch;
-  color: var(--ink-2, #3a3550);
-  line-height: 1.6;
 }
 .industry-page .ind-pclose b {
-  color: var(--ink-950, #0d0a1c);
-  font-weight: 600;
+  color: var(--purple-700, #4330b8);
+  font-weight: 700;
 }
 
 /* SOLUTIONS — "what we build" as a clean two-row feature grid (no card chrome) */
@@ -223,10 +251,15 @@
   line-height: 1.55;
 }
 
-/* OUTCOMES — prose */
+/* OUTCOMES — prose on the left, an illustrative widget on the right (desktop) */
+.industry-page .ind-out-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 0.82fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
 .industry-page .ind-out {
   margin-top: 8px;
-  max-width: 68ch;
 }
 .industry-page .ind-out p {
   color: var(--ink-2, #3a3550);
@@ -240,6 +273,97 @@
 .industry-page .ind-out p b {
   color: var(--ink-950, #0d0a1c);
   font-weight: 600;
+}
+
+/* OutcomeShift widget — the "what changes" illustration */
+.industry-page .osx {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 18px;
+  padding: clamp(18px, 2.4vw, 24px);
+  box-shadow: var(--sh-md);
+}
+.industry-page .osx-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--purple-100, #eeebfc);
+  border: 1px solid var(--purple-200, #dcd6f9);
+}
+.industry-page .osx-toggle button {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--purple-700, #4330b8);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.industry-page .osx-toggle button.on {
+  background: var(--purple-600, #543cda);
+  color: #fff;
+}
+.industry-page .osx-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 16px 0 4px;
+}
+.industry-page .osx-base {
+  stroke: var(--line, #e9e7f0);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 5;
+}
+.industry-page .osx-before {
+  fill: none;
+  stroke: var(--ink-3, #6e6a7c);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.32;
+  transition: opacity 0.3s, stroke 0.3s;
+}
+.industry-page .osx-after,
+.industry-page .osx-area,
+.industry-page .osx-dot {
+  transition: opacity 0.3s;
+}
+.industry-page .osx-after {
+  fill: none;
+  stroke: var(--purple-600, #543cda);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.industry-page .osx-area {
+  fill: url(#osxFill);
+  stroke: none;
+}
+.industry-page .osx-dot {
+  fill: var(--purple-600, #543cda);
+  stroke: #fff;
+  stroke-width: 2;
+}
+/* Emphasise whichever phase is selected. */
+.industry-page .osx-before .osx-after,
+.industry-page .osx-before .osx-area,
+.industry-page .osx-before .osx-dot {
+  opacity: 0.16;
+}
+.industry-page .osx-before .osx-before {
+  opacity: 1;
+  stroke: var(--ink-2, #3a3550);
+}
+.industry-page .osx-cap {
+  color: var(--ink-2, #3a3550);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-top: 10px;
+  min-height: 2.8em;
 }
 
 /* SERVICES — link cards */
@@ -399,6 +523,13 @@
   .industry-page .ind-ai-grid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+  .industry-page .ind-out-grid {
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 5vw, 32px);
+  }
+  .industry-page .ind-out-viz {
+    max-width: 460px;
   }
 }
 @media (max-width: 680px) {
