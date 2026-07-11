@@ -13,7 +13,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:seed:admin": "tsx scripts/seed-admin.ts"
+    "db:seed:admin": "tsx scripts/seed-admin.ts",
+    "db:seed:dev": "tsx scripts/seed-dev.ts"
   },
   "dependencies": {
     "@nexoris/recommend": "workspace:*",
@@ -23,7 +24,8 @@
     "next": "15.1.3",
     "pg": "8.13.1",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "lucide-react": "1.23.0"
   },
   "devDependencies": {
     "@nexoris/config": "workspace:*",

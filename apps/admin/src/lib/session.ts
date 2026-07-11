@@ -6,7 +6,8 @@
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // seven days
+const MAX_AGE_SECONDS = 60 * 60 * 24; // one day for a standard sign-in
+const REMEMBER_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // thirty days with "keep me signed in"
 
 export interface SessionPayload {
   sub: string; // staff id
@@ -25,15 +26,17 @@ function sign(data: string): string {
   return createHmac("sha256", secret()).update(data).digest("base64url");
 }
 
-/** Create a signed session token for a staff member. */
+/** Create a signed session token for a staff member. "Keep me signed in" extends it to 30 days. */
 export function createSession(
   staff: { id: string; role: SessionPayload["role"]; name: string },
+  remember = false,
 ): string {
+  const maxAge = remember ? REMEMBER_MAX_AGE_SECONDS : MAX_AGE_SECONDS;
   const payload: SessionPayload = {
     sub: staff.id,
     role: staff.role,
     name: staff.name,
-    exp: Math.floor(Date.now() / 1000) + MAX_AGE_SECONDS,
+    exp: Math.floor(Date.now() / 1000) + maxAge,
   };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${sign(body)}`;
@@ -65,3 +68,4 @@ export function verifySession(token: string | undefined): SessionPayload | null 
 
 export const SESSION_COOKIE = "nx_admin_session";
 export const SESSION_MAX_AGE = MAX_AGE_SECONDS;
+export const REMEMBER_SESSION_MAX_AGE = REMEMBER_MAX_AGE_SECONDS;

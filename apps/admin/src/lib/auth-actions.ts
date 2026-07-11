@@ -1,8 +1,10 @@
 "use server";
 /**
- * Sign-in and sign-out server actions (PRD 1.1). Sign-in verifies the email and bcrypt password
- * against the active staff record, then sets the signed session cookie. No detail about which part
- * failed is leaked. Sign-out clears the cookie.
+ * Sign-in, sign-out, and forgot-password server actions (PRD 1.1). Sign-in verifies the email and
+ * bcrypt password against the active staff record, then sets the signed session cookie; "keep me
+ * signed in" extends the session from one day to thirty. No detail about which part failed is
+ * leaked. Forgot-password records a reset request for an Admin to act on (no mail service is wired
+ * in this phase) and always answers the same way, so it never confirms whether an email exists.
  */
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -10,6 +12,7 @@ import bcrypt from "bcryptjs";
 import { db } from "./db.js";
 import {
   createSession,
+  REMEMBER_SESSION_MAX_AGE,
   SESSION_COOKIE,
   SESSION_MAX_AGE,
   type SessionPayload,
@@ -25,6 +28,7 @@ export async function signIn(
 ): Promise<SignInState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const remember = formData.get("remember") === "on";
   if (!email || !password) {
     return { error: "Enter your email and password." };
   }
@@ -44,18 +48,48 @@ export async function signIn(
     return { error: "Those details did not match. Please try again." };
   }
 
-  const token = createSession({ id: staff.id, role: staff.role, name: staff.name });
+  const token = createSession(
+    { id: staff.id, role: staff.role, name: staff.name },
+    remember,
+  );
   (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_MAX_AGE,
+    maxAge: remember ? REMEMBER_SESSION_MAX_AGE : SESSION_MAX_AGE,
   });
-  redirect("/crm");
+  redirect("/dashboard");
 }
 
 export async function signOut(): Promise<void> {
   (await cookies()).delete(SESSION_COOKIE);
   redirect("/login");
+}
+
+export interface ForgotPasswordState {
+  done?: boolean;
+  error?: string;
+}
+
+export async function requestPasswordReset(
+  _prev: ForgotPasswordState,
+  formData: FormData,
+): Promise<ForgotPasswordState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    return { error: "Enter the email you sign in with." };
+  }
+
+  // Record the request whether or not the email matches a staff account, and answer identically,
+  // so this form cannot be used to probe which emails exist.
+  const { rows } = await db().query<{ id: string }>(
+    "SELECT id FROM staff WHERE email = $1 AND active = true",
+    [email],
+  );
+  await db().query(
+    "INSERT INTO password_reset_request (email, staff_id) VALUES ($1, $2)",
+    [email, rows[0]?.id ?? null],
+  );
+  return { done: true };
 }
