@@ -308,9 +308,68 @@
   color: var(--purple-700, #4330b8);
 }
 
-/* FINDER — the homepage Solution Finder on a clean white surface */
+/* FINDER — the homepage Solution Finder on a clean white surface. */
 .industry-page .ind-finder-band {
   background: #fff;
+}
+/*
+ * The global `.svc-page *{margin:0;padding:0}` reset strips the reused finder's spacing, so restore
+ * the padding and margins it needs, and give the card the Nexoris brand-purple surface.
+ */
+.industry-page .finder {
+  padding: clamp(24px, 4vw, 48px);
+  background: linear-gradient(155deg, var(--purple-600, #543cda), var(--purple-700, #4330b8));
+}
+.industry-page .finder h2 {
+  margin: 12px 0;
+}
+.industry-page .finder .kicker.on-dark {
+  color: rgba(255, 255, 255, 0.92);
+}
+.industry-page .finder p {
+  color: rgba(255, 255, 255, 0.88);
+}
+.industry-page .finder .cat-chips {
+  margin-top: 22px;
+}
+.industry-page .finder .cat-chip {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.industry-page .finder .cat-chip .ci1 {
+  background: rgba(255, 255, 255, 0.16);
+}
+.industry-page .finder .cat-chip .ci1 svg {
+  stroke: #fff;
+}
+.industry-page .finder-panel {
+  padding: clamp(20px, 4vw, 26px);
+  background: var(--ink-950, #0d0a1c);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.industry-page .finder .fp-q {
+  margin: 16px 0;
+}
+.industry-page .finder .fp-opt {
+  padding: 13px 15px;
+}
+.industry-page .finder .fp-result .ric {
+  margin-bottom: 14px;
+}
+.industry-page .finder .fp-result h3 {
+  margin: 8px 0 10px;
+}
+.industry-page .finder .fp-result p {
+  margin-bottom: 18px;
+}
+.industry-page .finder .fp-ask {
+  margin-top: 12px;
+  padding: 9px 15px;
+}
+.industry-page .finder .fp-restart {
+  margin-top: 12px;
 }
 
 /* CLOSING CTA — wider so the heading is not squeezed into a narrow column */

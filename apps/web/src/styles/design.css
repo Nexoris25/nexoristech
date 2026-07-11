@@ -428,6 +428,10 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
   .finder{padding:18px}
   .proc-row{padding:18px 4px}
 }
+/* On the smallest screens no button carries a trailing arrow, so labels never get pushed off. */
+@media(max-width:320px){
+  .btn .arr{display:none}
+}
 
 @media(max-width:560px){.brand .wm{display:none}}
 
