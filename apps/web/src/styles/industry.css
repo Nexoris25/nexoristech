@@ -326,52 +326,62 @@
   height: auto;
   margin: 16px 0 4px;
 }
-.industry-page .osx-base {
+.industry-page .osx-grid {
+  stroke: var(--line, #e9e7f0);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+.industry-page .osx-axis {
   stroke: var(--line, #e9e7f0);
   stroke-width: 1.5;
-  stroke-dasharray: 3 5;
 }
-.industry-page .osx-before {
+.industry-page .osx-xlab {
+  fill: var(--ink-3, #6e6a7c);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.industry-page .osx-line {
   fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.industry-page .osx-line-b {
   stroke: var(--ink-3, #6e6a7c);
   stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.5;
-  transition: opacity 0.3s, stroke 0.3s;
 }
-.industry-page .osx-after,
-.industry-page .osx-area,
-.industry-page .osx-dot {
-  transition: opacity 0.3s;
-}
-.industry-page .osx-after {
-  fill: none;
+.industry-page .osx-line-a {
   stroke: var(--purple-600, #543cda);
   stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
-.industry-page .osx-area {
-  fill: url(#osxFill);
+.industry-page .osx-area-b {
+  fill: url(#osxFillB);
   stroke: none;
 }
-.industry-page .osx-dot {
-  fill: var(--purple-600, #543cda);
+.industry-page .osx-area-a {
+  fill: url(#osxFillA);
+  stroke: none;
+}
+.industry-page .osx-pt {
   stroke: #fff;
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
-/* Emphasise whichever phase is selected, but keep both lines clearly visible (never disabled). */
-.industry-page .osx-before .osx-after,
-.industry-page .osx-before .osx-dot {
-  opacity: 0.45;
+.industry-page .osx-pt-b {
+  fill: var(--ink-3, #6e6a7c);
 }
-.industry-page .osx-before .osx-area {
-  opacity: 0.35;
+.industry-page .osx-pt-a {
+  fill: var(--purple-600, #543cda);
 }
-.industry-page .osx-before .osx-before {
+/* Only the selected series is shown, so the two states are unmistakably different. */
+.industry-page .osx-g-before,
+.industry-page .osx-g-after {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.industry-page .osx.osx-before .osx-g-before,
+.industry-page .osx.osx-after .osx-g-after {
   opacity: 1;
-  stroke: var(--ink-2, #3a3550);
 }
 .industry-page .osx-cap {
   color: var(--ink-2, #3a3550);

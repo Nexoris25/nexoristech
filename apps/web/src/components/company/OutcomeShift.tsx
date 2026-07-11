@@ -1,16 +1,49 @@
 "use client";
 /**
- * "What changes" illustration. A small, brand-consistent interactive widget that sits beside the
- * outcomes copy on the industry pages. It contrasts how an operation runs Before working with us
- * (late, jagged, guessed) with After (steady, rising, acted on), using an abstract signal line, not
- * numbers, so it illustrates the shift without implying any fabricated metric. A Before / After
- * toggle switches which line is emphasised and updates a short qualitative caption. Purely visual
- * and ephemeral.
+ * "What changes" illustration. A small, brand-consistent interactive chart that sits beside the
+ * outcomes copy on the industry pages. It shows two genuinely different series and only the selected
+ * one at a time, so the contrast is unmistakable: Before is a volatile line that swings and does not
+ * grow; With Nexoris Technologies is a steady line that trends up and holds. Rendered as a realistic
+ * mini analytics chart (axes, gridlines, plotted points, area fill) but with no numbers, so it
+ * illustrates the shift honestly without implying a fabricated metric. Purely visual and ephemeral.
  */
 import { useState } from "react";
 import type { ReactNode } from "react";
 
 type Phase = "before" | "after";
+
+// Plot points in the 340x200 viewBox. Higher on screen = better (lower y).
+const BEFORE: [number, number][] = [
+  [30, 100],
+  [66, 70],
+  [102, 126],
+  [138, 84],
+  [174, 132],
+  [210, 96],
+  [246, 138],
+  [282, 108],
+  [316, 122],
+];
+const AFTER: [number, number][] = [
+  [30, 150],
+  [66, 140],
+  [102, 122],
+  [138, 106],
+  [174, 88],
+  [210, 70],
+  [246, 56],
+  [282, 46],
+  [316, 38],
+];
+
+const line = (pts: [number, number][]): string => pts.map((p) => p.join(",")).join(" ");
+const area = (pts: [number, number][]): string =>
+  `M${pts[0]![0]} ${pts[0]![1]} ` +
+  pts
+    .slice(1)
+    .map((p) => `L${p[0]} ${p[1]}`)
+    .join(" ") +
+  " L316 160 L30 160 Z";
 
 export function OutcomeShift(): ReactNode {
   const [phase, setPhase] = useState<Phase>("after");
@@ -37,35 +70,64 @@ export function OutcomeShift(): ReactNode {
         </button>
       </div>
 
-      <svg className="osx-svg" viewBox="0 0 340 180" role="img" aria-label="Illustration comparing an unpredictable operation before, with a steadier, rising one after">
+      <svg
+        className="osx-svg"
+        viewBox="0 0 340 200"
+        role="img"
+        aria-label={
+          phase === "before"
+            ? "Chart showing volatile, non-growing results before working with Nexoris Technologies"
+            : "Chart showing steady, rising results with Nexoris Technologies"
+        }
+      >
         <defs>
-          <linearGradient id="osxFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#6A55F2" stopOpacity="0.26" />
+          <linearGradient id="osxFillA" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#6A55F2" stopOpacity="0.3" />
             <stop offset="1" stopColor="#6A55F2" stopOpacity="0" />
           </linearGradient>
+          <linearGradient id="osxFillB" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#6E6A7C" stopOpacity="0.16" />
+            <stop offset="1" stopColor="#6E6A7C" stopOpacity="0" />
+          </linearGradient>
         </defs>
-        <line className="osx-base" x1="18" y1="156" x2="322" y2="156" />
-        {/* before: jagged and flat, no clear direction */}
-        <path
-          className="osx-before"
-          d="M20 118 L58 104 L96 132 L134 108 L172 128 L210 106 L248 130 L286 112 L322 122"
-        />
-        {/* after: smooth, rising and steadying */}
-        <path
-          className="osx-area"
-          d="M20 140 C74 138 116 120 168 96 C214 74 274 54 322 46 L322 156 L20 156 Z"
-        />
-        <path
-          className="osx-after"
-          d="M20 140 C74 138 116 120 168 96 C214 74 274 54 322 46"
-        />
-        <circle className="osx-dot" cx="322" cy="46" r="4.6" />
+
+        {/* grid + axes */}
+        <line className="osx-grid" x1="30" y1="52" x2="316" y2="52" />
+        <line className="osx-grid" x1="30" y1="90" x2="316" y2="90" />
+        <line className="osx-grid" x1="30" y1="128" x2="316" y2="128" />
+        <line className="osx-axis" x1="30" y1="24" x2="30" y2="160" />
+        <line className="osx-axis" x1="30" y1="160" x2="316" y2="160" />
+
+        {/* Before: volatile, no growth */}
+        <g className="osx-g-before">
+          <path className="osx-area osx-area-b" d={area(BEFORE)} />
+          <polyline className="osx-line osx-line-b" points={line(BEFORE)} />
+          {BEFORE.map(([x, y], i) => (
+            <circle key={i} className="osx-pt osx-pt-b" cx={x} cy={y} r="3" />
+          ))}
+        </g>
+
+        {/* With Nexoris Technologies: steady rise */}
+        <g className="osx-g-after">
+          <path className="osx-area osx-area-a" d={area(AFTER)} />
+          <polyline className="osx-line osx-line-a" points={line(AFTER)} />
+          {AFTER.map(([x, y], i) => (
+            <circle key={i} className="osx-pt osx-pt-a" cx={x} cy={y} r="3.2" />
+          ))}
+        </g>
+
+        <text className="osx-xlab" x="30" y="177" textAnchor="start">
+          Then
+        </text>
+        <text className="osx-xlab" x="316" y="177" textAnchor="end">
+          Now
+        </text>
       </svg>
 
       <p className="osx-cap">
         {phase === "before"
-          ? "Before: run on memory, paperwork, and guesswork, with problems noticed too late."
-          : "After: run on clear data, caught early and acted on, so the operation holds and improves."}
+          ? "Before: results swing on guesswork, with surprises and losses caught only after the fact."
+          : "With Nexoris Technologies: steadier output that trends up and holds, because problems are caught early."}
       </p>
     </div>
   );
