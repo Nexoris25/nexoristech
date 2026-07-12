@@ -168,9 +168,31 @@ function deriveSummary(lead: InsightLead, hasRecommendation: boolean): string {
     : `${opener} No message was shared, so a first reply should invite them to tell us more.`;
 }
 
+/** Services carried on the lead from the website Solution Finder, when the recommender cannot
+ * recompute them (for example the stored answers lack the industry, but the finder already saved
+ * the recommendation it made). Reads only real, stored page references, so nothing is invented. */
+function storedRecommendationServices(
+  finder: Record<string, unknown> | null,
+): { label: string; href: string }[] {
+  const rec = finder?.recommendation;
+  if (!Array.isArray(rec)) return [];
+  return rec
+    .filter(
+      (s): s is { label: string; href: string } =>
+        typeof s === "object" &&
+        s !== null &&
+        typeof (s as { label?: unknown }).label === "string" &&
+        typeof (s as { href?: unknown }).href === "string",
+    )
+    .map((s) => ({ label: s.label, href: s.href }));
+}
+
 export function deriveInsights(lead: InsightLead): LeadInsights {
   const recommendation = recommendationForLead(lead.finder);
-  const hasRecommendation = recommendation !== null;
+  const services = recommendation
+    ? recommendation.services.map((s) => ({ label: s.label, href: s.href }))
+    : storedRecommendationServices(lead.finder);
+  const hasRecommendation = services.length > 0;
   const message = (lead.message ?? "").trim();
 
   return {
@@ -178,7 +200,7 @@ export function deriveInsights(lead: InsightLead): LeadInsights {
     reasons: deriveReasons(lead, hasRecommendation),
     signals: message.length > 0 ? detectSignals(message) : [],
     nextStep: deriveNextStep(lead.band, lead.name),
-    services: recommendation ? recommendation.services.map((s) => ({ label: s.label, href: s.href })) : [],
+    services,
     industry: recommendation ? recommendation.industry.label : null,
   };
 }

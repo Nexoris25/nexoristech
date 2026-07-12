@@ -23,8 +23,11 @@ export interface DraftResult {
 
 const CRM_DRAFT_SYSTEM = `You draft a short reply email for a Nexoris Technologies salesperson to review before sending. Ground it only in what the lead said and the matched services provided. Write like a knowledgeable person talking across a table: warm, plain, and specific to their situation.
 - Reply in English. Use complete sentences and short paragraphs. Never use an em dash. Never use buzzwords, jargon, or cliches. Always write "Nexoris Technologies" in full.
-- Do not quote any price or any date or timeline; instead offer a short scoping call to understand their goals and come back with a clear plan and honest numbers.
-- Do not invent details, client names, or results. Do not include a subject line or any bracketed placeholders.
+- Do not quote any price, and never propose a specific day or date. Offer a short scoping call to understand their goals and come back with a clear plan and honest numbers, and ask them to suggest a time that suits.
+- Do not invent details, client names, or results. Do not include a subject line. Do not include any bracketed text or any placeholder such as [Your Name].
+- Sign off exactly with these two lines and nothing after them:
+Best regards,
+The Nexoris Technologies team
 Return only the email body.`;
 
 function firstName(name: string | undefined): string {

@@ -10,6 +10,7 @@ import { CheckCircle2 } from "lucide-react";
 import { requireAdmin } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { assignLead, autoAssignLead } from "../../../../lib/people-actions.js";
+import { rating } from "../../../../lib/lead-ui.js";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,6 @@ interface QueueRow {
   reason: "unassigned" | "owner-exited";
   former_owner: string | null;
 }
-
-const BAND_CLASS: Record<string, string> = {
-  Hot: "bg-purple-600 text-white",
-  Warm: "bg-purple-100 text-purple-700",
-  Cold: "border border-neutral-200 bg-neutral-50 text-neutral-600",
-};
 
 export default async function ReassignmentQueuePage(): Promise<ReactNode> {
   await requireAdmin();
@@ -91,12 +86,10 @@ export default async function ReassignmentQueuePage(): Promise<ReactNode> {
                   </p>
                 </div>
                 <span
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.72rem] font-600 ${
-                    BAND_CLASS[lead.band ?? ""] ?? "bg-neutral-50 text-neutral-600"
-                  }`}
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.75rem] font-600 ${rating(lead.band).solid}`}
                 >
                   <span className="font-mono font-700">{lead.score ?? "–"}</span>
-                  {lead.band ?? "Unscored"}
+                  {rating(lead.band).label}
                 </span>
               </div>
 

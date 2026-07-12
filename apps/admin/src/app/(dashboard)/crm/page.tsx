@@ -12,6 +12,7 @@ import { requireStaff } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 import { businessDayDeadline } from "../../../lib/business-days.js";
 import { STAGES } from "../../../lib/crm-constants.js";
+import { rating, SOURCE_LABEL } from "../../../lib/lead-ui.js";
 
 export const dynamic = "force-dynamic";
 
@@ -45,21 +46,6 @@ interface SourceRow {
   total: number;
   won: number;
 }
-
-const BAND_CLASS: Record<string, string> = {
-  Hot: "bg-purple-600 text-white",
-  Warm: "bg-purple-100 text-purple-700",
-  Cold: "border border-neutral-200 bg-neutral-50 text-neutral-600",
-};
-
-const SOURCE_LABEL: Record<string, string> = {
-  "contact-form": "Contact form",
-  "oge-chat": "Oge chat",
-  "solution-finder": "Solution Finder",
-  whatsapp: "WhatsApp",
-  email: "Email",
-  referral: "Referral",
-};
 
 function hoursLabel(ms: number): string {
   return `${Math.abs(Math.round(ms / 3_600_000))}h`;
@@ -325,13 +311,10 @@ export default async function CrmPage({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.72rem] font-600 ${
-                          BAND_CLASS[lead.band ?? ""] ??
-                          "bg-neutral-50 text-neutral-600"
-                        }`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.75rem] font-600 ${rating(lead.band).solid}`}
                       >
                         <span className="font-mono font-700">{lead.score ?? "–"}</span>
-                        {lead.band ?? "Unscored"}
+                        {rating(lead.band).label}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[0.8rem] text-neutral-600">

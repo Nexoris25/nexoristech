@@ -37,3 +37,14 @@
     }
   }
 }
+
+/* The lead detail right rail stays in view while the long workspace scrolls (large screens only).
+ * A plain rule rather than a utility, since the dashboard's custom spacing scale does not expose an
+ * inset step at the offset we want below the sticky top bar. */
+@media (min-width: 1024px) {
+  .lead-rail {
+    position: sticky;
+    top: 4.75rem;
+    align-self: flex-start;
+  }
+}
