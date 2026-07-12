@@ -9,7 +9,41 @@ import { db } from "./db.js";
 import { requireStaff } from "./auth.js";
 import { draftReply } from "./oge.js";
 import { recommendationForLead } from "./lead-recommendation.js";
-import { STAGES, type StageState, type DraftState } from "./crm-constants.js";
+import { prepareFollowUp } from "./followup.js";
+import {
+  STAGES,
+  type StageState,
+  type DraftState,
+  type FollowUpState,
+} from "./crm-constants.js";
+
+const NO_FOLLOWUP_STAGES = new Set(["New", "Won", "Lost"]);
+
+/** Read the fields a follow-up draft needs, and the deterministic service match, for a lead. */
+async function followUpContext(leadId: string): Promise<{
+  name: string | null;
+  company: string | null;
+  message: string | null;
+  matchedServices: string[];
+  industry: string | null;
+} | null> {
+  const { rows } = await db().query<{
+    name: string | null;
+    company: string | null;
+    message: string | null;
+    finder: Record<string, unknown> | null;
+  }>("SELECT name, company, message, finder FROM lead WHERE id = $1", [leadId]);
+  const lead = rows[0];
+  if (!lead) return null;
+  const rec = recommendationForLead(lead.finder);
+  return {
+    name: lead.name,
+    company: lead.company,
+    message: lead.message,
+    matchedServices: rec ? rec.services.map((s) => s.label) : [],
+    industry: rec ? rec.industry.label : null,
+  };
+}
 
 export async function updateLeadStage(
   _prev: StageState,
@@ -75,9 +109,91 @@ export async function updateLeadStage(
     [leadId, staff.id, `Moved from ${current.status} to ${status}.`],
   );
 
+  // When a lead advances, prepare a stage-aware follow-up and a recommended send-by date so the
+  // salesperson is never left wondering what to send next or when. Won and Lost clear it.
+  if (NO_FOLLOWUP_STAGES.has(status)) {
+    await pool.query(
+      `UPDATE lead SET followup_stage = NULL, followup_draft = NULL,
+              followup_drafted_by = NULL, followup_due = NULL, followup_sent_at = NULL
+        WHERE id = $1`,
+      [leadId],
+    );
+  } else {
+    const context = await followUpContext(leadId);
+    if (context) {
+      const followUp = await prepareFollowUp(status, context);
+      await pool.query(
+        `UPDATE lead SET followup_stage = $1, followup_draft = $2, followup_drafted_by = $3,
+                followup_due = $4, followup_sent_at = NULL
+          WHERE id = $5`,
+        [
+          status,
+          followUp.draft,
+          followUp.draftedBy,
+          followUp.due.toISOString().slice(0, 10),
+          leadId,
+        ],
+      );
+    }
+  }
+
   revalidatePath(`/crm/${leadId}`);
   revalidatePath("/crm");
+  revalidatePath("/dashboard");
   return { ok: true };
+}
+
+/** Regenerate the current stage follow-up draft for a lead (PRD 5.9). */
+export async function regenerateFollowUp(
+  _prev: FollowUpState,
+  formData: FormData,
+): Promise<FollowUpState> {
+  const staff = await requireStaff();
+  if (staff.role === "viewer") return { error: "Viewers cannot change leads." };
+  const leadId = String(formData.get("leadId") ?? "");
+  if (!leadId) return { error: "Missing lead." };
+
+  const { rows } = await db().query<{ status: string; followup_stage: string | null }>(
+    "SELECT status, followup_stage FROM lead WHERE id = $1",
+    [leadId],
+  );
+  const lead = rows[0];
+  if (!lead) return { error: "That lead no longer exists." };
+  const stage = lead.followup_stage ?? lead.status;
+  if (NO_FOLLOWUP_STAGES.has(stage)) {
+    return { error: "There is no follow-up to regenerate at this stage." };
+  }
+
+  const context = await followUpContext(leadId);
+  if (!context) return { error: "That lead no longer exists." };
+  const followUp = await prepareFollowUp(stage, context);
+  await db().query(
+    `UPDATE lead SET followup_stage = $1, followup_draft = $2, followup_drafted_by = $3,
+            followup_due = $4, followup_sent_at = NULL
+      WHERE id = $5`,
+    [stage, followUp.draft, followUp.draftedBy, followUp.due.toISOString().slice(0, 10), leadId],
+  );
+  revalidatePath(`/crm/${leadId}`);
+  return { ok: true, draft: followUp.draft, draftedBy: followUp.draftedBy };
+}
+
+/** Mark the current follow-up sent and log the contact, clearing it from the due list. */
+export async function markFollowUpSent(formData: FormData): Promise<void> {
+  const staff = await requireStaff();
+  if (staff.role === "viewer") return;
+  const leadId = String(formData.get("leadId") ?? "");
+  if (!leadId) return;
+  await db().query(
+    "UPDATE lead SET followup_sent_at = now(), last_contacted_at = now() WHERE id = $1",
+    [leadId],
+  );
+  await db().query(
+    `INSERT INTO lead_activity (lead_id, actor_id, type, note)
+     VALUES ($1, $2, 'follow-up-sent', 'Marked the stage follow-up as sent.')`,
+    [leadId, staff.id],
+  );
+  revalidatePath(`/crm/${leadId}`);
+  revalidatePath("/dashboard");
 }
 
 /**

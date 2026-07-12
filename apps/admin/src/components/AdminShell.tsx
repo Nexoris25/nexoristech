@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import {
   BadgePercent,
   Bell,
+  ChevronDown,
   Coins,
   Contact,
   FileClock,
@@ -34,17 +35,33 @@ export interface ShellStaff {
   role: string;
 }
 
+interface SubEntry {
+  label: string;
+  href: string;
+  adminOnly?: boolean;
+}
+
 interface NavEntry {
   icon: Icon;
   label: string;
   href?: string;
   adminOnly?: boolean;
+  children?: SubEntry[];
 }
 
 interface NavGroup {
   label?: string;
   entries: NavEntry[];
 }
+
+const CRM_SUBNAV: SubEntry[] = [
+  { label: "Leads", href: "/crm" },
+  { label: "SLA board", href: "/crm/sla" },
+  { label: "Performance", href: "/crm/performance" },
+  { label: "Reassignment queue", href: "/crm/reassignment", adminOnly: true },
+  { label: "Sales reps", href: "/crm/reps", adminOnly: true },
+  { label: "Templates", href: "/crm/templates" },
+];
 
 const NAV: NavGroup[] = [
   {
@@ -53,7 +70,7 @@ const NAV: NavGroup[] = [
   {
     label: "Modules",
     entries: [
-      { icon: Contact, label: "CRM", href: "/crm" },
+      { icon: Contact, label: "CRM", href: "/crm", children: CRM_SUBNAV },
       { icon: Wallet, label: "Finance" },
       { icon: UsersRound, label: "HR" },
       { icon: Coins, label: "Payroll" },
@@ -124,20 +141,55 @@ function SidebarNav({
                   </span>
                 );
               }
+              const children = entry.children?.filter(
+                (child) => !child.adminOnly || role === "admin",
+              );
               return (
-                <Link
-                  key={entry.label}
-                  href={entry.href}
-                  onClick={onNavigate}
-                  className={`flex cursor-pointer items-center gap-2.5 rounded-card px-3 py-2 text-label transition-colors ${
-                    active
-                      ? "bg-purple-600 font-600 text-white"
-                      : "text-purple-100/70 hover:bg-ink-800 hover:text-white"
-                  }`}
-                >
-                  <entry.icon size={16} strokeWidth={2} />
-                  {entry.label}
-                </Link>
+                <div key={entry.label}>
+                  <Link
+                    href={entry.href}
+                    onClick={onNavigate}
+                    className={`flex cursor-pointer items-center gap-2.5 rounded-card px-3 py-2 text-label transition-colors ${
+                      active
+                        ? "bg-purple-600 font-600 text-white"
+                        : "text-purple-100/70 hover:bg-ink-800 hover:text-white"
+                    }`}
+                  >
+                    <entry.icon size={16} strokeWidth={2} />
+                    {entry.label}
+                    {children && children.length > 0 ? (
+                      <ChevronDown
+                        size={14}
+                        strokeWidth={2.4}
+                        className={`ml-auto transition-transform ${active ? "rotate-180" : ""}`}
+                      />
+                    ) : null}
+                  </Link>
+                  {children && children.length > 0 && active ? (
+                    <div className="mb-1 ml-[22px] mt-0.5 flex flex-col border-l border-ink-800 pl-2">
+                      {children.map((child) => {
+                        const childActive =
+                          pathname === child.href ||
+                          (child.href !== entry.href &&
+                            pathname.startsWith(`${child.href}/`));
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={onNavigate}
+                            className={`cursor-pointer rounded-card px-3 py-1.5 text-[0.8rem] transition-colors ${
+                              childActive
+                                ? "font-600 text-white"
+                                : "text-purple-100/60 hover:text-white"
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
               );
             })}
         </div>

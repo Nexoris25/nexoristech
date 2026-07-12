@@ -37,6 +37,8 @@ interface AlertLead {
   band: string | null;
   status: string;
   nurture_date: string | null;
+  followup_stage: string | null;
+  followup_due: string | null;
   assigned_name: string | null;
   created_at: string;
 }
@@ -127,11 +129,12 @@ export default async function DashboardPage(): Promise<ReactNode> {
     ),
     pool.query<AlertLead>(
       `SELECT l.id, l.name, l.company, l.band, l.status, l.nurture_date,
-              s.name AS assigned_name, l.created_at
+              l.followup_stage, l.followup_due::text, s.name AS assigned_name, l.created_at
          FROM lead l
          LEFT JOIN staff s ON s.id = l.assigned_to
         WHERE l.status = 'New'
            OR (l.status = 'Nurture' AND l.nurture_date IS NOT NULL AND l.nurture_date <= current_date)
+           OR (l.followup_due IS NOT NULL AND l.followup_due <= current_date AND l.followup_sent_at IS NULL)
         ORDER BY l.created_at ASC
         LIMIT 40`,
     ),
@@ -168,6 +171,20 @@ export default async function DashboardPage(): Promise<ReactNode> {
     const label = lead.name ?? "Unnamed lead";
     const assignee = lead.assigned_name ?? "Unassigned";
     const href = `/crm/${lead.id}`;
+    // A prepared follow-up whose send-by date has arrived with no reply logged (PRD 5.9).
+    if (
+      lead.followup_due !== null &&
+      new Date(lead.followup_due) <= now &&
+      lead.status !== "New"
+    ) {
+      actions.push({
+        priority: lead.band === "Hot" ? "High" : "Medium",
+        title: `Follow-up due: ${label}`,
+        detail: `CRM · ${lead.followup_stage ?? "stage"} follow-up ready, no reply logged`,
+        href,
+        assignee,
+      });
+    }
     if (lead.status === "New") {
       const due = businessDayDeadline(new Date(lead.created_at), 1);
       if (now > due) {

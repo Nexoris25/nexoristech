@@ -44,3 +44,10 @@ export interface DraftState {
   draft?: string;
   draftedBy?: "ai" | "template";
 }
+
+export interface FollowUpState {
+  error?: string;
+  ok?: boolean;
+  draft?: string;
+  draftedBy?: "ai" | "template";
+}
