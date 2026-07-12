@@ -23,6 +23,7 @@ import {
   Menu,
   Search,
   ShieldCheck,
+  SlidersHorizontal,
   UsersRound,
   Wallet,
   X,
@@ -83,13 +84,16 @@ const NAV: NavGroup[] = [
   {
     label: "Tools",
     entries: [
-      { icon: Inbox, label: "Action Center" },
-      { icon: FileClock, label: "Audit Log" },
+      { icon: Inbox, label: "Action Center", href: "/action-center" },
+      { icon: FileClock, label: "Audit Log", href: "/audit", adminOnly: true },
     ],
   },
   {
     label: "Settings",
-    entries: [{ icon: ShieldCheck, label: "People & Access", href: "/people", adminOnly: true }],
+    entries: [
+      { icon: ShieldCheck, label: "People & Access", href: "/people", adminOnly: true },
+      { icon: SlidersHorizontal, label: "Settings", href: "/settings", adminOnly: true },
+    ],
   },
 ];
 
@@ -307,7 +311,7 @@ export function AdminShell({
           </form>
 
           <Link
-            href="/crm"
+            href="/action-center"
             aria-label={`${newLeadCount} new lead${newLeadCount === 1 ? "" : "s"}`}
             className="relative cursor-pointer rounded-card p-2 text-neutral-600 hover:bg-purple-100 hover:text-ink-950"
           >
