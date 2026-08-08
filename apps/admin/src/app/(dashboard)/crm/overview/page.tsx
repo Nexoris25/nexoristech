@@ -5,12 +5,11 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, TrendingUp, TrendingDown, ArrowRight, Sparkles, Trophy, UserPlus, Briefcase, Coins } from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowRight, Sparkles, Trophy, UserPlus, Briefcase, Coins } from "lucide-react";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { buildActionCenter } from "../../../../lib/action-center.js";
 import { PRIORITY_STYLE, SOURCE_LABEL } from "../../../../lib/lead-ui.js";
-import { Dropdown } from "../../../../components/Dropdown.js";
 import { Donut, Bar } from "../../../../components/charts.js";
 
 export const dynamic = "force-dynamic";
@@ -107,11 +106,13 @@ export default async function CrmOverviewPage(): Promise<ReactNode> {
           <h1 className="text-[1.4rem] font-700 text-slate-900">CRM Overview</h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">Your pipeline, sources, and what needs attention.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Dropdown align="right" buttonClassName="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.82rem] font-600 text-slate-700 hover:bg-slate-50" label={<>This Month <ChevronDown size={14} strokeWidth={2.2} className="text-slate-500" /></>}>
-            {["This Week", "This Month", "This Quarter"].map((o) => <button key={o} type="button" className="flex w-full rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>)}
-          </Dropdown>
-        </div>
+        {/* The period picker that stood here offered This Week / This Month / This Quarter and none of
+            the three did anything: the options were buttons with no handler, and every figure below is
+            queried against the calendar month regardless. Rather than leave a control that lies about
+            what it does, the window it actually uses is stated. */}
+        <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.82rem] font-600 text-slate-600">
+          This calendar month
+        </span>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">

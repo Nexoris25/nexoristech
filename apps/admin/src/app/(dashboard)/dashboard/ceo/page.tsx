@@ -11,10 +11,9 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Wallet, TrendingUp, Users, Landmark, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Wallet, TrendingUp, Users, Landmark, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
-import { Dropdown } from "../../../../components/Dropdown.js";
 import { AreaChart, Bar } from "../../../../components/charts.js";
 import { ChartHover, type HoverPoint } from "../../../../components/ChartHover.js";
 
@@ -95,9 +94,11 @@ export default async function CeoDashboard(): Promise<ReactNode> {
           <h1 className="text-[1.4rem] font-700 text-slate-900 sm:text-[1.6rem]">Company Overview</h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">Year-to-date performance across Nexoris Technologies.</p>
         </div>
-        <Dropdown align="right" buttonClassName="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.82rem] font-600 text-slate-700 hover:bg-slate-50" label={<>This Year <ChevronDown size={14} strokeWidth={2.2} className="text-slate-500" /></>}>
-          {["This Quarter", "This Year", "Last Year"].map((o) => <button key={o} type="button" className="flex w-full rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>)}
-        </Dropdown>
+        {/* Offered This Quarter / This Year / Last Year, none of which did anything: the options were
+            buttons with no handler and every query below is keyed to the current calendar year. */}
+        <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.82rem] font-600 text-slate-600">
+          Year to date
+        </span>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
@@ -116,9 +117,6 @@ export default async function CeoDashboard(): Promise<ReactNode> {
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <div className="flex items-center justify-between">
             <h2 className="text-[0.98rem] font-700 text-slate-900">Revenue Trend (YTD)</h2>
-            <Dropdown align="right" buttonClassName="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.78rem] font-600 text-slate-600 hover:bg-slate-50" label={<>This Year <ChevronDown size={13} strokeWidth={2.2} className="text-slate-500" /></>}>
-              {["This Year", "Last Year"].map((o) => <button key={o} type="button" className="flex w-full rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>)}
-            </Dropdown>
           </div>
           {trend.length === 0 ? (
             <p className="py-20 text-center text-[0.86rem] text-slate-500">No payments recorded this year yet.</p>

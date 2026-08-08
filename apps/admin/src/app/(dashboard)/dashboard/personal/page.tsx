@@ -4,11 +4,10 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
-import { Dropdown } from "../../../../components/Dropdown.js";
 import { ProgressRing } from "../../../../components/charts.js";
 
 export const dynamic = "force-dynamic";
@@ -109,9 +108,11 @@ export default async function PersonalDashboard(): Promise<ReactNode> {
           <h1 className="text-[1.4rem] font-700 text-slate-900 sm:text-[1.6rem]">{greeting()}, {firstName} <span className="align-middle">👋</span></h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">Here&apos;s your overview for today.</p>
         </div>
-        <Dropdown align="right" buttonClassName="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.82rem] font-600 text-slate-700 hover:bg-slate-50" label={<>{todayLabel()} <ChevronDown size={14} strokeWidth={2.2} className="text-slate-500" /></>}>
-          {["Today", "This Week", "This Month"].map((o) => <button key={o} type="button" className="flex w-full rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>)}
-        </Dropdown>
+        {/* Offered Today / This Week / This Month with no handler on any of them. The date is what the
+            control was really communicating, so that is what is shown. */}
+        <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.82rem] font-600 text-slate-600">
+          {todayLabel()}
+        </span>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
