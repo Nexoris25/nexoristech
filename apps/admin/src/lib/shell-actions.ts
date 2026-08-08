@@ -8,55 +8,11 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { db } from "./db.js";
 import { requireAdmin } from "./auth.js";
-import { MODULES, MODULE_ROLES, type AccessState, type SettingsState } from "./shell-constants.js";
+import { type SettingsState } from "./shell-constants.js";
+import { securityPolicy, passwordProblem } from "./security-policy.js";
 
-export async function grantModuleAccess(
-  _prev: AccessState,
-  formData: FormData,
-): Promise<AccessState> {
-  const admin = await requireAdmin();
-  const staffId = String(formData.get("staffId") ?? "");
-  const moduleId = String(formData.get("module") ?? "");
-  const role = String(formData.get("role") ?? "");
-  if (!staffId || !(MODULES as readonly string[]).includes(moduleId)) {
-    return { error: "Choose a module." };
-  }
-  const allowed = MODULE_ROLES[moduleId as (typeof MODULES)[number]];
-  if (!allowed.includes(role)) return { error: "Choose a valid role for that module." };
-
-  const pool = db();
-  await pool.query(
-    `INSERT INTO module_access (staff_id, module, role, granted_by)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (staff_id, module) DO UPDATE SET role = EXCLUDED.role, granted_by = EXCLUDED.granted_by, granted_at = now()`,
-    [staffId, moduleId, role, admin.id],
-  );
-  await pool.query(
-    `INSERT INTO audit_log (actor_id, action, entity, entity_id, after)
-     VALUES ($1, 'grant-access', 'module_access', $2, $3::jsonb)`,
-    [admin.id, staffId, JSON.stringify({ module: moduleId, role })],
-  );
-  revalidatePath("/people");
-  return { ok: true };
-}
-
-export async function revokeModuleAccess(formData: FormData): Promise<void> {
-  const admin = await requireAdmin();
-  const staffId = String(formData.get("staffId") ?? "");
-  const moduleId = String(formData.get("module") ?? "");
-  if (!staffId || !moduleId) return;
-  const pool = db();
-  await pool.query("DELETE FROM module_access WHERE staff_id = $1 AND module = $2", [
-    staffId,
-    moduleId,
-  ]);
-  await pool.query(
-    `INSERT INTO audit_log (actor_id, action, entity, entity_id, before)
-     VALUES ($1, 'revoke-access', 'module_access', $2, $3::jsonb)`,
-    [admin.id, staffId, JSON.stringify({ module: moduleId })],
-  );
-  revalidatePath("/people");
-}
+// Granting and revoking module access moved to the /api/access route handler: native form posts work
+// when the dashboard is framed, where a Server Action is rejected on `Origin: null`.
 
 export async function updateSettings(
   _prev: SettingsState,
@@ -110,7 +66,9 @@ export async function resolvePasswordReset(formData: FormData): Promise<void> {
   const requestId = String(formData.get("requestId") ?? "");
   const staffId = String(formData.get("staffId") ?? "");
   const newPassword = String(formData.get("newPassword") ?? "");
-  if (!requestId || !staffId || newPassword.length < 8) return;
+  // An administrator resetting someone's password is held to the same policy as the person themselves.
+  if (!requestId || !staffId) return;
+  if (passwordProblem(newPassword, await securityPolicy())) return;
 
   const pool = db();
   const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -124,5 +82,5 @@ export async function resolvePasswordReset(formData: FormData): Promise<void> {
      VALUES ($1, 'reset-password', 'staff', $2, $3::jsonb)`,
     [admin.id, staffId, JSON.stringify({ via: "admin reset" })],
   );
-  revalidatePath("/people");
+  revalidatePath("/settings/access");
 }

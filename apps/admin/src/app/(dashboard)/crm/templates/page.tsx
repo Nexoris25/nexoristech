@@ -1,7 +1,7 @@
 /**
  * CRM document templates (PRD 5.10): the four template types CRM owns on the shared Document
- * Engine, in the Nexoris Technologies brand: Proposal, Scope of Work, Service Level Agreement, and
- * Contract. CRM has no invoice template of any kind; invoices are raised only in Finance. The
+ * Engine: the Proposal in the Nexoris Technologies brand, and the legal set — Scope of Work, Master
+ * Service Agreement, Service Level Agreement and Contract — set plainly in a serif. CRM has no invoice template of any kind; invoices are raised only in Finance. The
  * salesperson supplies every figure and term; each document is reviewed before it is sent.
  */
 import type { ReactNode } from "react";
@@ -14,19 +14,20 @@ export const dynamic = "force-dynamic";
 const TEMPLATES = [
   { icon: FileText, name: "Proposal", line: "A scoped, priced proposal for a prospect." },
   { icon: ScrollText, name: "Scope of Work", line: "What is in and out of the engagement." },
+  { icon: FileSignature, name: "Master Service Agreement", line: "The umbrella terms a client signs once." },
   { icon: ShieldCheck, name: "Service Level Agreement", line: "Response times and commitments." },
   { icon: FileSignature, name: "Contract", line: "The agreement, ready for signature." },
 ] as const;
 
 export default async function TemplatesPage(): Promise<ReactNode> {
-  await requireStaff();
+  const staff = await requireStaff();
 
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="font-roboto text-dash-title font-700 text-ink-950">Document templates</h1>
       <p className="mt-1 text-label text-neutral-600">
-        Proposal, Scope of Work, Service Level Agreement, and Contract, in the Nexoris Technologies
-        brand. Invoices are raised only in Finance.
+        The branded Proposal, plus the legal set: Scope of Work, Master Service Agreement, Service
+        Level Agreement and Contract. Invoices are raised only in Finance.
       </p>
 
       <div className="mt-5 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
@@ -50,8 +51,12 @@ export default async function TemplatesPage(): Promise<ReactNode> {
           Pick the kind, write the content, add any priced line items, and generate a selectable PDF.
           You supply every figure and term; review it before you send it.
         </p>
-        <div className="mt-4 max-w-xl">
-          <GenerateDocument />
+        <div className="mt-4 max-w-2xl">
+          <GenerateDocument
+            allowedKinds={["Proposal", "Scope of Work", "Master Service Agreement", "Service Level Agreement", "Contract"]}
+            repName={staff.name}
+            repTitle={staff.role === "salesperson" ? "Sales, Nexoris Technologies" : "Nexoris Technologies"}
+          />
         </div>
       </div>
     </div>

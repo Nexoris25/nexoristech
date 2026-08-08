@@ -1,14 +1,19 @@
 /**
- * Serves the CMS-managed redirects (PRD Stage 7). On each request it checks the incoming path
- * against the enabled redirects, fetched from the content API and cached in the process for a
- * minute, and issues a 301 (permanent) or 302 (temporary). Paths are compared without a trailing
- * slash so the match is consistent with the site's trailing-slash routing. The cache suits the
- * single-instance VPS deployment; a shared store would be needed if scaled horizontally.
+ * Serves the CMS-managed redirects (PRD Stage 7). On each request it checks the incoming path against
+ * the enabled redirects and issues a 301 (permanent) or 302 (temporary). Paths are compared without a
+ * trailing slash so the match is consistent with the site's trailing-slash routing.
+ *
+ * The list comes from /api/redirects, which reads the CMS database on the Node runtime — middleware
+ * runs on the edge and cannot open a database connection. It previously fetched Strapi's content API,
+ * which was removed with Strapi, so every CMS-managed redirect had silently stopped working: the fetch
+ * failed, the catch swallowed it, and the request carried on.
+ *
+ * Cached in the process for a minute. That suits the single-instance VPS deployment; a shared store
+ * would be needed if this were scaled horizontally.
  */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const CMS_API = process.env.CMS_CONTENT_API_URL ?? "http://localhost:1337/api";
 const TTL_MS = 60_000;
 
 interface Redirect {
@@ -25,27 +30,27 @@ function normalise(path: string): string {
   return p.replace(/\/+$/, "") || "/";
 }
 
-async function loadRedirects(): Promise<Map<string, Redirect>> {
+async function loadRedirects(origin: string): Promise<Map<string, Redirect>> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.map;
   const map = new Map<string, Redirect>();
   try {
-    const res = await fetch(
-      `${CMS_API}/redirects?filters[enabled][$eq]=true&pagination[limit]=500`,
-    );
+    // Same-origin, so the request never leaves the instance and needs no absolute host configured.
+    const res = await fetch(`${origin}/api/redirects`, { signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const json = (await res.json()) as {
-        data?: { source?: string; destination?: string; permanent?: boolean }[];
+        redirects?: { source?: string; destination?: string; permanent?: boolean }[];
       };
-      for (const row of json.data ?? []) {
+      for (const row of json.redirects ?? []) {
         const source = normalise(row.source ?? "");
         const destination = (row.destination ?? "").trim();
+        // "/" is excluded deliberately: a redirect off the home page would take the whole site down.
         if (source !== "/" && destination) {
           map.set(source, { destination, permanent: row.permanent !== false });
         }
       }
     }
   } catch {
-    // CMS unreachable: serve no redirects rather than blocking the request.
+    // Unreachable or slow: serve no redirects rather than holding up every request on the site.
   }
   cache = { at: Date.now(), map };
   return map;
@@ -53,7 +58,7 @@ async function loadRedirects(): Promise<Map<string, Redirect>> {
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const path = normalise(request.nextUrl.pathname);
-  const map = await loadRedirects();
+  const map = await loadRedirects(request.nextUrl.origin);
   const hit = map.get(path);
   if (hit) {
     const destination = hit.destination.startsWith("http")

@@ -5,12 +5,14 @@ import { FinderService } from "./finder.service.js";
 import { LeadsService } from "./leads.service.js";
 import { IngestService } from "./ingest.service.js";
 import { CrmService } from "./crm.service.js";
+import { ContentService } from "./content.service.js";
 import { HealthController } from "./health.controller.js";
 import { ChatController } from "./chat.controller.js";
 import { FinderController } from "./finder.controller.js";
 import { LeadsController } from "./leads.controller.js";
 import { IngestController } from "./ingest.controller.js";
 import { CrmController } from "./crm.controller.js";
+import { ContentController } from "./content.controller.js";
 
 @Module({
   controllers: [
@@ -20,6 +22,7 @@ import { CrmController } from "./crm.controller.js";
     LeadsController,
     IngestController,
     CrmController,
+    ContentController,
   ],
   providers: [
     OgeService,
@@ -27,6 +30,7 @@ import { CrmController } from "./crm.controller.js";
     LeadsService,
     IngestService,
     CrmService,
+    ContentService,
   ],
 })
 export class AppModule {}

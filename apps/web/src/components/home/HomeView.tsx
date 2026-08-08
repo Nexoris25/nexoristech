@@ -8,7 +8,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { SolutionFinder } from "./SolutionFinder.js";
-import { Testimonials } from "./Testimonials.js";
+import { formatLagosDate } from "../../lib/date.js";
+import { Testimonials, type Quote } from "./Testimonials.js";
 import { ProductMockup } from "./ProductMockup.js";
 import { ProofStats } from "./ProofStats.js";
 import { OgeChat } from "./OgeChat.js";
@@ -24,7 +25,14 @@ const avatarStyle: CSSProperties = {
   color: "#543CDA",
 };
 
-export function HomeView(): ReactNode {
+/** The latest published articles, passed in from the page so this stays a pure presentational view. */
+export interface HomeInsight {
+  title: string; slug: string; excerpt?: string | undefined;
+  coverUrl?: string | undefined; coverAlt?: string | undefined;
+  author?: string | undefined; publishedAt?: string | undefined; readMinutes?: number | undefined;
+}
+
+export function HomeView({ insights = [], testimonials = [] }: { insights?: HomeInsight[]; testimonials?: Quote[] }): ReactNode {
   return (
     <>
       <ScrollFx />
@@ -567,19 +575,22 @@ export function HomeView(): ReactNode {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="band" aria-label="Testimonials">
-        <div className="wrap">
-          <div className="band-head reveal">
-            <span className="kicker">
-              <span className="dot" />
-              What clients say
-            </span>
-            <h2 className="h-section">In their words.</h2>
+      {/* TESTIMONIALS — the whole band is dropped when no testimonial is approved, rather than
+          standing empty under its heading. */}
+      {testimonials.length > 0 ? (
+        <section className="band" aria-label="Testimonials">
+          <div className="wrap">
+            <div className="band-head reveal">
+              <span className="kicker">
+                <span className="dot" />
+                What clients say
+              </span>
+              <h2 className="h-section">In their words.</h2>
+            </div>
+            <Testimonials quotes={testimonials} />
           </div>
-          <Testimonials />
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* INSIGHTS */}
       <section className="band tint" id="insights" aria-label="Insights">
@@ -591,102 +602,45 @@ export function HomeView(): ReactNode {
             </span>
             <h2 className="h-section">Recent thinking from the team.</h2>
           </div>
-          <div className="ins-grid reveal">
-            <Link className="ins-card" href="/insights">
-              <div className="media">
-                <span className="icat">AI in Practice</span>
-                <img
-                  src="/insights/ai-in-practice.webp"
-                  alt="A developer workstation with code on the monitors"
-                  loading="lazy"
-                />
-              </div>
-              <div className="ins-body">
-                <h3>Where AI actually earns its place in a Nigerian business.</h3>
-                <p className="ins-ex">
-                  The handful of jobs where AI pays for itself fast, and the many where a simple
-                  system beats it, with real local examples.
-                </p>
-                <div className="ins-meta">
-                  <span className="ava" aria-hidden="true" style={avatarStyle}>
-                    CN
-                  </span>
-                  <div>
-                    <div className="an">Chinedu Nwogu</div>
-                    <div className="am">Jun 14, 2026 &middot; 6 min read</div>
+          {/* The latest published articles, straight from the CMS. Nothing is rendered when there is
+              no published content, rather than showing invented articles (PRD no-fabrication rule). */}
+          {insights.length > 0 ? (
+            <div className="ins-grid reveal">
+              {insights.map((a) => (
+                <Link className="ins-card" href={`/insights/${a.slug}`} key={a.slug}>
+                  {a.coverUrl ? (
+                    <div className="media">
+                      {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
+                      <img src={a.coverUrl} alt={a.coverAlt ?? ""} loading="lazy" />
+                    </div>
+                  ) : null}
+                  <div className="ins-body">
+                    <h3>{a.title}</h3>
+                    {a.excerpt ? <p className="ins-ex">{a.excerpt}</p> : null}
+                    <div className="ins-meta">
+                      <span className="ava" aria-hidden="true" style={avatarStyle}>
+                        {(a.author ?? "Nexoris Technologies").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                      </span>
+                      <div>
+                        <div className="an">{a.author ?? "Nexoris Technologies"}</div>
+                        <div className="am">
+                          {a.publishedAt ? formatLagosDate(a.publishedAt) : ""}
+                          {a.readMinutes ? ` · ${a.readMinutes} min read` : ""}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="ins-cta">
+                      Read article <span className="arr">&rarr;</span>
+                    </span>
                   </div>
-                </div>
-                <span className="ins-cta">
-                  Read article <span className="arr">&rarr;</span>
-                </span>
-              </div>
-            </Link>
+                </Link>
+              ))}
+            </div>
+          ) : null}
 
-            <Link className="ins-card" href="/insights">
-              <div className="media">
-                <span className="icat">Industry Playbooks</span>
-                <img
-                  src="/insights/clinic-playbook.webp"
-                  alt="A healthcare professional reviewing information"
-                  loading="lazy"
-                />
-              </div>
-              <div className="ins-body">
-                <h3>Cutting clinic no-shows without adding a single staff member.</h3>
-                <p className="ins-ex">
-                  Reminders, easy rescheduling, and a waitlist that fills cancelled slots on its
-                  own. Small changes that recover real revenue.
-                </p>
-                <div className="ins-meta">
-                  <span className="ava" aria-hidden="true" style={avatarStyle}>
-                    PT
-                  </span>
-                  <div>
-                    <div className="an">Product team</div>
-                    <div className="am">Jun 6, 2026 &middot; 5 min read</div>
-                  </div>
-                </div>
-                <span className="ins-cta">
-                  Read article <span className="arr">&rarr;</span>
-                </span>
-              </div>
-            </Link>
-
-            <Link className="ins-card" href="/insights">
-              <div className="media">
-                <span className="icat">Product &amp; Engineering</span>
-                <img
-                  src="/insights/approve-screens.webp"
-                  alt="A laptop showing application code on a desk"
-                  loading="lazy"
-                />
-              </div>
-              <div className="ins-body">
-                <h3>Why we approve every screen before writing serious code.</h3>
-                <p className="ins-ex">
-                  Changing a design costs little. Changing built software costs a lot. How we keep
-                  expensive surprises out of a build.
-                </p>
-                <div className="ins-meta">
-                  <span className="ava" aria-hidden="true" style={avatarStyle}>
-                    EN
-                  </span>
-                  <div>
-                    <div className="an">Engineering</div>
-                    <div className="am">May 28, 2026 &middot; 4 min read</div>
-                  </div>
-                </div>
-                <span className="ins-cta">
-                  Read article <span className="arr">&rarr;</span>
-                </span>
-              </div>
-            </Link>
-          </div>
-          <div className="svc-foot reveal">
-            <Link className="link-arrow" href="/insights">
-              Read more insights <span className="arr">&rarr;</span>
-            </Link>
-          </div>
+          <Link className="link-arrow" href="/insights">
+            Read more insights <span className="arr">&rarr;</span>
+          </Link>
         </div>
       </section>
 

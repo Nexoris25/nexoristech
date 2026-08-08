@@ -17,10 +17,22 @@
  *   - GROQ_API_KEY              Groq.
  *   - MISTRAL_API_KEY           Mistral AI (Mistral Large, Ministral 8B, Mistral Embed).
  *
- * IMPORTANT: every `model` string below is a provisional default. Per PRD 10.1, verify the
- * current provider-specific identifier against the official API documentation before relying on
- * it in production. Any identifier can be overridden at deploy time with the `envOverride`
- * variable named on the slot, without a code change.
+ * Every `model` string below was verified against the provider's own models endpoint on 2026-08-01,
+ * and any identifier can still be overridden at deploy time with the `envOverride` variable named on
+ * the slot, without a code change.
+ *
+ * Two had been decommissioned by Groq: `meta-llama/llama-4-scout-17b-16e-instruct` and
+ * `qwen/qwen3-32b`. The second was the last slot in the CMS AI chain, so every editorial request ended
+ * in a 404 from the provider once the two slots ahead of it were unavailable.
+ *
+ * Every Groq slot is now `llama-3.3-70b-versatile`, chosen by testing rather than by size. The two
+ * larger options both fail at the job these groups do: `openai/gpt-oss-120b` returns empty message
+ * content because it writes to a separate reasoning field, and `qwen/qwen3.6-27b` prefixes every reply
+ * with its thinking, which lands verbatim in an excerpt. A model that cannot answer plainly is not a
+ * usable fallback however capable it is.
+ *
+ * Re-verify after any provider deprecation notice; a pinned identifier is only as good as the day it
+ * was checked.
  */
 
 /** The AI providers Oge can call. The browser never calls any of these directly. */
@@ -90,8 +102,8 @@ export const WEBSITE_BOT_MODELS: GenerationGroup = {
   backups: [
     {
       provider: "groq",
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
-      label: "Llama 4 Scout (Groq)",
+      model: "llama-3.3-70b-versatile",
+      label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_WEBSITE_BOT_BACKUP_1_MODEL",
     },
     {
@@ -128,8 +140,8 @@ export const CRM_WORKER_MODELS: GenerationGroup = {
     },
     {
       provider: "groq",
-      model: "openai/gpt-oss-120b",
-      label: "GPT-OSS 120B (Groq)",
+      model: "llama-3.3-70b-versatile",
+      label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_CRM_WORKER_BACKUP_2_MODEL",
     },
   ],
@@ -159,8 +171,8 @@ export const CMS_AI_MODELS: GenerationGroup = {
     },
     {
       provider: "groq",
-      model: "qwen/qwen3-32b",
-      label: "Qwen 3 32B (Groq)",
+      model: "llama-3.3-70b-versatile",
+      label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_CMS_AI_BACKUP_2_MODEL",
     },
   ],
@@ -186,8 +198,8 @@ export const SERVICE_RECOMMENDER_MODELS: GenerationGroup = {
   backups: [
     {
       provider: "groq",
-      model: "qwen/qwen3-32b",
-      label: "Qwen 3 32B (Groq)",
+      model: "llama-3.3-70b-versatile",
+      label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_SERVICE_RECOMMENDER_BACKUP_1_MODEL",
     },
     {

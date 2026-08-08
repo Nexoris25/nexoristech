@@ -1,0 +1,189 @@
+/**
+ * The single case study page.
+ *
+ * The route did not exist before — the homepage had been linking to it and getting a 404 — so this is
+ * its first stylesheet. It borrows the article page's reading measure and the service pages' hero, so a
+ * case study reads as part of the same site rather than a new thing.
+ */
+
+.case-study-page .cs-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink-950, #0d0a1c);
+  color: #fff;
+  padding: clamp(72px, 9vw, 116px) 0 clamp(36px, 5vw, 56px);
+}
+.case-study-page .cs-head {
+  max-width: 780px;
+}
+.case-study-page .cs-head h1 {
+  font-family: "Roboto", sans-serif;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-top: 14px;
+}
+.case-study-page .cs-head .sub {
+  margin-top: 14px;
+  font-size: 1.06rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+}
+.case-study-page .cs-head .cat-pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.case-study-page .cs-wrap {
+  max-width: 860px;
+}
+
+.case-study-page .cs-cover {
+  margin: 0 0 32px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line, #e9e7f0);
+}
+.case-study-page .cs-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.case-study-page .cs-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  padding: 22px;
+  margin-bottom: 32px;
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 14px;
+  background: var(--surface-2, #faf9fd);
+}
+.case-study-page .cs-facts h2 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6a6580);
+  margin-bottom: 10px;
+}
+.case-study-page .cs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  list-style: none;
+}
+.case-study-page .cs-chips li {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.79rem;
+  font-weight: 600;
+}
+.case-study-page .cs-chips.tech li {
+  background: var(--purple-100, #eeebfc);
+  color: var(--purple-700, #4330b8);
+}
+
+/* The gallery. One column on a phone so a screenshot is legible, two where there is room. */
+.case-study-page .cs-gallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 36px;
+}
+@media (min-width: 720px) {
+  .case-study-page .cs-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* A single extra image gets the full width rather than sitting in a lonely half-column. */
+  .case-study-page .cs-gallery > figure:only-child {
+    grid-column: 1 / -1;
+  }
+}
+.case-study-page .cs-gallery figure {
+  margin: 0;
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 13px;
+  overflow: hidden;
+  background: #fff;
+}
+.case-study-page .cs-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.case-study-page .cs-gallery figcaption {
+  padding: 10px 13px;
+  font-size: 0.79rem;
+  line-height: 1.45;
+  color: var(--ink-3, #6a6580);
+  border-top: 1px solid var(--line, #e9e7f0);
+}
+
+.case-study-page .cs-services {
+  margin-top: 40px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line, #e9e7f0);
+}
+.case-study-page .cs-services h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin-bottom: 12px;
+}
+.case-study-page .cs-services ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  list-style: none;
+}
+.case-study-page .cs-services a {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--purple-600, #543cda);
+}
+.case-study-page .cs-services a:hover {
+  border-color: var(--purple-300, #c9c0f7);
+  background: var(--purple-100, #eeebfc);
+}
+
+/* The reading measure and prose styles are the article page's, reused so the two read alike. */
+.case-study-page .prose {
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.13rem;
+  line-height: 1.7;
+  color: #241f33;
+}
+.case-study-page .prose p { margin-bottom: 22px; }
+.case-study-page .prose h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 30px 0 12px;
+  scroll-margin-top: 88px;
+}
+.case-study-page .prose h3 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 24px 0 10px;
+}
+.case-study-page .prose ul,
+.case-study-page .prose ol { margin: 0 0 22px; padding-left: 22px; }
+.case-study-page .prose li { margin-bottom: 8px; }

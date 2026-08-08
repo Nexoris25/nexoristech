@@ -263,15 +263,13 @@
   line-height: 1.72;
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1024px) {
   .legal-page .legal-layout {
     grid-template-columns: 1fr;
   }
+  /* The floating control carries the contents below this width. Keeping the column as well stacked the
+     whole list above the policy and pushed the document itself off the first screen. */
   .legal-page .toc {
-    position: static;
-    background: var(--surface, #fff);
-    border: 1px solid var(--line, #e9e7f0);
-    border-radius: 12px;
-    padding: 18px;
+    display: none;
   }
 }

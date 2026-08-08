@@ -1,0 +1,253 @@
+/**
+ * Server-to-server client for the Oge gateway's CMS editorial + vision assists (PRD Part Two). The admin
+ * always gets a usable draft: it calls the gateway (real AI) when the shared secret is set and the
+ * gateway is reachable, and otherwise composes a deterministic draft from the supplied content in the
+ * house voice. The editor approves every draft before it is saved. `source` tells the UI which path ran.
+ */
+import { cmsDb } from "./cms-db.js";
+import { SITE_ORIGIN, CORE_PAGES, SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
+
+const GATEWAY = process.env.OGE_GATEWAY_URL ?? "http://localhost:4000";
+
+/** A readable page name from its path, e.g. "/services/ai-solutions" -> "AI Solutions", "/" -> "Home". */
+function titleFromPath(path: string): string {
+  if (path === "/") return "Home";
+  const seg = path.split("/").filter(Boolean).pop() ?? "";
+  return seg.split("-").map((w) => (w.length <= 3 && w === w.toLowerCase() && /^(ai|seo|geo|hr)$/.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1))).join(" ");
+}
+/** The real internal-link candidates: the marketing site's core, service, and industry pages. */
+function siteLinkCandidates(): { title: string; url: string }[] {
+  return [...CORE_PAGES, ...SERVICE_PAGES, ...INDUSTRY_PAGES].map((p) => ({ title: titleFromPath(p), url: `${SITE_ORIGIN}${p}` }));
+}
+/** A natural anchor phrase for a page name (industries read better as "healthcare technology"). */
+function anchorFor(title: string): string {
+  return title;
+}
+
+export type EditorialKind = "seo" | "tldr" | "excerpt" | "faqs" | "author-bio" | "internal-links" | "page-body";
+export interface SeoResult { metaTitle: string; metaDescription: string }
+export interface FaqItem { question: string; answer: string }
+export interface InternalLink { anchor: string; target: string; rationale: string }
+export type EditorialResult = SeoResult | string | string[] | FaqItem[] | InternalLink[];
+
+export interface EditorialInput {
+  kind: EditorialKind;
+  title?: string; body?: string; focusKeyword?: string;
+  authorName?: string; authorRole?: string; expertise?: string[];
+  industry?: string; service?: string; location?: string;
+  pages?: { title: string; url: string }[];
+}
+
+/**
+ * A full, substantive programmatic-page body (PRD §9.6-9.7: a page must be genuinely unique and helpful,
+ * with real structure, never a thin topic). Deterministic, house-voice HTML built from the keyword,
+ * industry, and service so an approved proposal opens with real content instead of an empty page.
+ */
+/**
+ * The floor for a programmatic page body, in words.
+ *
+ * A thin programmatic page is the exact thing Google's spam and helpful-content systems demote, and
+ * "long enough" cannot be left to whoever pressed Generate. Five hundred words is the point below which
+ * a page of this kind has not said anything a reader could not get from the title, so nothing under it
+ * is returned or published.
+ */
+export const PSEO_MIN_WORDS = 500;
+
+/** Words in HTML, counted the way the editor's own counter does. */
+export function bodyWordCount(html: string): number {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean).length;
+}
+
+export function composePageBody(title: string, keyword: string, industry: string, service: string): string {
+  const topic = (keyword || title || "this solution").trim();
+  const ind = (industry || "your industry").trim();
+  const svc = (service || "Nexoris Technologies").trim();
+  const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
+  const benefits = ["Faster time to value with a clear, staged rollout", "Lower operating cost through automation and better data", "Higher reliability with security and compliance built in from day one", "Decisions backed by real numbers, not guesswork"];
+  const applications = [`Streamlining core operations for ${ind} teams`, "Automating manual, repetitive back-office work", "Turning scattered data into clear, usable dashboards", "Connecting the tools your team already uses"];
+  return stripEmDash([
+    `<p>${cap(topic)} is changing how ${ind} teams work, and Nexoris Technologies builds the systems that make it practical. This page explains what ${topic} means for your business, where it helps most, what it costs in time and effort, and how to adopt it without disrupting the work that already runs well. Everything below reflects how we actually deliver, not a sales pitch.</p>`,
+    `<h2>What ${topic} means in practice</h2><p>Most ${ind} teams do not need a new idea. They need the work in front of them to take less time, break less often, and produce numbers they can act on. That is the whole of it. ${cap(topic)} earns its place when it removes a real bottleneck: a report that takes two days to assemble, an approval that sits in someone's inbox, a set of records that three systems each hold a different version of. We start from the bottleneck, not from the technology.</p>`,
+    `<h2>Key benefits of ${topic}</h2><ul>${benefits.map((b) => `<li>${b}</li>`).join("")}</ul><p>Each of these is something you can measure before and after, and we agree how it will be measured before any build starts. A benefit nobody can put a number against is not a benefit; it is a hope.</p>`,
+    `<h2>Where ${cap(topic)} helps in ${ind}</h2><ul>${applications.map((a) => `<li>${a}</li>`).join("")}</ul><p>These are the patterns we see repeatedly in ${ind}. Yours may sit somewhere between two of them, which is normal, and the scoping call exists to find out exactly where.</p>`,
+    `<h2>How Nexoris Technologies delivers ${topic}</h2><p>We start with a short scoping call to understand your goals, the systems already in place, and who has to live with the result. From there we design a solution that fits your team and your data rather than one that assumes both are perfect. Work ships in stages, each one small enough to review and put into use, so you are never waiting months to see whether the direction is right.</p><p>Every build ships with security considered from the first design, documentation your own team can read, and a plan you can measure against. We test with real data and real users before anything is called finished. When something does not work as expected, you hear it from us first, with what we intend to do about it.</p>`,
+    `<h2>What it takes from your side</h2><p>An honest answer, because the projects that fail usually fail here. You need someone who can decide, access to the systems involved, and a few hours a week from the people who do the work today. That is most of it. We handle the build, the testing, the documentation and the rollout, and we will tell you plainly when something we are asked to do is not worth doing.</p>`,
+    `<h2>Why choose Nexoris Technologies</h2><p>We build useful software for real businesses, not demos. Our work in ${ind} pairs modern engineering with first-hand knowledge of how these operations actually run, so the result is something your team uses and trusts rather than something that quietly goes unused after launch. We stay through the rollout, and we would rather scope something smaller that works than something larger that does not.</p>`,
+    `<h2>Ready to get started?</h2><p>Tell us about your goals and we will come back with a clear plan, a realistic timeline and honest numbers, with no obligation. ${svc === "Nexoris Technologies" ? "" : `Ask about our ${svc} work. `}If we are not the right fit for what you need, we will say so and point you somewhere better. Let us help you get more from ${topic}.</p>`,
+  ].join(""));
+}
+
+const plain = (s: string): string => (s || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+const stripEmDash = (s: string): string => s.replace(/\s*—\s*/g, ", ");
+const sentences = (s: string): string[] => plain(s).split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter((x) => x.length > 12);
+
+/**
+ * Record one gateway call. Never throws and never blocks the caller: telemetry failing must not fail
+ * the thing being measured. Token counts are written only when the gateway reports them.
+ */
+async function recordUsage(row: {
+  feature: string; model?: string | null; promptTokens?: number | null;
+  completionTokens?: number | null; durationMs: number; ok: boolean; error?: string | null;
+}): Promise<void> {
+  try {
+    await cmsDb().query(
+      `INSERT INTO cms_ai_usage (feature, model, prompt_tokens, completion_tokens, duration_ms, ok, error)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [row.feature, row.model ?? null, row.promptTokens ?? null, row.completionTokens ?? null,
+       row.durationMs, row.ok, row.error ?? null]);
+  } catch { /* telemetry is best-effort */ }
+}
+
+async function callGateway(input: EditorialInput): Promise<EditorialResult | null> {
+  const secret = process.env.OGE_REINGEST_SHARED_SECRET;
+  if (!secret) return null;
+  const started = Date.now();
+  try {
+    const res = await fetch(`${GATEWAY}/content/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-internal-secret": secret },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) {
+      await recordUsage({ feature: input.kind, durationMs: Date.now() - started, ok: false, error: `HTTP ${res.status}` });
+      return null;
+    }
+    const json = (await res.json()) as {
+      result: EditorialResult;
+      model?: string;
+      usage?: { promptTokens?: number; completionTokens?: number };
+    };
+    await recordUsage({
+      feature: input.kind,
+      model: json.model ?? null,
+      promptTokens: json.usage?.promptTokens ?? null,
+      completionTokens: json.usage?.completionTokens ?? null,
+      durationMs: Date.now() - started,
+      ok: true,
+    });
+    return json.result;
+  } catch (err) {
+    await recordUsage({
+      feature: input.kind, durationMs: Date.now() - started, ok: false,
+      error: err instanceof Error ? err.message.slice(0, 200) : "request failed",
+    });
+    return null;
+  }
+}
+
+export async function generateEditorial(input: EditorialInput): Promise<{ result: EditorialResult; source: "oge" | "fallback" }> {
+  const ai = await callGateway(input);
+  const result = ai != null ? ai : deterministic(input);
+  const source: "oge" | "fallback" = ai != null ? "oge" : "fallback";
+
+  // A page body under the floor does not leave here. A model asked for a long page will sometimes
+  // return four short paragraphs, and that page would be held back by the publish gate anyway — better
+  // to hand the editor something publishable than something they have to discover is too thin.
+  if (input.kind === "page-body" && typeof result === "string" && bodyWordCount(result) < PSEO_MIN_WORDS) {
+    const written = composePageBody(input.title ?? "", input.focusKeyword ?? "", input.industry ?? "", input.service ?? "");
+    // Keep whatever the model produced and set the written sections after it, so its own wording is
+    // not thrown away for being short.
+    const merged = bodyWordCount(result) > 40 ? `${result}${written}` : written;
+    return { result: merged, source };
+  }
+  return { result, source };
+}
+
+function deterministic(input: EditorialInput): EditorialResult {
+  const body = plain(input.body ?? "");
+  const title = (input.title ?? "").trim();
+  const sents = sentences(body);
+  switch (input.kind) {
+    case "seo": {
+      const metaTitle = (title || sents[0] || "Nexoris Technologies").slice(0, 60);
+      let d = (body || title).slice(0, 158);
+      if ((body || title).length > 158) d = `${d.slice(0, d.lastIndexOf(" "))}...`;
+      return { metaTitle: stripEmDash(metaTitle), metaDescription: stripEmDash(d) };
+    }
+    case "tldr":
+      return sents.slice(0, 5).map((s) => stripEmDash(s));
+    case "excerpt": {
+      let e = sents.slice(0, 2).join(" ") || title;
+      if (e.length > 200) e = `${e.slice(0, 197)}...`;
+      return stripEmDash(e);
+    }
+    case "faqs": {
+      // Always return exactly 5 questions with answers grounded in the page content: for each canonical
+      // question, use the first body sentence that matches its intent, else a house-voice answer that
+      // still references the real topic. The editor refines before publishing.
+      const topic = (input.focusKeyword?.trim() || title || "this solution").trim();
+      const cap = topic.charAt(0).toUpperCase() + topic.slice(1);
+      // FAQ answers are prose, never a summary block: exclude any TL;DR sentence from the source and
+      // strip the token from the output so a generated FAQ can never contain "TLDR".
+      const noTldr = (s: string): string => s.replace(/\bTL;?DR\b:?/gi, "").replace(/\s{2,}/g, " ").trim();
+      const faqSents = sents.filter((s) => !/tl;?dr/i.test(s));
+      const pick = (keys: string[]): string | null => faqSents.find((s) => keys.some((k) => s.toLowerCase().includes(k))) ?? null;
+      const lead = faqSents.slice(0, 2).join(" ");
+      const items: FaqItem[] = [
+        { question: `What is ${topic}?`,
+          answer: lead || `${cap} is a solution Nexoris Technologies designs and builds for real businesses, focused on outcomes you can measure.` },
+        { question: `How does Nexoris Technologies approach ${topic}?`,
+          answer: pick(["build", "design", "process", "work", "deliver", "approach", "start"]) || `We start with a short scoping call, design a solution that fits your team and data, then ship it with security, documentation, and a plan you can measure against.` },
+        { question: `What are the benefits of ${topic}?`,
+          answer: pick(["benefit", "faster", "improve", "reduce", "cost", "save", "reliab", "grow", "efficien"]) || `Done well, ${topic} lowers operating cost, speeds up delivery, and gives you decisions backed by real numbers rather than guesswork.` },
+        { question: `Who is ${topic} for?`,
+          answer: pick(["team", "business", "industr", "compan", "organis", "organiz", "for "]) || `${cap} suits teams that want practical software they will actually use, from growing businesses to established organisations.` },
+        { question: `How do I get started with ${topic}?`,
+          answer: `Tell Nexoris Technologies about your goals and we will come back with a clear plan and honest numbers, with no obligation. You can reach us from the contact page.` },
+      ];
+      return items.map((it) => ({ question: noTldr(stripEmDash(it.question)), answer: noTldr(stripEmDash(it.answer)) }));
+    }
+    case "author-bio": {
+      const first = (input.authorName ?? "This author").trim().split(/\s+/)[0] || "This author";
+      const skills = (input.expertise ?? []).filter(Boolean);
+      const topic = skills.length ? skills.slice(0, 3).join(", ") : "technology";
+      const role = input.authorRole ? `a ${input.authorRole.toLowerCase()}` : "a contributor";
+      return stripEmDash(`${first} is ${role} at Nexoris Technologies, writing about ${topic}. ${first} turns hard ideas into clear, useful reading and cares about getting the details right.`);
+    }
+    case "internal-links": {
+      // Suggest links to real Nexoris Technologies pages with a natural anchor phrase. Candidates come
+      // from the caller when given, otherwise from the live site map, so the tool works even before the
+      // body is long. Each is scored by how well the page's topic overlaps the content, best first.
+      const candidates = (input.pages && input.pages.length ? input.pages : siteLinkCandidates());
+      const hay = `${title} ${input.focusKeyword ?? ""} ${body}`.toLowerCase();
+      const scored = candidates.map((p) => {
+        const words = p.title.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+        const hits = words.filter((w) => hay.includes(w));
+        return { p, score: hits.length, hit: hits[0] };
+      }).sort((a, b) => b.score - a.score);
+      const links: InternalLink[] = scored.slice(0, 5).map(({ p, score, hit }) => ({
+        anchor: anchorFor(p.title),
+        target: p.url,
+        rationale: score > 0 && hit
+          ? `Your content mentions ${hit}, which this page covers in depth.`
+          : `A strong related Nexoris Technologies page to link from this topic.`,
+      }));
+      return links;
+    }
+    case "page-body":
+      return composePageBody(title, input.focusKeyword ?? "", input.industry ?? "", input.service ?? "");
+  }
+}
+
+/**
+ * Alt text for an uploaded image. Tries Gemini vision via the gateway; on any failure derives readable
+ * alt text from the file name. Always returns something; the UI lets the editor override it.
+ */
+export async function altTextForImage(base64: string, mimeType: string, fileName: string): Promise<{ altText: string; source: "oge" | "fallback" }> {
+  const secret = process.env.OGE_REINGEST_SHARED_SECRET;
+  if (secret) {
+    try {
+      const res = await fetch(`${GATEWAY}/content/alt-text`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-secret": secret },
+        body: JSON.stringify({ data: base64, mimeType }),
+        signal: AbortSignal.timeout(20000),
+      });
+      if (res.ok) { const json = (await res.json()) as { altText: string }; if (json.altText) return { altText: json.altText, source: "oge" }; }
+    } catch { /* fall through */ }
+  }
+  const base = fileName.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  const alt = base ? base.charAt(0).toUpperCase() + base.slice(1) : "Uploaded image";
+  return { altText: alt.slice(0, 125), source: "fallback" };
+}

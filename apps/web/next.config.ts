@@ -5,13 +5,20 @@ import type { NextConfig } from "next";
  * the browser only talks to /api on this origin, which proxies to the gateway server-side, so
  * connect-src stays 'self'. Inline styles are allowed for Tailwind; framing is denied.
  */
+const isDev = process.env.NODE_ENV !== "production";
+
+/**
+ * The development server evaluates modules with eval and talks to a websocket for hot reload, so a CSP
+ * without 'unsafe-eval' silently stops React from hydrating: the HTML renders but nothing on the page is
+ * interactive. Those two allowances are therefore development-only; production keeps the strict policy.
+ */
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

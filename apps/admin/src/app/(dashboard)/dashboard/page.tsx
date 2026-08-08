@@ -1,302 +1,379 @@
 /**
- * The dashboard home: the platform overview owned by the shell (PRD 11). A cross-module KPI row
- * (live CRM figures plus honest "soon" cards for Finance, HR, Payroll), the top of the Action
- * Center (shared with /action-center so they never disagree), a module activity feed, and the
- * module map. CRM's own working screens live under /crm. Nothing is invented.
+ * Executive Dashboard (Image 9). Greeting and date range, a four-KPI row, a revenue-overview area
+ * chart beside the pipeline-summary donut, and a row of recent activities, top-performing services,
+ * and team performance rings. Built to the design; the switcher in the top bar moves between the
+ * Executive, CEO, Personal, and Marketing dashboards.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  ChevronRight,
-  Coins,
-  Contact,
-  Flame,
-  Inbox,
-  Sparkles,
-  TrendingUp,
-  Trophy,
-  UsersRound,
-  Wallet,
-} from "lucide-react";
+import { ChevronDown, TrendingUp, TrendingDown, FileText, Trophy, UserPlus, Wallet, Contact, ReceiptText, ArrowRight } from "lucide-react";
 import { requireStaff } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
-import { Sparkline } from "../../../components/Sparkline.js";
-import { buildActionCenter } from "../../../lib/action-center.js";
-import { PRIORITY_STYLE, rating } from "../../../lib/lead-ui.js";
+import { STAGES } from "../../../lib/crm-constants.js";
+import { Dropdown } from "../../../components/Dropdown.js";
+import { AreaChart, Donut, ProgressRing, Bar } from "../../../components/charts.js";
+import { ChartHover, type HoverPoint } from "../../../components/ChartHover.js";
 
 export const dynamic = "force-dynamic";
 
 const LAGOS = "Africa/Lagos";
 
-interface ActivityRow {
-  kind: "arrival" | "stage";
-  ref: string | null;
-  name: string | null;
-  score: number | null;
-  band: string | null;
-  note: string | null;
-  actor: string | null;
-  at: string;
-}
-
 function greeting(): string {
-  const hour = Number(
-    new Intl.DateTimeFormat("en-NG", { timeZone: LAGOS, hour: "numeric", hour12: false }).format(
-      new Date(),
-    ),
+  const h = Number(new Intl.DateTimeFormat("en-NG", { timeZone: LAGOS, hour: "numeric", hour12: false }).format(new Date()));
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+
+/**
+ * The overview reads from the database. It previously carried hardcoded figures — a revenue total, a
+ * lead count, a pipeline, a dated range — which looked authoritative and reported nothing. An overview
+ * that cannot be trusted is worse than one that admits it has no data, so every panel below either shows
+ * a real number or says it is empty.
+ *
+ * Icon chips all use the brand tint. Giving each card its own pastel colour carries no meaning and is
+ * the sort of decoration that reads as filler.
+ */
+const BRAND_TINT = "#EEEBFC";
+const BRAND_FG = "#543CDA";
+
+interface Kpi { label: string; value: string; delta: string | null; up: boolean; href: string; icon: typeof Wallet }
+
+const nairaShort = (v: number): string => {
+  if (v >= 1_000_000) return `₦${(v / 1_000_000).toFixed(v >= 10_000_000 ? 1 : 2)}M`;
+  if (v >= 1_000) return `₦${Math.round(v / 1_000)}K`;
+  return `₦${v.toLocaleString("en-NG")}`;
+};
+/** Month on month, as a percentage. Null when there is no prior month to compare against. */
+const delta = (now: number, prev: number): { text: string | null; up: boolean } => {
+  if (prev <= 0) return { text: null, up: now > 0 };
+  const pct = ((now - prev) / prev) * 100;
+  return { text: `${Math.abs(pct).toFixed(1)}%`, up: pct >= 0 };
+};
+
+/** Today in Lagos, which is the timezone the business operates in. */
+function todayLabel(): string {
+  return new Intl.DateTimeFormat("en-NG", { timeZone: LAGOS, day: "numeric", month: "long", year: "numeric" }).format(new Date());
+}
+
+function DateRange(): ReactNode {
+  return (
+    <Dropdown
+      align="right"
+      buttonClassName="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.82rem] font-600 text-slate-700 hover:bg-slate-50"
+      label={<>{todayLabel()} <ChevronDown size={14} strokeWidth={2.2} className="text-slate-500" /></>}
+    >
+      {["Today", "This Week", "This Month", "This Year"].map((o) => (
+        <button key={o} type="button" className="flex w-full items-center rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>
+      ))}
+    </Dropdown>
   );
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
 }
 
-function timeAgo(at: string, now: Date): string {
-  const mins = Math.max(0, Math.round((now.getTime() - new Date(at).getTime()) / 60_000));
+function RangePill({ label }: { label: string }): ReactNode {
+  return (
+    <Dropdown
+      align="right"
+      buttonClassName="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.78rem] font-600 text-slate-600 hover:bg-slate-50"
+      label={<>{label} <ChevronDown size={13} strokeWidth={2.2} className="text-slate-500" /></>}
+    >
+      {["This Week", "This Month", "This Quarter", "This Year"].map((o) => (
+        <button key={o} type="button" className="flex w-full items-center rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>
+      ))}
+    </Dropdown>
+  );
+}
+
+interface AuditActivity { action: string; entity: string; after: unknown; actor: string | null; created_at: string }
+
+const ACTIVITY_META: Record<string, { icon: ReactNode; color: string }> = {
+  "einvoice-created": { icon: <FileText size={13} strokeWidth={2} />, color: "#543CDA" },
+  "einvoice-submit": { icon: <FileText size={13} strokeWidth={2} />, color: "#6A55F2" },
+  "einvoice-payment": { icon: <FileText size={13} strokeWidth={2} />, color: "#22C55E" },
+  "einvoice-lifecycle": { icon: <FileText size={13} strokeWidth={2} />, color: "#3B82F6" },
+  "einvoice-deliver": { icon: <FileText size={13} strokeWidth={2} />, color: "#543CDA" },
+  "expense-recorded": { icon: <FileText size={13} strokeWidth={2} />, color: "#F59E0B" },
+  "payroll-generate": { icon: <FileText size={13} strokeWidth={2} />, color: "#543CDA" },
+  "stage-change": { icon: <Trophy size={13} strokeWidth={2} />, color: "#F59E0B" },
+  create: { icon: <UserPlus size={13} strokeWidth={2} />, color: "#3B82F6" },
+  "grant-access": { icon: <UserPlus size={13} strokeWidth={2} />, color: "#543CDA" },
+};
+function describeActivity(a: AuditActivity): string {
+  const d = (a.after ?? {}) as Record<string, unknown>;
+  switch (a.action) {
+    case "einvoice-created": return `Invoice raised for ${String(d.client ?? d.customer ?? "a customer")}`;
+    case "einvoice-submit": return `Invoice ${d.nrs_status === "Accepted" ? "accepted by NRS" : "submitted to NRS"}`;
+    case "einvoice-payment": return `Payment of ₦${Number(d.amount ?? 0).toLocaleString("en-NG")} recorded`;
+    case "einvoice-lifecycle": return `Invoice moved to ${String(d.lifecycle_status ?? "next stage")}`;
+    case "einvoice-deliver": return `Invoice ${String(d.channel ?? "delivered")} to the customer`;
+    case "expense-recorded": return `Expense recorded: ${String(d.description ?? "")}`;
+    case "payroll-generate": return "A pay run was generated";
+    case "stage-change": return `Lead moved ${String(d.status ?? "forward")}`;
+    case "grant-access": return `Access granted: ${String(d.module ?? "")}`;
+    case "create": return "A new user was created";
+    default: return a.action.replace(/-/g, " ");
+  }
+}
+function timeAgo(iso: string): string {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.round(hours / 24)}d ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
 }
 
-export default async function DashboardPage(): Promise<ReactNode> {
+export default async function ExecutiveDashboard(): Promise<ReactNode> {
   const staff = await requireStaff();
+  const firstName = staff.name.split(/\s+/)[0] ?? staff.name;
   const pool = db();
-  const now = new Date();
-  const scope = staff.role === "salesperson" ? staff.id : undefined;
-
-  const [kpiRes, seriesRes, actions, activityRes] = await Promise.all([
-    pool.query<{ month_leads: string; prev_month_leads: string; hot_open: string; won_month: string }>(
+  const [{ rows: money }, { rows: leadStats }, { rows: stages }, { rows: services }, { rows: teams }, { rows: activity }, { rows: daily }] = await Promise.all([
+    // Revenue is what has actually been collected; outstanding is what is still owed on live documents.
+    pool.query<{ collected: string; collected_prev: string; outstanding: string }>(
       `SELECT
-         count(*) FILTER (WHERE created_at >= date_trunc('month', now()))                 AS month_leads,
-         count(*) FILTER (WHERE created_at >= date_trunc('month', now()) - interval '1 month'
-                            AND created_at <  date_trunc('month', now()))                AS prev_month_leads,
-         count(*) FILTER (WHERE band = 'Hot' AND status NOT IN ('Won', 'Lost'))          AS hot_open,
-         count(*) FILTER (WHERE status = 'Won' AND created_at >= date_trunc('month', now())) AS won_month
-       FROM lead`,
-    ),
-    pool.query<{ count: string }>(
-      `SELECT count(lead.id) AS count
-         FROM generate_series(date_trunc('day', now()) - interval '13 days',
-                              date_trunc('day', now()), interval '1 day') AS d
-         LEFT JOIN lead ON date_trunc('day', lead.created_at) = d
-        GROUP BY d ORDER BY d`,
-    ),
-    buildActionCenter(pool, now, scope),
-    pool.query<ActivityRow>(
-      `SELECT * FROM (
-         SELECT 'arrival'::text AS kind, l.id::text AS ref, l.name, l.score, l.band,
-                NULL::text AS note, NULL::text AS actor, l.created_at AS at FROM lead l
-         UNION ALL
-         SELECT 'stage', a.entity_id, NULL, NULL, NULL, a.after->>'status', s.name, a.created_at
-           FROM audit_log a LEFT JOIN staff s ON s.id = a.actor_id WHERE a.action = 'stage-change'
-       ) events ORDER BY at DESC LIMIT 7`,
-    ),
+         coalesce(sum(amount_paid) FILTER (WHERE date_trunc('month', issue_date) = date_trunc('month', current_date)),0)::text AS collected,
+         coalesce(sum(amount_paid) FILTER (WHERE date_trunc('month', issue_date) = date_trunc('month', current_date - interval '1 month')),0)::text AS collected_prev,
+         coalesce(sum(total - amount_paid) FILTER (WHERE lifecycle_status <> 'Closed' AND total > amount_paid),0)::text AS outstanding
+       FROM einvoice WHERE doc_type = 'Invoice'`),
+    pool.query<{ new_leads: string; new_leads_prev: string; won: string; won_prev: string }>(
+      `SELECT
+         count(*) FILTER (WHERE date_trunc('month', created_at) = date_trunc('month', current_date))::text AS new_leads,
+         count(*) FILTER (WHERE date_trunc('month', created_at) = date_trunc('month', current_date - interval '1 month'))::text AS new_leads_prev,
+         count(*) FILTER (WHERE status = 'Won' AND date_trunc('month', coalesce(won_at, created_at)) = date_trunc('month', current_date))::text AS won,
+         count(*) FILTER (WHERE status = 'Won' AND date_trunc('month', coalesce(won_at, created_at)) = date_trunc('month', current_date - interval '1 month'))::text AS won_prev
+       FROM lead`),
+    pool.query<{ status: string; n: string }>(
+      "SELECT status, count(*)::text AS n FROM lead WHERE status NOT IN ('Won','Lost') GROUP BY status"),
+    pool.query<{ service_line: string; revenue: string }>(
+      `SELECT coalesce(service_line, 'Unassigned') AS service_line, sum(deal_value)::text AS revenue
+         FROM lead WHERE status = 'Won' AND deal_value > 0
+        GROUP BY 1 ORDER BY sum(deal_value) DESC LIMIT 5`),
+    // Revenue targets only: sales_target also holds a deal-count metric, which is not money and must
+    // not be compared against won value.
+    pool.query<{ label: string; target: string; achieved: string }>(
+      `SELECT coalesce(s.name, 'Unassigned') AS label, t.target::text AS target,
+              coalesce((SELECT sum(l.deal_value) FROM lead l WHERE l.assigned_to = t.staff_id AND l.status = 'Won'),0)::text AS achieved
+         FROM sales_target t LEFT JOIN staff s ON s.id = t.staff_id
+        WHERE t.metric = 'won_value' AND t.target > 0
+        ORDER BY t.target DESC LIMIT 5`),
+    pool.query<AuditActivity>(
+      `SELECT a.action, a.entity, a.after, s.name AS actor, a.created_at::text
+         FROM audit_log a LEFT JOIN staff s ON s.id = a.actor_id
+        ORDER BY a.created_at DESC LIMIT 6`),
+    // Payments received per day this month, as a running cumulative so the curve reads as revenue
+    // building through the month rather than as unrelated daily spikes.
+    pool.query<{ day: string; amount: string }>(
+      `SELECT to_char(payment_date, 'DD Mon') AS day, sum(amount)::text AS amount
+         FROM einvoice_payment
+        WHERE date_trunc('month', payment_date) = date_trunc('month', current_date)
+        GROUP BY payment_date ORDER BY payment_date`),
   ]);
 
-  const k = kpiRes.rows[0]!;
-  const monthLeads = Number(k.month_leads);
-  const prevMonthLeads = Number(k.prev_month_leads);
-  const delta =
-    prevMonthLeads > 0 ? Math.round(((monthLeads - prevMonthLeads) / prevMonthLeads) * 100) : null;
-  const sparkValues = seriesRes.rows.map((r) => Number(r.count));
-  const topActions = actions.slice(0, 6);
+  const m = money[0]!;
+  const l = leadStats[0]!;
+  const revenueDelta = delta(Number(m.collected), Number(m.collected_prev));
+  const leadsDelta = delta(Number(l.new_leads), Number(l.new_leads_prev));
+  const wonDelta = delta(Number(l.won), Number(l.won_prev));
 
-  const today = new Intl.DateTimeFormat("en-NG", {
-    timeZone: LAGOS,
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(now);
-  const firstName = staff.name.split(/\s+/)[0] ?? staff.name;
+  const KPIS: Kpi[] = [
+    { label: "Revenue Collected", value: nairaShort(Number(m.collected)), delta: revenueDelta.text, up: revenueDelta.up, href: "/finance", icon: Wallet },
+    { label: "New Leads", value: l.new_leads, delta: leadsDelta.text, up: leadsDelta.up, href: "/crm", icon: Contact },
+    // A trophy, not a target: the target is what you are aiming at, the trophy is what you won.
+    { label: "Won Opportunities", value: l.won, delta: wonDelta.text, up: wonDelta.up, href: "/crm/board", icon: Trophy },
+    { label: "Outstanding Invoices", value: nairaShort(Number(m.outstanding)), delta: null, up: false, href: "/finance/receivables", icon: ReceiptText },
+  ];
 
-  const liveCards = [
-    {
-      label: "Leads this month",
-      value: String(monthLeads),
-      sub:
-        delta === null ? (
-          <>14-day trend</>
-        ) : (
-          <span className="inline-flex items-center gap-0.5 text-[#0E7A5B]">
-            <TrendingUp size={12} strokeWidth={2.4} /> {delta >= 0 ? "+" : ""}
-            {delta}% vs last month
-          </span>
-        ),
-      icon: <Inbox size={16} strokeWidth={2} />,
-      tint: "bg-purple-100 text-purple-600",
-      spark: true,
-    },
-    { label: "Hot leads open", value: k.hot_open, sub: <>scored 70+ by Oge</>, icon: <Flame size={16} strokeWidth={2} />, tint: "bg-[#FDECEA] text-[#C0362C]" },
-    { label: "Deals won this month", value: k.won_month, sub: <>Sales Won Value joins with deals</>, icon: <Trophy size={16} strokeWidth={2} />, tint: "bg-[#E4F5EE] text-[#0E7A5B]" },
-  ];
-  const soonCards = [
-    { label: "Open invoices", module: "Finance", icon: <Wallet size={16} strokeWidth={2} /> },
-    { label: "Active employees", module: "HR", icon: <UsersRound size={16} strokeWidth={2} /> },
-    { label: "Next pay run", module: "Payroll", icon: <Coins size={16} strokeWidth={2} /> },
-  ];
-  const modules = [
-    { icon: <Contact size={18} strokeWidth={2} />, name: "CRM", line: "Leads, pipeline, and the AI assists", href: "/crm" },
-    { icon: <Wallet size={18} strokeWidth={2} />, name: "Finance", line: "Invoicing, ready for NRS e-invoicing", href: undefined },
-    { icon: <UsersRound size={18} strokeWidth={2} />, name: "HR", line: "The one place a person is created", href: undefined },
-    { icon: <Coins size={18} strokeWidth={2} />, name: "Payroll", line: "PAYE, pension, and NHF built in", href: undefined },
-  ];
+  // Open pipeline, in the CRM's own stage order so the donut reads the same way as the board.
+  const STAGE_COLORS = ["#543CDA", "#6A55F2", "#9C8CF0", "#F59E0B", "#3B82F6", "#22C55E", "#EF4444"];
+  const byStatus = new Map(stages.map((r) => [r.status, Number(r.n)]));
+  const PIPELINE = STAGES
+    .map((label, i) => ({ label, value: byStatus.get(label) ?? 0, color: STAGE_COLORS[i % STAGE_COLORS.length]! }))
+    .filter((p) => p.value > 0);
+  const totalOpps = PIPELINE.reduce((s, p) => s + p.value, 0);
+
+  let running = 0;
+  const revenueSeries = daily.map((d) => { running += Number(d.amount); return running / 1_000_000; });
+  const revenueAxis = daily.length > 1
+    ? [daily[0]!.day, daily[daily.length - 1]!.day]
+    : daily.length === 1 ? [daily[0]!.day] : [];
+  const revenueTop = Math.max(1, ...revenueSeries);
+  // The line is cumulative, so a reader needs both the running total and what came in that day; the
+  // chart could previously only be read against its gridlines.
+  const naira = (m: number): string => (m >= 1 ? `₦${m.toFixed(2)}M` : `₦${Math.round(m * 1000)}K`);
+  const revenuePoints: HoverPoint[] = daily.map((d, i) => ({
+    label: d.day,
+    series: [
+      { label: "Received to date", color: "#543CDA", value: naira(revenueSeries[i] ?? 0) },
+      { label: "That day", color: "#94A3B8", value: naira(Number(d.amount) / 1_000_000) },
+    ],
+  }));
+  const yTicks = [revenueTop, revenueTop * 0.66, revenueTop * 0.33, 0]
+    .map((v) => (v <= 0 ? "₦0" : v >= 1 ? `₦${v.toFixed(1)}M` : `₦${Math.round(v * 1000)}K`));
+
+  const topService = Math.max(1, ...services.map((x) => Number(x.revenue)));
+  const SERVICES = services.map((x, i) => ({
+    label: x.service_line,
+    value: nairaShort(Number(x.revenue)),
+    pct: Math.round((Number(x.revenue) / topService) * 100),
+    color: STAGE_COLORS[i % STAGE_COLORS.length]!,
+  }));
+
+  const TEAMS = teams.map((t, i) => ({
+    label: t.label,
+    target: nairaShort(Number(t.target)),
+    pct: Number(t.target) > 0 ? Math.min(100, Math.round((Number(t.achieved) / Number(t.target)) * 100)) : 0,
+    color: STAGE_COLORS[i % STAGE_COLORS.length]!,
+  }));
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="mx-auto max-w-7xl">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-roboto text-[1.7rem] font-700 leading-tight text-ink-950">
-            {greeting()}, {firstName}
-          </h1>
-          <p className="mt-1 text-[0.95rem] text-neutral-600">
-            Here is what is happening across Nexoris Technologies today.
-          </p>
+          <h1 className="text-[1.4rem] font-700 text-slate-900 sm:text-[1.6rem]">{greeting()}, {firstName} <span className="align-middle">👋</span></h1>
+          <p className="mt-1 text-[0.88rem] text-slate-500">Here&apos;s what&apos;s happening at Nexoris Technologies today.</p>
         </div>
-        <span className="rounded-card border border-purple-200 bg-white px-3.5 py-2 text-[0.85rem] font-500 text-neutral-600 shadow-subtle">
-          {today}
-        </span>
+        <DateRange />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 min-[520px]:grid-cols-2 xl:grid-cols-3">
-        {liveCards.map((card) => (
-          <div key={card.label} className="rounded-card border border-purple-200 bg-white p-5 shadow-subtle transition-shadow hover:shadow-medium">
+      {/* KPI row */}
+      <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
+        {KPIS.map((k) => (
+          <Link key={k.label} href={k.href} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle transition hover:-translate-y-0.5 hover:border-[#543CDA]/30 hover:shadow-md">
             <div className="flex items-center justify-between">
-              <span className={`grid h-9 w-9 place-items-center rounded-card ${card.tint}`}>{card.icon}</span>
-              {card.spark ? <Sparkline values={sparkValues} /> : null}
+              <span className="grid h-9 w-9 place-items-center rounded-lg" style={{ background: BRAND_TINT, color: BRAND_FG }}><k.icon size={17} /></span>
+              <ArrowRight size={15} className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#543CDA]" />
             </div>
-            <p className="mt-3 font-mono text-[1.85rem] font-700 leading-none text-ink-950">{card.value}</p>
-            <p className="mt-1.5 text-[0.85rem] font-500 text-ink-950">{card.label}</p>
-            <p className="mt-0.5 text-[0.78rem] text-neutral-600">{card.sub}</p>
-          </div>
+            <p className="mt-3 text-[0.8rem] font-500 text-slate-500">{k.label}</p>
+            <p className="mt-1 font-mono text-[1.5rem] font-700 leading-none text-slate-900">{k.value}</p>
+            {/* A movement is only shown when there is a prior month to compare with, and it is coloured
+                by direction rather than always green. */}
+            {k.delta ? (
+              <p className={`mt-2 inline-flex items-center gap-1 text-[0.74rem] font-600 ${k.up ? "text-[#15803D]" : "text-[#B91C1C]"}`}>
+                {k.up ? <TrendingUp size={12} strokeWidth={2.4} /> : <TrendingDown size={12} strokeWidth={2.4} />} {k.delta}
+                <span className="font-400 text-slate-500">vs last month</span>
+              </p>
+            ) : (
+              <p className="mt-2 text-[0.74rem] text-slate-500">No prior month to compare</p>
+            )}
+          </Link>
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-1 gap-4 min-[520px]:grid-cols-3">
-        {soonCards.map((card) => (
-          <div key={card.label} className="flex items-center gap-3 rounded-card border border-dashed border-neutral-200 bg-white/60 px-4 py-3">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-card bg-neutral-100 text-neutral-600/70">{card.icon}</span>
-            <span className="min-w-0">
-              <span className="block text-[0.85rem] font-500 text-ink-950">{card.label}</span>
-              <span className="block text-[0.75rem] text-neutral-600/80">{card.module} goes live soon</span>
-            </span>
+      {/* Revenue + Pipeline */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-[0.98rem] font-700 text-slate-900">Revenue Overview</h2>
+              <div className="mt-1.5 flex items-baseline gap-2">
+                <span className="font-mono text-[1.5rem] font-700 leading-none text-slate-900">{nairaShort(Number(m.collected))}</span>
+                {revenueDelta.text ? (
+                  <span className={`inline-flex items-center gap-0.5 text-[0.74rem] font-600 ${revenueDelta.up ? "text-[#15803D]" : "text-[#B91C1C]"}`}>
+                    {revenueDelta.up ? <TrendingUp size={12} strokeWidth={2.4} /> : <TrendingDown size={12} strokeWidth={2.4} />} {revenueDelta.text}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1 text-[0.72rem] text-slate-500">This month to {todayLabel()}</p>
+            </div>
+            <RangePill label="This Month" />
           </div>
-        ))}
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <section className="rounded-card border border-purple-200 bg-white shadow-subtle">
-          <div className="flex items-center justify-between border-b border-purple-200/70 px-5 py-3.5">
-            <h2 className="flex items-center gap-2 text-[1.05rem] font-700 text-ink-950">
-              <span className="grid h-7 w-7 place-items-center rounded-card bg-purple-600 text-white">
-                <Sparkles size={15} strokeWidth={2} />
-              </span>
-              Action Center
-              {actions.length > 0 ? (
-                <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[0.72rem] font-600 text-purple-700">
-                  {actions.length}
-                </span>
-              ) : null}
-            </h2>
-            <Link href="/action-center" className="inline-flex cursor-pointer items-center gap-0.5 text-[0.82rem] font-600 text-purple-600 hover:text-purple-700">
-              View all <ChevronRight size={15} strokeWidth={2.2} />
-            </Link>
-          </div>
-          {topActions.length === 0 ? (
-            <p className="px-5 py-6 text-[0.9rem] leading-relaxed text-neutral-600">
-              Nothing needs attention right now. Alerts appear here the moment an SLA runs short, a
-              hot lead waits, or a follow-up falls due.
-            </p>
+          {/* An empty month draws nothing rather than an invented curve. */}
+          {revenueSeries.length === 0 ? (
+            <p className="mt-4 py-16 text-center text-[0.84rem] text-slate-500">No payments received yet this month.</p>
           ) : (
-            <ul className="flex flex-col">
-              {topActions.map((item, i) => {
-                const p = PRIORITY_STYLE[item.priority];
-                return (
-                  <li key={item.id}>
-                    <Link href={item.href} className={`group flex items-center gap-3 px-5 py-3 hover:bg-neutral-50 ${i > 0 ? "border-t border-purple-200/50" : ""}`}>
-                      <span className={`inline-flex w-[70px] shrink-0 justify-center rounded-full px-2 py-1 text-[0.7rem] font-700 ${p.chip}`}>
-                        {item.priority}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[0.9rem] font-600 text-ink-950">{item.title}</span>
-                        <span className="block truncate text-[0.78rem] text-neutral-600">{item.module} · {item.detail}</span>
-                      </span>
-                      <span className="hidden shrink-0 text-[0.78rem] text-neutral-600 sm:block">{item.assignee}</span>
-                      <ArrowRight size={15} strokeWidth={2} className="shrink-0 text-neutral-300 transition-colors group-hover:text-purple-600" />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="mt-4 flex">
+              <div className="flex flex-col justify-between py-1 pr-3 font-mono text-[0.66rem] text-slate-500">
+                {yTicks.map((y, i) => <span key={`${y}-${i}`}>{y}</span>)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <ChartHover points={revenuePoints} height={200}>
+                  <AreaChart values={revenueSeries} height={200} gridlines={4} endDot />
+                </ChartHover>
+                <div className="mt-1.5 flex justify-between font-mono text-[0.66rem] text-slate-500">
+                  {revenueAxis.map((x) => <span key={x}>{x}</span>)}
+                </div>
+              </div>
+            </div>
           )}
         </section>
 
-        <section className="rounded-card border border-purple-200 bg-white shadow-subtle">
-          <div className="flex items-center justify-between border-b border-purple-200/70 px-5 py-3.5">
-            <h2 className="text-[1.05rem] font-700 text-ink-950">Activity</h2>
-            <span className="text-[0.78rem] text-neutral-600">Latest</span>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+          <h2 className="text-[0.98rem] font-700 text-slate-900">Pipeline Summary</h2>
+          <div className="mt-4 flex flex-col items-center gap-4">
+            <Donut segments={PIPELINE} centerTop={totalOpps} centerBottom="Total Opportunities" />
+            <ul className="flex w-full flex-col gap-2">
+              {PIPELINE.map((p) => (
+                <li key={p.label} className="flex items-center gap-2 text-[0.8rem]">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />
+                  <span className="flex-1 text-slate-600">{p.label}</span>
+                  <span className="font-mono font-600 text-slate-900">{p.value}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          {activityRes.rows.length === 0 ? (
-            <p className="px-5 py-6 text-[0.9rem] text-neutral-600">Activity appears here as leads arrive and move.</p>
+        </section>
+      </div>
+
+      {/* Activities + Services + Teams */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+          <h2 className="text-[0.95rem] font-700 text-slate-900">Recent Activities</h2>
+          {activity.length === 0 ? (
+            <p className="mt-4 text-[0.82rem] text-slate-500">No activity recorded yet.</p>
           ) : (
-            <ul className="flex flex-col gap-4 px-5 py-4">
-              {activityRes.rows.map((event, i) => {
-                const r = rating(event.band);
+            <ul className="mt-4 flex flex-col gap-3.5">
+              {activity.map((a, i) => {
+                const m = ACTIVITY_META[a.action] ?? { icon: <FileText size={13} strokeWidth={2} />, color: "#543CDA" };
                 return (
-                  <li key={`${event.kind}-${event.ref}-${i}`} className="flex items-start gap-3">
-                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-card ${event.kind === "arrival" ? "bg-purple-100 text-purple-600" : event.note === "Won" ? "bg-[#E4F5EE] text-[#0E7A5B]" : "bg-ink-950 text-purple-100"}`}>
-                      {event.kind === "arrival" ? <Inbox size={14} strokeWidth={2} /> : event.note === "Won" ? <Trophy size={14} strokeWidth={2} /> : <ArrowUpRight size={14} strokeWidth={2} />}
-                    </span>
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-white" style={{ background: m.color }}>{m.icon}</span>
                     <span className="min-w-0 flex-1">
-                      <Link href={`/crm/${event.ref}`} className="block cursor-pointer truncate text-[0.88rem] font-600 text-ink-950 hover:text-purple-700">
-                        {event.kind === "arrival" ? `New lead: ${event.name ?? "Unnamed"}` : `Moved to ${event.note}`}
-                      </Link>
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[0.76rem] text-neutral-600">
-                        {event.kind === "arrival" ? (
-                          <>
-                            <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: r.dot }} />
-                            Scored {event.score ?? "–"} {event.band ?? ""}
-                          </>
-                        ) : (
-                          <>by {event.actor ?? "the team"}</>
-                        )}
-                      </span>
+                      <span className="block text-[0.82rem] text-slate-800">{describeActivity(a)}</span>
+                      <span className="block text-[0.72rem] text-slate-500">{a.actor ?? "System"} · {timeAgo(a.created_at)}</span>
                     </span>
-                    <span className="shrink-0 text-[0.72rem] text-neutral-600">{timeAgo(event.at, now)}</span>
                   </li>
                 );
               })}
             </ul>
           )}
+          <Link href="/audit" className="mt-4 inline-block text-[0.8rem] font-600 text-[#543CDA] hover:text-[#4330B8]">View all activities</Link>
         </section>
-      </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 xl:grid-cols-4">
-        {modules.map((module) =>
-          module.href ? (
-            <Link key={module.name} href={module.href} className="group flex items-center gap-3 rounded-card border border-purple-200 bg-white p-4 shadow-subtle transition-all hover:-translate-y-0.5 hover:border-purple-500 hover:shadow-medium">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-card bg-purple-600 text-white">{module.icon}</span>
-              <span className="min-w-0">
-                <span className="flex items-center gap-1 text-[0.92rem] font-700 text-ink-950">
-                  {module.name}
-                  <span className="rounded-full bg-[#E4F5EE] px-1.5 py-px text-[0.6rem] font-600 uppercase tracking-wide text-[#0E7A5B]">Live</span>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[0.95rem] font-700 text-slate-900">Top Performing Services</h2>
+            <Link href="/finance/reports" className="inline-flex items-center gap-0.5 text-[0.76rem] font-600 text-[#543CDA] hover:text-[#4330B8]">Reports <ArrowRight size={13} /></Link>
+          </div>
+          <ul className="mt-4 flex flex-col gap-3.5">
+            {SERVICES.map((s) => (
+              <li key={s.label}>
+                <div className="flex items-center justify-between text-[0.8rem]">
+                  <span className="min-w-0 truncate pr-2 text-slate-700">{s.label}</span>
+                  <span className="font-mono font-600 text-slate-900">{s.value}</span>
+                </div>
+                <div className="mt-1.5"><Bar pct={s.pct} color={s.color} /></div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[0.95rem] font-700 text-slate-900">Team Performance</h2>
+            <Link href="/crm/performance" className="inline-flex items-center gap-0.5 text-[0.76rem] font-600 text-[#543CDA] hover:text-[#4330B8]">Details <ArrowRight size={13} /></Link>
+          </div>
+          <ul className="mt-4 flex flex-col gap-4">
+            {TEAMS.map((t) => (
+              <li key={t.label} className="flex items-center gap-3">
+                <ProgressRing value={t.pct} size={56} thickness={7} color={t.color}>
+                  <span className="font-mono text-[0.72rem] font-700 text-slate-900">{t.pct}%</span>
+                </ProgressRing>
+                <span>
+                  <span className="block text-[0.85rem] font-600 text-slate-900">{t.label}</span>
+                  <span className="block text-[0.74rem] text-slate-500">Target: {t.target}</span>
                 </span>
-                <span className="block truncate text-[0.76rem] text-neutral-600">{module.line}</span>
-              </span>
-              <ChevronRight size={16} strokeWidth={2.2} className="ml-auto shrink-0 text-purple-600 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          ) : (
-            <div key={module.name} className="flex items-center gap-3 rounded-card border border-dashed border-neutral-200 bg-white/60 p-4">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-card bg-neutral-100 text-neutral-600/70">{module.icon}</span>
-              <span className="min-w-0">
-                <span className="block text-[0.92rem] font-700 text-neutral-600">{module.name}</span>
-                <span className="block truncate text-[0.76rem] text-neutral-600/80">{module.line}</span>
-              </span>
-              <span className="ml-auto shrink-0 rounded-full border border-neutral-200 px-2 py-0.5 text-[0.6rem] font-600 uppercase tracking-wide text-neutral-600/70">Soon</span>
-            </div>
-          ),
-        )}
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </div>
   );

@@ -4,6 +4,12 @@
  * substitution ladder (never empty, never fabricated), the FAQ, cited sources, and the EEAT author
  * line, with a Service plus FAQPage plus breadcrumb JSON-LD graph and a route into the Solution
  * Finder. Only published, gate-passed pages reach this component.
+ *
+ * Bodies are HTML from the CMS editor, so they go through the sanitising renderer rather than the
+ * markdown one. Passing HTML to ReactMarkdown escapes it, which published the tags to the page as
+ * visible text; insights and legal pages had the same fault and were fixed, and this was the last
+ * place still doing it. The other fields here (pricing, comparison) are short markdown fragments from
+ * the pSEO package rather than the editor, so they keep the markdown renderer.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -19,6 +25,8 @@ import { resolveProof } from "@nexoris/pseo";
 import type { PseoPage } from "../lib/cms.js";
 import { JsonLd } from "./JsonLd.js";
 import { Markdown } from "./Markdown.js";
+import { FloatingToc } from "./FloatingToc.js";
+import { withHeadingIds, headingsOf } from "../lib/render-html.js";
 import { resolveDateTokens } from "../lib/date.js";
 
 export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
@@ -43,11 +51,16 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
       ...(page.industryLabel ? { audience: page.industryLabel } : {}),
     }),
   ];
+  // The written body, with anchors, so the contents control has something to point at.
+  const bodyHtml = page.body ? withHeadingIds(resolveDateTokens(page.body)) : "";
+  const toc = bodyHtml ? headingsOf(bodyHtml) : [];
+
   const faqNode = page.faq.length > 0 ? faqPageNode(page.faq) : undefined;
   if (faqNode) nodes.push(faqNode);
   nodes.push(
     breadcrumbNode([
       { name: "Solutions", path: "/contact" },
+      ...(page.category ? [{ name: page.category, path }] : []),
       { name: h1, path },
     ]),
   );
@@ -57,8 +70,13 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
       <JsonLd graph={buildGraph(nodes)} />
       <Section>
         <Container className="max-w-article">
+          {page.category ? (
+            <p className="font-mono text-[0.72rem] uppercase tracking-[0.12em] text-purple-600">
+              {page.category}
+            </p>
+          ) : null}
           {h1 ? (
-            <h1 className="font-roboto text-hero font-700 text-ink-950">
+            <h1 className="mt-2 font-roboto text-hero font-700 text-ink-950">
               {h1}
             </h1>
           ) : null}
@@ -67,14 +85,11 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
           ) : null}
 
           {page.painPoints ? (
-            <div className="mt-8">
-              <Markdown>{page.painPoints}</Markdown>
-            </div>
+            <div className="prose pseo-body mt-8"
+              dangerouslySetInnerHTML={{ __html: withHeadingIds(resolveDateTokens(page.painPoints)) }} />
           ) : null}
-          {page.body ? (
-            <div className="mt-6">
-              <Markdown>{page.body}</Markdown>
-            </div>
+          {bodyHtml ? (
+            <div className="prose pseo-body mt-6" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
           ) : null}
 
           {page.featureMatrix.length > 0 ? (
@@ -216,6 +231,8 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
           ) : null}
         </Container>
       </Section>
+
+      <FloatingToc entries={toc} />
     </>
   );
 }

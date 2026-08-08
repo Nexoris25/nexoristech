@@ -1,0 +1,11 @@
+-- Intentionally empty.
+--
+-- This deleted pending proposals below the 25-impression floor. It existed to retire 141 rows that the
+-- demonstration seed had inserted before the generator enforced that floor at source. Those rows are
+-- gone with the seed, so there is nothing left to clean up.
+--
+-- It also could not run where it sat: sorted by filename it comes seventh, but cms_proposal is not
+-- created until 0011, so applying this chain to an empty database failed here. The floor itself is
+-- enforced in the generator (MIN_SEARCH_VOLUME in lib/pseo-constants.ts), which is where a rule about
+-- what may be proposed belongs.
+SELECT 1;

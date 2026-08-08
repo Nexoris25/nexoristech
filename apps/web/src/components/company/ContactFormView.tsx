@@ -7,7 +7,7 @@
  * unreachable it tells the visitor how to reach the team directly so a lead is never lost. Server
  * scoring stays server-side and is never shown here.
  */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 
 const SERVICES = [
@@ -48,6 +48,19 @@ const HINT_MAP: [RegExp, string][] = [
 export function ContactFormView(): ReactNode {
   const [need, setNeed] = useState("");
   const [service, setService] = useState("");
+  // The Solution Finder hands over its recommendation, so the visitor does not answer the same thing
+  // twice and the sales rep can see what the finder concluded. Only known services are accepted.
+  //
+  // Read from the URL directly rather than through useSearchParams: this page is statically
+  // prerendered, and useSearchParams would opt the whole form out of that. The prefill is a
+  // progressive enhancement, so running it once on mount is enough.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const s = q.get("service");
+    if (s && SERVICES.includes(s)) setService(s);
+    const n = q.get("need");
+    if (n) setNeed(n);
+  }, []);
   const [start, setStart] = useState("");
   const [hint, setHint] = useState("");
   const [submitting, setSubmitting] = useState(false);

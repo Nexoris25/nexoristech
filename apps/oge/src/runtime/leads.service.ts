@@ -41,7 +41,15 @@ export class LeadsService implements OnModuleInit, OnModuleDestroy {
     if (!connectionString) {
       throw new Error("DATABASE_URL_ADMIN is not set.");
     }
-    this.pool = new Pool({ connectionString, max: 5 });
+    // The knowledge base is on a remote host, so a pool without timeouts hangs forever when it cannot
+    // be reached. Failing in a few seconds is what lets /health report a problem instead of stalling.
+    this.pool = new Pool({
+      connectionString,
+      max: 5,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      statement_timeout: 15000,
+    });
   }
 
   async onModuleDestroy(): Promise<void> {

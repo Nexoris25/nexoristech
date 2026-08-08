@@ -21,7 +21,7 @@ import { CaseStudiesView } from "../../components/company/CaseStudiesView.js";
 import { IndustryView } from "../../components/company/IndustryView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
-import { getPseoPage, getPseoSlugs } from "../../lib/cms.js";
+import { getPseoPage, getPseoSlugs, getLatestInsights, getTestimonials, getCaseStudiesForService, getAllCaseStudies } from "../../lib/cms.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
@@ -98,10 +98,22 @@ export default async function MarketingRoute({
   // The home page now renders the fully ported design-handoff homepage (its own section set),
   // keeping the page's JSON-LD graph for SEO.
   if (page.meta.slug === "/") {
+    // Approved testimonials come from the CMS. The carousel previously shipped five placeholders
+    // reading "Client name / Role, Company", which the live homepage was showing to visitors.
+    const [insights, testimonials] = await Promise.all([getLatestInsights(3), getTestimonials(6)]);
     return (
       <>
         <JsonLd graph={graphForPage(page)} />
-        <HomeView />
+        <HomeView
+          insights={insights}
+          testimonials={testimonials.map((t) => ({
+            text: t.quote,
+            name: t.authorName,
+            role: [t.authorRole, t.company].filter(Boolean).join(", "),
+            ...(t.avatarUrl ? { photoUrl: t.avatarUrl } : {}),
+            ...(t.avatarAlt ? { photoAlt: t.avatarAlt } : {}),
+          }))}
+        />
       </>
     );
   }
@@ -109,10 +121,14 @@ export default async function MarketingRoute({
   // still come from the content module above.
   const service = servicePages[page.meta.slug];
   if (service) {
+    // The proof section showed fixed cards reading "Verified project card · loaded from case studies",
+    // which described what it was meant to do rather than doing it. A case study now names the services
+    // it proves, so the section can ask for the real work.
+    const proof = await getCaseStudiesForService(page.meta.slug, 3);
     return (
       <>
         <JsonLd graph={graphForPage(page)} />
-        <ServiceView content={service} />
+        <ServiceView content={service} caseStudies={proof} />
       </>
     );
   }
@@ -143,12 +159,13 @@ export default async function MarketingRoute({
       </>
     );
   }
-  // The case studies hub renders from its design-handoff view (honest empty grid + in-house products).
+  // The case studies hub renders from its design-handoff view (in-house products, plus the honest empty
+  // grid when nothing is published yet). The grid itself is now whatever the CMS holds.
   if (page.meta.slug === "/case-studies") {
     return (
       <>
         <JsonLd graph={graphForPage(page)} />
-        <CaseStudiesView />
+        <CaseStudiesView studies={await getAllCaseStudies()} />
       </>
     );
   }

@@ -1,45 +1,61 @@
 /**
- * Company settings and NRS e-invoicing readiness (PRD 15). Admin only. Reads the single settings
- * row and renders the editable form. The e-invoicing section prepares the data shape and partner
- * choice now, so going live later is a wiring task, not a migration.
+ * Settings overview (PRD 3, 15). The hub for the shell's own screens: People & Access (§3.2), Roles,
+ * the one platform Audit Log (§3.4), the Company profile (§15), and NRS e-Invoicing readiness (§15).
+ * Admin only. Each card carries a live figure and links into its area. Nothing here is a second copy
+ * of module data - people live in HR, access lives in the one access table.
  */
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { UsersRound, ShieldCheck, FileClock, Building2, ReceiptText, ArrowRight } from "lucide-react";
 import { requireAdmin } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
-import { SettingsForm } from "./SettingsForm.js";
 
 export const dynamic = "force-dynamic";
 
-interface Row {
-  legal_name: string;
-  tin: string | null;
-  address: string;
-  email: string;
-  phone: string;
-  vat_rate: string;
-  nrs_enabled: boolean;
-  nrs_environment: string;
-  nrs_partner: string | null;
-  nrs_partner_type: string | null;
-}
-
-export default async function SettingsPage(): Promise<ReactNode> {
+export default async function SettingsOverview(): Promise<ReactNode> {
   await requireAdmin();
-  const { rows } = await db().query<Row>(
-    `SELECT legal_name, tin, address, email, phone, vat_rate::text,
-            nrs_enabled, nrs_environment, nrs_partner, nrs_partner_type
-       FROM company_settings WHERE id = true`,
-  );
-  const settings = rows[0]!;
+  const pool = db();
+  const { rows } = await pool.query<{ active_users: string; grants: string; open_resets: string; audit_today: string; nrs_enabled: boolean; nrs_env: string }>(
+    `SELECT (SELECT count(*) FROM staff WHERE active)::text active_users,
+            (SELECT count(*) FROM module_access)::text grants,
+            (SELECT count(*) FROM password_reset_request WHERE status='open')::text open_resets,
+            (SELECT count(*) FROM audit_log WHERE created_at::date = current_date)::text audit_today,
+            (SELECT nrs_enabled FROM company_settings WHERE id=true) nrs_enabled,
+            (SELECT nrs_environment FROM company_settings WHERE id=true) nrs_env`);
+  const s = rows[0]!;
+
+  const cards = [
+    { href: "/settings/access", icon: UsersRound, title: "People & Access", desc: "Grant module access and roles. The one place access is decided.", stat: `${s.active_users} active`, sub: `${s.grants} module grants` },
+    { href: "/settings/roles", icon: ShieldCheck, title: "Roles & Permissions", desc: "The platform's fixed role model and what each role can do per module.", stat: "4 modules", sub: "Read-only matrix" },
+    { href: "/audit", icon: FileClock, title: "Audit", desc: "The one immutable record of who did what, across every module.", stat: `${s.audit_today} today`, sub: "Platform-wide" },
+    { href: "/settings/company", icon: Building2, title: "Company", desc: "Legal profile, registration, contact, fiscal calendar, and notifications.", stat: "Nexoris Technologies", sub: "Single record" },
+    { href: "/e-invoicing", icon: ReceiptText, title: "NRS e-Invoicing", desc: "Readiness for the Nigeria Revenue Service e-invoicing system.", stat: s.nrs_enabled ? "Enabled" : "Not live", sub: `${s.nrs_env} environment` },
+  ];
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="font-roboto text-[1.7rem] font-700 leading-tight text-ink-950">Settings</h1>
-      <p className="mt-1 text-[0.95rem] text-neutral-600">
-        Company profile and NRS e-invoicing readiness for Nexoris Technologies.
-      </p>
-      <div className="mt-6">
-        <SettingsForm settings={settings} />
+    <div className="mx-auto max-w-5xl">
+      <h1 className="text-[1.4rem] font-700 text-slate-900">Settings</h1>
+      <p className="mt-1 text-[0.88rem] text-slate-500">Access, roles, audit, company profile, and NRS e-invoicing.</p>
+
+      {Number(s.open_resets) > 0 ? (
+        <Link href="/settings/access" className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 hover:bg-amber-100/70">
+          <span className="text-[0.85rem] font-600 text-amber-800">{s.open_resets} password reset request{s.open_resets === "1" ? "" : "s"} awaiting action</span>
+          <ArrowRight size={16} className="text-amber-700" />
+        </Link>
+      ) : null}
+
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
+          <Link key={c.href} href={c.href} className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle hover:border-[#543CDA]/40 hover:shadow-md">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#EEEBFC] text-[#543CDA]"><c.icon size={20} strokeWidth={2} /></span>
+            <h2 className="mt-3 text-[0.98rem] font-700 text-slate-900">{c.title}</h2>
+            <p className="mt-1 flex-1 text-[0.8rem] text-slate-500">{c.desc}</p>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+              <span><span className="block text-[0.85rem] font-700 text-slate-900">{c.stat}</span><span className="block text-[0.72rem] text-slate-500">{c.sub}</span></span>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-[#543CDA]" />
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
 
+# Private and non-content paths: never index these.
+Disallow: /api/
+Disallow: /login
+Disallow: /admin
+Disallow: /accept-invite
+Disallow: /forgot-password
+
 Sitemap: https://nexoristech.com/sitemap.xml

@@ -65,6 +65,58 @@
   margin-top: 18px;
   max-width: 56ch;
 }
+/* Areas of expertise, on the dark hero. The profile said what someone's title was and never what they
+   actually know, which is the part an author page exists to answer. */
+.author-page .prof-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  list-style: none;
+  padding: 0;
+}
+.author-page .prof-chips li {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  padding: 6px 10px;
+}
+
+/* The written profile reads as an article, so it is set like one. The .prose rules elsewhere are
+   scoped to the article and case study pages, so they do not reach here on their own. */
+.author-page .prof-body {
+  max-width: 72ch;
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.13rem;
+  line-height: 1.7;
+  color: #241f33;
+}
+.author-page .prof-body p { margin-bottom: 22px; }
+.author-page .prof-body h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 30px 0 12px;
+  scroll-margin-top: 88px;
+}
+.author-page .prof-body h3 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 24px 0 10px;
+}
+.author-page .prof-body ul,
+.author-page .prof-body ol { margin: 0 0 22px; padding-left: 22px; }
+.author-page .prof-body li { margin-bottom: 8px; }
+.author-page .prof-body a { color: var(--purple-600, #543cda); text-decoration: underline; }
+
 .author-page .prof-links {
   display: flex;
   gap: 12px;
@@ -109,6 +161,7 @@
     margin: 0 auto;
   }
   .author-page .roles,
+  .author-page .prof-chips,
   .author-page .prof-links {
     justify-content: center;
   }

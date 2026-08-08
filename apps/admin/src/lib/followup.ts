@@ -35,6 +35,7 @@ const STAGE_WAIT_DAYS: Record<string, number> = {
 
 /** What the follow-up should aim to do at each stage, fed to the draft as guidance. */
 const STAGE_INTENT: Record<string, string> = {
+  New: "Send a warm first response, thank them for reaching out, and offer a short no-obligation call.",
   Contacted: "Open the conversation, acknowledge their challenge, and offer a short scoping call.",
   Qualified: "Confirm you understand their priority and propose the next concrete step.",
   "Scoping Call Booked": "Confirm the call, set expectations, and ask what a good outcome looks like.",
@@ -58,6 +59,15 @@ function templateForStage(stage: string, lead: FollowUpLead): string {
       ? ` It still looks like ${lead.matchedServices.join(" and ")} could be a good fit for what you described.`
       : "";
   switch (stage) {
+    case "New":
+      return `Hi ${who},
+
+Thank you for reaching out to Nexoris Technologies.${services} We have your message and we are glad you got in touch.
+
+I would love to learn a little more about what you are trying to do so we can point you in the right direction. Would a short call this week work for you? There is no cost and no obligation.
+
+Best regards,
+The Nexoris Technologies team`;
     case "Contacted":
       return `Hi ${who},
 

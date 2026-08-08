@@ -1,13 +1,19 @@
 import type { NextConfig } from "next";
 
+// Next.js dev mode (HMR / React Fast Refresh) and its dev overlay evaluate code with eval, and dev
+// also opens a websocket for HMR. A strict production CSP (no 'unsafe-eval', connect-src 'self')
+// blocks both, so the client bundle never hydrates and nothing interactive works in dev. Relax
+// exactly those two directives in development only; production keeps the strict policy.
+const isDev = process.env.NODE_ENV !== "production";
+
 /** Security headers for the internal dashboard (PRD Stage 10). Same-origin only; never framed. */
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self'${isDev ? " ws: http://localhost:*" : ""}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -39,12 +45,11 @@ const nextConfig: NextConfig = {
   // Keep the PDF renderer external so its bundled standard fonts resolve at runtime.
   serverExternalPackages: ["@react-pdf/renderer"],
   poweredByHeader: false,
-  eslint: {
-    // Linting runs as its own workspace task; do not run it again during the build.
-    ignoreDuringBuilds: true,
-  },
+  // The whole workspace imports with explicit ".js" specifiers that point at TypeScript sources. Next
+  // 16 defaults to Turbopack, which does not apply this ".js" -> ".ts" mapping, so the dev/build
+  // scripts pin the webpack compiler (`next dev/build --webpack`) and this extensionAlias resolves
+  // those specifiers. (Migrating the codebase off ".js" specifiers would let us adopt Turbopack later.)
   webpack: (config) => {
-    // Workspace packages use explicit .js import specifiers that point at TypeScript sources.
     config.resolve.extensionAlias = {
       ".js": [".ts", ".tsx", ".js"],
       ".jsx": [".tsx", ".jsx"],

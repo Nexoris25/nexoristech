@@ -5,11 +5,18 @@
  * salesperson sees their own numbers; admins and viewers see the team.
  */
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
-import { STAGES } from "../../../../lib/crm-constants.js";
+import { STAGES, TARGET_METRICS, QUALIFIED_PLUS } from "../../../../lib/crm-constants.js";
 
 export const dynamic = "force-dynamic";
+
+function nairaShort(n: number): string {
+  if (n >= 1_000_000) return `NGN ${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (n >= 1_000) return `NGN ${(n / 1_000).toFixed(0)}k`;
+  return `NGN ${n.toLocaleString("en-NG")}`;
+}
 
 // The funnel order: how far a lead has progressed. Won sits at the end; Lost and Nurture are shown
 // separately since they leave the forward funnel.
@@ -39,7 +46,10 @@ export default async function PerformancePage(): Promise<ReactNode> {
   const params = mine ? [staff.id] : [];
   const pool = db();
 
-  const [stageRes, sourceRes, repRes] = await Promise.all([
+  const qualifiedList = QUALIFIED_PLUS.map((s) => `'${s}'`).join(", ");
+  const actualsWhere = mine ? "WHERE assigned_to = $1" : "";
+
+  const [stageRes, sourceRes, repRes, targetRes, actualRes] = await Promise.all([
     pool.query<{ status: string; c: number }>(
       `SELECT status, count(*)::int AS c FROM lead ${where} GROUP BY status`,
       params,
@@ -60,6 +70,28 @@ export default async function PerformancePage(): Promise<ReactNode> {
              JOIN lead l ON l.assigned_to = s.id
             GROUP BY s.name ORDER BY won DESC, total DESC`,
         ),
+    pool.query<{ metric: string; target: string }>(
+      `SELECT metric, sum(target)::bigint AS target FROM sales_target
+        ${mine ? "WHERE staff_id = $1" : ""} GROUP BY metric`,
+      params,
+    ),
+    pool.query<{
+      deals_won: number;
+      won_value: string;
+      qualified: number;
+      first_responses: number;
+      proposals: number;
+    }>(
+      `SELECT
+         count(*) FILTER (WHERE status = 'Won' AND won_at >= date_trunc('month', now()))::int AS deals_won,
+         coalesce(sum(deal_value) FILTER (WHERE status = 'Won' AND won_at >= date_trunc('month', now())), 0)::bigint AS won_value,
+         count(*) FILTER (WHERE status IN (${qualifiedList}))::int AS qualified,
+         count(*) FILTER (WHERE last_contacted_at >= date_trunc('week', now())
+                            AND (sla_due_at IS NULL OR last_contacted_at <= sla_due_at))::int AS first_responses,
+         count(*) FILTER (WHERE status = 'Proposal Sent')::int AS proposals
+       FROM lead ${actualsWhere}`,
+      params,
+    ),
   ]);
 
   const stageMap = new Map(stageRes.rows.map((r) => [r.status, r.c]));
@@ -79,6 +111,25 @@ export default async function PerformancePage(): Promise<ReactNode> {
   const funnelMax = Math.max(1, forwardCounts[0]?.count ?? 1);
 
   const sourceTotal = sourceRes.rows.reduce((s, r) => s + r.total, 0);
+
+  // Targets versus actuals (PRD 5.7). Targets are read for the scope (own, or the team total);
+  // actuals are computed from the real leads. Any value figure reads as Sales Won Value.
+  const targetMap = new Map(targetRes.rows.map((r) => [r.metric, Number.parseInt(r.target, 10)]));
+  const actuals: Record<string, number> = {
+    deals_won: actualRes.rows[0]?.deals_won ?? 0,
+    won_value: Number.parseInt(actualRes.rows[0]?.won_value ?? "0", 10),
+    qualified: actualRes.rows[0]?.qualified ?? 0,
+    first_responses: actualRes.rows[0]?.first_responses ?? 0,
+    proposals: actualRes.rows[0]?.proposals ?? 0,
+  };
+  const targetRows = TARGET_METRICS.map((metric) => {
+    const target = targetMap.get(metric.key) ?? 0;
+    const actual = actuals[metric.key] ?? 0;
+    const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : null;
+    const fmt = (n: number) => (metric.kind === "naira" ? nairaShort(n) : String(n));
+    return { ...metric, target, actual, pct, targetText: fmt(target), actualText: fmt(actual) };
+  });
+  const hasTargets = targetRows.some((r) => r.target > 0);
 
   const cards = [
     { label: "Total leads", value: String(total) },
@@ -110,6 +161,67 @@ export default async function PerformancePage(): Promise<ReactNode> {
             </span>
           </div>
         ))}
+      </div>
+
+      <div className="mt-4 rounded-card border border-purple-200 bg-white p-4 shadow-subtle sm:p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-dash-section font-700 text-ink-950">
+            Targets vs actuals
+            <span className="ml-2 text-[0.72rem] font-500 text-neutral-600">
+              {mine ? "yours" : "team"}
+            </span>
+          </h2>
+        </div>
+        {hasTargets ? (
+          <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            {targetRows.map((row) => (
+              <div key={row.key}>
+                <div className="flex items-baseline justify-between text-[0.8rem]">
+                  <span className="text-ink-950">
+                    {row.label}
+                    <span className="ml-1.5 text-[0.68rem] uppercase tracking-wide text-neutral-600">
+                      {row.period}
+                    </span>
+                  </span>
+                  <span className="font-mono text-neutral-600">
+                    <span className="font-700 text-ink-950">{row.actualText}</span>
+                    {row.target > 0 ? ` / ${row.targetText}` : ""}
+                  </span>
+                </div>
+                <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-purple-100">
+                  <span
+                    className="block h-full rounded-full bg-purple-600"
+                    style={{ width: `${row.pct ?? 0}%` }}
+                  />
+                </span>
+                {row.pct !== null ? (
+                  <span className="mt-1 block text-right text-[0.68rem] text-purple-700">
+                    {row.pct}% of target
+                  </span>
+                ) : (
+                  <span className="mt-1 block text-right text-[0.68rem] text-neutral-600">
+                    No target set
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 text-label text-neutral-600">
+            No targets set yet.{" "}
+            {mine ? (
+              "A CRM Admin sets your weekly and monthly targets on your Sales Rep Profile."
+            ) : (
+              <Link
+                href="/crm/reps"
+                className="cursor-pointer font-600 text-purple-700 hover:text-purple-600"
+              >
+                Set targets on each Sales Rep Profile
+              </Link>
+            )}
+            {mine ? "" : "."}
+          </p>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">

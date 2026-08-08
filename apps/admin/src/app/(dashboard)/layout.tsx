@@ -5,28 +5,52 @@
  * shown in the website's homepage product mockup.
  */
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { requireStaff } from "../../lib/auth.js";
-import { signOut } from "../../lib/auth-actions.js";
 import { db } from "../../lib/db.js";
 import { AdminShell } from "../../components/AdminShell.js";
+import { DatabaseDown } from "../../components/DatabaseDown.js";
+import { isDatabaseUnreachable, DB_UNREACHABLE_MARKER } from "../../lib/db-errors.js";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: ReactNode;
 }): Promise<ReactNode> {
-  const staff = await requireStaff();
-  const { rows } = await db().query<{ count: string }>(
-    "SELECT count(*) FROM lead WHERE status = 'New'",
-  );
-  const newLeadCount = Number(rows[0]?.count ?? 0);
+  // Everything below needs the database. When it is unreachable the honest answer is to say so:
+  // redirecting to /login would claim the session ended, and the login form cannot work either.
+  // Access is not granted here — requireStaff still runs and still refuses anyone without a valid
+  // session; this only changes how an outage is reported.
+  let staff: Awaited<ReturnType<typeof requireStaff>>;
+  let newLeadCount: number;
+  let granted: string[];
+  try {
+    staff = await requireStaff();
+    const [{ rows }, { rows: grants }] = await Promise.all([
+      db().query<{ count: string }>("SELECT count(*) FROM lead WHERE status = 'New'"),
+      db().query<{ module: string }>("SELECT DISTINCT module FROM module_access WHERE staff_id = $1", [staff.id]),
+    ]);
+    newLeadCount = Number(rows[0]?.count ?? 0);
+    granted = grants.map((g) => g.module);
+  } catch (error) {
+    if (isDatabaseUnreachable(error) || (error instanceof Error && error.message === DB_UNREACHABLE_MARKER)) {
+      return <DatabaseDown area="The dashboard" />;
+    }
+    throw error;
+  }
+  // RBAC: a CMS-only user (granted the CMS and nothing else, and not an admin) never sees the admin
+  // dashboard — they are sent straight to the CMS, which has its own shell.
+  if (staff.role !== "admin" && granted.includes("cms") && granted.every((m) => m === "cms")) {
+    redirect("/cms");
+  }
+  // An admin sees every module; everyone else sees only the modules they were granted (§3.2). The CMS
+  // opens in its own shell, so it is not one of the dark-shell modules listed here.
+  const access = staff.role === "admin"
+    ? ["crm", "finance", "hr", "payroll"]
+    : granted.filter((m) => m !== "cms");
 
   return (
-    <AdminShell
-      staff={{ name: staff.name, role: staff.role }}
-      newLeadCount={newLeadCount}
-      signOutAction={signOut}
-    >
+    <AdminShell staff={{ name: staff.name, role: staff.role }} newLeadCount={newLeadCount} access={access}>
       {children}
     </AdminShell>
   );

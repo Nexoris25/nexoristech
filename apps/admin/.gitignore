@@ -1,0 +1,4 @@
+
+# CMS uploaded media (served from disk, not committed)
+/public/uploads/*
+!/public/uploads/.gitkeep

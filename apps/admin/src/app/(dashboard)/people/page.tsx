@@ -1,182 +1,154 @@
 /**
- * People & Access (PRD 3.2): the one screen where module access and role are granted, read by every
- * module's permission check. Admin-only. Shows each person, their per-module grants (with revoke),
- * and a grant control; the open password-reset requests to resolve; and the add-person form. When
- * HR lands, person creation moves there and this screen keeps only the access grants.
+ * HR - Employee Directory (PRD 7.10, list view). HR is the only place a person is created (3.1).
+ * The directory lists everyone in the employee and contract register with their department, job
+ * title, type, and lifecycle status, and links to the record. Onboarding, contract register,
+ * leave, expense claims, and offboarding are reached from the sub-nav. HR Admin / HR Assistant.
  */
 import type { ReactNode } from "react";
-import { KeyRound, UserPlus, X } from "lucide-react";
+import Link from "next/link";
+import { Search, UserPlus, Users2, UserCheck, CalendarClock, LogOut } from "lucide-react";
 import { requireAdmin } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
-import { deactivateStaff } from "../../../lib/people-actions.js";
-import { revokeModuleAccess } from "../../../lib/shell-actions.js";
-import { MODULE_LABEL, type ModuleId } from "../../../lib/shell-constants.js";
-import { AddStaffForm } from "./AddStaffForm.js";
-import { GrantAccess } from "./GrantAccess.js";
-import { ResetPassword } from "./ResetPassword.js";
 
 export const dynamic = "force-dynamic";
 
-interface StaffRow {
+interface Row {
   id: string;
-  name: string;
-  email: string;
-  role: string;
-  active: boolean;
-  open_count: string;
-  grants: { module: string; role: string }[] | null;
+  full_name: string;
+  staff_number: string | null;
+  job_title: string | null;
+  department: string | null;
+  employment_type: string;
+  employment_status: string;
+  date_joined: string | null;
 }
 
-interface ResetRow {
-  id: string;
-  email: string;
-  staff_id: string | null;
-  staff_name: string | null;
-  requested_at: string;
+const STATUS: Record<string, string> = {
+  Probation: "bg-[#FEF3C7] text-[#B45309]",
+  Confirmed: "bg-[#DCFCE7] text-[#15803D]",
+  "On Leave": "bg-[#DBEAFE] text-[#1D4ED8]",
+  Exited: "bg-slate-100 text-slate-600",
+};
+
+function initials(name: string): string {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
 }
 
-const CARD = "rounded-card border border-purple-200 bg-white shadow-subtle";
-
-export default async function PeoplePage(): Promise<ReactNode> {
+export default async function EmployeeDirectoryPage({ searchParams }: { searchParams: Promise<{ q?: string; dept?: string }> }): Promise<ReactNode> {
   await requireAdmin();
+  const { q, dept } = await searchParams;
+  const query = (q ?? "").trim();
   const pool = db();
 
-  const [{ rows: staff }, { rows: resets }] = await Promise.all([
-    pool.query<StaffRow>(
-      `SELECT s.id, s.name, s.email, s.role, s.active,
-              count(l.id) FILTER (WHERE l.status NOT IN ('Won','Lost'))::text AS open_count,
-              coalesce(
-                (SELECT json_agg(json_build_object('module', ma.module, 'role', ma.role) ORDER BY ma.module)
-                   FROM module_access ma WHERE ma.staff_id = s.id), '[]'
-              ) AS grants
-         FROM staff s LEFT JOIN lead l ON l.assigned_to = s.id
-        GROUP BY s.id ORDER BY s.active DESC, s.name`,
+  const where: string[] = [];
+  const params: unknown[] = [];
+  if (query) { params.push(`%${query}%`); where.push(`(e.full_name ILIKE $${params.length} OR e.staff_number ILIKE $${params.length} OR e.job_title ILIKE $${params.length})`); }
+  if (dept) { params.push(dept); where.push(`d.name = $${params.length}`); }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+  const [{ rows }, { rows: depts }, { rows: kpi }] = await Promise.all([
+    pool.query<Row>(
+      `SELECT e.id, e.full_name, e.staff_number, e.job_title, d.name AS department,
+              e.employment_type, e.employment_status, e.date_joined::text
+         FROM employee e LEFT JOIN hr_department d ON d.id = e.department_id
+         ${whereSql} ORDER BY e.full_name LIMIT 100`,
+      params,
     ),
-    pool.query<ResetRow>(
-      `SELECT r.id::text, r.email, r.staff_id, s.name AS staff_name, r.requested_at::text
-         FROM password_reset_request r LEFT JOIN staff s ON s.id = r.staff_id
-        WHERE r.status = 'open' ORDER BY r.requested_at DESC`,
+    pool.query<{ name: string; c: number }>(
+      `SELECT d.name, count(e.id)::int c FROM hr_department d LEFT JOIN employee e ON e.department_id = d.id GROUP BY d.name ORDER BY d.name`,
+    ),
+    pool.query<{ total: number; confirmed: number; on_leave: number; probation: number }>(
+      `SELECT count(*)::int total,
+              count(*) FILTER (WHERE employment_status='Confirmed')::int confirmed,
+              count(*) FILTER (WHERE employment_status='On Leave')::int on_leave,
+              count(*) FILTER (WHERE employment_status='Probation')::int probation
+         FROM employee`,
     ),
   ]);
+  const k = kpi[0]!;
+
+  const cards = [
+    { label: "Total People", value: k.total, icon: <Users2 size={16} strokeWidth={2} />, tint: "bg-[#EEEBFC] text-[#543CDA]" },
+    { label: "Confirmed", value: k.confirmed, icon: <UserCheck size={16} strokeWidth={2} />, tint: "bg-[#DCFCE7] text-[#15803D]" },
+    { label: "On Probation", value: k.probation, icon: <CalendarClock size={16} strokeWidth={2} />, tint: "bg-[#FEF3C7] text-[#B45309]" },
+    { label: "On Leave", value: k.on_leave, icon: <LogOut size={16} strokeWidth={2} />, tint: "bg-[#DBEAFE] text-[#2563EB]" },
+  ];
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <h1 className="font-roboto text-[1.7rem] font-700 leading-tight text-ink-950">
-        People &amp; Access
-      </h1>
-      <p className="mt-1 text-[0.95rem] text-neutral-600">
-        The one place module access and role are granted. Deactivating preserves history and returns
-        open leads to the queue.
-      </p>
+    <div className="mx-auto max-w-7xl">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-[1.4rem] font-700 text-slate-900">Employee Directory</h1>
+          <p className="mt-1 text-[0.88rem] text-slate-500">Everyone on the Nexoris Technologies team. HR is the one place a person is created.</p>
+        </div>
+        <Link href="/people/onboard" className="inline-flex items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2 text-[0.84rem] font-600 text-white hover:bg-[#4330B8]">
+          <UserPlus size={15} strokeWidth={2} /> Onboard Employee
+        </Link>
+      </div>
 
-      {/* Password reset requests */}
-      {resets.length > 0 ? (
-        <section className={`mt-6 ${CARD} p-5`}>
-          <h2 className="flex items-center gap-2 text-[1.05rem] font-700 text-ink-950">
-            <KeyRound size={17} strokeWidth={2} className="text-purple-600" />
-            Password reset requests
-            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[0.72rem] font-600 text-purple-700">
-              {resets.length}
-            </span>
-          </h2>
-          <ul className="mt-3 flex flex-col gap-2">
-            {resets.map((req) => (
-              <li key={req.id} className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-purple-200/60 px-3.5 py-2.5">
-                <span className="text-[0.88rem] text-ink-950">
-                  {req.staff_name ?? req.email}
-                  {req.staff_name ? <span className="text-neutral-600"> · {req.email}</span> : null}
-                </span>
-                {req.staff_id ? (
-                  <ResetPassword requestId={req.id} staffId={req.staff_id} />
-                ) : (
-                  <span className="text-[0.78rem] text-neutral-600">No matching account</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {/* People + access */}
-      <section className={`mt-6 ${CARD}`}>
-        <h2 className="px-5 pt-5 text-[1.05rem] font-700 text-ink-950">People</h2>
-        <div className="mt-3 flex flex-col divide-y divide-purple-200/60">
-          {staff.map((person) => (
-            <div key={person.id} className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0">
-                <span className="flex flex-wrap items-center gap-2">
-                  <span className="text-[0.95rem] font-600 text-ink-950">{person.name}</span>
-                  {person.active ? (
-                    <span className="rounded-full bg-[#E4F5EE] px-2 py-0.5 text-[0.66rem] font-600 uppercase tracking-wide text-[#0E7A5B]">
-                      Active
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[0.66rem] font-600 uppercase tracking-wide text-neutral-600">
-                      Exited
-                    </span>
-                  )}
-                </span>
-                <span className="block text-[0.78rem] text-neutral-600">
-                  {person.email} · {person.open_count} open lead{person.open_count === "1" ? "" : "s"}
-                </span>
-                <span className="mt-2 flex flex-wrap items-center gap-1.5">
-                  {(person.grants ?? []).length === 0 ? (
-                    <span className="text-[0.76rem] text-neutral-600">No module access granted</span>
-                  ) : (
-                    (person.grants ?? []).map((grant) => (
-                      <span
-                        key={grant.module}
-                        className="inline-flex items-center gap-1 rounded-full bg-purple-100 py-0.5 pl-2.5 pr-1 text-[0.72rem] font-600 text-purple-700"
-                      >
-                        {MODULE_LABEL[grant.module as ModuleId] ?? grant.module}: {grant.role}
-                        <form action={revokeModuleAccess} className="inline-flex">
-                          <input type="hidden" name="staffId" value={person.id} />
-                          <input type="hidden" name="module" value={grant.module} />
-                          <button
-                            type="submit"
-                            aria-label={`Revoke ${grant.module} access`}
-                            className="grid h-4 w-4 cursor-pointer place-items-center rounded-full text-purple-700 hover:bg-purple-200"
-                          >
-                            <X size={11} strokeWidth={2.4} />
-                          </button>
-                        </form>
-                      </span>
-                    ))
-                  )}
-                </span>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center gap-3">
-                {person.active ? <GrantAccess staffId={person.id} /> : null}
-                {person.active && person.role !== "admin" ? (
-                  <form action={deactivateStaff}>
-                    <input type="hidden" name="staffId" value={person.id} />
-                    <button
-                      type="submit"
-                      className="cursor-pointer text-[0.78rem] font-600 text-purple-700 hover:text-purple-600"
-                    >
-                      Deactivate
-                    </button>
-                  </form>
-                ) : null}
-              </div>
+      <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {cards.map((c) => (
+          <div key={c.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-subtle sm:p-5">
+            <div className="flex items-start justify-between">
+              <p className="text-[0.8rem] font-500 text-slate-500">{c.label}</p>
+              <span className={`grid h-8 w-8 place-items-center rounded-lg ${c.tint}`}>{c.icon}</span>
             </div>
-          ))}
-        </div>
-      </section>
+            <p className="mt-2 font-mono text-[1.6rem] font-700 leading-none text-slate-900">{c.value}</p>
+          </div>
+        ))}
+      </div>
 
-      <section className={`mt-6 ${CARD} p-5`}>
-        <h2 className="flex items-center gap-2 text-[1.05rem] font-700 text-ink-950">
-          <UserPlus size={17} strokeWidth={2} className="text-purple-600" />
-          Add a person
-        </h2>
-        <p className="mt-1 text-[0.8rem] text-neutral-600">
-          Sets the platform role and, for a salesperson, their CRM capacity and industries. When HR
-          lands, people are created there and this form retires.
-        </p>
-        <div className="mt-4">
-          <AddStaffForm />
-        </div>
-      </section>
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <form action="/people" className="relative flex-1 min-w-[200px]">
+          <Search size={15} strokeWidth={2} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input name="q" defaultValue={query} placeholder="Search by name, staff ID, or title..." className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-[0.84rem] text-slate-900 placeholder:text-slate-500 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15" />
+        </form>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-subtle">
+        {rows.length === 0 ? (
+          <div className="px-5 py-14 text-center">
+            <p className="text-[0.92rem] font-600 text-slate-700">No employees yet</p>
+            <p className="mx-auto mt-1 max-w-sm text-[0.85rem] text-slate-500">Onboard the first person to build the register. Every module grants access against these records.</p>
+            <Link href="/people/onboard" className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2 text-[0.84rem] font-600 text-white hover:bg-[#4330B8]"><UserPlus size={15} strokeWidth={2} /> Onboard Employee</Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] text-left">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-[0.7rem] uppercase tracking-wide text-slate-500">
+                  <th className="px-5 py-3 font-600">Employee</th>
+                  <th className="px-5 py-3 font-600">Staff ID</th>
+                  <th className="px-5 py-3 font-600">Department</th>
+                  <th className="px-5 py-3 font-600">Job Title</th>
+                  <th className="px-5 py-3 font-600">Type</th>
+                  <th className="px-5 py-3 font-600">Status</th>
+                  <th className="px-5 py-3 font-600">Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60">
+                    <td className="px-5 py-3">
+                      <Link href={`/people/${r.id}`} className="flex items-center gap-2.5">
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 font-mono text-[0.64rem] font-700 text-slate-600">{initials(r.full_name)}</span>
+                        <span className="text-[0.85rem] font-600 text-slate-900 hover:text-[#543CDA]">{r.full_name}</span>
+                      </Link>
+                    </td>
+                    <td className="px-5 py-3 font-mono text-[0.82rem] text-slate-600">{r.staff_number ?? "—"}</td>
+                    <td className="px-5 py-3 text-[0.83rem] text-slate-600">{r.department ?? "—"}</td>
+                    <td className="px-5 py-3 text-[0.83rem] text-slate-600">{r.job_title ?? "—"}</td>
+                    <td className="px-5 py-3 text-[0.83rem] text-slate-600">{r.employment_type}</td>
+                    <td className="px-5 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-[0.72rem] font-600 ${STATUS[r.employment_status] ?? "bg-slate-100 text-slate-600"}`}>{r.employment_status}</span></td>
+                    <td className="px-5 py-3 whitespace-nowrap text-[0.83rem] text-slate-600">{r.date_joined ? new Date(r.date_joined).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="border-t border-slate-200 px-5 py-3 text-[0.78rem] text-slate-500">Showing {rows.length} of {k.total} · {depts.map((d) => `${d.name} (${d.c})`).join(" · ")}</div>
+      </div>
     </div>
   );
 }

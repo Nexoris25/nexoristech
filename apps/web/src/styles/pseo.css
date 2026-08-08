@@ -1,0 +1,82 @@
+/**
+ * Programmatic page bodies.
+ *
+ * These pages are built from the Tailwind primitives rather than the .svc-page shell, so none of the
+ * .prose rules written for the article and case study pages reach them. The body used to go through
+ * the markdown renderer, which styled each element as it emitted it; now that it is CMS HTML rendered
+ * directly, the styling has to live here or the page arrives as unstyled tags.
+ *
+ * The measure and the type are the article page's, so a programmatic page reads like the rest of the
+ * site rather than like a different site.
+ */
+.pseo-body {
+  max-width: 72ch;
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.13rem;
+  line-height: 1.7;
+  color: #241f33;
+}
+.pseo-body p {
+  margin-bottom: 22px;
+}
+.pseo-body h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 32px 0 12px;
+  /* Clears the sticky header when an entry in the contents sheet is followed. */
+  scroll-margin-top: 88px;
+}
+.pseo-body h3 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  margin: 24px 0 10px;
+}
+.pseo-body ul,
+.pseo-body ol {
+  margin: 0 0 22px;
+  padding-left: 22px;
+}
+.pseo-body ul {
+  list-style: disc;
+}
+.pseo-body ol {
+  list-style: decimal;
+}
+.pseo-body li {
+  margin-bottom: 8px;
+}
+.pseo-body a {
+  color: var(--purple-600, #543cda);
+  text-decoration: underline;
+}
+.pseo-body strong {
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+}
+.pseo-body blockquote {
+  margin: 0 0 22px;
+  padding-left: 18px;
+  border-left: 3px solid var(--purple-300, #c4b9f5);
+  color: #3a3550;
+}
+.pseo-body table {
+  width: 100%;
+  margin-bottom: 22px;
+  border-collapse: collapse;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.92rem;
+}
+.pseo-body th,
+.pseo-body td {
+  border: 1px solid var(--line, #e6e4ee);
+  padding: 10px 12px;
+  text-align: left;
+}
+.pseo-body th {
+  background: var(--purple-100, #eeebfc);
+  font-weight: 600;
+}

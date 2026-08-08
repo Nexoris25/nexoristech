@@ -114,7 +114,7 @@ export function ReadinessScan(): ReactNode {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Deliberately keyed on `active` alone: the animation restarts only when the scan does.
   }, [active]);
 
   useEffect(

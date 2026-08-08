@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { ContactFormView } from "./ContactFormView.js";
+import { WHATSAPP_HREF } from "../../content/catalogue.js";
 
 const NEXT_STEPS = [
   {
@@ -98,6 +99,17 @@ export function ContactView(): ReactNode {
 
               <div className="aside-card reveal">
                 <h3>Other ways to reach us</h3>
+                {/* Click to chat. The number was only ever reachable as a tel: link and inside one Oge
+                    error state, so the quickest channel for most Nigerian buyers was the hidden one. */}
+                <a className="chan" href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer">
+                  <span className="ch-ic">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5-4.5-.2-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.2-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.1c.1.2.1.4 0 .6l-.4.5-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.2 1.4 2.5 1.5.3.1.4.1.6-.1l.9-1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.5z"/></svg>
+                  </span>
+                  <span>
+                    <span className="ch-l">WhatsApp</span>
+                    <span className="ch-v">Chat with us now</span>
+                  </span>
+                </a>
                 <a className="chan" href="tel:+2349138133224">
                   <span className="ch-ic">
                     <svg viewBox="0 0 24 24">

@@ -37,8 +37,19 @@ function personNode(person: PersonRef): JsonLdNode {
   };
 }
 
-/** The article subtype. Standard articles use Article; editorial blog posts use BlogPosting. */
-export type ArticleType = "Article" | "BlogPosting";
+/**
+ * The article subtype the editor chooses per piece. Google treats these as Article variants and reads the
+ * same properties from each, so picking the honest one describes the content without changing eligibility:
+ * BlogPosting for editorial posts, NewsArticle for reporting, TechArticle for technical guides,
+ * ScholarlyArticle for research, Report for a formal report, and Article as the safe default.
+ */
+export const ARTICLE_TYPES = ["Article", "BlogPosting", "NewsArticle", "TechArticle", "ScholarlyArticle", "Report"] as const;
+export type ArticleType = (typeof ARTICLE_TYPES)[number];
+
+/** True when a stored value is a schema type we support, so bad data falls back rather than emitting junk. */
+export function isArticleType(value: string | null | undefined): value is ArticleType {
+  return typeof value === "string" && (ARTICLE_TYPES as readonly string[]).includes(value);
+}
 
 /** Input to the article node builder. */
 export interface ArticleInput {
@@ -184,6 +195,66 @@ export function caseStudyNode(input: CaseStudyInput): JsonLdNode {
             url: absoluteUrl(p),
           }))
         : undefined,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified ?? input.datePublished,
+    inLanguage: LOCALE,
+  };
+}
+
+/** One step of a how-to guide. */
+export interface HowToStep {
+  /** The step's heading, used as the step name. */
+  name: string;
+  /** What to do, in prose. Required by Google for every step. */
+  text: string;
+  /** Deep link to that step on the page, so a result can jump straight to it. */
+  anchor?: string;
+}
+
+/** Input to the HowTo builder. */
+export interface HowToInput {
+  path: string;
+  name: string;
+  description: string;
+  steps: HowToStep[];
+  image?: ImageInput;
+  datePublished?: string;
+  dateModified?: string;
+}
+
+/**
+ * The HowTo node, for a guide written as a sequence of steps.
+ *
+ * HowTo is not an Article subtype, which is why it is not in ARTICLE_TYPES: it carries a required `step`
+ * list that an Article has no place for, and emitting `"@type": "HowTo"` on an article node would
+ * produce markup that validates as neither. A page marked HowTo therefore gets this node instead.
+ *
+ * Steps come from the article's own H2 headings — the heading is the step, the copy beneath it is the
+ * instruction — so the structured data says exactly what the page says.
+ *
+ * Worth knowing: Google retired the HowTo rich result for most surfaces in 2023, so this is unlikely to
+ * change how the page looks in Search. It remains valid schema.org and is read by assistants and other
+ * consumers, which is the reason to emit it.
+ */
+export function howToNode(input: HowToInput): JsonLdNode {
+  const url = absoluteUrl(input.path);
+  return {
+    "@type": "HowTo",
+    "@id": `${url}#howto`,
+    name: input.name,
+    description: input.description,
+    url,
+    mainEntityOfPage: { "@id": `${url}#webpage` },
+    image: input.image ? imageObjectNode(input.image) : undefined,
+    publisher: { "@id": SITE_NODE_IDS.organization },
+    // Position is explicit so the order survives however a consumer reads the list.
+    step: input.steps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+      url: s.anchor ? `${url}#${s.anchor}` : undefined,
+    })),
     datePublished: input.datePublished,
     dateModified: input.dateModified ?? input.datePublished,
     inLanguage: LOCALE,

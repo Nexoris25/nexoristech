@@ -133,6 +133,19 @@ export function SolutionFinder(): ReactNode {
   const current = QUESTIONS[step]!;
   const rec = RECS[best];
 
+  /**
+   * The contact form's service list writes "&" where the finder writes "and", so normalise before
+   * handing over; anything that still does not match is left for the visitor to choose.
+   */
+  const contactHref = (() => {
+    const params = new URLSearchParams({
+      service: rec.title.replace(/ and /g, " & "),
+      need: `${rec.title}. ${rec.desc}`,
+      from: "solution-finder",
+    });
+    return `/contact?${params.toString()}`;
+  })();
+
   return (
     <div className="finder reveal">
       <div className="fglow" />
@@ -215,7 +228,9 @@ export function SolutionFinder(): ReactNode {
             <div className="rk">Recommended for you</div>
             <h3>{rec.title}</h3>
             <p>{rec.desc}</p>
-            <Link className="btn btn-primary" href="/contact">
+            {/* Carry the recommendation and the answers through to the contact form, so the person does
+                not repeat themselves and the sales rep sees what the finder concluded. */}
+            <Link className="btn btn-primary" href={contactHref}>
               Start this conversation <span className="arr">&rarr;</span>
             </Link>
             <button

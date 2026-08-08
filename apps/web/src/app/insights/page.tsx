@@ -5,17 +5,38 @@
  */
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { buildMetadata } from "@nexoris/seo";
+import { buildMetadata, buildPageGraph } from "@nexoris/seo";
 import { getAllInsightCards } from "../../lib/cms.js";
 import { InsightsView } from "../../components/company/InsightsView.js";
+import { JsonLd } from "../../components/JsonLd.js";
+
+const PAGE_TITLE = "Insights | Nexoris Technologies";
+const PAGE_DESCRIPTION =
+  "Practical articles on custom software, automation and applied AI for businesses in Nigeria and beyond, from the engineers who build these systems every day.";
+
+
+/**
+ * The page graph. This route used to emit no JSON-LD at all, so search engines and AI retrievers saw
+ * none of the site-wide entity nodes here that every other page carries.
+ */
+function graph() {
+  return buildPageGraph({
+    page: {
+      routeClass: "collection",
+      path: "/insights",
+      name: PAGE_TITLE,
+      description: PAGE_DESCRIPTION,
+      breadcrumbs: [{ name: "Insights", path: "/insights" }],
+    },
+  });
+}
 
 export const revalidate = 300;
 
 export function generateMetadata(): Metadata {
   return buildMetadata({
-    title: "Insights | Nexoris Technologies",
-    description:
-      "Practical articles on software, automation, and AI for businesses in Nigeria and beyond, from the team at Nexoris Technologies.",
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
     path: "/insights",
     ogType: "website",
     noindex: false,
@@ -24,5 +45,10 @@ export function generateMetadata(): Metadata {
 
 export default async function InsightsHubPage(): Promise<ReactNode> {
   const articles = await getAllInsightCards();
-  return <InsightsView cards={articles} />;
+  return (
+    <>
+      <JsonLd graph={graph()} />
+      <InsightsView cards={articles} />
+    </>
+  );
 }

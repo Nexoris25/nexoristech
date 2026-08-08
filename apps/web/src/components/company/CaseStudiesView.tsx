@@ -10,7 +10,8 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
-import { CaseStudyTabs } from "./CaseStudyTabs.js";
+import { CaseStudyGrid } from "./CaseStudyGrid.js";
+import type { CaseStudyCard } from "../../lib/cms.js";
 
 const PLACEHOLDERS = [
   "The headline result, stated plainly, appears here.",
@@ -41,7 +42,7 @@ const STORY_STEPS = [
   },
 ];
 
-export function CaseStudiesView(): ReactNode {
+export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] }): ReactNode {
   return (
     <div className="svc-page case-studies-page">
       <ScrollFx />
@@ -79,35 +80,46 @@ export function CaseStudiesView(): ReactNode {
             </span>
             <h2 className="h-section">Filter the work to find your situation.</h2>
           </div>
-          <div className="cs-toolbar reveal">
-            <CaseStudyTabs />
-            <span className="cs-count">Verified figures only</span>
-          </div>
-          <div className="cs-grid reveal">
-            {PLACEHOLDERS.map((h) => (
-              <article className="cs-ph" key={h}>
-                <div className="ph-stripe" />
-                <span className="ph-tag">Verified case study</span>
-                <h3>{h}</h3>
-                <div className="ph-meta">Industry &middot; Service &middot; Outcome</div>
-              </article>
-            ))}
-          </div>
-          <div className="cs-note reveal">
-            <div className="cn-ic">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
-            </div>
-            <p>
-              Client case studies are published here only when the outcome is verified and the client
-              has approved the figures. <b>If a number cannot be stood behind, it does not appear.</b>{" "}
-              Until a project&rsquo;s results are confirmed, this space stays honest rather than
-              filled. Our two in-house products below are real proof of capability you can look at
-              today.
-            </p>
-          </div>
+          {/* The published work. The placeholders below were written for the case of having none yet,
+              and that is the only case they still serve — they used to show even when the CMS held
+              real case studies, because nothing read from it. */}
+          {studies.length > 0 ? (
+            <CaseStudyGrid studies={studies} />
+          ) : (
+            <>
+              <div className="cs-toolbar reveal">
+                <span />
+                <span className="cs-count">Verified figures only</span>
+              </div>
+              <div className="cs-grid reveal">
+                {PLACEHOLDERS.map((h) => (
+                  <article className="cs-ph" key={h}>
+                    <div className="ph-stripe" />
+                    <span className="ph-tag">Verified case study</span>
+                    <h3>{h}</h3>
+                    <div className="ph-meta">Industry &middot; Service &middot; Outcome</div>
+                  </article>
+                ))}
+              </div>
+              {/* This note explains an empty grid ("this space stays honest rather than filled"), so it
+                  belongs with the empty grid and not under real work. */}
+              <div className="cs-note">
+                <div className="cn-ic">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
+                    <path d="M9 12l2 2 4-4" />
+                  </svg>
+                </div>
+                <p>
+                  Client case studies are published here only when the outcome is verified and the
+                  client has approved the figures.{" "}
+                  <b>If a number cannot be stood behind, it does not appear.</b> Until a
+                  project&rsquo;s results are confirmed, this space stays honest rather than filled.
+                  Our two in-house products below are real proof of capability you can look at today.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

@@ -7,7 +7,8 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { UserCog } from "lucide-react";
+import { UserCog, ChevronRight } from "lucide-react";
+import { industryLabel, isIndustrySlug } from "@nexoris/recommend";
 import { requireAdmin } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
@@ -22,12 +23,8 @@ interface RepRow {
   open_count: number;
 }
 
-function industryLabel(slug: string): string {
-  return slug
-    .replace(/-software$|-solutions$/g, "")
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+function labelFor(slug: string): string {
+  return isIndustrySlug(slug) ? industryLabel(slug) : slug;
 }
 
 export default async function SalesRepsPage(): Promise<ReactNode> {
@@ -52,8 +49,8 @@ export default async function SalesRepsPage(): Promise<ReactNode> {
         <div>
           <h1 className="font-roboto text-dash-title font-700 text-ink-950">Sales reps</h1>
           <p className="mt-1 text-label text-neutral-600">
-            The CRM roster and each rep&apos;s capacity and industries. Configured in People &amp;
-            Access.
+            The CRM roster. Open a rep to set the industries owned, capacity, territory, and targets.
+            People are created and granted access in People &amp; Access.
           </p>
         </div>
         <Link
@@ -89,6 +86,7 @@ export default async function SalesRepsPage(): Promise<ReactNode> {
                   <th className="px-4 py-2.5 font-600">Industries owned</th>
                   <th className="px-4 py-2.5 font-600">Capacity</th>
                   <th className="px-4 py-2.5 font-600">Open load</th>
+                  <th className="px-4 py-2.5 font-600" aria-label="Configure" />
                 </tr>
               </thead>
               <tbody>
@@ -98,7 +96,12 @@ export default async function SalesRepsPage(): Promise<ReactNode> {
                   return (
                     <tr key={rep.id} className="border-b border-purple-200/50 last:border-b-0">
                       <td className="px-4 py-3 sm:px-5">
-                        <span className="block text-dash-data font-600 text-ink-950">{rep.name}</span>
+                        <Link
+                          href={`/crm/reps/${rep.id}`}
+                          className="block cursor-pointer text-dash-data font-600 text-ink-950 hover:text-purple-700"
+                        >
+                          {rep.name}
+                        </Link>
                         <span className="block text-[0.72rem] text-neutral-600">{rep.email}</span>
                       </td>
                       <td className="px-4 py-3">
@@ -111,7 +114,7 @@ export default async function SalesRepsPage(): Promise<ReactNode> {
                                 key={slug}
                                 className="rounded-full bg-purple-100 px-2 py-0.5 text-[0.68rem] font-600 text-purple-700"
                               >
-                                {industryLabel(slug)}
+                                {labelFor(slug)}
                               </span>
                             ))}
                             {rep.industries.length > 3 ? (
@@ -134,6 +137,15 @@ export default async function SalesRepsPage(): Promise<ReactNode> {
                           {rep.open_count}
                           {rep.capacity_cap !== null ? ` / ${rep.capacity_cap}` : ""}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/crm/reps/${rep.id}`}
+                          aria-label={`Configure ${rep.name}`}
+                          className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-card border border-purple-200 px-2.5 py-1 text-[0.72rem] font-600 text-purple-600 hover:bg-purple-100"
+                        >
+                          Configure <ChevronRight size={13} strokeWidth={2.2} />
+                        </Link>
                       </td>
                     </tr>
                   );

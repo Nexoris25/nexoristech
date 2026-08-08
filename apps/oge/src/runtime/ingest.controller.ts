@@ -6,18 +6,18 @@ import {
   Body,
   Controller,
   Headers,
+  Inject,
   Post,
   BadRequestException,
   UnauthorizedException,
 } from "@nestjs/common";
-// NestJS reads the constructor parameter type from emitted metadata, so IngestService must be a
-// value import, not a type-only one.
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { IngestService, type ReingestRequest } from "./ingest.service.js";
 
 @Controller()
 export class IngestController {
-  constructor(private readonly ingest: IngestService) {}
+  // The token is explicit because injection must not depend on `emitDecoratorMetadata`: esbuild
+  // (via tsx) does not emit it, and every dependency would arrive undefined in watch mode.
+  constructor(@Inject(IngestService) private readonly ingest: IngestService) {}
 
   @Post("reingest")
   async reingest(

@@ -1,0 +1,44 @@
+/**
+ * Completes an invitation: verifies the one-time token, sets the invitee's password, activates the
+ * account, and clears the token so the link cannot be reused. Native POST (works behind the framed
+ * preview's Origin: null). On success it sends the user to sign in; the modules they can see are decided
+ * by their role and their module_access grants, so a CMS-only invitee sees only the CMS.
+ */
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import bcrypt from "bcryptjs";
+import { db } from "../../../lib/db.js";
+import { verifyInviteToken } from "../../../lib/invite.js";
+import { securityPolicy, passwordProblem } from "../../../lib/security-policy.js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(request: NextRequest): Promise<Response> {
+  const f = await request.formData();
+  const token = String(f.get("token") ?? "");
+  const password = String(f.get("password") ?? "");
+  const confirm = String(f.get("confirm") ?? "");
+  const back = `/accept-invite?token=${encodeURIComponent(token)}`;
+
+  const payload = verifyInviteToken(token);
+  if (!payload) return NextResponse.redirect(new URL("/accept-invite", request.url), { status: 303 });
+  // The configured policy, not a hardcoded eight characters. Global Settings said twelve with a symbol
+  // and this accepted "password" regardless.
+  if (passwordProblem(password, await securityPolicy())) {
+    return NextResponse.redirect(new URL(`${back}&error=weak`, request.url), { status: 303 });
+  }
+  if (password !== confirm) return NextResponse.redirect(new URL(`${back}&error=mismatch`, request.url), { status: 303 });
+
+  const pool = db();
+  // The token must still match the row (guards against reuse and re-issued invites).
+  const { rows } = await pool.query<{ id: string }>(
+    "SELECT id FROM staff WHERE id=$1 AND email=$2 AND invite_token=$3", [payload.sub, payload.email, token]);
+  if (!rows[0]) return NextResponse.redirect(new URL("/accept-invite", request.url), { status: 303 });
+
+  const hash = await bcrypt.hash(password, 10);
+  await pool.query(
+    "UPDATE staff SET password_hash=$1, account_status='active', active=true, invite_token=NULL, invite_expires=NULL WHERE id=$2",
+    [hash, payload.sub]);
+  return NextResponse.redirect(new URL("/login?accepted=1", request.url), { status: 303 });
+}

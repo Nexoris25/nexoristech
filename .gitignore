@@ -20,6 +20,15 @@ out/
 *.pem
 *.key
 
+# Google Cloud credentials — never commit (keyless ADC / OAuth). GSC + GA4 config lives in .env.local.
+application_default_credentials.json
+*application_default_credentials.json
+*-gcp-credentials.json
+*-gcp-key.json
+gha-creds-*.json
+.gcloud/
+gcp-credentials/
+
 # Logs
 logs/
 *.log

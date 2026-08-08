@@ -1,0 +1,172 @@
+/**
+ * The floating contents control, shared by insight articles and legal pages.
+ *
+ * Below 1024px the article's sticky contents column is hidden and the legal page's list stacks above the
+ * copy, so on a phone there was either no contents list or one that pushed the document itself below
+ * the fold. This is the mobile answer for both: a launcher in the corner opening a sheet.
+ *
+ * It mirrors the Oge launcher's shape and sits bottom-left, opposite it, so the two never collide. It
+ * is hidden outright at 1025px and above, where the sticky column does the job properly.
+ */
+
+.toc-float {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .toc-float {
+    display: block;
+  }
+
+  /* Below the Oge panel (z-index 200) and above the page. */
+  .toc-fab {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px 11px 13px;
+    border: 1px solid var(--line, #e9e7f0);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink-950, #0d0a1c);
+    font-family: "Inter", sans-serif;
+    font-size: 0.83rem;
+    font-weight: 600;
+    box-shadow: 0 8px 26px rgba(13, 10, 28, 0.16);
+    cursor: pointer;
+  }
+  .toc-fab svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: var(--purple-600, #543cda);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .toc-fab:hover {
+    border-color: var(--purple-300, #c9c0f7);
+  }
+  .toc-fab:focus-visible {
+    outline: 2px solid var(--purple-600, #543cda);
+    outline-offset: 2px;
+  }
+
+  .toc-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 190;
+    border: 0;
+    padding: 0;
+    background: rgba(13, 10, 28, 0.42);
+    cursor: pointer;
+  }
+
+  .toc-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    max-height: 72vh;
+    overflow-y: auto;
+    padding: 6px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -12px 40px rgba(13, 10, 28, 0.22);
+  }
+  /* The grab handle, so the sheet reads as a sheet. */
+  .toc-sheet::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 8px auto 12px;
+    border-radius: 999px;
+    background: var(--line, #e9e7f0);
+  }
+
+  .toc-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line, #e9e7f0);
+  }
+  .toc-sheet-head h2 {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3, #6a6580);
+  }
+  .toc-sheet-head button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .toc-sheet-head button svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: var(--ink-3, #6a6580);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .toc-sheet-head button:hover {
+    background: var(--purple-100, #eeebfc);
+  }
+
+  /* Numbered the same way as the desktop column, so the two read as one component. */
+  .toc-sheet ol {
+    list-style: none;
+    counter-reset: toc;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 8px 0 0;
+  }
+  .toc-sheet li {
+    counter-increment: toc;
+  }
+  .toc-sheet a {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 11px 12px;
+    border-radius: 9px;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    font-weight: 500;
+    color: var(--ink-2, #3a3550);
+  }
+  .toc-sheet a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--purple-500, #6a55f2);
+    flex: none;
+  }
+  .toc-sheet a.on {
+    background: var(--purple-100, #eeebfc);
+    color: var(--purple-700, #4330b8);
+    font-weight: 600;
+  }
+}
+
+/* Anyone who asks for less motion gets none of the sheet's. */
+@media (prefers-reduced-motion: reduce) {
+  .toc-sheet,
+  .toc-fab {
+    transition: none;
+  }
+}

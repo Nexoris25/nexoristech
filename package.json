@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Nexoris Technologies Digital Platform monorepo: marketing site, CMS, Oge AI gateway, and the internal admin dashboard with the CRM module.",
+  "description": "Nexoris Technologies Digital Platform monorepo: marketing site, Oge AI gateway, and the internal admin dashboard (CRM, Finance, HR, Payroll, NRS e-Invoicing, and a custom CMS).",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=22 <23",

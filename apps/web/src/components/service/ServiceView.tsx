@@ -9,6 +9,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
+import type { CaseStudyCard } from "../../lib/cms.js";
 
 /** The six delivery-stage icons, consistent across every page; only the copy varies per service. */
 const STAGE_ICONS: ReactNode[] = [
@@ -74,7 +75,7 @@ function Svg({ children }: { children: ReactNode }): ReactNode {
   return <svg viewBox="0 0 24 24">{children}</svg>;
 }
 
-export function ServiceView({ content }: { content: ServiceContent }): ReactNode {
+export function ServiceView({ content, caseStudies = [] }: { content: ServiceContent; caseStudies?: CaseStudyCard[] }): ReactNode {
   const c = content;
   return (
     <div className="svc-page">
@@ -297,7 +298,13 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
         </div>
       </section>
 
-      {/* PROOF */}
+      {/* PROOF
+          The section used to render fixed cards carrying a line that read "Verified project card ·
+          loaded from case studies" — a description of what it was meant to do, sitting on the page as
+          though it were the work, with every card linking to the index rather than to a project. It now
+          renders the case studies that name this service, and when none do, it does not render at all.
+          A service page with no proof yet is honest; a proof section with no proof in it is not. */}
+      {caseStudies.length > 0 ? (
       <section className="band soft" id="proof" aria-label="Proof">
         <div className="wrap">
           <div className="band-head reveal">
@@ -309,12 +316,21 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
             <p className="lede">{c.proof.lede}</p>
           </div>
           <div className="proof-grid reveal">
-            {c.proof.cards.map((p, i) => (
-              <Link className="proof-card" href="/case-studies" key={i}>
-                <div className="pc-stripe" />
-                <span className="pc-tag">{p.tag}</span>
-                <h3>{p.title}</h3>
-                <div className="pc-ph">Verified project card &middot; loaded from case studies</div>
+            {caseStudies.map((study) => (
+              <Link className="proof-card" href={`/case-studies/${study.slug}`} key={study.slug}>
+                {study.coverUrl ? (
+                  <span className="pc-shot">
+                    <img src={study.coverUrl} alt={study.coverAlt ?? ""} loading="lazy" />
+                  </span>
+                ) : (
+                  <span className="pc-shot pc-shot-none" aria-hidden="true" />
+                )}
+                <span className="pc-body">
+                  {study.industry ? <span className="pc-tag">{study.industry}</span> : null}
+                  <h3>{study.title}</h3>
+                  {study.summary ? <span className="pc-sum">{study.summary}</span> : null}
+                  <span className="pc-go">Read the case study <span className="arr">&rarr;</span></span>
+                </span>
               </Link>
             ))}
           </div>
@@ -325,6 +341,7 @@ export function ServiceView({ content }: { content: ServiceContent }): ReactNode
           </div>
         </div>
       </section>
+      ) : null}
 
       {/* WHERE WE BUILD IT */}
       <section className="band" id="industries-links" aria-label="Where we build it">

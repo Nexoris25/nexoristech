@@ -6,19 +6,12 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { getLegalPage, type LegalType } from "../lib/cms.js";
 import { formatLagosDate, resolveDateTokens } from "../lib/date.js";
 import { ScrollFx } from "./home/ScrollFx.js";
+import { FloatingToc } from "./FloatingToc.js";
 
 /** Stable, readable anchor id from a section heading. */
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 export async function LegalPageView({
   type,
@@ -30,7 +23,10 @@ export async function LegalPageView({
   const page = await getLegalPage(type);
   const title = page?.title ?? heading;
   const sections = page?.sections ?? [];
-  const anchors = sections.map((s) => ({ ...s, id: slugify(s.heading) }));
+  // Sections that carry a heading are the numbered policy sections and the contents list. Anything
+  // before the first heading is a preamble: it renders above them and is not numbered or listed.
+  const preamble = sections.filter((s) => !s.heading);
+  const anchors = sections.filter((s) => s.heading);
 
   return (
     <div className="svc-page legal-page">
@@ -42,7 +38,8 @@ export async function LegalPageView({
           <nav className="crumb reveal" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
             <span className="sep">/</span>
-            <span className="here">{heading}</span>
+            {/* The short title where one is set, so a long policy name does not wrap the crumb. */}
+            <span className="here">{page?.shortTitle ?? heading}</span>
           </nav>
           <div className="legal-head reveal">
             <span className="kicker on-dark">
@@ -81,6 +78,8 @@ export async function LegalPageView({
             </div>
           ) : (
             <div className="legal-layout">
+              {/* Hidden below 1024px, where the floating control takes over: stacking the full list
+                  above the copy pushed the policy itself off the first screen. */}
               <nav className="toc reveal" aria-label="On this page">
                 <h2>On this page</h2>
                 <ol>
@@ -93,6 +92,16 @@ export async function LegalPageView({
               </nav>
 
               <div className="legal-body reveal">
+                {preamble.map((s, i) => (
+                  <div
+                    key={`preamble-${i}`}
+                    className="legal-preamble"
+                    // The CMS stores HTML, and it is sanitised in splitSections before it gets here.
+                    // It used to be handed to ReactMarkdown, which escapes raw HTML, so every tag in a
+                    // policy rendered as visible text.
+                    dangerouslySetInnerHTML={{ __html: resolveDateTokens(s.body) }}
+                  />
+                ))}
                 {anchors.map((s, i) => (
                   <section className="legal-sec" id={s.id} key={s.id}>
                     <h2>
@@ -103,9 +112,7 @@ export async function LegalPageView({
                         <b>In short:</b> {s.plainSummary}
                       </div>
                     ) : null}
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {resolveDateTokens(s.body)}
-                    </ReactMarkdown>
+                    <div dangerouslySetInnerHTML={{ __html: resolveDateTokens(s.body) }} />
                   </section>
                 ))}
                 <div className="review-note">
@@ -117,6 +124,9 @@ export async function LegalPageView({
           )}
         </div>
       </section>
+
+      {/* The same entries as the column, as a sheet on small screens. */}
+      <FloatingToc entries={anchors.map((a) => ({ id: a.id, text: a.heading }))} />
     </div>
   );
 }

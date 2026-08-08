@@ -3,11 +3,8 @@
  * events: a meta line, the sources, the answer tokens, an optional handoff, then done. Any failure
  * becomes a plain notice, never a stack trace or status code.
  */
-import { Body, Controller, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Inject, Post, Req, Res } from "@nestjs/common";
 import type { Request, Response } from "express";
-// NestJS reads the constructor parameter type from emitted metadata, so OgeService must be a
-// value import, not a type-only one.
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { OgeService } from "./oge.service.js";
 import type { ChatMessage } from "../providers/generation.js";
 
@@ -19,7 +16,9 @@ interface ChatBody {
 
 @Controller()
 export class ChatController {
-  constructor(private readonly oge: OgeService) {}
+  // The token is explicit because injection must not depend on `emitDecoratorMetadata`: esbuild
+  // (via tsx) does not emit it, and every dependency would arrive undefined in watch mode.
+  constructor(@Inject(OgeService) private readonly oge: OgeService) {}
 
   @Post("chat")
   async chat(

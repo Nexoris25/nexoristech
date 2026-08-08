@@ -500,3 +500,9 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .dstage-pills span{font-size:.74rem;font-weight:500;color:var(--ink-2);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 11px;transition:border-color .15s}
 .dstage:hover .dstage-pills span{border-color:var(--purple-200)}
 @media(max-width:860px){.dstages{grid-template-columns:1fr}}
+
+/* Click-to-chat in the footer contact block: sits with the phone and email lines, marked by its own
+   glyph so it reads as a channel rather than another text link. */
+.foot-brand .addr .wa-link{display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,.6)}
+.foot-brand .addr .wa-link:hover{color:#25D366}
+.foot-brand .addr .wa-link svg{width:15px;height:15px;fill:currentColor;flex:none}

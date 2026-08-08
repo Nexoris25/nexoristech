@@ -91,6 +91,91 @@
   border: 1.5px solid var(--purple-500, #6a55f2);
 }
 
+/* Real case-study cards, from the CMS. The grid held only the dashed placeholders below, which is all
+   there was to show before the work was published. */
+.case-studies-page .cs-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r, 12px);
+  overflow: hidden;
+  border: 1px solid var(--line, #e6e4ee);
+  background: var(--surface, #fff);
+  box-shadow: var(--sh-sm, 0 1px 2px rgba(13, 10, 28, 0.06));
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.case-studies-page .cs-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-md, 0 8px 24px rgba(13, 10, 28, 0.1));
+  border-color: var(--purple-300, #c4b9f5);
+}
+.case-studies-page .csc-shot {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--purple-100, #eeebfc);
+}
+.case-studies-page .csc-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.case-studies-page .cs-card:hover .csc-shot img {
+  transform: scale(1.03);
+}
+.case-studies-page .csc-shot-none {
+  background: linear-gradient(135deg, var(--purple-100, #eeebfc), #fff);
+}
+.case-studies-page .csc-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 20px;
+}
+.case-studies-page .csc-tag {
+  align-self: flex-start;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--purple-700, #4330b8);
+  background: var(--purple-100, #eeebfc);
+  border: 1px solid var(--purple-200, #dcd6f9);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.case-studies-page .cs-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 12px;
+  color: var(--ink-950, #0d0a1c);
+  line-height: 1.3;
+}
+.case-studies-page .csc-sum {
+  display: block;
+  color: var(--ink-2, #3a3550);
+  font-size: 0.9rem;
+  line-height: 1.58;
+  margin-top: 9px;
+}
+.case-studies-page .csc-go {
+  margin-top: auto;
+  padding-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--purple-600, #543cda);
+}
+.case-studies-page .csc-go .arr {
+  transition: transform 0.16s;
+}
+.case-studies-page .cs-card:hover .csc-go .arr {
+  transform: translateX(4px);
+}
+
 /* honest empty-state grid */
 .case-studies-page .cs-grid {
   display: grid;

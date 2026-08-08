@@ -1,8 +1,8 @@
 /**
  * The error taxonomy the fallback chain reasons about (PRD 10.2). A provider call either
  * succeeds, or fails in a way that should advance to the next slot, or fails fatally. Rate limits,
- * provider outages, and malformed structured output all advance the chain; everything else is
- * surfaced. Provider client adapters translate their SDK errors into these types so the
+ * provider outages, a retired model, and malformed structured output all advance the chain; everything
+ * else is surfaced. Provider client adapters translate their SDK errors into these types so the
  * orchestrator stays provider-agnostic.
  */
 
@@ -24,6 +24,16 @@ export class RateLimitError extends ProviderError {}
 
 /** The provider is unavailable (network error, 5xx, timeout). The chain advances. */
 export class ProviderUnavailableError extends ProviderError {}
+
+/**
+ * The provider does not serve this model any more. The chain advances.
+ *
+ * A pinned identifier stops working the day the provider retires it, and that is exactly the outage the
+ * fallback chain exists for. It was previously fatal: `qwen/qwen3-32b` was retired by Groq, and because
+ * a 404 stopped the chain, every CMS editorial request failed outright once the two slots ahead of it
+ * were rate-limited — the one case the chain was built to survive.
+ */
+export class ModelNotFoundError extends ProviderError {}
 
 /**
  * A response that expected structured output did not validate against its schema. PRD 10.2
@@ -53,6 +63,7 @@ export function isRetriable(error: unknown): boolean {
   return (
     error instanceof RateLimitError ||
     error instanceof ProviderUnavailableError ||
-    error instanceof SchemaValidationError
+    error instanceof SchemaValidationError ||
+    error instanceof ModelNotFoundError
   );
 }

@@ -6,18 +6,18 @@ import {
   Body,
   Controller,
   Headers,
+  Inject,
   Post,
   BadRequestException,
   UnauthorizedException,
 } from "@nestjs/common";
-// NestJS reads the constructor parameter type from emitted metadata, so CrmService must be a
-// value import, not a type-only one.
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CrmService, type DraftInput, type DraftResult } from "./crm.service.js";
 
 @Controller()
 export class CrmController {
-  constructor(private readonly crm: CrmService) {}
+  // The token is explicit because injection must not depend on `emitDecoratorMetadata`: esbuild
+  // (via tsx) does not emit it, and every dependency would arrive undefined in watch mode.
+  constructor(@Inject(CrmService) private readonly crm: CrmService) {}
 
   @Post("crm/draft")
   async draft(

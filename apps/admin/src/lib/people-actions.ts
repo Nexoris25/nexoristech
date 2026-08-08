@@ -12,6 +12,7 @@ import { db } from "./db.js";
 import { requireAdmin } from "./auth.js";
 import { chooseAssignee, type AssigneeCandidate } from "./assign.js";
 import { ROLES, type Role, type StaffFormState } from "./crm-constants.js";
+import { securityPolicy, passwordProblem } from "./security-policy.js";
 
 async function audit(
   pool: pg.Pool,
@@ -46,9 +47,8 @@ export async function addStaff(
   const capacityCap = capacityRaw ? Number.parseInt(capacityRaw, 10) : null;
 
   if (!name || !email) return { error: "Name and email are required." };
-  if (password.length < 8) {
-    return { error: "The password must be at least 8 characters." };
-  }
+  const weak = passwordProblem(password, await securityPolicy());
+  if (weak) return { error: weak };
   if (!ROLES.includes(role)) return { error: "Choose a valid role." };
 
   const pool = db();
@@ -71,7 +71,7 @@ export async function addStaff(
     role,
   });
 
-  revalidatePath("/people");
+  revalidatePath("/settings/access");
   return { ok: true };
 }
 
@@ -91,7 +91,7 @@ export async function deactivateStaff(formData: FormData): Promise<void> {
   await audit(pool, admin.id, "deactivate", "staff", staffId, { active: true }, {
     active: false,
   });
-  revalidatePath("/people");
+  revalidatePath("/settings/access");
 }
 
 export async function assignLead(formData: FormData): Promise<void> {

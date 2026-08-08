@@ -11,6 +11,7 @@ import { SiteHeader } from "../components/SiteHeader.js";
 import { SiteFooter } from "../components/SiteFooter.js";
 import { OgeWidget } from "../components/OgeWidget.js";
 import { CookieConsent } from "../components/CookieConsent.js";
+import { Analytics } from "../components/Analytics.js";
 import "./globals.css";
 import "../styles/design.css";
 import "../styles/service.css";
@@ -34,9 +35,12 @@ import "../styles/legal.css";
 import "../styles/careers.css";
 import "../styles/insights.css";
 import "../styles/article.css";
+import "../styles/floating-toc.css";
+import "../styles/case-study.css";
 import "../styles/author.css";
 import "../styles/job.css";
 import "../styles/industry.css";
+import "../styles/pseo.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -62,6 +66,12 @@ export default function RootLayout({
 }): ReactNode {
   return (
     <html lang="en-NG">
+      <head>
+        {/* The two faces above the fold. Preloading them stops the swap from landing after first paint,
+            which is what shows up as a layout shift in Cumulative Layout Shift. The rest load on demand. */}
+        <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/roboto.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      </head>
       <body>
         <SkipLink targetId="main-content" />
         <SiteHeader />
@@ -69,6 +79,7 @@ export default function RootLayout({
         <SiteFooter />
         <OgeWidget />
         <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );

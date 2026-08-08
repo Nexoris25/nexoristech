@@ -6,10 +6,11 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, MessageSquareWarning } from "lucide-react";
 import { requireAdmin } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { assignLead, autoAssignLead } from "../../../../lib/people-actions.js";
+import { decideReassignment } from "../../../../lib/crm-reassign-actions.js";
 import { rating } from "../../../../lib/lead-ui.js";
 
 export const dynamic = "force-dynamic";
@@ -25,11 +26,21 @@ interface QueueRow {
   former_owner: string | null;
 }
 
+interface RequestRow {
+  id: string;
+  lead_id: string;
+  reason: string;
+  created_at: string;
+  lead_name: string | null;
+  company: string | null;
+  requester: string | null;
+}
+
 export default async function ReassignmentQueuePage(): Promise<ReactNode> {
   await requireAdmin();
   const pool = db();
 
-  const [{ rows: queue }, { rows: salespeople }] = await Promise.all([
+  const [{ rows: queue }, { rows: salespeople }, { rows: requests }] = await Promise.all([
     pool.query<QueueRow>(
       `SELECT l.id, l.name, l.company, l.band, l.score, l.status,
               CASE WHEN l.assigned_to IS NULL THEN 'unassigned' ELSE 'owner-exited' END AS reason,
@@ -43,6 +54,15 @@ export default async function ReassignmentQueuePage(): Promise<ReactNode> {
     pool.query<{ id: string; name: string }>(
       "SELECT id, name FROM staff WHERE active = true AND role = 'salesperson' ORDER BY name",
     ),
+    pool.query<RequestRow>(
+      `SELECT rr.id, rr.lead_id, rr.reason, rr.created_at,
+              l.name AS lead_name, l.company, requester.name AS requester
+         FROM reassignment_request rr
+         JOIN lead l ON l.id = rr.lead_id
+         LEFT JOIN staff requester ON requester.id = rr.requested_by
+        WHERE rr.status = 'pending'
+        ORDER BY rr.created_at ASC`,
+    ),
   ]);
 
   return (
@@ -53,6 +73,69 @@ export default async function ReassignmentQueuePage(): Promise<ReactNode> {
       <p className="mt-1 text-label text-neutral-600">
         Leads waiting on an owner decision. Unassigned leads and open leads whose owner has left.
       </p>
+
+      {requests.length > 0 ? (
+        <section className="mt-6">
+          <h2 className="flex items-center gap-2 text-dash-section font-700 text-ink-950">
+            <MessageSquareWarning size={17} strokeWidth={2} className="text-purple-600" />
+            Reassignment requests
+            <span className="rounded-full bg-purple-600 px-2 py-0.5 font-mono text-[0.66rem] font-700 text-white">
+              {requests.length}
+            </span>
+          </h2>
+          <p className="mt-1 text-[0.8rem] text-neutral-600">
+            A salesperson has asked for one of their leads to be reassigned. Approving returns it to
+            the queue below for a new owner.
+          </p>
+          <ul className="mt-3 flex flex-col gap-3">
+            {requests.map((req) => (
+              <li
+                key={req.id}
+                className="rounded-card border border-purple-200 bg-purple-100/30 p-4 shadow-subtle"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/crm/${req.lead_id}`}
+                      className="cursor-pointer text-dash-data font-600 text-ink-950 hover:text-purple-700"
+                    >
+                      {req.lead_name ?? "Unnamed"}
+                    </Link>
+                    <p className="text-[0.75rem] text-neutral-600">
+                      {[req.company, `Requested by ${req.requester ?? "unknown"}`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                    <p className="mt-1.5 text-[0.85rem] text-ink-950">“{req.reason}”</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <form action={decideReassignment}>
+                      <input type="hidden" name="requestId" value={req.id} />
+                      <input type="hidden" name="decision" value="approved" />
+                      <button
+                        type="submit"
+                        className="cursor-pointer rounded-card bg-purple-600 px-3 py-2 text-[0.78rem] font-600 text-white hover:bg-purple-700"
+                      >
+                        Approve
+                      </button>
+                    </form>
+                    <form action={decideReassignment}>
+                      <input type="hidden" name="requestId" value={req.id} />
+                      <input type="hidden" name="decision" value="declined" />
+                      <button
+                        type="submit"
+                        className="cursor-pointer rounded-card border border-purple-200 px-3 py-2 text-[0.78rem] font-600 text-purple-700 hover:bg-purple-100"
+                      >
+                        Decline
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {queue.length === 0 ? (
         <div className="mt-6 flex flex-col items-center gap-2 rounded-card border border-dashed border-purple-200 bg-white py-10 text-center">

@@ -28,31 +28,48 @@ const allSlots: ModelSlot[] = [
 ];
 
 describe("the pinned provider stack (DECISIONS D-012)", () => {
+  // The shape of the decision is what matters and has not changed: each group keeps a primary and a
+  // two-level fallback across three different providers. The Groq identifiers did change, because the
+  // provider retired the ones originally pinned; asserting the old labels was asserting a chain that
+  // ends in a 404. Verified against Groq's models endpoint on 2026-08-01.
   it("matches the product owner's per-group assignment", () => {
     expect(chainFor(WEBSITE_BOT_MODELS).map((s) => s.label)).toEqual([
       "Gemini Flash",
-      "Llama 4 Scout (Groq)",
+      "Llama 3.3 70B (Groq)",
       "Ministral 8B",
     ]);
     expect(chainFor(CRM_WORKER_MODELS).map((s) => s.label)).toEqual([
       "Mistral Large",
       "Gemini Flash",
-      "GPT-OSS 120B (Groq)",
+      "Llama 3.3 70B (Groq)",
     ]);
     expect(chainFor(CMS_AI_MODELS).map((s) => s.label)).toEqual([
       "Mistral Large",
       "Gemini Flash",
-      "Qwen 3 32B (Groq)",
+      "Llama 3.3 70B (Groq)",
     ]);
     expect(chainFor(SERVICE_RECOMMENDER_MODELS).map((s) => s.label)).toEqual([
       "Gemini Flash",
-      "Qwen 3 32B (Groq)",
+      "Llama 3.3 70B (Groq)",
       "Ministral 8B",
     ]);
     expect([
       EMBEDDING_MODELS.primary.label,
       EMBEDDING_MODELS.fallback.label,
     ]).toEqual(["Mistral Embed", "Gemini Embeddings"]);
+  });
+
+  it("names no identifier known to have been retired", () => {
+    // These were served when they were pinned and are not any more. A chain whose last slot is a dead
+    // identifier fails the moment the slots ahead of it are rate-limited, which is exactly when it is
+    // needed, so a returning one must fail here rather than in production.
+    const retired = [
+      "meta-llama/llama-4-scout-17b-16e-instruct",
+      "qwen/qwen3-32b",
+    ];
+    for (const slot of allSlots) {
+      expect(retired).not.toContain(slot.model);
+    }
   });
 
   it("has fully removed SambaNova from every slot", () => {

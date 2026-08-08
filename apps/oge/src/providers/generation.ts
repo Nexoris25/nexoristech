@@ -6,6 +6,7 @@
  */
 import { runChain, type ChainResult } from "../orchestration/run-chain.js";
 import {
+  ModelNotFoundError,
   ProviderError,
   ProviderUnavailableError,
   RateLimitError,
@@ -34,6 +35,10 @@ async function httpError(
   if (response.status === 429) return new RateLimitError(detail, source);
   if (response.status >= 500)
     return new ProviderUnavailableError(detail, source);
+  // A retired identifier reads as 404, or as a 400 naming the model, depending on the provider. Either
+  // way the right move is the next slot, not failing the request.
+  if (response.status === 404 || /model_not_found|does not exist|unknown model|is not found/i.test(body))
+    return new ModelNotFoundError(detail, source);
   return new ProviderError(detail, source);
 }
 

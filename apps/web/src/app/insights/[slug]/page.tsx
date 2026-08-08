@@ -7,19 +7,22 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   buildMetadata,
   buildGraph,
   articleNode,
+  howToNode,
   faqPageNode,
   breadcrumbNode,
+  absoluteUrl,
 } from "@nexoris/seo";
 import type { ArticleInput, JsonLdNode, PersonRef } from "@nexoris/seo";
+import { isArticleType } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { formatLagosDate } from "../../../lib/date.js";
 import { getInsight, getInsightSlugs, type Author } from "../../../lib/cms.js";
+import { headingsOf, withHeadingIds, stepsOf } from "../../../lib/render-html.js";
+import { FloatingToc } from "../../../components/FloatingToc.js";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -29,12 +32,22 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return slugs.map((slug) => ({ slug }));
 }
 
-function descriptionFor(excerpt?: string, tldr?: string): string {
-  return (
-    excerpt ??
-    tldr ??
-    "An article from the team at Nexoris Technologies."
-  );
+const BRAND_SUFFIX = " | Nexoris Technologies";
+/** Absolute URL for a media file — like absoluteUrl but without the trailing slash it adds to pages. */
+function mediaAbsolute(url: string): string {
+  return absoluteUrl(url).replace(/\/+$/, "");
+}
+/** A page title that always ends with the brand once and respects buildMetadata's 60-char hard limit. */
+function safeTitle(raw: string): string {
+  const base0 = raw.endsWith(BRAND_SUFFIX) ? raw.slice(0, -BRAND_SUFFIX.length) : raw;
+  const budget = 60 - BRAND_SUFFIX.length;
+  const base = base0.length > budget ? `${base0.slice(0, budget - 1).trimEnd()}…` : base0;
+  return `${base}${BRAND_SUFFIX}`;
+}
+/** A meta description within the 160-char hard limit. */
+function descriptionFor(excerpt?: string, tldr?: string, metaDescription?: string): string {
+  const raw = metaDescription ?? excerpt ?? tldr ?? "An article from the team at Nexoris Technologies.";
+  return raw.length > 160 ? `${raw.slice(0, 157).trimEnd()}...` : raw;
 }
 
 export async function generateMetadata({
@@ -45,13 +58,31 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = await getInsight(slug);
   if (!article) return { title: "Article not found | Nexoris Technologies" };
-  return buildMetadata({
-    title: `${article.title} | Nexoris Technologies`,
-    description: descriptionFor(article.excerpt, article.tldr),
+  const built = buildMetadata({
+    title: safeTitle(article.metaTitle ?? article.title),
+    description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
     path: `/insights/${slug}`,
     ogType: "article",
-    noindex: false,
+    noindex: article.noIndex,
+    // The article's featured image is its Open Graph card (falls back to the branded card if absent).
+    ...(article.coverUrl
+      ? { ogImage: { url: mediaAbsolute(article.coverUrl), width: 1200, height: 630, alt: article.coverAlt ?? article.title } }
+      : {}),
   });
+
+  // Open Graph article properties, which the generic builder does not know about: publication and
+  // modification times, the author, and the section. These are what a share card and a crawler read.
+  return {
+    ...built,
+    openGraph: {
+      ...built.openGraph,
+      type: "article",
+      ...(article.publishedAt ? { publishedTime: article.publishedAt } : {}),
+      ...(article.updatedAt ? { modifiedTime: article.updatedAt } : {}),
+      ...(article.author ? { authors: [article.author.name] } : {}),
+      ...(article.category ? { section: article.category } : {}),
+    },
+  };
 }
 
 function personRef(author: Author): PersonRef {
@@ -64,34 +95,6 @@ function personRef(author: Author): PersonRef {
 }
 
 /** Flatten a React node tree to its text, so an h2's slug id matches the TOC entry. */
-function nodeText(node: ReactNode): string {
-  if (node == null || node === false) return "";
-  if (typeof node === "string" || typeof node === "number") return String(node);
-  if (Array.isArray(node)) return node.map(nodeText).join("");
-  if (typeof node === "object" && "props" in node) {
-    return nodeText((node as { props: { children?: ReactNode } }).props.children);
-  }
-  return "";
-}
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-/** Section headings (## lines) from the markdown body, for the table of contents. */
-function headingsFrom(body: string): { text: string; id: string }[] {
-  return body
-    .split("\n")
-    .map((line) => /^## +(.+)$/.exec(line.trim()))
-    .filter((m): m is RegExpExecArray => m !== null)
-    .map((m) => {
-      const text = (m[1] ?? "").trim();
-      return { text, id: slugify(text) };
-    });
-}
 
 function initials(name: string): string {
   return name
@@ -101,12 +104,6 @@ function initials(name: string): string {
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 }
-
-const markdownComponents = {
-  h2: ({ children }: { children?: ReactNode }) => (
-    <h2 id={slugify(nodeText(children))}>{children}</h2>
-  ),
-};
 
 export default async function ArticlePage({
   params,
@@ -119,23 +116,41 @@ export default async function ArticlePage({
 
   const path = `/insights/${slug}`;
   const articleInput: ArticleInput = {
-    type: "BlogPosting",
+    // The schema type the editor chose for this piece; anything unrecognised falls back safely.
+    type: isArticleType(article.schemaType) ? article.schemaType : "BlogPosting",
     path,
     headline: article.title,
-    description: descriptionFor(article.excerpt, article.tldr),
+    description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
     author: article.author
       ? personRef(article.author)
       : { name: "Nexoris Technologies" },
     ...(article.factChecker ? { reviewer: personRef(article.factChecker) } : {}),
     ...(article.category ? { articleSection: article.category } : {}),
     ...(article.coverUrl
-      ? { image: { url: article.coverUrl, alt: article.title } }
+      ? { image: { url: mediaAbsolute(article.coverUrl), alt: article.coverAlt ?? article.title } }
       : {}),
     ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
     ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
   };
 
-  const nodes: JsonLdNode[] = [articleNode(articleInput)];
+  // A guide marked HowTo emits a HowTo node instead of an Article one. HowTo is not an Article subtype:
+  // it carries a required list of steps, so putting "@type": "HowTo" on an article node would produce
+  // markup that validates as neither. The steps are this article's own H2 sections, so the structured
+  // data says exactly what the page says.
+  const howToSteps = article.schemaType === "HowTo" ? stepsOf(article.body) : [];
+  const nodes: JsonLdNode[] = article.schemaType === "HowTo" && howToSteps.length > 0
+    ? [howToNode({
+        path,
+        name: article.title,
+        description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
+        steps: howToSteps,
+        ...(article.coverUrl
+          ? { image: { url: mediaAbsolute(article.coverUrl), alt: article.coverAlt ?? article.title } }
+          : {}),
+        ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
+        ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
+      })]
+    : [articleNode(articleInput)];
   const faqNode = article.faq.length > 0 ? faqPageNode(article.faq) : undefined;
   if (faqNode) nodes.push(faqNode);
   nodes.push(
@@ -145,7 +160,7 @@ export default async function ArticlePage({
     ]),
   );
 
-  const toc = headingsFrom(article.body);
+  const toc = headingsOf(article.body);
   const people = [
     article.author ? { kind: "Written by", person: article.author } : null,
     article.factChecker ? { kind: "Fact-checked by", person: article.factChecker } : null,
@@ -165,11 +180,12 @@ export default async function ArticlePage({
         </div>
       ) : null}
 
-      <div className="prose">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-          {article.body}
-        </ReactMarkdown>
-      </div>
+      {/* The CMS stores HTML. Passing it to ReactMarkdown escaped every tag, so an article with a
+          heading, a list or a table published its own markup as visible text — it only ever looked
+          right because the content that had been through here was unformatted prose. Sanitised on the
+          way out as well as in the editor, so a row written before the editor normalised anything
+          cannot put a script on a public page. */}
+      <div className="prose" dangerouslySetInnerHTML={{ __html: withHeadingIds(article.body) }} />
 
       {article.faq.length > 0 ? (
         <section className="faq-block" aria-labelledby="faq-heading">
@@ -223,7 +239,9 @@ export default async function ArticlePage({
           <nav className="crumb" aria-label="Breadcrumb">
             <Link href="/insights">Insights</Link>
             <span className="sep">/</span>
-            <span className="here">{article.title}</span>
+            {/* The short title is what the design uses where the full one would wrap. The H1 keeps
+                the full title, because that is the page's actual name. */}
+            <span className="here">{article.shortTitle ?? article.title}</span>
           </nav>
           <div className="art-head">
             {article.category ? <span className="cat-pill">{article.category}</span> : null}
@@ -270,8 +288,7 @@ export default async function ArticlePage({
           {article.coverUrl ? (
             <div className="art-figure">
               {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={article.coverUrl} alt={`Cover image for ${article.title}`} />
+              <img src={article.coverUrl} alt={article.coverAlt ?? `Cover image for ${article.title}`} />
             </div>
           ) : null}
         </div>
@@ -298,6 +315,10 @@ export default async function ArticlePage({
           </div>
         )}
       </div>
+
+      {/* The sticky column above is hidden below 1024px, which left a phone — where a long article is
+          hardest to navigate — with no contents at all. Same entries, shown as a sheet. */}
+      <FloatingToc entries={toc} />
     </div>
   );
 }

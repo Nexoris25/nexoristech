@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { WHATSAPP_HREF } from "../content/catalogue.js";
 
 const services = [
   { label: "AI Product Development", href: "/ai-product-development" },
@@ -103,6 +104,11 @@ export function SiteFooter(): ReactNode {
                 No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State.
               </span>
               <a href="tel:+2349138133224">+234 913 813 3224</a>
+              {/* Click to chat, reachable from every page rather than only from the contact page. */}
+              <a className="wa-link" href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5-4.5-.2-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.2-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.1c.1.2.1.4 0 .6l-.4.5-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.2 1.4 2.5 1.5.3.1.4.1.6-.1l.9-1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.5z"/></svg>
+                Chat on WhatsApp
+              </a>
               <a href="mailto:hello@nexoristech.com">hello@nexoristech.com</a>
             </div>
             <div className="socials">

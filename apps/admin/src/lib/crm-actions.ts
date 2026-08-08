@@ -12,12 +12,15 @@ import { recommendationForLead } from "./lead-recommendation.js";
 import { prepareFollowUp } from "./followup.js";
 import {
   STAGES,
+  ENGAGEMENT_TYPES,
   type StageState,
   type DraftState,
   type FollowUpState,
 } from "./crm-constants.js";
 
-const NO_FOLLOWUP_STAGES = new Set(["New", "Won", "Lost"]);
+const ENGAGEMENT_VALUES = new Set<string>(ENGAGEMENT_TYPES.map((e) => e.value));
+
+const NO_FOLLOWUP_STAGES = new Set(["Won", "Lost"]);
 
 /** Read the fields a follow-up draft needs, and the deterministic service match, for a lead. */
 async function followUpContext(leadId: string): Promise<{
@@ -59,6 +62,11 @@ export async function updateLeadStage(
   const lostReason = String(formData.get("lostReason") ?? "").trim();
   const nurtureDate = String(formData.get("nurtureDate") ?? "").trim();
 
+  // The Deal captured the moment a lead is marked Won (PRD 5.9): value, service line, engagement.
+  const dealValue = Number.parseFloat(String(formData.get("dealValue") ?? ""));
+  const serviceLine = String(formData.get("serviceLine") ?? "").trim();
+  const engagementType = String(formData.get("engagementType") ?? "").trim();
+
   if (!leadId || !(STAGES as readonly string[]).includes(status)) {
     return { error: "Choose a valid stage." };
   }
@@ -67,6 +75,15 @@ export async function updateLeadStage(
   }
   if (status === "Nurture" && !nurtureDate) {
     return { error: "Nurture needs a revival date." };
+  }
+  if (status === "Won") {
+    if (!Number.isFinite(dealValue) || dealValue <= 0) {
+      return { error: "A won deal needs its value in naira." };
+    }
+    if (!serviceLine) return { error: "A won deal needs a service line." };
+    if (!ENGAGEMENT_VALUES.has(engagementType)) {
+      return { error: "Choose the engagement type for the deal." };
+    }
   }
 
   const pool = db();
@@ -87,6 +104,34 @@ export async function updateLeadStage(
     "UPDATE lead SET status = $1, lost_reason = $2, nurture_date = $3 WHERE id = $4",
     [status, nextLostReason, nextNurtureDate, leadId],
   );
+
+  // On Won, record the deal and stamp won_at. This is CRM's Sales Won Value and the source Finance
+  // reads to open the Engagement; CRM's responsibility ends there (PRD 5.9). Nothing is invented.
+  if (status === "Won") {
+    await pool.query(
+      `UPDATE lead SET deal_value = $1, service_line = $2, engagement_type = $3, won_at = now()
+        WHERE id = $4`,
+      [dealValue, serviceLine, engagementType, leadId],
+    );
+    await pool.query(
+      `INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after)
+       VALUES ($1, 'engagement-created', 'lead', $2, NULL, $3::jsonb)`,
+      [
+        staff.id,
+        leadId,
+        JSON.stringify({ dealValue, serviceLine, engagementType }),
+      ],
+    );
+    await pool.query(
+      `INSERT INTO lead_activity (lead_id, actor_id, type, note)
+       VALUES ($1, $2, 'deal-won', $3)`,
+      [
+        leadId,
+        staff.id,
+        `Deal won: ${serviceLine}, ${engagementType}. Ready for the Finance Engagement.`,
+      ],
+    );
+  }
 
   await pool.query(
     `INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after)

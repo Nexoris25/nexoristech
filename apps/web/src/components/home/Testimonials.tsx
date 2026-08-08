@@ -2,46 +2,28 @@
 /**
  * Homepage testimonials carousel, ported from the approved design handoff. perView is 1 (<=760),
  * 2 (<=1080), or 3 (desktop); arrows and dots page through; arrows disable at the ends; it
- * recalculates on resize. The quotes are the design's self-describing placeholders and are
- * replaced by CMS-approved testimonials when they exist (no fabricated client claims). Avatars
- * are brand monograms rather than stock headshots. Styling lives in styles/design.css.
+ * recalculates on resize.
+ *
+ * The quotes come from the CMS. The component used to hold five placeholders reading "Client name" /
+ * "Role, Company", and nothing ever replaced them, so the live homepage showed placeholder copy where
+ * client quotes belonged. It now renders what it is given and nothing when there is nothing: an empty
+ * section is honest, invented praise is not.
+ *
+ * The avatar is the client's own headshot when the CMS has one, and a brand monogram when it does not.
+ * A quote attributed to a face carries more than a quote attributed to two initials, and it is the
+ * client's face or nothing: no stock photography stands in for a real person. Styling lives in
+ * styles/design.css.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-interface Quote {
+export interface Quote {
   text: string;
   name: string;
   role: string;
+  photoUrl?: string;
+  photoAlt?: string;
 }
-
-const QUOTES: Quote[] = [
-  {
-    text: "An approved client quote sits here, loaded from the content API with the person's own words about working with Nexoris Technologies.",
-    name: "Client name",
-    role: "Role, Company",
-  },
-  {
-    text: "A second verified testimonial, shown exactly as designed. Only real, approved quotes ever appear here.",
-    name: "Client name",
-    role: "Role, Company",
-  },
-  {
-    text: "A third quote completes the row on desktop. The carousel pages through every approved testimonial.",
-    name: "Client name",
-    role: "Role, Company",
-  },
-  {
-    text: "A fourth testimonial demonstrates the navigation. Use the arrows or dots to move through more.",
-    name: "Client name",
-    role: "Role, Company",
-  },
-  {
-    text: "A fifth quote, so the slider has something to slide to on every screen size.",
-    name: "Client name",
-    role: "Role, Company",
-  },
-];
 
 function initials(name: string): string {
   return name
@@ -51,7 +33,7 @@ function initials(name: string): string {
     .join("");
 }
 
-export function Testimonials(): ReactNode {
+export function Testimonials({ quotes }: { quotes: Quote[] }): ReactNode {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [perView, setPerView] = useState(3);
@@ -59,7 +41,7 @@ export function Testimonials(): ReactNode {
   const computePerView = (): number =>
     window.innerWidth <= 760 ? 1 : window.innerWidth <= 1080 ? 2 : 3;
 
-  const maxIndex = Math.max(0, QUOTES.length - perView);
+  const maxIndex = Math.max(0, quotes.length - perView);
 
   const apply = useCallback(() => {
     const track = trackRef.current;
@@ -67,9 +49,9 @@ export function Testimonials(): ReactNode {
     const card = track.querySelector<HTMLElement>(".tcard");
     if (!card) return;
     const step = card.getBoundingClientRect().width + 20;
-    const clamped = Math.min(index, Math.max(0, QUOTES.length - perView));
+    const clamped = Math.min(index, Math.max(0, quotes.length - perView));
     track.style.transform = `translateX(-${clamped * step}px)`;
-  }, [index, perView]);
+  }, [index, perView, quotes.length]);
 
   useEffect(() => {
     const onResize = (): void => setPerView(computePerView());
@@ -86,29 +68,38 @@ export function Testimonials(): ReactNode {
     apply();
   }, [apply]);
 
+  // No approved testimonial is a real state, and the honest thing to draw for it is nothing.
+  if (quotes.length === 0) return null;
+
   return (
     <div className="tst-wrap reveal">
       <div className="tst-viewport">
         <div className="tst-track" ref={trackRef}>
-          {QUOTES.map((q, i) => (
+          {quotes.map((q, i) => (
             <article className="tcard" key={i}>
               <div className="qm">&ldquo;</div>
               <p>{q.text}</p>
               <div className="who">
-                <span
-                  className="av"
-                  aria-hidden="true"
-                  style={{
-                    display: "grid",
-                    placeItems: "center",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontWeight: 700,
-                    fontSize: ".8rem",
-                    color: "#543CDA",
-                  }}
-                >
-                  {initials(q.name)}
-                </span>
+                {q.photoUrl ? (
+                  <span className="av av-photo">
+                    <img src={q.photoUrl} alt={q.photoAlt ?? q.name} loading="lazy" />
+                  </span>
+                ) : (
+                  <span
+                    className="av"
+                    aria-hidden="true"
+                    style={{
+                      display: "grid",
+                      placeItems: "center",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontWeight: 700,
+                      fontSize: ".8rem",
+                      color: "#543CDA",
+                    }}
+                  >
+                    {initials(q.name)}
+                  </span>
+                )}
                 <div>
                   <div className="nm">{q.name}</div>
                   <div className="rl">{q.role}</div>

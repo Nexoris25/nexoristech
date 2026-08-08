@@ -3,15 +3,14 @@
  * recommendation (one to three real service pages plus the industry page) and a short rationale.
  * Called server-side by apps/web; not streamed.
  */
-import { Body, Controller, Post } from "@nestjs/common";
-// NestJS reads the constructor parameter type from emitted metadata, so FinderService must be a
-// value import, not a type-only one.
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { Body, Controller, Inject, Post } from "@nestjs/common";
 import { FinderService, type FinderResult } from "./finder.service.js";
 
 @Controller()
 export class FinderController {
-  constructor(private readonly finder: FinderService) {}
+  // The token is explicit because injection must not depend on `emitDecoratorMetadata`: esbuild
+  // (via tsx) does not emit it, and every dependency would arrive undefined in watch mode.
+  constructor(@Inject(FinderService) private readonly finder: FinderService) {}
 
   @Post("finder")
   async recommend(@Body() body: unknown): Promise<FinderResult> {

@@ -1,0 +1,11 @@
+-- Intentionally empty.
+--
+-- This migration seeded a demonstration dataset: eighteen invented authors ("Ada Admin", "John Doe"),
+-- articles nobody wrote, and ninety days of activity so the dashboard would look busy. It was useful
+-- while the CMS was being designed and is wrong for a platform about to hold real content.
+--
+-- It is kept as a no-op rather than deleted so the filename stays recorded in every ledger that has
+-- already applied it, and so this note survives where someone looking for the seed data would find it.
+--
+-- The platform starts empty. Authors, categories and content are created by the people who own them.
+SELECT 1;

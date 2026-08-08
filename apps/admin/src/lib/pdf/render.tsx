@@ -22,32 +22,71 @@ function registerFonts(): void {
       { src: join(dir, "jakarta-700.ttf"), fontWeight: 700 },
     ],
   });
+  // Lora, for the legal documents. A serif is the convention for contracts and agreements: it is what
+  // the reader expects on an instrument they will print, mark up and file, and the bracketed serifs
+  // help the eye hold a line across a long clause. Instantiated as static 400/700 cuts from the
+  // variable original, because react-pdf cannot select a weight off a variable axis.
+  Font.register({
+    family: "Lora",
+    fonts: [
+      { src: join(dir, "lora-400.ttf") },
+      { src: join(dir, "lora-700.ttf"), fontWeight: 700 },
+      { src: join(dir, "lora-italic.ttf"), fontStyle: "italic" },
+    ],
+  });
 }
 
-let logoCache: Buffer | undefined;
-let logoLoaded = false;
+// The brand assets are read once and embedded: the white logo for the purple header band, the
+// purple mark for the light stamp seal, and the real official stamp PNG if the business has added
+// one to the public folder (public/official-stamp.png). Each is optional and cached, including a
+// cached miss so a missing file is not re-read on every render.
+const assetCache = new Map<string, Buffer | undefined>();
 
-function logo(): Buffer | undefined {
-  if (logoLoaded) return logoCache;
-  logoLoaded = true;
+function asset(file: string): Buffer | undefined {
+  if (assetCache.has(file)) return assetCache.get(file);
+  let buffer: Buffer | undefined;
   try {
-    logoCache = readFileSync(
-      join(process.cwd(), "public", "nexoris-logo-white.png"),
-    );
+    buffer = readFileSync(join(process.cwd(), "public", file));
   } catch {
-    logoCache = undefined;
+    buffer = undefined;
   }
-  return logoCache;
+  assetCache.set(file, buffer);
+  return buffer;
+}
+
+/** Decode a base64 data URL into a Buffer, ignoring anything that is not one. */
+function dataUrlToBuffer(value: string | undefined): Buffer | undefined {
+  if (!value) return undefined;
+  const comma = value.indexOf(",");
+  if (!value.startsWith("data:image/") || comma < 0) return undefined;
+  try {
+    return Buffer.from(value.slice(comma + 1), "base64");
+  } catch {
+    return undefined;
+  }
 }
 
 export async function renderDocument(data: DocumentData): Promise<Buffer> {
   registerFonts();
-  const buffer = logo();
-  return renderToBuffer(
-    buffer ? (
-      <NexorisDocument data={data} logo={buffer} />
-    ) : (
-      <NexorisDocument data={data} />
-    ),
-  );
+  // The full-resolution marks: white for the purple cover band, purple for the plain letterheads.
+  const logo = asset("logo-mark-white.png");
+  const mark = asset("logo-mark-purple.png");
+  // Uploaded images win. There is no fallback to a file on disk for either: a stamp pinned in the
+  // repo would carry a stale date onto every document, which is the whole reason these are uploads.
+  const stamp = dataUrlToBuffer(data.stampImage);
+  const signature = dataUrlToBuffer(data.signatureImage);
+  try {
+    return await renderToBuffer(
+      <NexorisDocument
+        data={data}
+        {...(logo ? { logo } : {})}
+        {...(mark ? { mark } : {})}
+        {...(stamp ? { stamp } : {})}
+        {...(signature ? { signature } : {})}
+      />,
+    );
+  } catch (error) {
+    console.error("PDF_RENDER_FAIL", data.kind, error instanceof Error ? error.stack : error);
+    throw error;
+  }
 }
