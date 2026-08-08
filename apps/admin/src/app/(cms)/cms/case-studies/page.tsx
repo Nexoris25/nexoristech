@@ -5,9 +5,12 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Download, Search, Star } from "lucide-react";
+import { Plus, Download, Star } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
+import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
+import { ListFilters } from "../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../lib/list-filters.js";
 import { RowActions } from "../../../../components/cms/RowActions.js";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +23,30 @@ const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
   archived: { bg: "#F1F5F9", fg: "#94A3B8", label: "Archived" },
 };
 
-export default async function CaseStudiesPage(): Promise<ReactNode> {
+export default async function CaseStudiesPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; status?: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
+  const { page: pageParam, per, q, status } = await searchParams;
+
+  // The count and the page query must apply the same filter, or the pager describes a different
+  // result set from the one on screen.
+  const filters = filterClause([
+    { column: "title", value: q, mode: "ilike" },
+    { column: "status", value: status, mode: "eq" },
+  ]);
+  const { rows: [tot] } = await cmsDb().query<{ n: string }>(
+    `SELECT count(*)::text n FROM cms_content WHERE kind='case_study'${filters.sql}`,
+    filters.values);
+  const total = Number(tot?.n ?? 0);
+  const perPage = perPageFrom(per);
+  const pageCount = Math.max(1, Math.ceil(total / perPage));
+  const page = currentPage(pageParam, pageCount);
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, title, slug, service_industry, excerpt, status, display_order, featured,
             COALESCE(updated_at, created_at)::text AS updated_at
-       FROM cms_content WHERE kind='case_study' ORDER BY display_order LIMIT 50`);
+       FROM cms_content WHERE kind='case_study'${filters.sql}
+      ORDER BY display_order
+      LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
+    [...filters.values, perPage, (page - 1) * perPage]);
 
   return (
     <div>
@@ -41,12 +62,15 @@ export default async function CaseStudiesPage(): Promise<ReactNode> {
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search case studies..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Services</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Industries</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Status</option><option>Published</option><option>Draft</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
+        <ListFilters
+          searchPlaceholder="Search case studies by title..."
+          selects={[{ param: "status", allLabel: "All statuses", options: [
+              { value: "published", label: "Published" },
+              { value: "draft", label: "Draft" },
+              { value: "in_review", label: "In Review" },
+              { value: "archived", label: "Archived" },
+            ] }]}
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
             <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Title</th><th className="px-5 py-3 font-600">Service / Industry</th><th className="px-5 py-3 font-600">Project Summary</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Order</th><th className="px-5 py-3 font-600">Updated</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
@@ -69,7 +93,7 @@ export default async function CaseStudiesPage(): Promise<ReactNode> {
           </table>
         </div>
         <div className="border-t border-slate-100 px-5 py-3 text-[0.8rem] text-slate-500">
-          <span>Showing 1 to {rows.length} of {rows.length} case studies</span>
+          <Pagination page={page} pageCount={pageCount} total={total} basePath="/cms/case-studies" noun="case studies" perPage={perPage} />
         </div>
       </div>
     </div>

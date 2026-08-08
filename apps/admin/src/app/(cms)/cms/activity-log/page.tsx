@@ -4,7 +4,10 @@
  * Responsive: the table scrolls inside its own container down to 360px.
  */
 import type { ReactNode } from "react";
-import { ChevronDown, Search, Activity as ActivityIcon, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Activity as ActivityIcon, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
+import { ListFilters } from "../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../lib/list-filters.js";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
 
@@ -26,11 +29,27 @@ function ago(iso: string): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-export default async function ActivityLogPage(): Promise<ReactNode> {
+export default async function ActivityLogPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; category?: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
+  const { page: pageParam, per, q, category } = await searchParams;
   const pool = cmsDb();
+  const filters = filterClause([
+    { column: "subject", value: q, mode: "ilike" },
+    { column: "category", value: category, mode: "eq" },
+  ]);
+  const { rows: [ft] } = await pool.query<{ n: string }>(
+    `SELECT count(*)::text n FROM cms_activity WHERE true${filters.sql}`, filters.values);
+  const total = Number(ft?.n ?? 0);
+  const perPage = perPageFrom(per);
+  const pageCount = Math.max(1, Math.ceil(total / perPage));
+  const page = currentPage(pageParam, pageCount);
   const [{ rows }, { rows: [k] }] = await Promise.all([
-    pool.query<Row>("SELECT id, actor_name, action, subject, category, status, created_at::text FROM cms_activity ORDER BY created_at DESC LIMIT 30"),
+    pool.query<Row>(
+      `SELECT id, actor_name, action, subject, category, status, created_at::text
+         FROM cms_activity WHERE true${filters.sql}
+        ORDER BY created_at DESC
+        LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
+      [...filters.values, perPage, (page - 1) * perPage]),
     pool.query<Kpis>(
       `SELECT count(*)::text total,
               count(*) FILTER (WHERE status IN ('Completed','Published','Live'))::text ok,
@@ -61,11 +80,15 @@ export default async function ActivityLogPage(): Promise<ReactNode> {
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search activities..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Modules</option><option>Insights</option><option>Workflow</option><option>Careers</option><option>Programmatic SEO</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Actions</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
+        <ListFilters
+          searchPlaceholder="Search activity by subject..."
+          selects={[{ param: "category", allLabel: "All categories", options: [
+            { value: "Workflow", label: "Workflow" },
+            { value: "Content", label: "Content" },
+            { value: "SEO", label: "SEO" },
+            { value: "Media", label: "Media" },
+          ] }]}
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left">
             <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Time</th><th className="px-5 py-3 font-600">User</th><th className="px-5 py-3 font-600">Module</th><th className="px-5 py-3 font-600">Item</th><th className="px-5 py-3 font-600">Action</th><th className="px-5 py-3 font-600">Status</th></tr></thead>
@@ -92,7 +115,7 @@ export default async function ActivityLogPage(): Promise<ReactNode> {
           </table>
         </div>
         <div className="border-t border-slate-100 px-5 py-3 text-[0.8rem] text-slate-500">
-          <span>Showing 1 to {rows.length} of {Number(k?.total ?? 0).toLocaleString()} activities</span>
+          <Pagination page={page} pageCount={pageCount} total={total} basePath="/cms/activity-log" noun="activities" perPage={perPage} />
         </div>
       </div>
     </div>

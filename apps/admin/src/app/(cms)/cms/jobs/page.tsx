@@ -6,9 +6,12 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Search, Star } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
+import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
+import { ListFilters } from "../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../lib/list-filters.js";
 import { RowActions } from "../../../../components/cms/RowActions.js";
 
 export const dynamic = "force-dynamic";
@@ -23,13 +26,31 @@ const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
 };
 function fitColor(n: number | null): string { return n == null ? "#94A3B8" : n >= 85 ? "#16A34A" : n >= 70 ? "#B45309" : "#DC2626"; }
 
-export default async function JobsPage(): Promise<ReactNode> {
+export default async function JobsPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; status?: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
+  const { page: pageParam, per, q, status } = await searchParams;
+
+  // The count and the page query must apply the same filter, or the pager describes a different
+  // result set from the one on screen.
+  const filters = filterClause([
+    { column: "c.title", value: q, mode: "ilike" },
+    { column: "c.status", value: status, mode: "eq" },
+  ]);
+  const { rows: [tot] } = await cmsDb().query<{ n: string }>(
+    `SELECT count(*)::text n FROM cms_content c WHERE c.kind='job'${filters.sql}`,
+    filters.values);
+  const total = Number(tot?.n ?? 0);
+  const perPage = perPageFrom(per);
+  const pageCount = Math.max(1, Math.ceil(total / perPage));
+  const page = currentPage(pageParam, pageCount);
   const { rows } = await cmsDb().query<Row>(
     `SELECT c.id, c.title, c.slug, c.department, c.employment_type, c.work_mode, c.ai_fit_score, c.status, c.featured,
             c.published_at::text,
             (SELECT count(*) FROM cms_content a WHERE a.kind='application' AND a.applied_job = c.title)::text AS apps
-       FROM cms_content c WHERE c.kind='job' ORDER BY c.created_at DESC LIMIT 50`);
+       FROM cms_content c WHERE c.kind='job'${filters.sql}
+      ORDER BY c.created_at DESC
+      LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
+    [...filters.values, perPage, (page - 1) * perPage]);
 
   return (
     <div>
@@ -42,12 +63,15 @@ export default async function JobsPage(): Promise<ReactNode> {
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search jobs..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Departments</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Types</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Statuses</option><option>Open</option><option>Draft</option><option>Closed</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
+        <ListFilters
+          searchPlaceholder="Search jobs by title..."
+          selects={[{ param: "status", allLabel: "All statuses", options: [
+              { value: "published", label: "Published" },
+              { value: "draft", label: "Draft" },
+              { value: "in_review", label: "In Review" },
+              { value: "archived", label: "Archived" },
+            ] }]}
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[920px] text-left">
             <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Job Title</th><th className="px-5 py-3 font-600">Department</th><th className="px-5 py-3 font-600">Type</th><th className="px-5 py-3 font-600">Work Mode</th><th className="px-5 py-3 font-600">Applications</th><th className="px-5 py-3 font-600">AI Fit</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Published</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
@@ -72,7 +96,7 @@ export default async function JobsPage(): Promise<ReactNode> {
           </table>
         </div>
         <div className="border-t border-slate-100 px-5 py-3 text-[0.8rem] text-slate-500">
-          <span>Showing 1 to {rows.length} of {rows.length} jobs</span>
+          <Pagination page={page} pageCount={pageCount} total={total} basePath="/cms/jobs" noun="jobs" perPage={perPage} />
         </div>
       </div>
     </div>

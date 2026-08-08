@@ -5,7 +5,9 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Search, LayoutTemplate } from "lucide-react";
+import { Plus, LayoutTemplate } from "lucide-react";
+import { ListFilters } from "../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../lib/list-filters.js";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { RecordActions } from "../../../../components/cms/RecordActions.js";
@@ -14,12 +16,14 @@ export const dynamic = "force-dynamic";
 
 interface Row { id: string; name: string; type: string; variables: unknown[]; active: boolean; updated_at: string; pages: string }
 
-export default async function TemplatesPage(): Promise<ReactNode> {
+export default async function TemplatesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }): Promise<ReactNode> {
+  const { q } = await searchParams;
+  const filters = filterClause([{ column: "t.name", value: q, mode: "ilike" }]);
   await requireCmsAccess();
   const { rows } = await cmsDb().query<Row>(
     `SELECT t.id, t.name, t.type, t.variables, t.active, t.updated_at::text,
             (SELECT count(*) FROM cms_content c WHERE c.kind='generated_page' AND c.template = t.name)::text AS pages
-       FROM cms_template t ORDER BY t.name`);
+       FROM cms_template t WHERE true${filters.sql} ORDER BY t.name`, filters.values);
 
   return (
     <div>
@@ -32,10 +36,7 @@ export default async function TemplatesPage(): Promise<ReactNode> {
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search templates..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Types</option><option>Landing Page</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
+        <ListFilters searchPlaceholder="Search templates by name..." />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left">
             <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Template Name</th><th className="px-5 py-3 font-600">Type</th><th className="px-5 py-3 font-600">Variables</th><th className="px-5 py-3 font-600">Pages Generated</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Updated</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
@@ -55,7 +56,7 @@ export default async function TemplatesPage(): Promise<ReactNode> {
           </table>
         </div>
         <div className="border-t border-slate-100 px-5 py-3 text-[0.8rem] text-slate-500">
-          <span>Showing 1 to {rows.length} of {rows.length} templates</span>
+          <span>{rows.length} {rows.length === 1 ? "template" : "templates"}</span>
         </div>
       </div>
     </div>

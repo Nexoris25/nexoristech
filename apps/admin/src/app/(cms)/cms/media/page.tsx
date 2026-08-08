@@ -5,8 +5,10 @@
  * about seeded assets that have no hosted file yet. Admin only. Reads nexoris_cms.
  */
 import type { ReactNode } from "react";
-import { ChevronDown, Upload, Search, Image as ImageIcon, FileText, Film, HardDrive, Layers, CalendarPlus } from "lucide-react";
+import { CalendarPlus, FileText, Film, HardDrive, Image as ImageIcon, Layers, Upload } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
+import { ListFilters } from "../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../lib/list-filters.js";
 import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import Link from "next/link";
@@ -20,8 +22,8 @@ const KIND_ICON: Record<string, typeof ImageIcon> = { image: ImageIcon, video: F
 const KIND_TINT: Record<string, string> = { image: "#EEEBFC", video: "#DBEAFE", document: "#FEF3C7" };
 const KIND_FG: Record<string, string> = { image: "#543CDA", video: "#2563EB", document: "#B45309" };
 
-export default async function MediaPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string }> }): Promise<ReactNode> {
-  const { page: pageParam, per } = await searchParams;
+export default async function MediaPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string }> }): Promise<ReactNode> {
+  const { page: pageParam, per, q } = await searchParams;
   await requireCmsAccess();
   const pool = cmsDb();
 
@@ -34,14 +36,20 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
               count(*) FILTER (WHERE created_at >= now() - interval '30 days')::text this_month
          FROM cms_media`);
 
-  const total = Number(s?.total ?? 0);
+  const filters = filterClause([{ column: "name", value: q, mode: "ilike" }]);
+  const { rows: [filtered] } = await pool.query<{ n: string }>(
+    `SELECT count(*)::text n FROM cms_media WHERE true${filters.sql}`, filters.values);
+  const total = Number(filtered?.n ?? 0);
   const perPage = perPageFrom(per);
   const pageCount = Math.max(1, Math.ceil(total / perPage));
   const page = currentPage(pageParam, pageCount);
 
   const { rows: assets } = await pool.query<Asset>(
-    "SELECT id, name, kind, size_bytes::text, url, folder, created_at::text FROM cms_media ORDER BY created_at DESC LIMIT $1 OFFSET $2",
-    [perPage, (page - 1) * perPage]);
+    `SELECT id, name, kind, size_bytes::text, url, folder, created_at::text
+       FROM cms_media WHERE true${filters.sql}
+      ORDER BY created_at DESC
+      LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
+    [...filters.values, perPage, (page - 1) * perPage]);
   const stats = [
     { icon: Layers, label: "Total Assets", value: Number(s?.total ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
     { icon: ImageIcon, label: "Images", value: Number(s?.images ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
@@ -72,12 +80,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search media..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>Type: All</option><option>Images</option><option>Video</option><option>Documents</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>Folder: All</option><option>Insights</option><option>Case Studies</option><option>Team</option><option>Brand</option><option>Uploads</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
-
+        <ListFilters searchPlaceholder="Search media by file name..." />
         <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {assets.map((a) => {
             const Icon = KIND_ICON[a.kind] ?? FileText;

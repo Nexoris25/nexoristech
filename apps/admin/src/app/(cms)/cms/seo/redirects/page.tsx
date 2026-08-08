@@ -5,7 +5,10 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Search, ArrowRightLeft, MoveRight, Ban, MousePointerClick } from "lucide-react";
+import { Plus, ArrowRightLeft, MoveRight, Ban, MousePointerClick } from "lucide-react";
+import { Pagination, currentPage, perPageFrom } from "../../../../../components/cms/Pagination.js";
+import { ListFilters } from "../../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../../lib/list-filters.js";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { RecordActions } from "../../../../../components/cms/RecordActions.js";
@@ -18,11 +21,29 @@ const TYPE_COLOR: Record<string, { bg: string; fg: string }> = {
   "301": { bg: "#DCFCE7", fg: "#16A34A" }, "302": { bg: "#FEF3C7", fg: "#B45309" }, "307": { bg: "#EDE9FE", fg: "#6D28D9" }, "410": { bg: "#FEE2E2", fg: "#DC2626" },
 };
 
-export default async function RedirectsPage(): Promise<ReactNode> {
+export default async function RedirectsPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; type?: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
+  const { page: pageParam, per, q, type } = await searchParams;
   const pool = cmsDb();
+  // Filters apply to the listed rows. The KPI tiles above stay unfiltered on purpose: they describe
+  // the whole redirect table, and narrowing them with the search would make them a different metric.
+  const filters = filterClause([
+    { column: "old_url", value: q, mode: "ilike" },
+    { column: "type", value: type, mode: "eq" },
+  ]);
+  const { rows: [ft] } = await pool.query<{ n: string }>(
+    `SELECT count(*)::text n FROM cms_redirect WHERE true${filters.sql}`, filters.values);
+  const total = Number(ft?.n ?? 0);
+  const perPage = perPageFrom(per);
+  const pageCount = Math.max(1, Math.ceil(total / perPage));
+  const page = currentPage(pageParam, pageCount);
   const [{ rows }, { rows: [k] }] = await Promise.all([
-    pool.query<Row>("SELECT id, old_url, new_url, type, status, hits, last_used::text FROM cms_redirect ORDER BY hits DESC LIMIT 50"),
+    pool.query<Row>(
+      `SELECT id, old_url, new_url, type, status, hits, last_used::text
+         FROM cms_redirect WHERE true${filters.sql}
+        ORDER BY hits DESC
+        LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
+      [...filters.values, perPage, (page - 1) * perPage]),
     pool.query<Kpis>(
       `SELECT count(*)::text total, count(*) FILTER (WHERE type='301')::text r301, count(*) FILTER (WHERE type='302')::text r302,
               count(*) FILTER (WHERE type='410')::text r410, COALESCE(sum(hits),0)::text hits FROM cms_redirect`),
@@ -56,11 +77,14 @@ export default async function RedirectsPage(): Promise<ReactNode> {
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search old or new URL..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Types</option><option>301</option><option>302</option><option>410</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Status</option><option>Active</option><option>Inactive</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
+        <ListFilters
+          searchPlaceholder="Search redirects by source URL..."
+          selects={[{ param: "type", allLabel: "All types", options: [
+            { value: "301", label: "301 permanent" },
+            { value: "302", label: "302 temporary" },
+            { value: "410", label: "410 gone" },
+          ] }]}
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left">
             <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Old URL</th><th className="px-5 py-3 font-600">New URL</th><th className="px-5 py-3 font-600">Type</th><th className="px-5 py-3 font-600">Hits (30d)</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Last Used</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
@@ -83,7 +107,7 @@ export default async function RedirectsPage(): Promise<ReactNode> {
           </table>
         </div>
         <div className="border-t border-slate-100 px-5 py-3 text-[0.8rem] text-slate-500">
-          <span>Showing 1 to {rows.length} of {k?.total ?? 0} redirects</span>
+          <Pagination page={page} pageCount={pageCount} total={total} basePath="/cms/seo/redirects" noun="redirects" perPage={perPage} />
         </div>
       </div>
     </div>

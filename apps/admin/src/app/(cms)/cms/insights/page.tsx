@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Search, Eye } from "lucide-react";
+import { Plus, Eye } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
 import { ListFilters } from "../../../../components/cms/ListFilters.js";
@@ -72,11 +72,6 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search insights..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>Category: All</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>Author: All</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
         <ListFilters
           searchPlaceholder="Search insights by title..."
           selects={[{

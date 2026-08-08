@@ -6,10 +6,12 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { RowActions } from "../../../../components/cms/RowActions.js";
+import { ListFilters } from "../../../../components/cms/ListFilters.js";
+import { filterClause } from "../../../../lib/list-filters.js";
 import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
 
 export const dynamic = "force-dynamic";
@@ -33,15 +35,20 @@ function ScoreBadge({ value }: { value: number | null }): ReactNode {
   );
 }
 
-export default async function GeneratedPagesPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string }> }): Promise<ReactNode> {
+export default async function GeneratedPagesPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; status?: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
-  const { page: pageParam, per } = await searchParams;
+  const { page: pageParam, per, q, status } = await searchParams;
   const pool = cmsDb();
 
   // Count first, so the page number can be clamped before the rows are fetched: asking for page 900 of
   // 99 should show the last page rather than an empty table.
+  const filters = filterClause([
+    { column: "title", value: q, mode: "ilike" },
+    { column: "status", value: status, mode: "eq" },
+  ]);
   const { rows: [tot] } = await pool.query<{ n: string }>(
-    "SELECT count(*)::text n FROM cms_content WHERE kind='generated_page'");
+    `SELECT count(*)::text n FROM cms_content WHERE kind='generated_page'${filters.sql}`,
+    filters.values);
   const total = Number(tot?.n ?? 0);
   const perPage = perPageFrom(per);
   const pageCount = Math.max(1, Math.ceil(total / perPage));
@@ -50,9 +57,10 @@ export default async function GeneratedPagesPage({ searchParams }: { searchParam
   const { rows } = await pool.query<Row>(
     `SELECT id, title, short_title, slug, template, industry, target_keyword, seo_score, readiness_score, status,
             COALESCE(updated_at, created_at)::text AS updated_at
-       FROM cms_content WHERE kind='generated_page'
+       FROM cms_content WHERE kind='generated_page'${filters.sql}
       ORDER BY COALESCE(updated_at, created_at) DESC
-      LIMIT $1 OFFSET $2`, [perPage, (page - 1) * perPage]);
+      LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
+    [...filters.values, perPage, (page - 1) * perPage]);
 
   return (
     <div>
@@ -67,12 +75,16 @@ export default async function GeneratedPagesPage({ searchParams }: { searchParam
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search pages..." className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[0.83rem] focus:border-[#543CDA] focus:bg-white focus:outline-none" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Status</option><option>Published</option><option>In Review</option><option>Draft</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Templates</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-          <div className="relative"><select className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-[0.8rem] font-600 text-slate-600"><option>All Industries</option></select><ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" /></div>
-        </div>
+        <ListFilters
+          searchPlaceholder="Search generated pages by title..."
+          selects={[{ param: "status", allLabel: "All statuses", options: [
+            { value: "published", label: "Published" },
+            { value: "draft", label: "Draft" },
+            { value: "in_review", label: "In Review" },
+            { value: "scheduled", label: "Scheduled" },
+            { value: "archived", label: "Archived" },
+          ] }]}
+        />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Page Title</th><th className="px-5 py-3 font-600">Template</th><th className="px-5 py-3 font-600">Industry</th><th className="px-5 py-3 font-600">Target Keyword</th><th className="px-5 py-3 font-600">SEO Score</th><th className="px-5 py-3 font-600">Readiness</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Updated</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
