@@ -3,18 +3,25 @@
  * A small, accessible dropdown used across the shell and dashboards (dashboard switcher, date range,
  * user menu). Opens on trigger click, closes on outside click, Escape, or when a menu item inside is
  * clicked. Keyboard focus stays with the trigger.
+ *
+ * Where the trigger is an icon on its own — the create, notifications and account buttons in the top
+ * bar — `buttonLabel` supplies the name it is announced and tooltipped by. Without it such a trigger
+ * reads as an unlabelled "button" and gives a mouse user nothing on hover either.
  */
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 export function Dropdown({
   label,
+  buttonLabel,
   align = "left",
   panelClassName = "",
   buttonClassName = "",
   children,
 }: {
   label: ReactNode;
+  /** Accessible name for the trigger. Required in practice whenever `label` carries no text. */
+  buttonLabel?: string;
   align?: "left" | "right";
   panelClassName?: string;
   buttonClassName?: string;
@@ -41,7 +48,14 @@ export function Dropdown({
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={buttonClassName}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        {...(buttonLabel ? { "aria-label": buttonLabel, title: buttonLabel } : {})}
+        className={buttonClassName}
+      >
         {label}
       </button>
       {open ? (

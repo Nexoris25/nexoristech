@@ -495,6 +495,7 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
             <Dropdown
               align="right"
               buttonClassName="hidden cursor-pointer place-items-center rounded-full bg-[#543CDA] p-2 text-white hover:bg-[#4330B8] sm:grid"
+              buttonLabel="Create new"
               label={<Plus size={16} strokeWidth={2.4} />}
             >
               <p className="px-3 py-1.5 text-[0.68rem] font-600 uppercase tracking-wide text-slate-500">Create new</p>
@@ -507,6 +508,7 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
               align="right"
               panelClassName="w-[300px]"
               buttonClassName="relative cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              buttonLabel={newLeadCount > 0 ? `Notifications, ${newLeadCount} new` : "Notifications"}
               label={
                 <>
                   <Bell size={17} strokeWidth={2} />
@@ -530,6 +532,7 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
               align="right"
               panelClassName="w-[220px]"
               buttonClassName="flex cursor-pointer items-center gap-2 rounded-full py-1 pl-1 pr-1 hover:bg-slate-50"
+              buttonLabel={`Account menu for ${staff.name}`}
               label={
                 <>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#14112e] font-mono text-[0.66rem] font-700 text-white">{initials(staff.name)}</span>
