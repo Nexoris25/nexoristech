@@ -12,6 +12,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Wallet, TrendingUp, Users, Landmark, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
+import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { AreaChart, Bar } from "../../../../components/charts.js";
@@ -27,19 +29,23 @@ const nairaShort = (v: number): string => {
   return `₦${Math.round(v).toLocaleString("en-NG")}`;
 };
 
-export default async function CeoDashboard(): Promise<ReactNode> {
+export default async function CeoDashboard({ searchParams }: { searchParams: Promise<{ range?: string }> }): Promise<ReactNode> {
   await requireStaff();
   const pool = db();
+  const period = resolvePeriod((await searchParams).range, "ytd");
+  const w = [period.start, period.end];
   const [{ rows: fin }, { rows: clients }, { rows: overdue }, { rows: monthly }] = await Promise.all([
-    // Collected revenue and settled expenses this calendar year. Profit here is cash in less cash out,
-    // not an accounting profit, and the label says so.
+    // Collected revenue and settled expenses over the selected window. Profit here is cash in less
+    // cash out, not an accounting profit, and the label says so. Clients invoiced is a running total
+    // and stays unbounded: it answers "how many clients have we ever billed", not "this period".
     pool.query<{ revenue: string; expenses: string; clients: string }>(
       `SELECT
          (SELECT coalesce(sum(amount),0) FROM einvoice_payment
-           WHERE date_trunc('year', payment_date) = date_trunc('year', current_date))::text AS revenue,
+           WHERE payment_date >= $1 AND payment_date < $2)::text AS revenue,
          (SELECT coalesce(sum(amount + coalesce(vat,0)),0) FROM expense
-           WHERE date_trunc('year', expense_date) = date_trunc('year', current_date))::text AS expenses,
-         (SELECT count(DISTINCT customer_name) FROM einvoice WHERE doc_type='Invoice')::text AS clients`),
+           WHERE expense_date >= $1 AND expense_date < $2)::text AS expenses,
+         (SELECT count(DISTINCT customer_name) FROM einvoice WHERE doc_type='Invoice')::text AS clients`,
+      w),
     pool.query<{ name: string; amount: string }>(
       `SELECT customer_name AS name, sum(total)::text AS amount
          FROM einvoice WHERE doc_type='Invoice' GROUP BY customer_name ORDER BY sum(total) DESC LIMIT 5`),
@@ -49,18 +55,19 @@ export default async function CeoDashboard(): Promise<ReactNode> {
     pool.query<{ label: string; amount: string }>(
       `SELECT to_char(date_trunc('month', payment_date), 'Mon') AS label, sum(amount)::text AS amount
          FROM einvoice_payment
-        WHERE date_trunc('year', payment_date) = date_trunc('year', current_date)
-        GROUP BY date_trunc('month', payment_date) ORDER BY date_trunc('month', payment_date)`),
+        WHERE payment_date >= $1 AND payment_date < $2
+        GROUP BY date_trunc('month', payment_date) ORDER BY date_trunc('month', payment_date)`,
+      w),
   ]);
 
   const f = fin[0]!;
   const revenue = Number(f.revenue);
   const expenses = Number(f.expenses);
   const KPIS = [
-    { label: "Revenue Collected (YTD)", value: nairaShort(revenue), icon: <Wallet size={16} strokeWidth={2} /> },
-    { label: "Cash Surplus (YTD)", value: nairaShort(revenue - expenses), icon: <TrendingUp size={16} strokeWidth={2} /> },
+    { label: "Revenue Collected", value: nairaShort(revenue), icon: <Wallet size={16} strokeWidth={2} /> },
+    { label: "Cash Surplus", value: nairaShort(revenue - expenses), icon: <TrendingUp size={16} strokeWidth={2} /> },
     { label: "Clients Invoiced", value: f.clients, icon: <Users size={16} strokeWidth={2} /> },
-    { label: "Expenses (YTD)", value: nairaShort(expenses), icon: <Landmark size={16} strokeWidth={2} /> },
+    { label: "Expenses", value: nairaShort(expenses), icon: <Landmark size={16} strokeWidth={2} /> },
   ];
 
   const topClient = Math.max(1, ...clients.map((c) => Number(c.amount)));
@@ -92,13 +99,9 @@ export default async function CeoDashboard(): Promise<ReactNode> {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[1.4rem] font-700 text-slate-900 sm:text-[1.6rem]">Company Overview</h1>
-          <p className="mt-1 text-[0.88rem] text-slate-500">Year-to-date performance across Nexoris Technologies.</p>
+          <p className="mt-1 text-[0.88rem] text-slate-500">{period.label} performance across Nexoris Technologies.</p>
         </div>
-        {/* Offered This Quarter / This Year / Last Year, none of which did anything: the options were
-            buttons with no handler and every query below is keyed to the current calendar year. */}
-        <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.82rem] font-600 text-slate-600">
-          Year to date
-        </span>
+        <RangeFilter defaultValue={period.value} options={PERIODS.map((o) => ({ value: o.value, label: o.label }))} />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
@@ -116,7 +119,7 @@ export default async function CeoDashboard(): Promise<ReactNode> {
       <div className="mt-4">
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <div className="flex items-center justify-between">
-            <h2 className="text-[0.98rem] font-700 text-slate-900">Revenue Trend (YTD)</h2>
+            <h2 className="text-[0.98rem] font-700 text-slate-900">Revenue Trend</h2>
           </div>
           {trend.length === 0 ? (
             <p className="py-20 text-center text-[0.86rem] text-slate-500">No payments recorded this year yet.</p>

@@ -6,6 +6,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { TrendingUp, TrendingDown, ArrowRight, Sparkles, Trophy, UserPlus, Briefcase, Coins } from "lucide-react";
+import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
+import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { buildActionCenter } from "../../../../lib/action-center.js";
@@ -50,31 +52,53 @@ function Delta({ value }: { value: number | null }): ReactNode {
   );
 }
 
-export default async function CrmOverviewPage(): Promise<ReactNode> {
+export default async function CrmOverviewPage({ searchParams }: { searchParams: Promise<{ range?: string }> }): Promise<ReactNode> {
   const staff = await requireStaff();
   const pool = db();
   const now = new Date();
+  const period = resolvePeriod((await searchParams).range, "mtd", now);
   const scope = staff.role === "salesperson" ? staff.id : undefined;
+
+  // The scope filter, when present, is $1; the four window bounds follow it. Keeping the numbering in
+  // one place is what stops the comparison figures silently measuring the wrong span.
+  const base = scope ? 1 : 0;
+  const P = {
+    start: `$${base + 1}`,
+    end: `$${base + 2}`,
+    prevStart: `$${base + 3}`,
+    prevEnd: `$${base + 4}`,
+  };
   const where = scope ? "WHERE assigned_to = $1" : "";
   const params = scope ? [scope] : [];
+  const windowParams = [period.start, period.end, period.previousStart, period.previousEnd];
 
   const [kpiRes, stageRes, sourceRes, actRes, actions] = await Promise.all([
     pool.query<{ nl: string; pnl: string; opps: string; won: string; pwon: string; wv: string; pwv: string }>(
-      `SELECT count(*) FILTER (WHERE created_at >= date_trunc('month', now()))::text nl,
-              count(*) FILTER (WHERE created_at >= date_trunc('month', now()) - interval '1 month' AND created_at < date_trunc('month', now()))::text pnl,
+      // Half-open bounds throughout: a lead created exactly on the boundary belongs to one window,
+      // never to both. "Opportunities" is deliberately unbounded — an open deal is open now,
+      // regardless of when it arrived, so scoping it to the window would make it a different metric.
+      `SELECT count(*) FILTER (WHERE created_at >= ${P.start} AND created_at < ${P.end})::text nl,
+              count(*) FILTER (WHERE created_at >= ${P.prevStart} AND created_at < ${P.prevEnd})::text pnl,
               count(*) FILTER (WHERE status NOT IN ('Won','Lost'))::text opps,
-              count(*) FILTER (WHERE status='Won' AND won_at >= date_trunc('month', now()))::text won,
-              count(*) FILTER (WHERE status='Won' AND won_at >= date_trunc('month', now()) - interval '1 month' AND won_at < date_trunc('month', now()))::text pwon,
-              coalesce(sum(deal_value) FILTER (WHERE status='Won' AND won_at >= date_trunc('month', now())),0)::bigint::text wv,
-              coalesce(sum(deal_value) FILTER (WHERE status='Won' AND won_at >= date_trunc('month', now()) - interval '1 month' AND won_at < date_trunc('month', now())),0)::bigint::text pwv
+              count(*) FILTER (WHERE status='Won' AND won_at >= ${P.start} AND won_at < ${P.end})::text won,
+              count(*) FILTER (WHERE status='Won' AND won_at >= ${P.prevStart} AND won_at < ${P.prevEnd})::text pwon,
+              coalesce(sum(deal_value) FILTER (WHERE status='Won' AND won_at >= ${P.start} AND won_at < ${P.end}),0)::bigint::text wv,
+              coalesce(sum(deal_value) FILTER (WHERE status='Won' AND won_at >= ${P.prevStart} AND won_at < ${P.prevEnd}),0)::bigint::text pwv
          FROM lead ${where}`,
-      params,
+      [...params, ...windowParams],
     ),
     pool.query<{ status: string; c: number; v: string }>(
       `SELECT status, count(*)::int c, coalesce(sum(deal_value),0)::bigint::text v FROM lead ${where} GROUP BY status`,
       params,
     ),
-    pool.query<{ source: string; c: number }>(`SELECT source, count(*)::int c FROM lead ${where} GROUP BY source ORDER BY c DESC`, params),
+    // Lead Source counts arrivals, so it follows the selected window like the KPIs above. Pipeline
+    // Overview deliberately does not: it is the state of the pipeline right now, and an open deal is
+    // open regardless of the month it came in.
+    pool.query<{ source: string; c: number }>(
+      `SELECT source, count(*)::int c FROM lead
+        ${where}${where ? " AND" : "WHERE"} created_at >= ${P.start} AND created_at < ${P.end}
+        GROUP BY source ORDER BY c DESC`,
+      [...params, period.start, period.end]),
     pool.query<{ id: string; note: string | null; type: string; created_at: string; actor: string | null; name: string | null }>(
       `SELECT la.lead_id::text id, la.note, la.type, la.created_at, s.name actor, l.name
          FROM lead_activity la LEFT JOIN staff s ON s.id = la.actor_id LEFT JOIN lead l ON l.id = la.lead_id
@@ -106,13 +130,12 @@ export default async function CrmOverviewPage(): Promise<ReactNode> {
           <h1 className="text-[1.4rem] font-700 text-slate-900">CRM Overview</h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">Your pipeline, sources, and what needs attention.</p>
         </div>
-        {/* The period picker that stood here offered This Week / This Month / This Quarter and none of
-            the three did anything: the options were buttons with no handler, and every figure below is
-            queried against the calendar month regardless. Rather than leave a control that lies about
-            what it does, the window it actually uses is stated. */}
-        <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.82rem] font-600 text-slate-600">
-          This calendar month
-        </span>
+        {/* Selecting a period re-runs the queries above against that window, and the comparison
+            figures against the window of equal length before it. */}
+        <RangeFilter
+          defaultValue={period.value}
+          options={PERIODS.map((o) => ({ value: o.value, label: o.label }))}
+        />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
@@ -132,6 +155,7 @@ export default async function CrmOverviewPage(): Promise<ReactNode> {
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <div className="flex items-center justify-between">
             <h2 className="text-[0.98rem] font-700 text-slate-900">Pipeline Overview</h2>
+            <span className="text-[0.74rem] text-slate-500">Open deals now, not just this period</span>
             <Link href="/crm/board" className="text-[0.8rem] font-600 text-[#543CDA] hover:text-[#4330B8]">View pipeline</Link>
           </div>
           <div className="mt-4 flex flex-col gap-3">

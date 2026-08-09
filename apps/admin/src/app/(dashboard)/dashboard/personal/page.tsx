@@ -5,6 +5,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
+import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
@@ -18,15 +20,6 @@ function greeting(): string {
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
-const LAGOS_TZ = "Africa/Lagos";
-const todayLabel = (): string =>
-  new Intl.DateTimeFormat("en-NG", { timeZone: LAGOS_TZ, day: "numeric", month: "long", year: "numeric" }).format(new Date());
-
-const PRIORITY: Record<string, string> = {
-  High: "bg-[#FEE2E2] text-[#B91C1C]",
-  Medium: "bg-[#FEF3C7] text-[#B45309]",
-  Low: "bg-slate-100 text-slate-600",
-};
 
 const nairaShort = (v: number): string => {
   if (v >= 1_000_000) return `₦${(v / 1_000_000).toFixed(v >= 10_000_000 ? 1 : 2)}M`;
@@ -34,7 +27,13 @@ const nairaShort = (v: number): string => {
   return `₦${Math.round(v).toLocaleString("en-NG")}`;
 };
 
-export default async function PersonalDashboard(): Promise<ReactNode> {
+const PRIORITY: Record<string, string> = {
+  High: "bg-[#FEE2E2] text-[#B91C1C]",
+  Medium: "bg-[#FEF3C7] text-[#B45309]",
+  Low: "bg-slate-100 text-slate-600",
+};
+
+export default async function PersonalDashboard({ searchParams }: { searchParams: Promise<{ range?: string }> }): Promise<ReactNode> {
   const staff = await requireStaff();
   const firstName = staff.name.split(/\s+/)[0] ?? staff.name;
 
@@ -42,13 +41,16 @@ export default async function PersonalDashboard(): Promise<ReactNode> {
   // invented book of business — 32 leads, a 63% target, tasks against fictional companies — which is
   // actively misleading on a screen someone uses to decide what to do next.
   const pool = db();
+  const period = resolvePeriod((await searchParams).range, "mtd");
   const [{ rows: mine }, { rows: stageRows }, { rows: target }, { rows: due }, { rows: acts }] = await Promise.all([
     pool.query<{ leads: string; new_today: string; open_opps: string; won_value: string }>(
-      `SELECT count(*)::text AS leads,
+      // Leads and won value follow the selected window. Open opportunities does not: a deal that is
+      // still open is open now, whichever period it arrived in.
+      `SELECT count(*) FILTER (WHERE created_at >= $2 AND created_at < $3)::text AS leads,
               count(*) FILTER (WHERE created_at::date = current_date)::text AS new_today,
               count(*) FILTER (WHERE status NOT IN ('Won','Lost'))::text AS open_opps,
-              coalesce(sum(deal_value) FILTER (WHERE status='Won'),0)::text AS won_value
-         FROM lead WHERE assigned_to = $1`, [staff.id]),
+              coalesce(sum(deal_value) FILTER (WHERE status='Won' AND won_at >= $2 AND won_at < $3),0)::text AS won_value
+         FROM lead WHERE assigned_to = $1`, [staff.id, period.start, period.end]),
     pool.query<{ status: string; n: string; value: string }>(
       `SELECT status, count(*)::text AS n, coalesce(sum(deal_value),0)::text AS value
          FROM lead WHERE assigned_to = $1 AND status <> 'Lost' GROUP BY status`, [staff.id]),
@@ -75,7 +77,7 @@ export default async function PersonalDashboard(): Promise<ReactNode> {
 
   const KPIS = [
     { label: "My Leads", value: me.leads, sub: `${me.new_today} new today` },
-    { label: "My Opportunities", value: me.open_opps, sub: "still open" },
+    { label: "My Opportunities", value: me.open_opps, sub: "still open, any period" },
     { label: "Follow-ups Due", value: String(due.length), sub: overdue > 0 ? `${overdue} overdue` : "none overdue" },
     {
       label: "Target Achievement",
@@ -108,11 +110,7 @@ export default async function PersonalDashboard(): Promise<ReactNode> {
           <h1 className="text-[1.4rem] font-700 text-slate-900 sm:text-[1.6rem]">{greeting()}, {firstName} <span className="align-middle">👋</span></h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">Here&apos;s your overview for today.</p>
         </div>
-        {/* Offered Today / This Week / This Month with no handler on any of them. The date is what the
-            control was really communicating, so that is what is shown. */}
-        <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[0.82rem] font-600 text-slate-600">
-          {todayLabel()}
-        </span>
+        <RangeFilter defaultValue={period.value} options={PERIODS.map((o) => ({ value: o.value, label: o.label }))} />
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
