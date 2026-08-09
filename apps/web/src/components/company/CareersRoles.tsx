@@ -55,17 +55,10 @@ export function CareersRoles({ jobs }: { jobs: JobCard[] }): ReactNode {
 
   if (jobs.length === 0) {
     return (
-      <>
-        <div className="cr-toolbar reveal">
-          <div className="cr-tabs">
-            <button type="button" className="cr-tab on" aria-pressed="true">
-              All teams
-            </button>
-          </div>
-          <span className="cr-cms-note">Listings served from the CMS</span>
-        </div>
-        <EmptyState />
-      </>
+      // With no roles open there is nothing to filter, so the toolbar is not drawn at all. It
+      // previously rendered a lone "All teams" tab that could not be pressed, above a note about
+      // where the listings came from that meant nothing to someone looking for a job.
+      <EmptyState />
     );
   }
 
@@ -98,7 +91,9 @@ export function CareersRoles({ jobs }: { jobs: JobCard[] }): ReactNode {
             </button>
           ))}
         </div>
-        <span className="cr-cms-note">Listings served from the CMS</span>
+        <span className="cr-cms-note">
+          {visible.length} {visible.length === 1 ? "open role" : "open roles"}
+        </span>
       </div>
 
       {visible.length === 0 ? (

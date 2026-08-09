@@ -12,7 +12,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Shield, Users, UsersRound, FileText, Wallet } from "lucide-react";
+import { Users, UsersRound, FileText, Wallet } from "lucide-react";
 import { PLATFORM_VERSION } from "../../lib/version.js";
 import { PasswordInput } from "../../components/auth/PasswordInput.js";
 
@@ -182,19 +182,8 @@ export default async function LoginPage({
               Sign In
             </button>
 
-            <div className="flex items-center gap-3 py-1">
-              <span className="h-px flex-1 bg-slate-200" />
-              <span className="text-[0.78rem] text-slate-500">or</span>
-              <span className="h-px flex-1 bg-slate-200" />
-            </div>
-
-            <button
-              type="button"
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2.5 text-[0.88rem] font-600 text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              <Shield size={16} strokeWidth={2} className="text-[#543CDA]" />
-              Sign in with SSO
-            </button>
+            {/* An "or - Sign in with SSO" button stood here with no handler and no identity provider
+                behind it. Offering a second way in that cannot work is worse than offering one. */}
           </form>
 
           <p className="mt-6 text-center text-[0.76rem] leading-relaxed text-slate-500">

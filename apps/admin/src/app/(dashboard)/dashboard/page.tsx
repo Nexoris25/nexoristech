@@ -6,11 +6,12 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, TrendingUp, TrendingDown, FileText, Trophy, UserPlus, Wallet, Contact, ReceiptText, ArrowRight } from "lucide-react";
+import { TrendingUp, TrendingDown, FileText, Trophy, UserPlus, Wallet, Contact, ReceiptText, ArrowRight } from "lucide-react";
 import { requireStaff } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 import { STAGES } from "../../../lib/crm-constants.js";
-import { Dropdown } from "../../../components/Dropdown.js";
+import { RangeFilter } from "../../../components/cms/RangeFilter.js";
+import { resolvePeriod, PERIODS } from "../../../lib/period.js";
 import { AreaChart, Donut, ProgressRing, Bar } from "../../../components/charts.js";
 import { ChartHover, type HoverPoint } from "../../../components/ChartHover.js";
 
@@ -54,34 +55,6 @@ function todayLabel(): string {
   return new Intl.DateTimeFormat("en-NG", { timeZone: LAGOS, day: "numeric", month: "long", year: "numeric" }).format(new Date());
 }
 
-function DateRange(): ReactNode {
-  return (
-    <Dropdown
-      align="right"
-      buttonClassName="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.82rem] font-600 text-slate-700 hover:bg-slate-50"
-      label={<>{todayLabel()} <ChevronDown size={14} strokeWidth={2.2} className="text-slate-500" /></>}
-    >
-      {["Today", "This Week", "This Month", "This Year"].map((o) => (
-        <button key={o} type="button" className="flex w-full items-center rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>
-      ))}
-    </Dropdown>
-  );
-}
-
-function RangePill({ label }: { label: string }): ReactNode {
-  return (
-    <Dropdown
-      align="right"
-      buttonClassName="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[0.78rem] font-600 text-slate-600 hover:bg-slate-50"
-      label={<>{label} <ChevronDown size={13} strokeWidth={2.2} className="text-slate-500" /></>}
-    >
-      {["This Week", "This Month", "This Quarter", "This Year"].map((o) => (
-        <button key={o} type="button" className="flex w-full items-center rounded-lg px-3 py-2 text-left text-[0.83rem] text-slate-700 hover:bg-slate-50">{o}</button>
-      ))}
-    </Dropdown>
-  );
-}
-
 interface AuditActivity { action: string; entity: string; after: unknown; actor: string | null; created_at: string }
 
 const ACTIVITY_META: Record<string, { icon: ReactNode; color: string }> = {
@@ -121,25 +94,34 @@ function timeAgo(iso: string): string {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-export default async function ExecutiveDashboard(): Promise<ReactNode> {
+export default async function ExecutiveDashboard(
+  { searchParams }: { searchParams: Promise<{ range?: string }> },
+): Promise<ReactNode> {
   const staff = await requireStaff();
   const firstName = staff.name.split(/\s+/)[0] ?? staff.name;
   const pool = db();
+
+  // Every figure below that has a "vs previous" reading is measured over this window and compared
+  // against the window of equal length immediately before it. Bounds are half-open, so a row landing
+  // exactly on the boundary is counted once.
+  const period = resolvePeriod((await searchParams).range, "mtd");
+  const win = [period.start, period.end, period.previousStart, period.previousEnd];
   const [{ rows: money }, { rows: leadStats }, { rows: stages }, { rows: services }, { rows: teams }, { rows: activity }, { rows: daily }] = await Promise.all([
     // Revenue is what has actually been collected; outstanding is what is still owed on live documents.
     pool.query<{ collected: string; collected_prev: string; outstanding: string }>(
+      // Outstanding is deliberately unbounded: what is owed is owed now, whatever window is selected.
       `SELECT
-         coalesce(sum(amount_paid) FILTER (WHERE date_trunc('month', issue_date) = date_trunc('month', current_date)),0)::text AS collected,
-         coalesce(sum(amount_paid) FILTER (WHERE date_trunc('month', issue_date) = date_trunc('month', current_date - interval '1 month')),0)::text AS collected_prev,
+         coalesce(sum(amount_paid) FILTER (WHERE issue_date >= $1 AND issue_date < $2),0)::text AS collected,
+         coalesce(sum(amount_paid) FILTER (WHERE issue_date >= $3 AND issue_date < $4),0)::text AS collected_prev,
          coalesce(sum(total - amount_paid) FILTER (WHERE lifecycle_status <> 'Closed' AND total > amount_paid),0)::text AS outstanding
-       FROM einvoice WHERE doc_type = 'Invoice'`),
+       FROM einvoice WHERE doc_type = 'Invoice'`, win),
     pool.query<{ new_leads: string; new_leads_prev: string; won: string; won_prev: string }>(
       `SELECT
-         count(*) FILTER (WHERE date_trunc('month', created_at) = date_trunc('month', current_date))::text AS new_leads,
-         count(*) FILTER (WHERE date_trunc('month', created_at) = date_trunc('month', current_date - interval '1 month'))::text AS new_leads_prev,
-         count(*) FILTER (WHERE status = 'Won' AND date_trunc('month', coalesce(won_at, created_at)) = date_trunc('month', current_date))::text AS won,
-         count(*) FILTER (WHERE status = 'Won' AND date_trunc('month', coalesce(won_at, created_at)) = date_trunc('month', current_date - interval '1 month'))::text AS won_prev
-       FROM lead`),
+         count(*) FILTER (WHERE created_at >= $1 AND created_at < $2)::text AS new_leads,
+         count(*) FILTER (WHERE created_at >= $3 AND created_at < $4)::text AS new_leads_prev,
+         count(*) FILTER (WHERE status = 'Won' AND coalesce(won_at, created_at) >= $1 AND coalesce(won_at, created_at) < $2)::text AS won,
+         count(*) FILTER (WHERE status = 'Won' AND coalesce(won_at, created_at) >= $3 AND coalesce(won_at, created_at) < $4)::text AS won_prev
+       FROM lead`, win),
     pool.query<{ status: string; n: string }>(
       "SELECT status, count(*)::text AS n FROM lead WHERE status NOT IN ('Won','Lost') GROUP BY status"),
     pool.query<{ service_line: string; revenue: string }>(
@@ -163,8 +145,8 @@ export default async function ExecutiveDashboard(): Promise<ReactNode> {
     pool.query<{ day: string; amount: string }>(
       `SELECT to_char(payment_date, 'DD Mon') AS day, sum(amount)::text AS amount
          FROM einvoice_payment
-        WHERE date_trunc('month', payment_date) = date_trunc('month', current_date)
-        GROUP BY payment_date ORDER BY payment_date`),
+        WHERE payment_date >= $1 AND payment_date < $2
+        GROUP BY payment_date ORDER BY payment_date`, [period.start, period.end]),
   ]);
 
   const m = money[0]!;
@@ -230,7 +212,8 @@ export default async function ExecutiveDashboard(): Promise<ReactNode> {
           <h1 className="text-[1.4rem] font-700 text-slate-900 sm:text-[1.6rem]">{greeting()}, {firstName} <span className="align-middle">👋</span></h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">Here&apos;s what&apos;s happening at Nexoris Technologies today.</p>
         </div>
-        <DateRange />
+        {/* Selecting a period re-runs every query on this page against that window. */}
+        <RangeFilter defaultValue={period.value} options={PERIODS.map((o) => ({ value: o.value, label: o.label }))} />
       </div>
 
       {/* KPI row */}
@@ -243,15 +226,15 @@ export default async function ExecutiveDashboard(): Promise<ReactNode> {
             </div>
             <p className="mt-3 text-[0.8rem] font-500 text-slate-500">{k.label}</p>
             <p className="mt-1 font-mono text-[1.5rem] font-700 leading-none text-slate-900">{k.value}</p>
-            {/* A movement is only shown when there is a prior month to compare with, and it is coloured
+            {/* A movement is only shown when there is a prior period to compare with, and it is coloured
                 by direction rather than always green. */}
             {k.delta ? (
               <p className={`mt-2 inline-flex items-center gap-1 text-[0.74rem] font-600 ${k.up ? "text-[#15803D]" : "text-[#B91C1C]"}`}>
                 {k.up ? <TrendingUp size={12} strokeWidth={2.4} /> : <TrendingDown size={12} strokeWidth={2.4} />} {k.delta}
-                <span className="font-400 text-slate-500">vs last month</span>
+                <span className="font-400 text-slate-500">vs previous period</span>
               </p>
             ) : (
-              <p className="mt-2 text-[0.74rem] text-slate-500">No prior month to compare</p>
+              <p className="mt-2 text-[0.74rem] text-slate-500">No prior period to compare</p>
             )}
           </Link>
         ))}
@@ -271,13 +254,14 @@ export default async function ExecutiveDashboard(): Promise<ReactNode> {
                   </span>
                 ) : null}
               </div>
-              <p className="mt-1 text-[0.72rem] text-slate-500">This month to {todayLabel()}</p>
+              <p className="mt-1 text-[0.72rem] text-slate-500">{period.label} to {todayLabel()}</p>
             </div>
-            <RangePill label="This Month" />
+            {/* The second picker that stood here offered its own range and changed nothing. The page
+                has one period, chosen above, and this chart follows it. */}
           </div>
-          {/* An empty month draws nothing rather than an invented curve. */}
+          {/* An empty period draws nothing rather than an invented curve. */}
           {revenueSeries.length === 0 ? (
-            <p className="mt-4 py-16 text-center text-[0.84rem] text-slate-500">No payments received yet this month.</p>
+            <p className="mt-4 py-16 text-center text-[0.84rem] text-slate-500">No payments received in this period.</p>
           ) : (
             <div className="mt-4 flex">
               <div className="flex flex-col justify-between py-1 pr-3 font-mono text-[0.66rem] text-slate-500">
