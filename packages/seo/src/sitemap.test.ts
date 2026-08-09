@@ -46,6 +46,15 @@ describe("buildRobotsTxt", () => {
     expect(txt).toContain("Allow: /");
     expect(txt).toContain("Sitemap: https://nexoristech.com/sitemap.xml");
   });
+
+  it("keeps crawlers off the API and the sign-in and recovery screens", () => {
+    // These rules were once hand-written into the committed robots.txt while this builder still
+    // emitted the permissive version, so regenerating the file quietly re-exposed all five paths.
+    const txt = buildRobotsTxt();
+    for (const path of ["/api/", "/login", "/admin", "/accept-invite", "/forgot-password"]) {
+      expect(txt, path).toContain(`Disallow: ${path}`);
+    }
+  });
 });
 
 describe("buildLlmsTxt", () => {
