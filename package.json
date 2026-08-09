@@ -31,7 +31,9 @@
   "pnpm": {
     "overrides": {
       "@types/react": "19.0.2",
-      "@types/react-dom": "19.0.2"
+      "@types/react-dom": "19.0.2",
+      "sharp": "^0.35.3",
+      "multer": "^2.2.0"
     }
   }
 }
