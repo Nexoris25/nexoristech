@@ -69,6 +69,9 @@ export interface BuiltMetadata {
   };
   twitter: {
     card: "summary_large_image";
+    /** The @handle the card is attributed to. Validators treat the card as incomplete without it. */
+    site: string;
+    creator: string;
     title: string;
     description: string;
     images: string[];

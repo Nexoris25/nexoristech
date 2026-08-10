@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS company_settings (
   id              boolean PRIMARY KEY DEFAULT true CHECK (id),
   legal_name      text NOT NULL DEFAULT 'Nexoris Technologies Ltd',
   tin             text,
-  address         text NOT NULL DEFAULT 'No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State.',
+  address         text NOT NULL DEFAULT 'No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos',
   email           text NOT NULL DEFAULT 'business@nexoristech.com',
   phone           text NOT NULL DEFAULT '+234 913 813 3224',
   vat_rate        numeric NOT NULL DEFAULT 7.5,

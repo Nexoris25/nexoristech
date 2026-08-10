@@ -317,8 +317,8 @@ A direct link to /insights, no flyout.
 7.8 Footer
 Background ink-950 (#0D0A1C). Five columns plus a bottom bar. Column 1, Nexoris
 Technologies: the white logo, the line "We design and build custom software for businesses
-in Nigeria and abroad.", the address 5, Mojisola Dokpesi Street, Allied Garden Estate,
-Badore, Ajah, Lagos State, Nigeria, the phone +234 913 813 3224, hello@nexoristech.com
+in Nigeria and abroad.", the address No. 5, Mojisola Dokpesi Street, Ajah,
+Lekki Lagos, the phone +234 913 813 3224, hello@nexoristech.com
 for general and business@nexoristech.com for new business, and the WhatsApp, LinkedIn,
 X, Instagram, and YouTube links. Column 2, Services: all 11, in the flyout order of
 importance. Column 3, Industries: the top 10 by expected demand (Education, Healthcare,

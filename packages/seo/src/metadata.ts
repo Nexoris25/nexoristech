@@ -14,6 +14,7 @@ import {
   ORGANISATION,
   SITE_ORIGIN,
   TITLE_SEPARATOR,
+  X_HANDLE,
 } from "./constants.js";
 import { absoluteUrl } from "./url.js";
 import type {
@@ -133,6 +134,9 @@ export function buildMetadata(input: BuildMetadataInput): BuiltMetadata {
     },
     twitter: {
       card: "summary_large_image",
+      // Both point at the company account: posts come from the brand, not a personal byline.
+      site: X_HANDLE,
+      creator: X_HANDLE,
       title: fullTitle,
       description,
       images: [ogImage.url],

@@ -101,7 +101,7 @@ export function SiteFooter(): ReactNode {
             </p>
             <div className="addr">
               <span className="addr-line">
-                No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State.
+                No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos
               </span>
               <a href="tel:+2349138133224">+234 913 813 3224</a>
               {/* Click to chat, reachable from every page rather than only from the contact page. */}

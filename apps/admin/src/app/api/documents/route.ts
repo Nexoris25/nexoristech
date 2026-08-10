@@ -40,7 +40,7 @@ async function loadCompany(): Promise<CompanyInfo> {
   const fallback: CompanyInfo = {
     legalName: "Nexoris Technologies Ltd",
     tin: null,
-    address: "No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State.",
+    address: "No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos",
     email: "business@nexoristech.com",
     phone: "+234 913 813 3224",
     vatRate: 7.5,

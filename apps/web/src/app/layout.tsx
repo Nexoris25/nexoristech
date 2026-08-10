@@ -10,6 +10,7 @@ import { SITE_ORIGIN } from "@nexoris/seo";
 import { SiteHeader } from "../components/SiteHeader.js";
 import { SiteFooter } from "../components/SiteFooter.js";
 import { OgeWidget } from "../components/OgeWidget.js";
+import { WhatsAppButton } from "../components/WhatsAppButton.js";
 import { CookieConsent } from "../components/CookieConsent.js";
 import { Analytics } from "../components/Analytics.js";
 /*
@@ -70,6 +71,7 @@ export default function RootLayout({
         <SiteHeader />
         <main id="main-content">{children}</main>
         <SiteFooter />
+        <WhatsAppButton />
         <OgeWidget />
         <CookieConsent />
         <Analytics />

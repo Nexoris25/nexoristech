@@ -60,3 +60,14 @@ apps/cms/types/generated/
 
 # Generated knowledge-base artifact (emitted by the web build, ingested by apps/oge).
 /artifacts/
+
+# Local AI coding-agent configuration and scratch state. These describe how a particular
+# developer's tooling is set up, not how the product is built, so a clone should not carry them.
+.claude/
+CLAUDE.md
+AGENTS.md
+.cursor/
+.cursorrules
+.aider*
+.windsurfrules
+.github/copilot-instructions.md

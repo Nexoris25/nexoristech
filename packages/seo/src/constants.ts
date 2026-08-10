@@ -57,10 +57,16 @@ export const ORGANISATION = {
   businessEmail: "business@nexoristech.com",
   careersEmail: "careers@nexoristech.com",
   telephone: "+2349138133224",
+  /**
+   * The registered office. `formatted` is the one line every surface should print, so the website,
+   * invoices, proposals and the MSA cannot drift from each other the way they had: the same office
+   * was appearing as "Badore, Ajah, Lagos State" in six places and something else in the PRD.
+   */
   address: {
-    streetAddress: "No. 5, Mojisola Dokpesi Street, Badore, Ajah",
-    addressLocality: "Lagos",
-    addressRegion: "Lagos State",
+    formatted: "No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos",
+    streetAddress: "No. 5, Mojisola Dokpesi Street",
+    addressLocality: "Ajah, Lekki",
+    addressRegion: "Lagos",
     addressCountry: COUNTRY_CODE,
   },
   /** Monday to Friday 09:00 to 18:00 (PRD 9.2). */
@@ -80,6 +86,17 @@ export const ORGANISATION = {
     "https://www.threads.com/@nexoristechnologies",
   ],
 } as const;
+
+/**
+ * The X account, as the @handle the card tags require.
+ *
+ * Card validators report the whole X card as "incomplete" when twitter:site is absent, even with a
+ * valid twitter:card, which is what made the card look broken while summary_large_image was in fact
+ * being emitted on every page. Derived from the profile in sameAs above so the two cannot drift.
+ */
+export const X_HANDLE = `@${
+  ORGANISATION.sameAs.find((u) => u.startsWith("https://x.com/"))?.split("/").pop() ?? ""
+}` as const;
 
 /** The founder, used for the Organization founder reference and the Person node (PRD 9.2). */
 export const FOUNDER = {

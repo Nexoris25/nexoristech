@@ -151,7 +151,7 @@ export function ContactView(): ReactNode {
                 <div
                   className="addr-map"
                   role="img"
-                  aria-label="Map showing the Nexoris Technologies office in Badore, Ajah, Lagos"
+                  aria-label="Map showing the Nexoris Technologies office in Ajah, Lekki Lagos"
                 >
                   <div className="map-grid" />
                   <span className="road r1" />
@@ -165,7 +165,7 @@ export function ContactView(): ReactNode {
                   </span>
                 </div>
                 <p className="addr-txt">
-                  <b>Nexoris Technologies Ltd</b>No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos
+                  <b>Nexoris Technologies Ltd</b>No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos
                   State.
                 </p>
               </div>

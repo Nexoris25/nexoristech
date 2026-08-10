@@ -61,7 +61,17 @@ export function Dropdown({
       {open ? (
         <div
           role="menu"
-          onClick={() => setOpen(false)}
+          onClick={(e) => {
+            // Closing on any click inside used to break the sign-out control, and would break any
+            // other native form put in a menu. A form submits as the default action of the click,
+            // after the handlers have run; closing here unmounts the form in the same tick, so the
+            // default action fires against a detached element and nothing is ever sent. Verified in
+            // the browser: a panel that removes itself on click never submits, one that stays does.
+            //
+            // A submit leaves the page anyway, so the menu does not need closing.
+            if ((e.target as HTMLElement).closest("form")) return;
+            setOpen(false);
+          }}
           className={`absolute z-50 mt-1.5 min-w-[200px] overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-[0_12px_40px_rgba(15,23,42,0.12)] ${
             align === "right" ? "right-0" : "left-0"
           } ${panelClassName}`}

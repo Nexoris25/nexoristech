@@ -179,7 +179,7 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
                 <path d="M4 5h16v14H4z" />
                 <path d="M8 9h8M8 13h5" />
               </svg>
-              <h3>Our first articles are on the way.</h3>
+              <h2>Our first articles are on the way.</h2>
               <p>
                 In the meantime, tell us what you are working on and we will point you in the right
                 direction. Write to <a href="mailto:hello@nexoristech.com">hello@nexoristech.com</a>.
@@ -234,7 +234,7 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
                     <circle cx="11" cy="11" r="7" />
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
-                  <h3>No articles match that search.</h3>
+                  <h2>No articles match that search.</h2>
                   <p>Try a different word, or clear the search to see everything.</p>
                 </div>
               ) : null}

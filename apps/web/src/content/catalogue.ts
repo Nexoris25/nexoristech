@@ -185,3 +185,16 @@ export const footerCompanyLinks: NavItem[] = [
 
 /** The WhatsApp click-to-chat link for the supplied number. */
 export const WHATSAPP_HREF = "https://wa.me/2349138133224";
+
+/**
+ * The same number, with the pieces the floating button needs: a readable form for the accessible
+ * name, and an opening line so the conversation does not start on an empty screen. Derived from
+ * WHATSAPP_HREF so the number is written once.
+ */
+const WHATSAPP_NUMBER = WHATSAPP_HREF.split("/").pop() ?? "";
+export const WHATSAPP = {
+  href: `${WHATSAPP_HREF}?text=${encodeURIComponent(
+    "Hello Nexoris Technologies, I found you through your website and would like to talk about a project.",
+  )}`,
+  display: `+${WHATSAPP_NUMBER}`,
+} as const;

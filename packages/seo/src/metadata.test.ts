@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMetadata, ensureBrandSuffix, validateMeta } from "./metadata.js";
+import { ORGANISATION } from "./constants.js";
 
 // The approved Home meta description, verbatim from the Website Copy (155 to 160 chars).
 const goodDescription =
@@ -67,6 +68,16 @@ describe("buildMetadata", () => {
     expect(meta.openGraph.locale).toBe("en_NG");
     expect(meta.twitter.card).toBe("summary_large_image");
     expect(meta.robots.index).toBe(true);
+  });
+
+  it("attributes the X card to the company account", () => {
+    // twitter:card alone was already correct, but validators report the card as incomplete without
+    // twitter:site, which is why it read as broken. The handle is derived from the profile in
+    // sameAs, so a change there cannot leave the card pointing at a stale account.
+    const meta = buildMetadata({ title: "About Nexoris Technologies", description: goodDescription, path: "/about" });
+    expect(meta.twitter.site).toBe("@Nexoristech");
+    expect(meta.twitter.creator).toBe(meta.twitter.site);
+    expect(ORGANISATION.sameAs).toContain(`https://x.com/${meta.twitter.site.slice(1)}`);
   });
 
   it("uses the bare origin as the home canonical", () => {

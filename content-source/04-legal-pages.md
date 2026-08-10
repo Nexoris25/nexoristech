@@ -23,7 +23,7 @@ Regulation (NDPR) and the Nigeria Data Protection Act. Last updated: [Date]
 SECTION: who-we-are
 Heading: Who we are.
 Nexoris Technologies Ltd is a software development company based at No. 5, Mojisola Dokpesi
-Street, Badore, Ajah, Lagos State. For anything in this policy,
+Street, Ajah, Lekki Lagos. For anything in this policy,
 you can reach us at hello@nexoristech.com or +234 913 813 3224.
 Plain summary: We are a Lagos software company, and this is how to reach us about your
 data.

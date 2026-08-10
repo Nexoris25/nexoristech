@@ -453,7 +453,7 @@ Heading: Other ways to reach us.
 Body: WhatsApp: message us directly, we reply during business hours. Phone: +234 913
 813 3224. General questions: hello@nexoristech.com. New business:
 business@nexoristech.com. LinkedIn: Nexoris Technologies.
-Address card: No. 5, Mojisola Dokpesi Street, Badore, Ajah, Lagos State. [Map]
+Address card: No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos [Map]
 SECTION: next
 Heading: What happens after you send this.
 1. We read it properly. A real person, not an autoresponder, and you hear back within
