@@ -22,6 +22,7 @@ import {
 import { formatLagosDate } from "../../../lib/date.js";
 import { withHeadingIds, headingsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
+import "../../../styles/author.css";
 
 export const revalidate = 300;
 export const dynamicParams = true;

@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/chat-widget.css";
 
 type ChannelId = "web" | "wa" | "voice";
 type Msg = { role: "me" | "them"; html: string };

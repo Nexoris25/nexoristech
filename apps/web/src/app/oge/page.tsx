@@ -12,6 +12,7 @@ import { buildMetadata } from "@nexoris/seo";
 import { ScrollFx } from "../../components/home/ScrollFx.js";
 import { OgeMark } from "../../components/home/OgeMark.js";
 import { OgeLaunchButton } from "../../components/oge/OgeLaunchButton.js";
+import "../../styles/oge-page.css";
 
 export const revalidate = 300;
 

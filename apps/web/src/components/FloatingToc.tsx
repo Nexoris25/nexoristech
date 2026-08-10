@@ -20,6 +20,7 @@
  */
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import "../styles/floating-toc.css";
 
 export interface TocEntry { id: string; text: string }
 

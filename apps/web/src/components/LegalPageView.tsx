@@ -10,6 +10,7 @@ import { getLegalPage, type LegalType } from "../lib/cms.js";
 import { formatLagosDate, resolveDateTokens } from "../lib/date.js";
 import { ScrollFx } from "./home/ScrollFx.js";
 import { FloatingToc } from "./FloatingToc.js";
+import "../styles/legal.css";
 
 /** Stable, readable anchor id from a section heading. */
 

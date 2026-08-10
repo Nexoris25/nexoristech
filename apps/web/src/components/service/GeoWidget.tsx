@@ -7,6 +7,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/geo-widget.css";
 
 const QUERY = "custom software development Lagos Nigeria";
 const PLATS = ["google", "chatgpt", "perplexity", "gemini"] as const;

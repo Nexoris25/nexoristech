@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/readiness-widget.css";
 
 type StateId = "before" | "after";
 type Chip = "bad" | "good";

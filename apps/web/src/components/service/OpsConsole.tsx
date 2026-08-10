@@ -7,6 +7,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/ops-widget.css";
 
 type Dot = "ok" | "warn" | "inc";
 interface LogItem {

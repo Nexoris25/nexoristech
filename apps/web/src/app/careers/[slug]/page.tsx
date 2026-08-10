@@ -12,6 +12,7 @@ import { buildMetadata, buildGraph, jobPostingNode } from "@nexoris/seo";
 import type { JobInput } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { getJob, getJobSlugs } from "../../../lib/cms.js";
+import "../../../styles/job.css";
 
 export const revalidate = 300;
 export const dynamicParams = true;

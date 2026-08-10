@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/govtech-widget.css";
 
 type ViewId = "portal" | "counter";
 type StepState = "done" | "active" | "stuck" | "pending";

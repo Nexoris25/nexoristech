@@ -7,6 +7,7 @@
  */
 import { useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/calc-widget.css";
 
 const naira = (n: number): string => "₦" + Math.round(n).toLocaleString("en-NG");
 const kfmt = (n: number): string => (n >= 1000 ? `${n / 1000}k` : String(n));

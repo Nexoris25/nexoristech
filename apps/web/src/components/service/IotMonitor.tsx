@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/monitor-widget.css";
 
 type DeviceId = "fleet" | "cold" | "line";
 type Chip = "ok" | "warn";

@@ -7,6 +7,7 @@
  */
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/integration-widget.css";
 
 interface Node {
   label: string;

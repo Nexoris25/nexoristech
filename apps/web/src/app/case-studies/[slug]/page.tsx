@@ -21,6 +21,7 @@ import { FloatingToc } from "../../../components/FloatingToc.js";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { ScrollFx } from "../../../components/home/ScrollFx.js";
 import { SERVICE_LABELS } from "../../../content/service-labels.js";
+import "../../../styles/case-study.css";
 
 export const revalidate = 300;
 

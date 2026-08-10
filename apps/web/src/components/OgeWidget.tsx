@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { OgeMark } from "./home/OgeMark.js";
+import "../styles/oge-widget.css";
 
 interface Source {
   url: string;

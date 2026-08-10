@@ -7,6 +7,7 @@
  */
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import "../../styles/dashboard-widget.css";
 
 const ASKS: { q: string; a: string }[] = [
   { q: "How did Abuja do last month against target?", a: "104% · ahead by ₦3.1m" },
