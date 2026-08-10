@@ -3,7 +3,7 @@
  * Insight editor (CMS design). Left column: title + slug, category / author / fact-checker, the rich text
  * body with a live word count, then the featured image and publish settings. Right column: the Oge AI
  * Assistant only, with tabs on top and a balanced width so the editor keeps most of the room. The SEO
- * score gauge, meta fields, keyword suggestions, TL;DR (inserted at the top), FAQs (5-7, stored for
+ * score gauge, meta fields, TL;DR (inserted at the top), FAQs (5-7, stored for
  * FAQPage schema), and per-article author and fact-checker bios all live in the assistant. Submits as a
  * native POST to /api/cms/insights. Everything the search and answer engines read is edited here.
  */
@@ -11,14 +11,29 @@ import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor, type RichTextApi } from "../../../../components/cms/RichTextEditor.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
+import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 
 interface Option { id: string; name: string }
+
+/**
+ * An author as the bio generator needs them.
+ *
+ * A per-article bio is an E-E-A-T signal, so it has to be true about the person as well as about
+ * the article. Passing only a name gave the model nothing factual to work from, which is exactly
+ * the condition under which one invents a job title or a number of years.
+ */
+export interface AuthorOption extends Option {
+  job_title?: string | null;
+  years_experience?: string | null;
+  expertise?: string[] | null;
+  bio?: string | null;
+}
 interface FaqItem { question: string; answer: string }
 interface Initial {
   id?: string; title?: string; shortTitle?: string; slug?: string; body?: string; excerpt?: string; categoryId?: string;
   authorId?: string; factCheckerId?: string; status?: string; featuredImage?: string; featuredImageAlt?: string;
-  metaTitle?: string; metaDescription?: string; focusKeyword?: string; authorBio?: string; factCheckerBio?: string;
+  metaTitle?: string; metaDescription?: string; authorBio?: string; factCheckerBio?: string;
   publishDate?: string; noindex?: boolean; schemaType?: string;
 }
 interface PageRef { title: string; url: string }
@@ -46,9 +61,8 @@ const SCHEMA_TYPES: { value: string; label: string; hint: string }[] = [
   // H2 headings. Choose it only for a guide that really is a sequence of steps.
   { value: "HowTo", label: "How-To Guide", hint: "A sequence of steps, taken from your H2 headings" },
 ];
-const STOP = new Set(["the", "and", "for", "with", "how", "why", "what", "your", "our", "into", "from", "that", "this", "are", "you"]);
 
-export function InsightEditor({ initial, categories, authors, pages = [] }: { initial?: Initial; categories: Option[]; authors: Option[]; pages?: PageRef[] }): ReactNode {
+export function InsightEditor({ initial, categories, authors, pages = [] }: { initial?: Initial; categories: Option[]; authors: AuthorOption[]; pages?: PageRef[] }): ReactNode {
   const edit = Boolean(initial?.id);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [slugEdited, setSlugEdited] = useState(Boolean(initial?.slug));
@@ -59,7 +73,6 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [metaTitle, setMetaTitle] = useState(initial?.metaTitle ?? "");
   const [metaDesc, setMetaDesc] = useState(initial?.metaDescription ?? "");
-  const [keyword, setKeyword] = useState(initial?.focusKeyword ?? "");
   const [authorId, setAuthorId] = useState(initial?.authorId ?? "");
   const [factCheckerId, setFactCheckerId] = useState(initial?.factCheckerId ?? "");
   const [authorBio, setAuthorBio] = useState(initial?.authorBio ?? "");
@@ -73,26 +86,30 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
   const shownShort = shortEdited ? shortTitle : shortify(title);
   const words = useMemo(() => wordsOf(body), [body]);
   const readTime = Math.max(1, Math.round(words / 200));
-  const kw = keyword.trim().toLowerCase();
   const nameOf = (id: string): string | undefined => authors.find((a) => a.id === id)?.name;
 
-  const checks = [
-    title.length >= 20 && title.length <= 65,
-    !!kw && (metaTitle || title).toLowerCase().includes(kw),
-    metaDesc.length >= 120 && metaDesc.length <= 160,
-    !!kw && metaDesc.toLowerCase().includes(kw),
-    !!kw && body.toLowerCase().includes(kw),
-    words >= 300,
-    /<h[23]/i.test(body),
-    /<a\s/i.test(body),
-  ];
-  const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
-  const suggestions = useMemo(() => {
-    const words2 = title.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length > 3 && !STOP.has(w));
-    const uniq = Array.from(new Set(words2));
-    const out = [title.toLowerCase().trim(), ...uniq.slice(0, 3).map((w) => `${w} nigeria`)].filter(Boolean);
-    return Array.from(new Set(out)).slice(0, 4);
-  }, [title]);
+  /**
+   * The assigned person's real record, for the bio and the SEO context. Only fields that are
+   * actually set are sent, so a missing job title is absent rather than an empty string the model
+   * might read as a fact.
+   */
+  const authorContext = (id: string, role?: string): Record<string, unknown> => {
+    const a = authors.find((x) => x.id === id);
+    if (!a) return {};
+    return {
+      authorName: a.name,
+      ...(role ?? a.job_title ? { authorRole: role ?? a.job_title } : {}),
+      ...(a.years_experience ? { yearsExperience: a.years_experience } : {}),
+      ...(a.expertise && a.expertise.length ? { expertise: a.expertise } : {}),
+      ...(a.bio ? { authorProfileBio: a.bio } : {}),
+    };
+  };
+
+  const checks = metaChecks({
+    title, metaTitle, metaDesc, body, words,
+    minWords: 300, requireStructure: true, requireLinks: true,
+  });
+  const score = metaScore(checks);
 
   return (
     <form action="/api/cms/insights" method="post">
@@ -101,7 +118,6 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
       {/* Oge-edited fields submit via these hidden inputs regardless of the active assistant tab. */}
       <input type="hidden" name="meta_title" value={metaTitle} />
       <input type="hidden" name="meta_description" value={metaDesc} />
-      <input type="hidden" name="focus_keyword" value={keyword} />
       <input type="hidden" name="author_bio" value={authorBio} />
       <input type="hidden" name="fact_checker_bio" value={factCheckerBio} />
       <input type="hidden" name="faqs" value={JSON.stringify(faqs)} />
@@ -187,11 +203,13 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
         <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
           <OgeAssistant
             tabs={["seo", "tldr", "excerpt", "author-bio", "faqs", "internal-links", "more"]}
-            getContext={() => ({ title, body, focusKeyword: keyword, authorName: nameOf(authorId), expertise: [], pages })}
-            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc, keyword, setKeyword, suggestions }}
+            getContext={() => ({ title, body, ...authorContext(authorId), pages })}
+            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
             bios={{
               ...(nameOf(authorId) ? { authorName: nameOf(authorId) } : {}),
               ...(nameOf(factCheckerId) ? { factCheckerName: nameOf(factCheckerId) } : {}),
+              authorContext: authorContext(authorId),
+              factCheckerContext: authorContext(factCheckerId, "Fact-Checker"),
               authorBio, factCheckerBio, setAuthorBio, setFactCheckerBio,
             }}
             apply={{

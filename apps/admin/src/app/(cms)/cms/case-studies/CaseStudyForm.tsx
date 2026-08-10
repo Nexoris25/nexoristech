@@ -20,6 +20,7 @@ import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 import { ImageGallery, type GalleryImage } from "../../../../components/cms/ImageGallery.js";
 import { SERVICE_PAGES, SERVICE_LABELS } from "../../../../lib/site-pages.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
+import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
 
 interface Initial { id?: string; title?: string; slug?: string; serviceIndustry?: string; gallery?: GalleryImage[]; servicePaths?: string[]; excerpt?: string; body?: string; highlights?: string; technologies?: string; featuredImage?: string; featuredImageAlt?: string; status?: string; featured?: boolean; displayOrder?: number; metaTitle?: string; metaDescription?: string }
 
@@ -40,13 +41,11 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
   // The panel shows a score, so there has to be something real behind it.
   const bodyWords = body.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
   const checks = [
-    title.trim().length >= 8,
     excerpt.trim().length > 0,
-    metaTitle.length >= 20 && metaTitle.length <= 65,
-    metaDesc.length >= 120 && metaDesc.length <= 165,
+    ...metaChecks({ title, metaTitle, metaDesc }),
     bodyWords >= 300,
   ];
-  const seoScore = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const seoScore = metaScore(checks);
   const shownSlug = slugEdited ? slug : slugify(title);
   const chips = (s: string): string[] => s.split(",").map((x) => x.trim()).filter(Boolean);
 
@@ -132,7 +131,7 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
           <OgeAssistant
             tabs={["seo"]}
             getContext={() => ({ title, body, expertise: [] })}
-            seo={{ score: seoScore, metaTitle, setMetaTitle, metaDesc, setMetaDesc, keyword: title, setKeyword: () => undefined }}
+            seo={{ score: seoScore, metaTitle, setMetaTitle, metaDesc, setMetaDesc}}
             apply={{ seo: (r) => { setMetaTitle(r.metaTitle); setMetaDesc(r.metaDescription); } }}
           />
 

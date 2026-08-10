@@ -35,7 +35,7 @@ export default async function EditJobPage({ params }: { params: Promise<{ id: st
           workMode: r.work_mode ?? "", location: r.job_location ?? "", salaryMin: r.salary_min ?? "", salaryMax: r.salary_max ?? "",
           deadline: r.application_deadline ?? "", featured: r.featured, body: r.body ?? "", excerpt: r.excerpt ?? "", status: r.status,
           featuredImage: r.featured_image ?? "", featuredImageAlt: r.featured_image_alt ?? "", metaTitle: r.meta_title ?? "",
-          metaDescription: r.meta_description ?? "", focusKeyword: r.focus_keyword ?? "", publishDate: r.publish_date ?? "",
+          metaDescription: r.meta_description ?? "", publishDate: r.publish_date ?? "",
         }} />
       </div>
     </div>

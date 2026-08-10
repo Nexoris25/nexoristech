@@ -3,7 +3,7 @@
  * The Oge AI Assistant panel for CMS pages with a rich text editor (PRD Part Two). It is the right
  * column: tabs on top (SEO, TL;DR, Excerpt, Author Bio, FAQs, Internal Links, More), a compact body under
  * them, and it stays balanced against the editor rather than dominating it. The SEO tab shows a circular
- * score gauge with the meta title/description, focus keyword, and keyword suggestions. TL;DR inserts at
+ * score gauge with the meta title and description. TL;DR inserts at
  * the top of the article; FAQs (5-7, FAQPage-schema shape) insert at the bottom. Author and fact-checker
  * each get a per-article generated bio. Real AI via the Oge gateway when configured, deterministic draft
  * otherwise; a badge shows which ran. Everything is a draft the editor approves before saving.
@@ -42,13 +42,20 @@ export interface OgeSeo {
   score: number;
   metaTitle: string; setMetaTitle: (v: string) => void;
   metaDesc: string; setMetaDesc: (v: string) => void;
-  keyword: string; setKeyword: (v: string) => void;
-  suggestions?: string[];
 }
 export interface OgeBios {
   authorName?: string | undefined; factCheckerName?: string | undefined;
   authorBio: string; factCheckerBio: string;
   setAuthorBio: (v: string) => void; setFactCheckerBio: (v: string) => void;
+  /**
+   * The assigned person's real record: role, years, expertise and their standing profile bio.
+   *
+   * A per-article bio is an E-E-A-T signal, so it has to be true about the person as well as about
+   * the article. Sending only a name left the model nothing factual to work from, which is the
+   * condition under which it invents a title or a number of years.
+   */
+  authorContext?: Record<string, unknown>;
+  factCheckerContext?: Record<string, unknown>;
 }
 
 const TAB_META: Record<OgeTab, { label: string; icon: typeof Search; kind: string }> = {
@@ -231,20 +238,10 @@ function SeoTab({ busy, source, seo, onGenerate, onGenerateField }: { busy: bool
       <label className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2 text-[0.74rem] font-600 text-slate-600">
           <span className="flex items-center gap-2">Meta Description <FieldGenBtn busy={busy} onClick={() => onGenerateField("description")} title="Draft a meta description with Oge" /></span>
-          <span className="text-slate-500">{seo.metaDesc.length}/160</span>
+          <span className={seo.metaDesc.length >= 155 && seo.metaDesc.length <= 160 ? "text-[#15803D]" : "text-slate-500"}>{seo.metaDesc.length}/160</span>
         </span>
         <textarea value={seo.metaDesc} onChange={(e) => seo.setMetaDesc(e.target.value)} rows={3} maxLength={200} placeholder="The snippet shown in search and AI answers..." className={fieldSm} />
       </label>
-      <label className="flex flex-col gap-1">
-        <span className="text-[0.74rem] font-600 text-slate-600">Focus Keyword</span>
-        <input value={seo.keyword} onChange={(e) => seo.setKeyword(e.target.value)} placeholder="e.g. ai in healthcare" className={fieldSm} />
-      </label>
-      {seo.suggestions && seo.suggestions.length ? (
-        <div>
-          <span className="text-[0.72rem] font-600 text-slate-500">Keyword Suggestions</span>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">{seo.suggestions.map((s) => <button key={s} type="button" onClick={() => seo.setKeyword(s)} className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.72rem] font-500 text-slate-600 hover:bg-[#EEEBFC] hover:text-[#543CDA]">{s}</button>)}</div>
-        </div>
-      ) : null}
       <GenBtn busy={busy} has onClick={onGenerate} label="Regenerate both" />
     </div>
   );
@@ -279,7 +276,10 @@ function BioTab({ busy, source, bios, onGenerate, onInsert }: { busy: string; so
   const setValue = who === "author" ? bios.setAuthorBio : bios.setFactCheckerBio;
   const key = who === "author" ? "author-bio" : "author-bio";
   const generate = async (): Promise<void> => {
-    const r = (await onGenerate(who, { authorName: name, authorRole: who === "fact-checker" ? "Fact-Checker" : undefined })) as string | null;
+    // The whole record for whichever person is selected. The fact-checker's role is stated so the
+    // bio explains what they checked rather than reading like a second author byline.
+    const ctx = who === "author" ? (bios.authorContext ?? {}) : { ...(bios.factCheckerContext ?? {}), authorRole: "Fact-Checker" };
+    const r = (await onGenerate(who, { authorName: name, ...ctx })) as string | null;
     if (typeof r === "string" && r) setValue(r);
   };
   return (

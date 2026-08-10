@@ -19,3 +19,4 @@ export * from "./robots.js";
 export * from "./llms.js";
 export * from "./og.js";
 export * from "./check/rules.js";
+export * from "./meta-text.js";

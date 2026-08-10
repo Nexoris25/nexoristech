@@ -21,7 +21,10 @@ export default async function EditInsightPage({ params }: { params: Promise<{ id
               c.noindex, c.schema_type, to_char(c.published_at, 'YYYY-MM-DD"T"HH24:MI') AS publish_date
          FROM cms_content c WHERE c.id=$1 AND c.kind='insight'`, [id]),
     pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_category WHERE active ORDER BY name"),
-    pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_author WHERE active ORDER BY name"),
+    pool.query<{ id: string; name: string; job_title: string | null; years_experience: string | null; expertise: string[] | null; bio: string | null }>(
+      // The bio generator needs the author's real record, not just a name: without it an
+      // E-E-A-T bio has nothing factual to stand on and a model invents credentials.
+      "SELECT id, name, job_title, years_experience, expertise, bio FROM cms_author WHERE active ORDER BY name"),
     pool.query<{ title: string; slug: string }>("SELECT title, slug FROM cms_content WHERE kind='insight' AND status='published' AND slug IS NOT NULL AND id<>$1 ORDER BY published_at DESC NULLS LAST LIMIT 60", [id]),
   ]);
   const r = rows[0];
@@ -45,7 +48,7 @@ export default async function EditInsightPage({ params }: { params: Promise<{ id
           id: r.id, title: r.title, shortTitle: r.short_title ?? "", slug: r.slug ?? "", body: r.body ?? "", excerpt: r.excerpt ?? "",
           categoryId: r.category_id ?? "", authorId: r.author_id ?? "", factCheckerId: r.fact_checker_id ?? "", status: r.status,
           featuredImage: r.featured_image ?? "", featuredImageAlt: r.featured_image_alt ?? "", metaTitle: r.meta_title ?? "",
-          metaDescription: r.meta_description ?? "", focusKeyword: r.focus_keyword ?? "", authorBio: r.author_bio ?? "",
+          metaDescription: r.meta_description ?? "", authorBio: r.author_bio ?? "",
           factCheckerBio: r.fact_checker_bio ?? "", publishDate: r.publish_date ?? "", noindex: r.noindex, schemaType: r.schema_type ?? "BlogPosting",
         }} />
       </div>

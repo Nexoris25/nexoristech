@@ -76,7 +76,7 @@ export function LegalPageForm({ initial }: { initial?: Initial }): ReactNode {
           <OgeAssistant
             tabs={["seo", "faqs", "more"]}
             getContext={() => ({ title, body, expertise: [] })}
-            seo={{ score: seoScore, metaTitle, setMetaTitle, metaDesc, setMetaDesc, keyword: title, setKeyword: () => undefined }}
+            seo={{ score: seoScore, metaTitle, setMetaTitle, metaDesc, setMetaDesc}}
             apply={{
               seo: (r) => { setMetaTitle(r.metaTitle); setMetaDesc(r.metaDescription); },
               insertBottom: (html: string) => rte.current?.appendHtml(html),

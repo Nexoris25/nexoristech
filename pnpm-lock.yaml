@@ -53,6 +53,9 @@ importers:
       '@nexoris/recommend':
         specifier: workspace:*
         version: link:../../packages/recommend
+      '@nexoris/seo':
+        specifier: workspace:*
+        version: link:../../packages/seo
       '@nexoris/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -144,6 +147,9 @@ importers:
       '@nexoris/recommend':
         specifier: workspace:*
         version: link:../../packages/recommend
+      '@nexoris/seo':
+        specifier: workspace:*
+        version: link:../../packages/seo
       pg:
         specifier: 8.13.1
         version: 8.13.1

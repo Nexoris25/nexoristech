@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@nexoris/recommend": "workspace:*",
+    "@nexoris/seo": "workspace:*",
     "@nexoris/ui": "workspace:*",
     "@react-pdf/renderer": "4.1.6",
     "bcryptjs": "2.4.3",

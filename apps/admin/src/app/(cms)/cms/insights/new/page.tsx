@@ -12,7 +12,10 @@ export default async function NewInsightPage(): Promise<ReactNode> {
   const pool = cmsDb();
   const [{ rows: categories }, { rows: authors }, { rows: pageRows }] = await Promise.all([
     pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_category WHERE active ORDER BY name"),
-    pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_author WHERE active ORDER BY name"),
+    pool.query<{ id: string; name: string; job_title: string | null; years_experience: string | null; expertise: string[] | null; bio: string | null }>(
+      // The bio generator needs the author's real record, not just a name: without it an
+      // E-E-A-T bio has nothing factual to stand on and a model invents credentials.
+      "SELECT id, name, job_title, years_experience, expertise, bio FROM cms_author WHERE active ORDER BY name"),
     pool.query<{ title: string; slug: string }>("SELECT title, slug FROM cms_content WHERE kind='insight' AND status='published' AND slug IS NOT NULL ORDER BY published_at DESC NULLS LAST LIMIT 60"),
   ]);
   const pages = pageRows.map((p) => ({ title: p.title, url: `/insights/${p.slug}` }));

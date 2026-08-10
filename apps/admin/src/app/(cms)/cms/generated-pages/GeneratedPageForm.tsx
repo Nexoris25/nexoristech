@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { RichTextEditor, type RichTextApi } from "../../../../components/cms/RichTextEditor.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
+import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
 import type { FaqItem, PageRef } from "../../../../components/cms/OgeAssistant.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 // The publish gate's own floor, so the editor and the gate can never disagree about the number.
@@ -52,8 +53,6 @@ const INDUSTRIES = CATALOGUE_INDUSTRIES.map((i) => i.label);
 const LOCATIONS = [...PSEO_LOCATIONS];
 const INTENTS = ["Informational", "Commercial", "Transactional", "Navigational"];
 
-/** Words too common to make a useful keyword. Same list the Insights editor uses. */
-const STOP = new Set(["the", "and", "for", "with", "how", "why", "what", "your", "our", "into", "from", "that", "this", "are", "you"]);
 
 export function GeneratedPageForm({ initial, templates, authors = [], categories = [], pages = [] }: { initial?: Initial; templates: string[]; authors?: Option[]; categories?: Option[]; pages?: PageRef[] }): ReactNode {
   const edit = Boolean(initial?.id);
@@ -94,16 +93,11 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
     } finally { setGenerating(false); }
   }
   const words = useMemo(() => wordsOf(body), [body]);
-
-  // Keyword suggestions from the title, matching the Insights editor so the two behave alike.
-  const suggestions = useMemo(() => {
-    const parts = title.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length > 3 && !STOP.has(w));
-    const uniq = Array.from(new Set(parts));
-    return Array.from(new Set([title.toLowerCase().trim(), ...uniq.slice(0, 3).map((w) => `${w} nigeria`)].filter(Boolean))).slice(0, 4);
-  }, [title]);
-  const kw = keyword.trim().toLowerCase();
-  const checks = [title.length >= 15, metaDesc.length >= 120 && metaDesc.length <= 160, !!kw && (metaTitle || title).toLowerCase().includes(kw), !!kw && body.toLowerCase().includes(kw), words >= MIN_BODY_WORDS, /<(ul|ol|h[23])/i.test(body), /<a\s/i.test(body)];
-  const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const checks = metaChecks({
+    title, metaTitle, metaDesc, body, words,
+    minWords: MIN_BODY_WORDS, requireStructure: true, requireLinks: true,
+  });
+  const score = metaScore(checks);
 
   return (
     <form action="/api/cms/generated-pages" method="post">
@@ -206,7 +200,7 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
           <OgeAssistant
             tabs={["seo", "tldr", "excerpt", "author-bio", "faqs", "internal-links", "more"]}
             getContext={() => ({ title, body, focusKeyword: keyword, authorName: nameOf(authorId) ?? "Nexoris Technologies", expertise: service ? [service] : [], pages })}
-            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc, keyword, setKeyword, suggestions }}
+            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
             bios={{
               ...(nameOf(authorId) ? { authorName: nameOf(authorId) } : {}),
               ...(nameOf(factCheckerId) ? { factCheckerName: nameOf(factCheckerId) } : {}),

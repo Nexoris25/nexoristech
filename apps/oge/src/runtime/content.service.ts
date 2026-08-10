@@ -9,6 +9,7 @@
 import { Injectable } from "@nestjs/common";
 import { CMS_AI_MODELS, CRM_WORKER_MODELS, apiKeyFor, apiKeyEnvVar, chainFor, resolveModelId, type Env, type ModelSlot } from "../config/models.js";
 import { generateGrounded, stripEmDash } from "../providers/generation.js";
+import { deriveMetaTitle, fitMetaDescription, META_LIMITS } from "@nexoris/seo";
 
 export type EditorialKind = "seo" | "tldr" | "excerpt" | "faqs" | "author-bio" | "internal-links";
 
@@ -16,10 +17,13 @@ export interface EditorialInput {
   kind: EditorialKind;
   title?: string;
   body?: string;              // HTML or plain text of the article
-  focusKeyword?: string;
   authorName?: string;
   authorRole?: string;
   expertise?: string[];
+  /** Years in the field, taken from the author record. Never inferred. */
+  yearsExperience?: number | string;
+  /** The author's standing profile bio, as the factual base a per-article bio draws from. */
+  authorProfileBio?: string;
   pages?: { title: string; url: string }[]; // candidate targets for internal links
 }
 
@@ -84,7 +88,7 @@ export class ContentService {
     const body = plain(input.body ?? "");
     const title = (input.title ?? "").trim();
     switch (input.kind) {
-      case "seo": return this.seo(title, body, input.focusKeyword);
+      case "seo": return this.seo(title, body);
       case "tldr": return this.tldr(title, body);
       case "excerpt": return this.excerpt(title, body);
       case "faqs": return this.faqs(title, body);
@@ -98,13 +102,51 @@ export class ContentService {
     return value.trim();
   }
 
-  private async seo(title: string, body: string, keyword?: string): Promise<SeoResult> {
-    const text = await this.run(
-      `You write SEO metadata for a Nexoris Technologies page. Return strict JSON: {"metaTitle": string, "metaDescription": string}. metaTitle is at most 60 characters and includes the focus keyword when natural. metaDescription is 150 to 160 characters, compelling, and reads well as a search and AI-answer snippet.`,
-      JSON.stringify({ title, focusKeyword: keyword ?? null, body: body.slice(0, 4000) }), 300, 0.3);
-    const j = parseJson<SeoResult>(text);
-    if (!j || !j.metaTitle) throw new Error("bad seo json");
-    return { metaTitle: stripEmDash(j.metaTitle).slice(0, 60), metaDescription: stripEmDash(j.metaDescription ?? "").slice(0, 160) };
+  /**
+   * Meta title and meta description.
+   *
+   * The title is derived from the page title rather than written. The page title is already the
+   * shortest accurate description of the page, and asking a model for a second one invites the two
+   * to disagree, which is how a search result ends up promising something the page does not open
+   * with.
+   *
+   * The description is the part worth generating: a short summary written to earn the click, and
+   * often the only sentence someone reads before deciding. The model is asked for two or three
+   * whole sentences rather than a character count, because asked for 160 characters it returns 180
+   * or 120 and a different number next time. fitMetaDescription then keeps whole sentences up to
+   * the limit, so nothing is cut mid-word the way the old `.slice(0, 160)` could.
+   *
+   * One retry, nudged with what was wrong. A short complete description beats a long severed one,
+   * so a short result is returned as it is rather than padded to reach the window.
+   */
+  private async seo(title: string, body: string): Promise<SeoResult> {
+    const metaTitle = deriveMetaTitle(title);
+
+    const system = [
+      'Write the meta description for a Nexoris Technologies page. Return strict JSON: {"metaDescription": string}.',
+      "Summarise what the page actually gives the reader and why it is worth opening, in the concrete",
+      "terms someone searching would recognise. Two or three short complete sentences, about 155 to 160",
+      "characters in total. Every sentence must be finished. Do not repeat the page title back, do not",
+      'begin with "This page", and do not promise anything the page does not contain.',
+    ].join(" ");
+
+    const ask = async (extra: string): Promise<string> => {
+      const text = await this.run(system + extra, JSON.stringify({ title, body: body.slice(0, 4000) }), 300, 0.35);
+      const j = parseJson<{ metaDescription?: string }>(text);
+      return stripEmDash(j?.metaDescription ?? "");
+    };
+
+    let fitted = fitMetaDescription(await ask(""));
+    if (!fitted.inRange) {
+      const nudge = fitted.length < META_LIMITS.descriptionMin
+        ? ` The previous attempt came to ${fitted.length} characters, which is short. Add one more short sentence.`
+        : " The previous attempt was too long to fit. Use shorter sentences.";
+      const second = fitMetaDescription(await ask(nudge));
+      const closer = Math.abs(second.length - META_LIMITS.descriptionMax) < Math.abs(fitted.length - META_LIMITS.descriptionMax);
+      if (second.complete && (!fitted.complete || closer)) fitted = second;
+    }
+    if (!fitted.complete) throw new Error("no complete meta description");
+    return { metaTitle, metaDescription: fitted.text };
   }
 
   private async tldr(title: string, body: string): Promise<string[]> {
@@ -132,12 +174,46 @@ export class ContentService {
     return j.faqs.filter((f) => f.question && f.answer).map((f) => ({ question: stripEmDash(f.question), answer: stripEmDash(f.answer) })).slice(0, 7);
   }
 
+  /**
+   * The per-article author bio.
+   *
+   * This is an E-E-A-T signal, so it has to be two things at once: true about the person, and about
+   * this article. It used to see only a name, a role and the article title, which is not enough to
+   * be either. It could not say why this author is worth reading on this subject, and given nothing
+   * factual to work from, a model fills the gap by inventing credentials.
+   *
+   * It now receives the author's own record, their standing profile bio and the article body, and
+   * is told to connect the two and to invent nothing. A bio with no author assigned is refused
+   * rather than written about an anonymous contributor, which is the case E-E-A-T cares about most.
+   */
   private async authorBio(input: EditorialInput): Promise<string> {
-    // The per-article author bio uses the CRM worker group, tuned for warm outreach-style prose.
+    const name = (input.authorName ?? "").trim();
+    if (!name) throw new Error("assign an author before writing a bio");
+
+    const system = [
+      "Write a third-person author bio of 2 to 3 sentences for the byline of this specific article.",
+      "Sentence one: who this person is, using only the role, years and areas of expertise supplied.",
+      "Sentence two: what in their background bears directly on the subject of this article, referring",
+      "to what the article actually covers rather than to its title alone.",
+      "An optional third sentence may say how they work.",
+      "Use only the supplied facts. Do not invent employers, job titles, qualifications, awards, client",
+      "names or numbers, and do not state years of experience unless a number is given. Where a field",
+      "is missing, write around it rather than guessing.",
+      VOICE,
+    ].join(" ");
+
     const { value } = await generateGrounded(CRM_WORKER_MODELS, this.env, {
-      system: `Write a short third-person author bio (2 to 3 sentences) for this contributor, tied to the topic of the article. Warm and credible, no fluff.\n${VOICE}`,
-      user: JSON.stringify({ name: input.authorName ?? null, role: input.authorRole ?? null, expertise: input.expertise ?? [], articleTitle: input.title ?? null }),
-      temperature: 0.5, maxTokens: 220,
+      system,
+      user: JSON.stringify({
+        name,
+        role: input.authorRole ?? null,
+        yearsExperience: input.yearsExperience ?? null,
+        expertise: input.expertise ?? [],
+        profileBio: input.authorProfileBio ?? null,
+        articleTitle: input.title ?? null,
+        articleBody: plain(input.body ?? "").slice(0, 3000),
+      }),
+      temperature: 0.45, maxTokens: 260,
     });
     return stripEmDash(plain(value));
   }

@@ -9,6 +9,7 @@ import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor, type RichTextApi } from "../../../../components/cms/RichTextEditor.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
+import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 
 interface Dept { id: string; name: string }
@@ -16,7 +17,7 @@ interface Initial {
   id?: string; title?: string; slug?: string; department?: string; employmentType?: string; workMode?: string;
   location?: string; salaryMin?: string; salaryMax?: string; deadline?: string; featured?: boolean; body?: string;
   excerpt?: string; status?: string; featuredImage?: string; featuredImageAlt?: string; metaTitle?: string;
-  metaDescription?: string; focusKeyword?: string; publishDate?: string;
+  metaDescription?: string; publishDate?: string;
 }
 const field = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-[0.86rem] text-slate-900 placeholder:text-slate-400 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15 resize-none";
 const label = "text-[0.8rem] font-600 text-slate-700";
@@ -34,21 +35,18 @@ export function JobForm({ initial, departments }: { initial?: Initial; departmen
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [metaTitle, setMetaTitle] = useState(initial?.metaTitle ?? "");
   const [metaDesc, setMetaDesc] = useState(initial?.metaDescription ?? "");
-  const [keyword, setKeyword] = useState(initial?.focusKeyword ?? "");
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const rte = useRef<RichTextApi | null>(null);
   const shownSlug = slugEdited ? slug : slugify(title);
   const words = useMemo(() => wordsOf(body), [body]);
-  const kw = keyword.trim().toLowerCase();
-  const checks = [title.length >= 8, metaDesc.length >= 120 && metaDesc.length <= 160, !!kw && (metaTitle || title).toLowerCase().includes(kw), !!kw && body.toLowerCase().includes(kw), words >= 120, /<(ul|ol|h[23])/i.test(body)];
-  const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const checks = metaChecks({ title, metaTitle, metaDesc, body, words, minWords: 120, requireStructure: true });
+  const score = metaScore(checks);
 
   return (
     <form action="/api/cms/jobs" method="post">
       {edit ? <input type="hidden" name="id" value={initial!.id} /> : null}
       <input type="hidden" name="meta_title" value={metaTitle} />
       <input type="hidden" name="meta_description" value={metaDesc} />
-      <input type="hidden" name="focus_keyword" value={keyword} />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.75fr_1fr]">
         <div className="flex min-w-0 flex-col gap-5">
@@ -106,8 +104,8 @@ export function JobForm({ initial, departments }: { initial?: Initial; departmen
         <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
           <OgeAssistant
             tabs={["seo", "excerpt", "faqs", "more"]}
-            getContext={() => ({ title, body, focusKeyword: keyword, expertise: [] })}
-            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc, keyword, setKeyword }}
+            getContext={() => ({ title, body })}
+            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
             apply={{
               seo: (r) => { setMetaTitle(r.metaTitle); setMetaDesc(r.metaDescription); },
               excerpt: (r) => setExcerpt(r),
