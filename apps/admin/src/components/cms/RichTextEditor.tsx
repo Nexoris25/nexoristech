@@ -164,7 +164,8 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi }: { n
     if (!html && !text) return;
 
     e.preventDefault();
-    const clean = html ? normaliseHtml(html) : normalisePlainText(text);
+    // Paste brings the words, not the source page's links. See NormaliseOptions.stripLinks.
+    const clean = html ? normaliseHtml(html, { stripLinks: true }) : normalisePlainText(text);
     if (!clean) return;
 
     // Parsed here rather than handed to execCommand('insertHTML'), which rewrites block markup and
@@ -322,9 +323,14 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi }: { n
         </div>
       ) : null}
 
+      {/* The writing surface scrolls inside itself.
+          It had a minimum height and no maximum, so it grew with every paragraph: the toolbar rose
+          away up the page, the editor pushed everything below it down, and on a long article the
+          controls were off screen exactly when they were needed. Capping the height against the
+          viewport keeps the toolbar and the surrounding form still while the text moves. */}
       <div ref={ref} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true"
         onInput={afterEdit} onBlur={sync} onKeyUp={trackCell} onMouseUp={trackCell} onPaste={onPaste}
-        className="cms-rte min-h-[420px] px-5 py-4 text-[0.92rem] leading-relaxed text-slate-800 focus:outline-none"
+        className="cms-rte min-h-[420px] max-h-[calc(100vh-18rem)] overflow-y-auto px-5 py-4 text-[0.92rem] leading-relaxed text-slate-800 focus:outline-none"
         data-placeholder="Start writing..." />
       <input type="hidden" name={name} value={html} />
     </div>

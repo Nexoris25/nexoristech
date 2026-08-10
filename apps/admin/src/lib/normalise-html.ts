@@ -248,10 +248,28 @@ function paragraphsToLists(html: string): string {
 }
 
 /** The whole pipeline. Give it anything; it returns clean, semantic, publishable HTML. */
-export function normaliseHtml(input: string): string {
+export interface NormaliseOptions {
+  /**
+   * Unwrap every anchor, keeping the words and dropping the link.
+   *
+   * Used for paste. Copying from a search result, a competitor's page or a Google Doc drags that
+   * page's links in with the words, and they are almost never links this article wants: they point
+   * off site, they were chosen by someone else, and they arrive styled as links so the paragraph
+   * comes out speckled. Links belong to the writer, added with the link tool or suggested by Oge,
+   * which is why this is off by default and only paste turns it on.
+   */
+  stripLinks?: boolean;
+}
+
+export function normaliseHtml(input: string, options: NormaliseOptions = {}): string {
   if (!input || !input.trim()) return "";
 
   let html = render(sanitise(tokenise(input)));
+
+  if (options.stripLinks) {
+    // The lookahead matters: /<a[^>]*>/ on its own also matches <abbr>, <address> and <article>.
+    html = html.replace(/<a(?=[\s>])[^>]*>/gi, "").replace(/<\/a\s*>/gi, "");
+  }
 
   // Collapse the whitespace Word and Docs pad every tag with, but keep it inside <pre>.
   const pres: string[] = [];

@@ -170,3 +170,39 @@ describe("normalisePlainText", () => {
     expect(normalisePlainText("1. One\n\n2. Two")).toBe("<ol><li>One</li><li>Two</li></ol>");
   });
 });
+
+/**
+ * Paste brings the words, not the source page's links.
+ *
+ * Copying from a search result or a Google Doc dragged that page's anchors in with the text, so a
+ * paragraph arrived speckled with links to somewhere else that nobody had chosen. Links belong to
+ * the writer, added with the link tool or suggested by Oge, so stripping is on for paste only and
+ * off everywhere else.
+ */
+describe("normaliseHtml stripLinks", () => {
+  it("keeps the words and drops the link", () => {
+    expect(normaliseHtml('<p>See <a href="https://elsewhere.test/x">this guide</a> for more.</p>', { stripLinks: true }))
+      .toBe("<p>See this guide for more.</p>");
+  });
+
+  it("leaves links alone by default, which is what generated content relies on", () => {
+    expect(normaliseHtml('<p>See <a href="https://nexoristech.com/x">this guide</a>.</p>'))
+      .toBe('<p>See <a href="https://nexoristech.com/x">this guide</a>.</p>');
+  });
+
+  it("strips several links across several blocks", () => {
+    const out = normaliseHtml(
+      '<p><a href="/a">One</a> and <a href="/b">two</a></p><ul><li><a href="/c">three</a></li></ul>',
+      { stripLinks: true },
+    );
+    expect(out).not.toContain("<a");
+    expect(out).toContain("One");
+    expect(out).toContain("three");
+  });
+
+  it("does not eat tags that merely start with an a", () => {
+    // /<a[^>]*>/ without a lookahead also matches <abbr>, which a naive version of this did.
+    const out = normaliseHtml("<p>An <abbr>API</abbr> call</p>", { stripLinks: true });
+    expect(out).toContain("API");
+  });
+});
