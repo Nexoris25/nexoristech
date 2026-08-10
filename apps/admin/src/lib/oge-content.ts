@@ -58,6 +58,19 @@ export function bodyWordCount(html: string): number {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean).length;
 }
 
+/**
+ * Compose the page body, answer first.
+ *
+ * The previous opening was "X is changing how Y teams work ... This page explains what X means for
+ * your business". That is throat-clearing: it describes the page instead of answering the question
+ * the visitor typed, and both a reader skimming and an AI system extracting an answer have to get
+ * past it before anything useful appears. The first paragraph now answers directly and completely
+ * enough to stand on its own if it is the only thing quoted, and the context follows it.
+ *
+ * The experience and expertise signals are in the copy for the same reason. The publish gate already
+ * refuses a page with no named author, but a byline on its own is not evidence: the body says how
+ * the work is actually done, what is measured, and what the team will say no to.
+ */
 export function composePageBody(title: string, keyword: string, industry: string, service: string): string {
   const topic = (keyword || title || "this solution").trim();
   const ind = (industry || "your industry").trim();
@@ -66,12 +79,16 @@ export function composePageBody(title: string, keyword: string, industry: string
   const benefits = ["Faster time to value with a clear, staged rollout", "Lower operating cost through automation and better data", "Higher reliability with security and compliance built in from day one", "Decisions backed by real numbers, not guesswork"];
   const applications = [`Streamlining core operations for ${ind} teams`, "Automating manual, repetitive back-office work", "Turning scattered data into clear, usable dashboards", "Connecting the tools your team already uses"];
   return stripEmDash([
-    `<p>${cap(topic)} is changing how ${ind} teams work, and Nexoris Technologies builds the systems that make it practical. This page explains what ${topic} means for your business, where it helps most, what it costs in time and effort, and how to adopt it without disrupting the work that already runs well. Everything below reflects how we actually deliver, not a sales pitch.</p>`,
+    // Answer first: what it is, who it is for, and what it changes, in the opening sentences and
+    // before any framing. This paragraph has to make sense quoted on its own.
+    `<p><strong>${cap(topic)} means using software to take a specific, repeated job off your team and make its results measurable.</strong> For ${ind} businesses that usually looks like one of three things: work that takes days moved to minutes, records that three systems disagree about reduced to one version, or numbers that were assembled by hand reported automatically. Nexoris Technologies builds these systems in stages, each small enough to put into use and judge before the next one starts, so the value arrives early rather than at the end.</p>`,
+    `<p>Below: where it helps most in ${ind}, what it asks of your team, how we deliver it, and how to tell whether it worked.</p>`,
     `<h2>What ${topic} means in practice</h2><p>Most ${ind} teams do not need a new idea. They need the work in front of them to take less time, break less often, and produce numbers they can act on. That is the whole of it. ${cap(topic)} earns its place when it removes a real bottleneck: a report that takes two days to assemble, an approval that sits in someone's inbox, a set of records that three systems each hold a different version of. We start from the bottleneck, not from the technology.</p>`,
     `<h2>Key benefits of ${topic}</h2><ul>${benefits.map((b) => `<li>${b}</li>`).join("")}</ul><p>Each of these is something you can measure before and after, and we agree how it will be measured before any build starts. A benefit nobody can put a number against is not a benefit; it is a hope.</p>`,
     `<h2>Where ${cap(topic)} helps in ${ind}</h2><ul>${applications.map((a) => `<li>${a}</li>`).join("")}</ul><p>These are the patterns we see repeatedly in ${ind}. Yours may sit somewhere between two of them, which is normal, and the scoping call exists to find out exactly where.</p>`,
     `<h2>How Nexoris Technologies delivers ${topic}</h2><p>We start with a short scoping call to understand your goals, the systems already in place, and who has to live with the result. From there we design a solution that fits your team and your data rather than one that assumes both are perfect. Work ships in stages, each one small enough to review and put into use, so you are never waiting months to see whether the direction is right.</p><p>Every build ships with security considered from the first design, documentation your own team can read, and a plan you can measure against. We test with real data and real users before anything is called finished. When something does not work as expected, you hear it from us first, with what we intend to do about it.</p>`,
     `<h2>What it takes from your side</h2><p>An honest answer, because the projects that fail usually fail here. You need someone who can decide, access to the systems involved, and a few hours a week from the people who do the work today. That is most of it. We handle the build, the testing, the documentation and the rollout, and we will tell you plainly when something we are asked to do is not worth doing.</p>`,
+    `<h2>How we know this works</h2><p>Everything above comes from delivering this work, not from summarising it. We scope against the system you already run, test with your real data and the people who will use it, and agree how the result will be measured before any build starts. When a number does not move after launch, that is our problem to fix, and we would rather say a piece of work is not worth doing than bill for it.</p><p>This page is written and reviewed by a named person at Nexoris Technologies whose profile you can read, and it is revised when what we deliver changes. If something here does not match your experience of working with us, tell us and we will correct it.</p>`,
     `<h2>Why choose Nexoris Technologies</h2><p>We build useful software for real businesses, not demos. Our work in ${ind} pairs modern engineering with first-hand knowledge of how these operations actually run, so the result is something your team uses and trusts rather than something that quietly goes unused after launch. We stay through the rollout, and we would rather scope something smaller that works than something larger that does not.</p>`,
     `<h2>Ready to get started?</h2><p>Tell us about your goals and we will come back with a clear plan, a realistic timeline and honest numbers, with no obligation. ${svc === "Nexoris Technologies" ? "" : `Ask about our ${svc} work. `}If we are not the right fit for what you need, we will say so and point you somewhere better. Let us help you get more from ${topic}.</p>`,
   ].join(""));

@@ -1,18 +1,34 @@
 /**
- * Personal Dashboard (Image 9). A salesperson's own view: personal KPIs, a task checklist beside a
- * target-progress ring, and the personal pipeline beside recent activity. Reached via the switcher.
+ * Personal Dashboard. What this one person is responsible for, shaped by what they actually do.
+ *
+ * It was written for a salesperson and showed only that: my leads, my pipeline, my sales target. A
+ * CEO, an HR admin or a CMS editor opened it and saw four zeros and an empty ring, because none of
+ * those figures describe their work. The sales blocks now appear only for someone who has sales
+ * work — a lead assigned, or a target set — and everyone else gets the modules they can actually
+ * open. Tasks and recent activity are personal to anyone, so they are always shown.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
 import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireStaff, grantedModules } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
+import { MODULES, MODULE_LABEL, type ModuleId } from "../../../../lib/shell-constants.js";
 import { ProgressRing } from "../../../../components/charts.js";
 
 export const dynamic = "force-dynamic";
+
+/** Where each granted module opens. */
+const MODULE_HOME: Record<ModuleId, string> = {
+  crm: "/crm",
+  finance: "/finance",
+  einvoicing: "/e-invoicing",
+  hr: "/people",
+  payroll: "/payroll",
+  cms: "/cms",
+};
 
 const LAGOS = "Africa/Lagos";
 function greeting(): string {
@@ -66,6 +82,15 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
       `SELECT action, created_at::text FROM audit_log WHERE actor_id = $1 ORDER BY created_at DESC LIMIT 4`, [staff.id]),
   ]);
 
+  // Sales work is a fact about this person, not only about their role title: an admin who owns
+  // leads should still see their pipeline, and a salesperson with none yet should not be shown an
+  // empty ring as though they had missed a target.
+  const modules = staff.role === "admin" ? [...MODULES] : await grantedModules(staff.id);
+  const totalOwned = await pool.query<{ n: string }>(
+    "SELECT count(*)::text AS n FROM lead WHERE assigned_to = $1", [staff.id]);
+  const hasSalesWork =
+    staff.role === "salesperson" || Number(totalOwned.rows[0]?.n ?? 0) > 0 || Number(target[0]?.target ?? 0) > 0;
+
   const me = mine[0]!;
   const targetValue = Number(target[0]?.target ?? 0);
   const wonValue = Number(me.won_value);
@@ -75,15 +100,24 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
   const now = new Date();
   const daysLeftInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
 
-  const KPIS = [
+  const SALES_KPIS = [
     { label: "My Leads", value: me.leads, sub: `${me.new_today} new today` },
     { label: "My Opportunities", value: me.open_opps, sub: "still open, any period" },
-    { label: "Follow-ups Due", value: String(due.length), sub: overdue > 0 ? `${overdue} overdue` : "none overdue" },
     {
       label: "Target Achievement",
       value: targetValue > 0 ? `${Math.round((wonValue / targetValue) * 100)}%` : "—",
       sub: targetValue > 0 ? `${nairaShort(wonValue)} / ${nairaShort(targetValue)}` : "No target set",
     },
+  ];
+
+  // Follow-ups and access describe anyone's day; the sales three only describe a seller's.
+  const KPIS = [
+    { label: "Follow-ups Due", value: String(due.length), sub: overdue > 0 ? `${overdue} overdue` : "none overdue" },
+    ...(hasSalesWork ? SALES_KPIS : [
+      { label: "Modules", value: String(modules.length), sub: modules.length === 1 ? "you can open one area" : "areas you can open" },
+      { label: "Recent Actions", value: String(acts.length), sub: "logged against your account" },
+      { label: "Role", value: staff.role.replace(/^\w/, (c) => c.toUpperCase()), sub: "your access level" },
+    ]),
   ];
 
   const byStage = new Map(stageRows.map((r) => [r.status, r]));
@@ -139,6 +173,26 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
           <Link href="/action-center" className="mt-4 inline-block text-[0.8rem] font-600 text-[#543CDA] hover:text-[#4330B8]">View all tasks</Link>
         </section>
 
+        {!hasSalesWork ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <h2 className="text-[0.95rem] font-700 text-slate-900">Your Access</h2>
+            <p className="mt-1 text-[0.78rem] text-slate-500">
+              The areas your role can open. Ask an administrator if something you need is missing.
+            </p>
+            {modules.length === 0 ? (
+              <p className="mt-6 text-[0.84rem] text-slate-500">No modules have been granted to your account yet.</p>
+            ) : (
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
+                {modules.map((m) => (
+                  <Link key={m} href={MODULE_HOME[m as ModuleId] ?? "/dashboard"}
+                    className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[0.84rem] font-600 text-slate-800 hover:border-[#543CDA]/30 hover:bg-white">
+                    {MODULE_LABEL[m as ModuleId] ?? m}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <h2 className="text-[0.95rem] font-700 text-slate-900">My Target Progress</h2>
           <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:justify-around">
@@ -164,9 +218,11 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
             </div>
           </div>
         </section>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
+        {hasSalesWork ? (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <h2 className="text-[0.95rem] font-700 text-slate-900">My Pipeline</h2>
           <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
@@ -179,6 +235,7 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
             ))}
           </div>
         </section>
+        ) : null}
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <h2 className="text-[0.95rem] font-700 text-slate-900">Recent Activities</h2>

@@ -61,3 +61,40 @@ describe("bodyWordCount", () => {
     expect(bodyWordCount("")).toBe(0);
   });
 });
+
+/**
+ * Answer-first and the experience signals E-E-A-T asks for.
+ *
+ * The page used to open by describing itself: "This page explains what X means for your business."
+ * A reader skimming, and an AI system extracting an answer, both had to get past that before
+ * anything useful appeared. These pin the opening down so it cannot drift back.
+ */
+describe("answer-first structure", () => {
+  const html = sample();
+  const firstParagraph = (html.match(/<p>([\s\S]*?)<\/p>/)?.[1] ?? "").replace(/<[^>]+>/g, "");
+
+  it("answers in the first paragraph instead of describing the page", () => {
+    for (const preamble of ["this page explains", "this article", "in this guide", "we will look at"]) {
+      expect(firstParagraph.toLowerCase(), preamble).not.toContain(preamble);
+    }
+  });
+
+  it("names the subject in the opening sentence", () => {
+    const firstSentence = firstParagraph.split(/(?<=\.)\s/)[0] ?? "";
+    expect(firstSentence.toLowerCase()).toContain("ai solutions for healthcare");
+  });
+
+  it("gives an answer substantial enough to stand alone", () => {
+    // Short enough to be quotable, long enough to actually answer.
+    const words = firstParagraph.trim().split(/\s+/).length;
+    expect(words).toBeGreaterThanOrEqual(40);
+    expect(words).toBeLessThanOrEqual(120);
+  });
+
+  it("carries first-hand experience rather than only a byline", () => {
+    const text = html.replace(/<[^>]+>/g, " ").toLowerCase();
+    expect(text).toContain("how we know this works");
+    // The claim that makes it experience rather than assertion: measured, and revisable.
+    expect(text).toMatch(/measured before any build starts/);
+  });
+});

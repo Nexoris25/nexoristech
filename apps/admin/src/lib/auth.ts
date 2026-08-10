@@ -14,7 +14,7 @@ import { rethrowAsUserFacing } from "./db-errors.js";
 export interface CurrentStaff {
   id: string;
   name: string;
-  role: "admin" | "salesperson" | "viewer";
+  role: "admin" | "ceo" | "executive" | "salesperson" | "viewer";
   /** The staff_session row backing this request, when the cookie carries one. */
   sessionId?: string;
 }

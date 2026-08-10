@@ -59,6 +59,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import { isExecutive } from "../lib/crm-constants.js";
 import { Dropdown } from "./Dropdown.js";
 import { OgeWidget } from "./OgeWidget.js";
 
@@ -213,11 +214,23 @@ const EINVOICING_NAV: NavEntry[] = [
   { icon: Activity, label: "Integration Monitor", href: "/e-invoicing/monitor" },
 ];
 
+/**
+ * The dashboards a person may switch between.
+ *
+ * The CEO dashboard is company-wide finance, so it is offered only to the roles allowed to read it.
+ * Listing it for everyone meant a salesperson picked it and either saw the whole company's revenue,
+ * or after the guard landed, bounced straight back with no explanation.
+ */
 const DASHBOARDS = [
   { label: "Executive Dashboard", href: "/dashboard" },
-  { label: "CEO Dashboard", href: "/dashboard/ceo" },
+  { label: "CEO Dashboard", href: "/dashboard/ceo", executiveOnly: true },
   { label: "Personal Dashboard", href: "/dashboard/personal" },
-];
+] as const;
+
+function dashboardsFor(role: string): { label: string; href: string }[] {
+  return DASHBOARDS.filter((d) => !("executiveOnly" in d && d.executiveOnly) || isExecutive(role))
+    .map((d) => ({ label: d.label, href: d.href }));
+}
 
 function initials(name: string): string {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
@@ -389,7 +402,8 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const onDashboards = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const currentDash = DASHBOARDS.find((d) => d.href === pathname) ?? DASHBOARDS[0]!;
+  const dashboards = dashboardsFor(staff.role);
+  const currentDash = dashboards.find((d) => d.href === pathname) ?? dashboards[0]!;
   const firstName = staff.name.split(/\s+/)[0] ?? staff.name;
 
   const sidebarInner = (drawer: boolean): ReactNode => {
@@ -477,7 +491,7 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
               buttonClassName="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-[0.92rem] font-700 text-slate-900 hover:bg-slate-50"
               label={<>{currentDash.label} <ChevronDown size={15} strokeWidth={2.4} className="text-slate-500" /></>}
             >
-              {DASHBOARDS.map((d) => (
+              {dashboards.map((d) => (
                 <Link key={d.href} href={d.href} className={`${MENU_ITEM} ${d.href === currentDash.href ? "font-600 text-[#543CDA]" : ""}`}>
                   <LayoutDashboard size={15} strokeWidth={2} /> {d.label}
                 </Link>

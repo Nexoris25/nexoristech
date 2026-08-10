@@ -28,8 +28,24 @@ export interface StageState {
   ok?: boolean;
 }
 
-export const ROLES = ["admin", "salesperson", "viewer"] as const;
+/**
+ * Staff roles.
+ *
+ * "ceo" and "executive" exist because the platform ships a CEO dashboard and there was previously no
+ * way to say who it is for: the page checked only that someone was signed in, so a salesperson could
+ * read company revenue. They read across the business rather than administering the platform, which
+ * is what separates them from "admin".
+ */
+export const ROLES = ["admin", "ceo", "executive", "salesperson", "viewer"] as const;
 export type Role = (typeof ROLES)[number];
+
+/** Roles allowed to see company-wide financial performance: the CEO dashboard and its figures. */
+export const EXECUTIVE_ROLES: readonly Role[] = ["admin", "ceo", "executive"];
+
+/** True when this role may read the whole company's numbers rather than only its own work. */
+export function isExecutive(role: string): boolean {
+  return (EXECUTIVE_ROLES as readonly string[]).includes(role);
+}
 
 export interface StaffFormState {
   error?: string;

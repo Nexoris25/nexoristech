@@ -14,6 +14,8 @@ import Link from "next/link";
 import { Wallet, TrendingUp, Users, Landmark, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
 import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
+import { redirect } from "next/navigation";
+import { isExecutive } from "../../../../lib/crm-constants.js";
 import { requireStaff } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { AreaChart, Bar } from "../../../../components/charts.js";
@@ -30,7 +32,12 @@ const nairaShort = (v: number): string => {
 };
 
 export default async function CeoDashboard({ searchParams }: { searchParams: Promise<{ range?: string }> }): Promise<ReactNode> {
-  await requireStaff();
+  // Every figure on this page is company-wide: collected revenue, settled expenses, cash profit,
+  // how many clients have ever been billed. It used to check only that someone was signed in, so a
+  // salesperson or a viewer could read all of it. Anyone without an executive role is sent to the
+  // dashboard they do have, rather than shown an empty version of this one.
+  const staff = await requireStaff();
+  if (!isExecutive(staff.role)) redirect("/dashboard");
   const pool = db();
   const period = resolvePeriod((await searchParams).range, "ytd");
   const w = [period.start, period.end];
