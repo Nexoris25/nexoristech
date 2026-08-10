@@ -7,7 +7,7 @@
  * All generation walks the CMS AI fallback chain; a thrown error lets the admin fall back deterministically.
  */
 import { Injectable } from "@nestjs/common";
-import { CMS_AI_MODELS, CRM_WORKER_MODELS, apiKeyFor, resolveModelId, type Env } from "../config/models.js";
+import { CMS_AI_MODELS, CRM_WORKER_MODELS, apiKeyFor, apiKeyEnvVar, chainFor, resolveModelId, type Env, type ModelSlot } from "../config/models.js";
 import { generateGrounded, stripEmDash } from "../providers/generation.js";
 
 export type EditorialKind = "seo" | "tldr" | "excerpt" | "faqs" | "author-bio" | "internal-links";
@@ -154,28 +154,72 @@ export class ContentService {
   }
 
   /**
-   * Alt text for an uploaded image, via Gemini vision on the backend Project B key. Returns concise,
-   * descriptive alt text (no "image of"). Throws when the key is missing or the call fails, so the
-   * admin falls back to filename-derived alt text.
+   * The Gemini slots that can answer a vision call, in the order they should be tried.
+   *
+   * Only Gemini takes inlineData here, so this cannot use the full CMS chain. It previously used a
+   * single slot — the Project B key — which meant one rate-limited project sent every upload to the
+   * filename fallback while the Project A key sat unused. Both projects are tried, deduplicated by
+   * the model and key they actually resolve to so a shared key is not called twice.
+   */
+  private visionSlots(): ModelSlot[] {
+    const gemini = chainFor(CMS_AI_MODELS).filter((s) => s.provider === "gemini");
+    const base = gemini[0];
+    if (!base) return [];
+    const candidates: ModelSlot[] = [
+      ...gemini,
+      // The other project, same model: a second quota rather than a second model.
+      ...gemini.map((s) => ({ ...s, geminiProject: s.geminiProject === "B" ? ("A" as const) : ("B" as const) })),
+    ];
+    const seen = new Set<string>();
+    return candidates.filter((s) => {
+      const key = `${resolveModelId(s, this.env)}::${apiKeyEnvVar(s)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /**
+   * Alt text for an uploaded image, via Gemini vision. Returns concise, descriptive alt text (no
+   * "image of"). Walks every configured Gemini project before giving up, so a rate limit on one
+   * does not cost the caller its alt text. Throws only when all of them fail, which is what makes
+   * the admin fall back to filename-derived alt text; the message names the last failure so the
+   * reason is visible in the log rather than showing up as a bare 500.
    */
   async altText(base64: string, mimeType: string): Promise<string> {
-    const slot = CMS_AI_MODELS.backups.find((s) => s.provider === "gemini") ?? CMS_AI_MODELS.primary;
-    const apiKey = apiKeyFor(slot, this.env);
-    if (!apiKey || slot.provider !== "gemini") throw new Error("no vision key");
-    const modelId = resolveModelId(slot, this.env);
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: `Write concise, specific alt text for this image, at most 125 characters, for accessibility and image SEO. Do not start with "image of" or "photo of". ${VOICE}` }] },
-        contents: [{ role: "user", parts: [{ inlineData: { mimeType, data: base64 } }, { text: "Alt text:" }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 80 },
-      }),
-    });
-    if (!res.ok) throw new Error(`vision ${res.status}`);
-    const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-    const alt = stripEmDash((json.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim());
-    if (!alt) throw new Error("empty alt");
-    return alt.replace(/^(image|photo|picture) of /i, "").slice(0, 125);
+    const slots = this.visionSlots();
+    let lastError = "no vision key";
+
+    for (const slot of slots) {
+      const apiKey = apiKeyFor(slot, this.env);
+      if (!apiKey) continue;
+      const modelId = resolveModelId(slot, this.env);
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: `Write concise, specific alt text for this image, at most 125 characters, for accessibility and image SEO. Do not start with "image of" or "photo of". ${VOICE}` }] },
+            contents: [{ role: "user", parts: [{ inlineData: { mimeType, data: base64 } }, { text: "Alt text:" }] }],
+            generationConfig: { temperature: 0.3, maxOutputTokens: 80 },
+          }),
+        });
+        if (!res.ok) {
+          // 429 and 5xx are worth trying the next project for; a 400 means the image itself is
+          // rejected and every project will say the same, so stop.
+          lastError = `vision ${res.status} on ${apiKeyEnvVar(slot)}`;
+          if (res.status >= 400 && res.status < 500 && res.status !== 429) break;
+          continue;
+        }
+        const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+        const alt = stripEmDash((json.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim());
+        if (!alt) { lastError = "empty alt"; continue; }
+        return alt.replace(/^(image|photo|picture) of /i, "").slice(0, 125);
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : String(e);
+      }
+    }
+
+    throw new Error(lastError);
   }
 }
