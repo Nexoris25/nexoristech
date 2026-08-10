@@ -14,7 +14,12 @@ module.exports = {
         "http://localhost:4173/ai-product-development/",
         "http://localhost:4173/healthcare-software/",
       ],
-      numberOfRuns: 1,
+      // Three runs, because Lighthouse asserts on the median and a single run does not have one.
+      // With one run each pass reliably produced exactly one page scoring around 62 with roughly
+      // 600ms of blocking time, and it was a different page every time: whichever URL was measured
+      // while the server was still warming up wore the cost. The same pages score around 80 on the
+      // runs where they are not the unlucky one, so the low reading was the harness, not the page.
+      numberOfRuns: 3,
     },
     assert: {
       assertions: {
