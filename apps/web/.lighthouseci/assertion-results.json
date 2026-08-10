@@ -1,0 +1,44 @@
+[
+  {
+    "name": "minScore",
+    "expected": 0.9,
+    "actual": 0.62,
+    "values": [
+      0.62
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "performance",
+    "auditId": "categories",
+    "level": "warn",
+    "url": "http://localhost:4173/"
+  },
+  {
+    "name": "minScore",
+    "expected": 0.9,
+    "actual": 0.52,
+    "values": [
+      0.52
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "performance",
+    "auditId": "categories",
+    "level": "warn",
+    "url": "http://localhost:4173/ai-product-development/"
+  },
+  {
+    "name": "minScore",
+    "expected": 0.9,
+    "actual": 0.57,
+    "values": [
+      0.57
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "performance",
+    "auditId": "categories",
+    "level": "warn",
+    "url": "http://localhost:4173/healthcare-software/"
+  }
+]

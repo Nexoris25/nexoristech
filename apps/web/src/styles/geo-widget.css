@@ -93,7 +93,10 @@
   padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);
   font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;color:#ececec;
 }
-.gpt-model{margin-left:auto;font-size:.65rem;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace}
+/* White at 40% over #212121 composites to #7a7a7a, which is 3.75:1 against that background and
+   fails WCAG AA for text this size. 55% lands near #9b9b9b, about 5.8:1, and still reads as the
+   muted label the mock-up wants. Same for .gpt-fntitle below. */
+.gpt-model{margin-left:auto;font-size:.65rem;color:rgba(255,255,255,.55);font-family:'JetBrains Mono',monospace}
 .gpt-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
 .gpt-msg{font-family:'Inter',sans-serif;font-size:.78rem;line-height:1.6}
 .gpt-msg.user{
@@ -122,7 +125,7 @@
   display:grid;place-items:center;font-size:.6rem;flex:none;
 }
 .gpt-fnlink{color:#10A37F;font-weight:600}
-.gpt-fntitle{color:rgba(255,255,255,.4)}
+.gpt-fntitle{color:rgba(255,255,255,.55)}
 
 /* ── PERPLEXITY ── */
 .ppx-wrap{background:#fff;display:flex;flex-direction:column}
