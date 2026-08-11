@@ -4,6 +4,7 @@
  * gateway is reachable, and otherwise composes a deterministic draft from the supplied content in the
  * house voice. The editor approves every draft before it is saved. `source` tells the UI which path ran.
  */
+import { deriveMetaTitle, fitMetaDescription } from "@nexoris/seo";
 import { cmsDb } from "./cms-db.js";
 import { SITE_ORIGIN, CORE_PAGES, SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
 
@@ -171,23 +172,46 @@ export async function generateEditorial(input: EditorialInput): Promise<{ result
   return { result, source };
 }
 
+/**
+ * Remove an inserted TL;DR block from the body.
+ *
+ * The assistant inserts the summary at the very top of the article as `<h2>TL;DR</h2><ul>...</ul>`,
+ * so anything that reads "the first couple of sentences" was reading the summary instead of the
+ * article. That is how the excerpt came back as the TL;DR. Removed at the markup level, before the
+ * HTML is flattened, so the heading and its list go together.
+ */
+export function stripTldrBlock(html: string): string {
+  return (html || "")
+    .replace(/<h[1-6][^>]*>\s*TL;?DR[^<]*<\/h[1-6]>\s*(<(ul|ol)[\s\S]*?<\/\2>)?/gi, " ")
+    .replace(/\bTL;?DR\b:?/gi, " ");
+}
+
 function deterministic(input: EditorialInput): EditorialResult {
   const body = plain(input.body ?? "");
   const title = (input.title ?? "").trim();
   const sents = sentences(body);
   switch (input.kind) {
     case "seo": {
-      const metaTitle = (title || sents[0] || "Nexoris Technologies").slice(0, 60);
-      let d = (body || title).slice(0, 158);
-      if ((body || title).length > 158) d = `${d.slice(0, d.lastIndexOf(" "))}...`;
-      return { metaTitle: stripEmDash(metaTitle), metaDescription: stripEmDash(d) };
+      // No ellipsis. A trailing "..." in a search result says the sentence was cut and tells the
+      // reader nothing; whole sentences that stop early are better than a long one that trails off.
+      const metaTitle = deriveMetaTitle(title || sents[0] || "Nexoris Technologies");
+      const prose = stripTldrBlock(input.body ?? "") ? plain(stripTldrBlock(input.body ?? "")) : title;
+      const fitted = fitMetaDescription(prose || title);
+      return { metaTitle: stripEmDash(metaTitle), metaDescription: stripEmDash(fitted.text) };
     }
     case "tldr":
       return sents.slice(0, 5).map((s) => stripEmDash(s));
     case "excerpt": {
-      let e = sents.slice(0, 2).join(" ") || title;
-      if (e.length > 200) e = `${e.slice(0, 197)}...`;
-      return stripEmDash(e);
+      // The summary block sits at the top of the article, so the first two sentences of the raw
+      // body were the TL;DR rather than the piece itself.
+      const prose = sentences(plain(stripTldrBlock(input.body ?? "")));
+      let e = "";
+      for (const sentence of prose.slice(0, 3)) {
+        const candidate = e ? `${e} ${sentence}` : sentence;
+        if (candidate.length > 200) break;
+        e = candidate;
+      }
+      return stripEmDash(e || title);
     }
     case "faqs": {
       // Always return exactly 5 questions with answers grounded in the page content: for each canonical

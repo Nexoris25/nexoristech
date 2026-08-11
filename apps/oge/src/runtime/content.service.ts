@@ -36,6 +36,19 @@ const VOICE = `Write in English, in the house voice: spoken word, the way a know
 const plain = (s: string): string => (s || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
 /**
+ * Drop an inserted TL;DR block, heading and list together.
+ *
+ * The assistant puts the summary at the very top of the article, so anything reading the opening of
+ * the body was reading the summary rather than the piece.
+ */
+const stripTldr = (s: string): string =>
+  (s || "")
+    .replace(/<h[1-6][^>]*>\s*TL;?DR[^<]*<\/h[1-6]>\s*(<(ul|ol)[\s\S]*?<\/\2>)?/gi, " ")
+    .replace(/\bTL;?DR\b:?/gi, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+/**
  * Pulls a JSON value out of a model's reply.
  *
  * The old rule was `/\{[\s\S]*\}/`, which is greedy: it spanned from the first brace in the reply to
@@ -158,11 +171,31 @@ export class ContentService {
     return j.bullets.map((b) => stripEmDash(b)).filter(Boolean).slice(0, 5);
   }
 
+  /**
+   * The card and listing excerpt.
+   *
+   * The article often opens with an inserted TL;DR block, so a model asked to summarise "the start"
+   * summarised the summary and the excerpt came back as the TL;DR. The block is removed before the
+   * body is sent, and the instruction says so as well.
+   *
+   * No ellipsis on the way out either. The old code ended with `.slice(0, 200)`, which could cut a
+   * word; whole sentences are kept instead and a short excerpt is preferred to a severed one.
+   */
   private async excerpt(title: string, body: string): Promise<string> {
+    const source = stripTldr(body);
     const text = await this.run(
-      `Write a one to two sentence excerpt for this article, used on cards and in search results. Plain and inviting, at most 200 characters. Return only the excerpt text.`,
-      JSON.stringify({ title, body: body.slice(0, 4000) }), 160, 0.5);
-    return stripEmDash(plain(text)).slice(0, 200);
+      `Write a one to two sentence excerpt for this article, used on cards and in search results. Plain and inviting, at most 200 characters. ` +
+      `The article may begin with a TL;DR summary: ignore it and describe the article itself. Do not repeat the title. Finish every sentence. Return only the excerpt text.`,
+      JSON.stringify({ title, body: source.slice(0, 4000) }), 160, 0.5);
+
+    const cleaned = stripEmDash(plain(stripTldr(text)));
+    let out = "";
+    for (const sentence of cleaned.split(/(?<=[.!?])\s+/)) {
+      const candidate = out ? `${out} ${sentence}` : sentence;
+      if (candidate.length > 200) break;
+      out = candidate;
+    }
+    return out || cleaned.slice(0, 200);
   }
 
   private async faqs(title: string, body: string): Promise<FaqItem[]> {

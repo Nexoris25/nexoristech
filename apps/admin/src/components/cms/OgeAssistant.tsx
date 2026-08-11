@@ -92,8 +92,15 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios }: { tabs: Oge
   const [copied, setCopied] = useState("");
   const overflowActive = overflow.some((t) => t === active);
 
-  const run = async (kind: string, extra?: Record<string, unknown>): Promise<unknown> => {
-    setBusy(kind);
+  /**
+   * Run one generation.
+   *
+   * `busyKey` exists so two controls that call the same kind can spin separately. The meta title and
+   * the meta description are both drafted by the "seo" kind, and while they shared a busy flag,
+   * asking for one set every spinner in the tab going and looked as though both were being rewritten.
+   */
+  const run = async (kind: string, extra?: Record<string, unknown>, busyKey?: string): Promise<unknown> => {
+    setBusy(busyKey ?? kind);
     const r = await callOge(kind, getContext(), extra);
     setBusy("");
     if (r) {
@@ -144,13 +151,14 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios }: { tabs: Oge
       </div>
 
       <div className="p-4">
-        {active === "seo" ? <SeoTab busy={busy === "seo"} source={source.seo} seo={seo}
+        {active === "seo" ? <SeoTab busy={busy} source={source.seo} seo={seo}
             onGenerate={async () => { const r = (await run("seo")) as SeoResult | null; if (r && seo) { seo.setMetaTitle(r.metaTitle); seo.setMetaDesc(r.metaDescription); } else if (r && apply?.seo) apply.seo(r); }}
             onGenerateField={async (field) => {
               // The gateway drafts the pair together, because a description that ignores its own
               // title reads like it belongs to another page. Only the field that was asked for is
-              // written back, so whatever the editor already worded by hand survives.
-              const r = (await run("seo")) as SeoResult | null;
+              // written back, so whatever the editor already worded by hand survives, and the
+              // busy key names the field so the other one's button does not spin with it.
+              const r = (await run("seo", undefined, `seo:${field}`)) as SeoResult | null;
               if (!r || !seo) return;
               if (field === "title") seo.setMetaTitle(r.metaTitle);
               else seo.setMetaDesc(r.metaDescription);
@@ -158,7 +166,7 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios }: { tabs: Oge
           : active === "tldr" ? <TldrTab busy={busy === "tldr"} source={source.tldr} result={results.tldr as string[] | undefined} onGenerate={() => void run("tldr")} onInsert={(html) => apply?.insertTop?.(html)} copied={copied} onCopy={copy} />
           : active === "excerpt" ? <ExcerptTab busy={busy === "excerpt"} source={source.excerpt} result={results.excerpt as string | undefined} onGenerate={() => void run("excerpt")} onApply={apply?.excerpt} copied={copied} onCopy={copy} />
           : active === "author-bio" ? <BioTab busy={busy} source={source} bios={bios} onGenerate={(_who, ctx) => run("author-bio", ctx)} onInsert={(html) => apply?.insertBottom?.(html)} />
-          : active === "faqs" ? <FaqTab busy={busy === "faqs"} source={source.faqs} result={results.faqs as FaqItem[] | undefined} onGenerate={() => void run("faqs")} onInsert={(html) => apply?.insertBottom?.(html)} />
+          : active === "faqs" ? <FaqTab busy={busy === "faqs"} source={source.faqs} result={results.faqs as FaqItem[] | undefined} onGenerate={() => void run("faqs")} />
           : active === "internal-links" ? <LinksTab busy={busy === "internal-links"} source={source["internal-links"]} result={results["internal-links"] as InternalLink[] | undefined} onGenerate={() => void run("internal-links")} getBody={apply?.getBody} linkInline={apply?.linkInline} />
           : <MoreTab />}
       </div>
@@ -218,31 +226,43 @@ function CopyBtn({ k, text, copied, onCopy }: { k: string; text: string; copied:
   return <button type="button" onClick={() => onCopy(k, text)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[0.76rem] font-600 text-slate-500 hover:bg-slate-50">{copied === k ? <Check size={12} className="text-[#15803D]" /> : <Copy size={12} />} {copied === k ? "Copied" : "Copy"}</button>;
 }
 
-function SeoTab({ busy, source, seo, onGenerate, onGenerateField }: { busy: boolean; source: "oge" | "fallback" | undefined; seo?: OgeSeo | undefined; onGenerate: () => void; onGenerateField: (field: "title" | "description") => void }): ReactNode {
+function SeoTab({ busy, source, seo, onGenerate, onGenerateField }: { busy: string; source: "oge" | "fallback" | undefined; seo?: OgeSeo | undefined; onGenerate: () => void; onGenerateField: (field: "title" | "description") => void }): ReactNode {
   if (!seo) {
-    return <div><div className="mb-3 flex items-center justify-between"><p className="text-[0.78rem] text-slate-500">Draft a meta title and description for search and AI answers.</p><Badge source={source} /></div><GenBtn busy={busy} has={false} onClick={onGenerate} label="Generate with Oge" /></div>;
+    return <div><div className="mb-3 flex items-center justify-between"><p className="text-[0.78rem] text-slate-500">Draft a meta title and description for search and AI answers.</p><Badge source={source} /></div><GenBtn busy={busy === "seo"} has={false} onClick={onGenerate} label="Generate with Oge" /></div>;
   }
+  const inWindow = seo.metaDesc.length >= 155 && seo.metaDesc.length <= 160;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <span className="text-[0.8rem] font-700 text-slate-800">SEO Score</span><Badge source={source} />
       </div>
       <ScoreGauge value={seo.score} />
-      <label className="flex flex-col gap-1">
-        <span className="flex items-center justify-between gap-2 text-[0.74rem] font-600 text-slate-600">
-          <span className="flex items-center gap-2">Meta Title <FieldGenBtn busy={busy} onClick={() => onGenerateField("title")} title="Draft a meta title with Oge" /></span>
+
+      {/* Field rows are divs, not labels: a click inside a label is forwarded to its control, so a
+          Generate button placed in one also grabbed focus for the input beneath it. */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-2 text-[0.74rem] font-600 text-slate-600">
+          <span className="flex items-center gap-2">
+            Meta Title
+            <FieldGenBtn busy={busy === "seo:title"} onClick={() => onGenerateField("title")} title="Draft a meta title with Oge" />
+          </span>
           <span className="text-slate-500">{seo.metaTitle.length}/60</span>
-        </span>
-        <input value={seo.metaTitle} onChange={(e) => seo.setMetaTitle(e.target.value)} placeholder="Defaults to the insight title" className={fieldSm} />
-      </label>
-      <label className="flex flex-col gap-1">
-        <span className="flex items-center justify-between gap-2 text-[0.74rem] font-600 text-slate-600">
-          <span className="flex items-center gap-2">Meta Description <FieldGenBtn busy={busy} onClick={() => onGenerateField("description")} title="Draft a meta description with Oge" /></span>
-          <span className={seo.metaDesc.length >= 155 && seo.metaDesc.length <= 160 ? "text-[#15803D]" : "text-slate-500"}>{seo.metaDesc.length}/160</span>
-        </span>
-        <textarea value={seo.metaDesc} onChange={(e) => seo.setMetaDesc(e.target.value)} rows={3} maxLength={200} placeholder="The snippet shown in search and AI answers..." className={fieldSm} />
-      </label>
-      <GenBtn busy={busy} has onClick={onGenerate} label="Regenerate both" />
+        </div>
+        <input value={seo.metaTitle} onChange={(e) => seo.setMetaTitle(e.target.value)} placeholder="Defaults to the page title" className={fieldSm} />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-2 text-[0.74rem] font-600 text-slate-600">
+          <span className="flex items-center gap-2">
+            Meta Description
+            <FieldGenBtn busy={busy === "seo:description"} onClick={() => onGenerateField("description")} title="Draft a meta description with Oge" />
+          </span>
+          <span className={inWindow ? "text-[#15803D]" : "text-slate-500"}>{seo.metaDesc.length}/160</span>
+        </div>
+        <textarea value={seo.metaDesc} onChange={(e) => seo.setMetaDesc(e.target.value)} rows={3} maxLength={200} placeholder="The snippet shown in search and AI answers" className={fieldSm} />
+      </div>
+
+      <GenBtn busy={busy === "seo"} has onClick={onGenerate} label="Regenerate both" />
     </div>
   );
 }
@@ -301,13 +321,26 @@ function BioTab({ busy, source, bios, onGenerate, onInsert }: { busy: string; so
   );
 }
 
-function FaqTab({ busy, source, result, onGenerate, onInsert }: { busy: boolean; source: "oge" | "fallback" | undefined; result?: FaqItem[] | undefined; onGenerate: () => void; onInsert: (html: string) => void }): ReactNode {
-  const html = result ? `<h2>Frequently asked questions</h2>${result.map((f) => `<h3>${f.question}</h3><p>${f.answer}</p>`).join("")}` : "";
+function FaqTab({ busy, source, result, onGenerate }: { busy: boolean; source: "oge" | "fallback" | undefined; result?: FaqItem[] | undefined; onGenerate: () => void }): ReactNode {
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between"><p className="text-[0.78rem] text-slate-500">5 to 7 questions with precise answers. Inserted with FAQ schema.</p><Badge source={source} /></div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[0.78rem] text-slate-500">5 to 7 questions with precise answers.</p>
+        <Badge source={source} />
+      </div>
       {result ? <div className="mb-3 space-y-2">{result.map((f, i) => <details key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5"><summary className="cursor-pointer text-[0.82rem] font-600 text-slate-800">{i + 1}. {f.question}</summary><p className="mt-1.5 text-[0.8rem] text-slate-600">{f.answer}</p></details>)}</div> : null}
-      <div className="flex flex-wrap items-center gap-2"><GenBtn busy={busy} has={!!result} onClick={onGenerate} label={result ? "Regenerate FAQs" : "Generate FAQs"} />{result ? <InsertBtn onClick={() => onInsert(html)} label="Insert FAQs into content" /> : null}</div>
+      {/* Generating saves the set to the page's own faqs field, which is what the published page
+          renders and what faqPageNode turns into FAQPage schema. There is deliberately no "insert
+          into content" any more: pasting the same questions into the body published them twice,
+          and that second copy was plain markup carrying no schema at all. */}
+      <p className="mb-3 text-[0.74rem] text-slate-500">
+        {result
+          ? `Saved with this page. ${result.length} question${result.length === 1 ? "" : "s"} will publish in the FAQ section, wrapped in FAQPage schema.`
+          : "Generated questions are saved with the page and published with FAQPage schema."}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <GenBtn busy={busy} has={!!result} onClick={onGenerate} label={result ? "Regenerate FAQs" : "Generate FAQs"} />
+      </div>
     </div>
   );
 }
