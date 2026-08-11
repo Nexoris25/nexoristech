@@ -28,7 +28,9 @@ export interface InsightCard { title: string; slug: string; excerpt?: string; pu
 export interface Author { name: string; slug?: string; role?: string; linkedin?: string; bio?: string }
 export interface FaqItem { question: string; answer: string }
 export interface Insight {
-  title: string; shortTitle?: string; slug: string; body: string; excerpt?: string; tldr?: string;
+  title: string; shortTitle?: string; slug: string; body: string; excerpt?: string;
+  /** The TL;DR as written: one entry per bullet. Joined only where a plain string is needed. */
+  tldr?: string[];
   publishedAt?: string; updatedAt?: string; coverUrl?: string; coverAlt?: string;
   category?: string; author?: Author; factChecker?: Author; faq: FaqItem[]; noIndex: boolean;
   metaTitle?: string; metaDescription?: string; schemaType?: string;
@@ -356,7 +358,11 @@ export async function getInsight(slug: string): Promise<Insight | null> {
   if (!r || !title) return null;
   const author = toAuthor(r, "a_");
   const factChecker = toAuthor(r, "fc_");
-  const tldr = Array.isArray(r.tldr) ? (r.tldr as unknown[]).map((x) => String(x)).join(" ") : str(r.tldr);
+  // Kept as a list. Joining it here is what turned the short version into a wall of text.
+  const tldrRaw = r.tldr;
+  const tldr = Array.isArray(tldrRaw)
+    ? (tldrRaw as unknown[]).map((x) => String(x).trim()).filter(Boolean)
+    : (str(tldrRaw) ? [str(tldrRaw) as string] : []);
   return {
     title,
     // The design uses the short title where the full one would not fit: breadcrumbs and cards.
@@ -366,7 +372,7 @@ export async function getInsight(slug: string): Promise<Insight | null> {
     faq: faqsOf(r.faqs),
     noIndex: Boolean(r.noindex),
     ...opt("excerpt", str(r.excerpt)),
-    ...opt("tldr", tldr),
+    ...(tldr.length > 0 ? { tldr } : {}),
     ...opt("publishedAt", isoDate(r.published_at)),
     ...opt("updatedAt", isoDate(r.updated_at)),
     ...opt("coverUrl", mediaUrl(r.featured_image)),

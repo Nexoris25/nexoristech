@@ -12,9 +12,11 @@
   bottom: 20px;
   right: 20px;
   z-index: 60;
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
+  /* 48px is the standard comfortable tap target. At 60 the avatar read as a third piece of page
+     furniture rather than a control sitting quietly in the corner. */
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
   border: none;
   padding: 0;
   cursor: pointer;
@@ -27,15 +29,15 @@
 }
 .ogw-launch .ogw-av {
   display: block;
-  border-radius: 18px;
+  border-radius: 15px;
   overflow: hidden;
 }
 .ogw-launch .ogw-online {
   position: absolute;
   right: -2px;
   bottom: -2px;
-  width: 16px;
-  height: 16px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: #1fae54;
   border: 3px solid #0d0a1c;

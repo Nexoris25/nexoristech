@@ -2,25 +2,28 @@
  * Floating WhatsApp click-to-chat button.
  *
  * Position is chosen around the two things already pinned to the viewport:
- *   Oge's launcher   bottom 20, right 20, 60px square, z-index 60
+ *   Oge's launcher   bottom 20, right 20, 48px square, z-index 60
  *   Floating TOC     bottom 20, left 20 (mobile only, on articles and legal pages)
  *
  * So this sits directly above Oge in the right-hand stack, clear of the TOC on the left. It is
  * deliberately smaller than the Oge launcher: the assistant is the primary action, this is the
  * fallback for people who would rather use their phone. Oge's open panel is z-index 210 and covers
  * this corner, so the button is hidden behind the conversation while it is open, which is correct.
+ *
+ * Sizes follow the launcher: 44px against its 48px. Both were a size larger and read as page
+ * furniture rather than as controls sitting quietly in the corner.
  */
 .wa-fab {
   position: fixed;
   right: 20px;
-  /* 20 (Oge's own offset) + 60 (its height) + 12 (gap) */
-  bottom: 92px;
+  /* 20 (Oge's own offset) + 48 (its height) + 12 (gap) */
+  bottom: 80px;
   z-index: 59;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: #25d366;
   color: #fff;
   box-shadow: 0 10px 26px rgba(37, 211, 102, 0.36);
@@ -39,8 +42,8 @@
 }
 
 .wa-fab svg {
-  width: 27px;
-  height: 27px;
+  width: 22px;
+  height: 22px;
   display: block;
   fill: currentColor;
 }
@@ -49,14 +52,14 @@
 @media (max-width: 420px) {
   .wa-fab {
     right: 16px;
-    bottom: 86px;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    bottom: 74px;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
   }
   .wa-fab svg {
-    width: 25px;
-    height: 25px;
+    width: 21px;
+    height: 21px;
   }
 }
 

@@ -6,6 +6,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { stripDuplicateBlocks } from "../../../lib/article-body.js";
 import Link from "next/link";
 import {
   buildMetadata,
@@ -15,6 +16,7 @@ import {
   faqPageNode,
   breadcrumbNode,
   absoluteUrl,
+  fitMetaDescription,
 } from "@nexoris/seo";
 import type { ArticleInput, JsonLdNode, PersonRef } from "@nexoris/seo";
 import { isArticleType } from "@nexoris/seo";
@@ -45,10 +47,24 @@ function safeTitle(raw: string): string {
   const base = base0.length > budget ? `${base0.slice(0, budget - 1).trimEnd()}…` : base0;
   return `${base}${BRAND_SUFFIX}`;
 }
-/** A meta description within the 160-char hard limit. */
-function descriptionFor(excerpt?: string, tldr?: string, metaDescription?: string): string {
-  const raw = metaDescription ?? excerpt ?? tldr ?? "An article from the team at Nexoris Technologies.";
-  return raw.length > 160 ? `${raw.slice(0, 157).trimEnd()}...` : raw;
+/**
+ * A meta description within the hard limit, ending on a finished sentence.
+ *
+ * It used to cut at 157 characters and append "...", which tells a reader nothing except that the
+ * sentence was severed. Whole sentences are kept instead, and a short description is better than a
+ * long one that trails off. The TL;DR arrives as bullets, so it is joined only here, where a single
+ * string is what the tag needs.
+ */
+function descriptionFor(excerpt?: string, tldr?: string[], metaDescription?: string): string {
+  const raw = metaDescription ?? excerpt ?? (tldr && tldr.length > 0 ? tldr.join(" ") : undefined)
+    ?? "An article from the team at Nexoris Technologies.";
+  if (raw.length <= 160) return raw;
+  const fitted = fitMetaDescription(raw);
+  // A single sentence longer than the limit leaves nothing whole; fall back to a word boundary
+  // rather than to a severed word, and still without an ellipsis.
+  if (fitted.text) return fitted.text;
+  const cut = raw.slice(0, 160);
+  return cut.slice(0, cut.lastIndexOf(" ")).trimEnd();
 }
 
 export async function generateMetadata({
@@ -167,9 +183,13 @@ export default async function ArticlePage({
     article.factChecker ? { kind: "Fact-checked by", person: article.factChecker } : null,
   ].filter((p): p is { kind: string; person: Author } => p !== null);
 
+  // Anything the assistant inserted into the body that the page also renders from its own fields is
+  // removed here, so an article saved before those buttons went away stops publishing twice.
+  const readableBody = stripDuplicateBlocks(article.body, { tldr: article.tldr, faq: article.faq });
+
   const reading = (
     <div className="reading">
-      {article.tldr ? (
+      {article.tldr && article.tldr.length > 0 ? (
         <div className="tldr">
           <h2>
             <svg viewBox="0 0 24 24">
@@ -177,7 +197,11 @@ export default async function ArticlePage({
             </svg>
             The short version
           </h2>
-          <p>{article.tldr}</p>
+          {/* The list as written. Joining it into a paragraph lost the scannability that is the
+              whole point of a TL;DR. */}
+          <ul>
+            {article.tldr.map((point) => <li key={point}>{point}</li>)}
+          </ul>
         </div>
       ) : null}
 
@@ -186,7 +210,7 @@ export default async function ArticlePage({
           right because the content that had been through here was unformatted prose. Sanitised on the
           way out as well as in the editor, so a row written before the editor normalised anything
           cannot put a script on a public page. */}
-      <div className="prose" dangerouslySetInnerHTML={{ __html: withHeadingIds(article.body) }} />
+      <div className="prose" dangerouslySetInnerHTML={{ __html: withHeadingIds(readableBody) }} />
 
       {article.faq.length > 0 ? (
         <section className="faq-block" aria-labelledby="faq-heading">
@@ -299,7 +323,7 @@ export default async function ArticlePage({
         {toc.length > 0 ? (
           <div className="art-layout">
             <aside className="toc-aside" aria-label="On this page">
-              <h4>On this page</h4>
+              <p className="toc-title">On this page</p>
               <ol>
                 {toc.map((h) => (
                   <li key={h.id}>

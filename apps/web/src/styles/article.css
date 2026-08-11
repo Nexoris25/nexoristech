@@ -49,7 +49,7 @@
 }
 .article-page .art-head h1 {
   font-family: "Roboto", sans-serif;
-  font-size: clamp(1.9rem, 1.3rem + 2.4vw, 3rem);
+  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -58,7 +58,7 @@
 }
 .article-page .art-head .sub {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   line-height: 1.55;
   margin: 16px auto 0;
   max-width: 60ch;
@@ -166,7 +166,7 @@
   top: 92px;
   align-self: start;
 }
-.article-page .toc-aside h4 {
+.article-page .toc-aside .toc-title {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.7rem;
   letter-spacing: 0.1em;
@@ -249,8 +249,8 @@
 /* serif reading prose */
 .article-page .prose {
   font-family: "Lora", Georgia, serif;
-  font-size: 1.19rem;
-  line-height: 1.72;
+  font-size: 1rem;
+  line-height: 1.75;
   color: #241f33;
 }
 .article-page .prose p {
@@ -258,7 +258,7 @@
 }
 .article-page .prose h2 {
   font-family: "Roboto", sans-serif;
-  font-size: 1.55rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--ink-950, #0d0a1c);
@@ -268,7 +268,7 @@
 }
 .article-page .prose h3 {
   font-family: "Roboto", sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
   margin: 28px 0 10px;
@@ -491,4 +491,33 @@
   background: #faf9fd;
   padding: 13px 16px;
   border-top: 1px solid var(--line, #e9e7f0);
+}
+
+/* The short version is the TL;DR, kept as the list it was written as.
+   It used to be joined into one paragraph, which lost the scannability that is the whole point of a
+   TL;DR, and it duplicated the copy the assistant also inserted into the body. */
+.article-page .tldr ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.article-page .tldr ul li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-950, #0d0a1c);
+}
+.article-page .tldr ul li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--purple-600, #543cda);
 }
