@@ -50,11 +50,22 @@ export interface SeoManifestEntry {
   hasFaqSection: boolean;
 }
 
-/** A single SEO violation. Every issue blocks the merge. */
+/**
+ * A single SEO finding.
+ *
+ * An "error" blocks; a "warning" is reported and does not. The distinction earns its place now that
+ * the gate covers CMS pages as well as hardcoded ones: a canonical pointing at the wrong URL is a
+ * defect in the code and should stop a deploy, while a meta description a few characters under the
+ * target is an editor's copy and should not. Everything is an error unless it is explicitly a
+ * target rather than a limit.
+ */
+export type SeoSeverity = "error" | "warning";
+
 export interface SeoIssue {
   path: string;
   rule: string;
   message: string;
+  severity: SeoSeverity;
 }
 
 /** The site-wide schema nodes that must appear on every page (PRD 9.2). */
@@ -91,8 +102,8 @@ function requiredRouteTypes(routeClass: RouteClass): string[] {
 /** Validate one route against every per-page rule. */
 export function validatePage(entry: SeoManifestEntry): SeoIssue[] {
   const issues: SeoIssue[] = [];
-  const add = (rule: string, message: string): void => {
-    issues.push({ path: entry.path, rule, message });
+  const add = (rule: string, message: string, severity: SeoSeverity = "error"): void => {
+    issues.push({ path: entry.path, rule, message, severity });
   };
   const types = new Set(entry.schemaTypes);
 
@@ -126,6 +137,8 @@ export function validatePage(entry: SeoManifestEntry): SeoIssue[] {
     add(
       "description-min",
       `Meta description is ${descLength} characters; the target minimum is ${META_LIMITS.descriptionMin}.`,
+      // A target, not a limit: worth telling the editor, not worth stopping a deploy.
+      "warning",
     );
   }
 
@@ -262,6 +275,7 @@ export function validateManifest(entries: SeoManifestEntry[]): SeoIssue[] {
         path: entry.path,
         rule: "duplicate-slug",
         message: `Canonical "${key}" is shared with "${existing}".`,
+        severity: "error",
       });
     } else {
       seen.set(key, entry.path);

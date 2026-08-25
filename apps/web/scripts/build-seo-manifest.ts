@@ -1,6 +1,6 @@
 /**
  * Emits the SEO build manifest the check:seo gate crawls (PRD 9.11). For every hardcoded
- * route it records the facts the gate asserts: canonical, metas, Open Graph, the single H1, the
+ * route, and every CMS-driven page the build prerendered, it records the facts the gate asserts: canonical, metas, Open Graph, the single H1, the
  * html lang, sitemap inclusion, and every schema @type present in the page's JSON-LD graph
  * (collected recursively, so nested nodes like BreadcrumbList are included). Written to
  * .next/seo-manifest.json after the Next build, then validated by packages/seo.
@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { allHardcodedPages } from "../src/content/index.js";
 import { graphForPage, metadataForPage } from "../src/seo/page-seo.js";
 import type { JsonLdNode } from "@nexoris/seo";
+import { cmsRouteEntries, coveredClasses } from "./cms-route-entries.js";
 
 /** Collect every @type string anywhere in a JSON-LD value, recursively. */
 function collectTypes(value: unknown, out: Set<string>): void {
@@ -63,12 +64,28 @@ const manifest = allHardcodedPages.map((page) => {
   };
 });
 
-const outPath = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  "../.next/seo-manifest.json",
-);
+const here = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * The CMS pages the build prerendered, read back out of their own HTML.
+ *
+ * Until now the gate saw only the hardcoded routes, so none of its rules were ever applied to the
+ * pages an editor actually creates. Reading the built HTML checks what ships rather than what a
+ * helper believed it produced.
+ */
+const cmsEntries = cmsRouteEntries(resolve(here, "../.next/server/app"));
+const manifestAll = [...manifest, ...cmsEntries];
+
+const outPath = resolve(here, "../.next/seo-manifest.json");
 mkdirSync(dirname(outPath), { recursive: true });
-writeFileSync(outPath, JSON.stringify(manifest, null, 2));
+writeFileSync(outPath, JSON.stringify(manifestAll, null, 2));
+
+const classes = coveredClasses(cmsEntries);
+const summary = classes.length > 0 ? " (" + classes.join(", ") + ")" : "";
 process.stdout.write(
-  `Wrote SEO manifest for ${manifest.length} routes to ${outPath}\n`,
+  [
+    `Wrote SEO manifest for ${manifestAll.length} routes to ${outPath}`,
+    `  ${manifest.length} hardcoded, ${cmsEntries.length} from the CMS${summary}`,
+    "",
+  ].join(String.fromCharCode(10)),
 );

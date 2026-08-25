@@ -2,7 +2,9 @@
  * The check:seo command-line gate for the Nexoris Technologies platform.
  *
  * Crawls the SEO build manifest a page build emits and applies the rule engine (rules.ts). A
- * single violation exits non-zero so the merge is blocked. Before any page exists there is no
+ * single error exits non-zero so the merge is blocked. Warnings are reported and do not block:
+ * they cover targets rather than limits, and since the gate began checking CMS pages an editor's
+ * copy can trip one, which should tell them rather than stop a deploy. Before any page exists there is no
  * manifest, so the gate passes with zero routes, which is correct: it is built ahead of the
  * pages so every page is born validating, and it turns red the moment a real route breaks a
  * rule (PRD 9.11).
@@ -92,9 +94,20 @@ function main(): void {
     return;
   }
 
+  const errors = issues.filter((i) => i.severity !== "warning");
   reportIssues(issues);
+
+  if (errors.length === 0) {
+    process.stdout.write(
+      `check:seo passed: ${entries.length} routes validated, ${issues.length} warning(s) and no errors.`
+      + String.fromCharCode(10),
+    );
+    return;
+  }
+
   process.stderr.write(
-    `\ncheck:seo failed: ${issues.length} issue(s) across ${entries.length} routes.\n`,
+    `check:seo failed: ${errors.length} error(s) and ${issues.length - errors.length} warning(s) across ${entries.length} routes.`
+    + String.fromCharCode(10),
   );
   process.exit(1);
 }

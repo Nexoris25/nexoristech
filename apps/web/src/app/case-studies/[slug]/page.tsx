@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buildMetadata, buildGraph, caseStudyNode, breadcrumbNode, absoluteUrl } from "@nexoris/seo";
+import { buildMetadata, buildPageGraph, absoluteUrl } from "@nexoris/seo";
 import { getCaseStudy, getCaseStudySlugs } from "../../../lib/cms.js";
 import { withHeadingIds, headingsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
@@ -54,8 +54,21 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   const path = `/case-studies/${study.slug}`;
   const toc = headingsOf(study.body);
 
-  const graph = buildGraph([
-    caseStudyNode({
+  // Through buildPageGraph so the page carries the site-wide nodes as well as its own: Organization,
+  // ProfessionalService, WebSite and the WebPage itself. Assembling the graph from bare nodes meant
+  // every case study shipped without any of them.
+  const graph = buildPageGraph({
+    page: {
+      routeClass: "case-study",
+      path,
+      name: study.title,
+      description: study.summary ?? "",
+      breadcrumbs: [
+        { name: "Case studies", path: "/case-studies" },
+        { name: study.title, path },
+      ],
+    },
+    caseStudy: {
       path,
       headline: study.title,
       description: study.summary ?? "",
@@ -63,12 +76,8 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       ...(study.servicePaths.length > 0 ? { aboutPaths: study.servicePaths } : {}),
       ...(study.publishedAt ? { datePublished: study.publishedAt } : {}),
       ...(study.updatedAt ? { dateModified: study.updatedAt } : {}),
-    }),
-    breadcrumbNode([
-      { name: "Case studies", path: "/case-studies" },
-      { name: study.title, path },
-    ]),
-  ]);
+    },
+  });
 
   return (
     <div className="svc-page case-study-page">

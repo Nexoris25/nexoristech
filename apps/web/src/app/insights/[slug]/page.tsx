@@ -10,15 +10,12 @@ import { stripDuplicateBlocks } from "../../../lib/article-body.js";
 import Link from "next/link";
 import {
   buildMetadata,
-  buildGraph,
-  articleNode,
+  buildPageGraph,
   howToNode,
-  faqPageNode,
-  breadcrumbNode,
   absoluteUrl,
   fitMetaDescription,
 } from "@nexoris/seo";
-import type { ArticleInput, JsonLdNode, PersonRef } from "@nexoris/seo";
+import type { ArticleInput, PersonRef } from "@nexoris/seo";
 import { isArticleType } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { formatLagosDate } from "../../../lib/date.js";
@@ -155,27 +152,46 @@ export default async function ArticlePage({
   // markup that validates as neither. The steps are this article's own H2 sections, so the structured
   // data says exactly what the page says.
   const howToSteps = article.schemaType === "HowTo" ? stepsOf(article.body) : [];
-  const nodes: JsonLdNode[] = article.schemaType === "HowTo" && howToSteps.length > 0
-    ? [howToNode({
-        path,
-        name: article.title,
-        description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
-        steps: howToSteps,
-        ...(article.coverUrl
-          ? { image: { url: mediaAbsolute(article.coverUrl), alt: article.coverAlt ?? article.title } }
-          : {}),
-        ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
-        ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
-      })]
-    : [articleNode(articleInput)];
-  const faqNode = article.faq.length > 0 ? faqPageNode(article.faq) : undefined;
-  if (faqNode) nodes.push(faqNode);
-  nodes.push(
-    breadcrumbNode([
-      { name: "Insights", path: "/insights" },
-      { name: article.title, path },
-    ]),
-  );
+  const isHowTo = article.schemaType === "HowTo" && howToSteps.length > 0;
+  const image = article.coverUrl
+    ? { image: { url: mediaAbsolute(article.coverUrl), alt: article.coverAlt ?? article.title } }
+    : {};
+  const dates = {
+    ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
+    ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
+  };
+
+  // Built through buildPageGraph, which is what carries the site-wide nodes: Organization,
+  // ProfessionalService, WebSite and the WebPage itself. This page used to assemble its own graph
+  // from bare nodes, so every published article shipped without any of them while every hardcoded
+  // page had them. Nothing caught it, because the SEO gate only ever saw the hardcoded routes.
+  const graph = buildPageGraph({
+    page: {
+      routeClass: "insight",
+      path,
+      name: article.title,
+      description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
+      breadcrumbs: [
+        { name: "Insights", path: "/insights" },
+        { name: article.title, path },
+      ],
+    },
+    ...(isHowTo
+      ? {
+          extraNodes: [
+            howToNode({
+              path,
+              name: article.title,
+              description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
+              steps: howToSteps,
+              ...image,
+              ...dates,
+            }),
+          ],
+        }
+      : { article: articleInput }),
+    ...(article.faq.length > 0 ? { faq: article.faq } : {}),
+  });
 
   const toc = headingsOf(article.body);
   const people = [
@@ -256,7 +272,7 @@ export default async function ArticlePage({
 
   return (
     <div className="svc-page article-page">
-      <JsonLd graph={buildGraph(nodes)} />
+      <JsonLd graph={graph} />
 
       <section className="art-hero" aria-label={article.title}>
         <div className="glow" />

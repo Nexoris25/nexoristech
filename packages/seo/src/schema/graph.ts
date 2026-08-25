@@ -45,6 +45,13 @@ export interface PageGraphInput {
   job?: JobInput;
   /** Case study details for a case study page. */
   caseStudy?: CaseStudyInput;
+  /**
+   * Nodes a route class needs that the builder has no slot for.
+   *
+   * Used by an Insights article marked HowTo, which emits a HowTo node in place of the Article one:
+   * HowTo is not an Article subtype, so it cannot be expressed through `article`.
+   */
+  extraNodes?: JsonLdNode[];
 }
 
 /**
@@ -92,6 +99,8 @@ export function buildPageGraph(input: PageGraphInput): JsonLdNode {
       nodes.push(faq);
     }
   }
+
+  if (input.extraNodes) nodes.push(...input.extraNodes);
 
   return buildGraph(nodes);
 }

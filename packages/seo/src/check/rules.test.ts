@@ -241,3 +241,42 @@ describe("validateManifest", () => {
     expect(validateManifest([a, b])).toEqual([]);
   });
 });
+
+/**
+ * Errors block, warnings do not.
+ *
+ * The distinction earns its place now the gate covers CMS pages as well as hardcoded ones. A
+ * canonical pointing at the wrong URL is a defect in the code and should stop a deploy. A meta
+ * description a few characters under the target is an editor's copy: worth telling them, not worth
+ * blocking on. Without this, adding content routes to the manifest would have made every short
+ * description a failed build.
+ */
+describe("issue severity", () => {
+  it("treats the description target as a warning", () => {
+    const issues = validatePage(validEntry({ description: "Far too short to reach the target." }));
+    const min = issues.find((i) => i.rule === "description-min");
+    expect(min?.severity).toBe("warning");
+  });
+
+  it("treats the description limit as an error", () => {
+    const issues = validatePage(validEntry({ description: "x".repeat(200) }));
+    expect(issues.find((i) => i.rule === "description-max")?.severity).toBe("error");
+  });
+
+  it("treats a wrong canonical as an error", () => {
+    const issues = validatePage(validEntry({ canonical: "https://nexoristech.com/somewhere-else/" }));
+    expect(issues.find((i) => i.rule === "canonical-correct")?.severity).toBe("error");
+  });
+
+  it("gives every issue a severity", () => {
+    const issues = validatePage(validEntry({ canonical: "", h1Count: 3, description: "short.", schemaTypes: [] }));
+    expect(issues.length).toBeGreaterThan(3);
+    for (const issue of issues) expect(["error", "warning"], issue.rule).toContain(issue.severity);
+  });
+
+  it("keeps a short description off the blocking list on its own", () => {
+    // The exact case the CMS pages hit: nothing wrong but the length.
+    const issues = validatePage(validEntry({ description: "A complete but short description." }));
+    expect(issues.every((i) => i.severity === "warning")).toBe(true);
+  });
+});
