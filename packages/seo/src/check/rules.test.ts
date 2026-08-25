@@ -280,3 +280,28 @@ describe("issue severity", () => {
     expect(issues.every((i) => i.severity === "warning")).toBe(true);
   });
 });
+
+/**
+ * The description target applies to pages that can appear in results.
+ *
+ * Case study details are deliberately noindex and kept out of the sitemap, so they have no search
+ * snippet to fill. Asking them for 155 characters of search copy asks for copy nothing will read,
+ * and the only way to satisfy it would be to invent claims about the page.
+ */
+describe("description target and noindex", () => {
+  it("does not ask a noindexed page for search copy", () => {
+    const issues = validatePage(validEntry({ noindex: true, inSitemap: false, description: "Short." }));
+    expect(issues.some((i) => i.rule === "description-min")).toBe(false);
+  });
+
+  it("still asks an indexable page", () => {
+    const issues = validatePage(validEntry({ description: "Short." }));
+    expect(issues.some((i) => i.rule === "description-min")).toBe(true);
+  });
+
+  it("still enforces the hard maximum on a noindexed page", () => {
+    // Over the limit is malformed either way, so that one does not relax.
+    const issues = validatePage(validEntry({ noindex: true, inSitemap: false, description: "x".repeat(200) }));
+    expect(issues.some((i) => i.rule === "description-max")).toBe(true);
+  });
+});

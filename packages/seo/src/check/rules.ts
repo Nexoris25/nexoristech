@@ -133,7 +133,11 @@ export function validatePage(entry: SeoManifestEntry): SeoIssue[] {
       "description-max",
       `Meta description is ${descLength} characters; the hard maximum is ${META_LIMITS.descriptionMax}.`,
     );
-  } else if (descLength < META_LIMITS.descriptionMin) {
+  } else if (descLength < META_LIMITS.descriptionMin && !entry.noindex) {
+    // Only for a page that can appear in results. The description length exists to fill a search
+    // snippet, and a noindexed page has no snippet to fill: case study details are deliberately
+    // noindex and out of the sitemap, so asking them for 155 characters of search copy is asking
+    // for copy nothing will ever read.
     add(
       "description-min",
       `Meta description is ${descLength} characters; the target minimum is ${META_LIMITS.descriptionMin}.`,
