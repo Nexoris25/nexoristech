@@ -58,9 +58,10 @@ export async function POST(request: NextRequest): Promise<Response> {
     await pool.query(
       `UPDATE cms_content SET title=$1, slug=$2, body=$3, excerpt=$4, category_id=$5, author_id=$6, fact_checker_id=$7,
               status=$8, featured_image=$9, featured_image_alt=$10, meta_title=$11, meta_description=$12, focus_keyword=$13,
-              read_time_min=$14, author_bio=$15, fact_checker_bio=$16, faqs=$17::jsonb, tldr=$18::jsonb, short_title=$20, noindex=$21, schema_type=$23, updated_at=now(),
+              read_time_min=$14, author_bio=$15, fact_checker_bio=$16, faqs=$17::jsonb, tldr=$18::jsonb,
+              short_title=$20, noindex=$21, schema_type=$22, updated_at=now(),
               published_at = COALESCE($19::timestamptz, CASE WHEN $8='published' AND published_at IS NULL THEN now() ELSE published_at END)
-        WHERE id=$24 AND kind='insight'`,
+        WHERE id=$23 AND kind='insight'`,
       [...vals, id]);
     await syncToKnowledgeBase({ kind: "insight", slug, title, status, excerpt, metaDescription: metaDesc, body });
     await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex });
