@@ -248,6 +248,34 @@ function paragraphsToLists(html: string): string {
 }
 
 /** The whole pipeline. Give it anything; it returns clean, semantic, publishable HTML. */
+/**
+ * Drop an inline wrapper that has block content inside it.
+ *
+ * Google Docs wraps everything it copies in `<b style="font-weight:normal">`. The style is stripped
+ * here, so what survived was a real `<strong>` containing the whole document: paragraphs and
+ * headings nested inside an inline element. That is invalid HTML, and it renders the entire paste
+ * bold. The wrapper goes and its children stay.
+ *
+ * Written with literal patterns rather than a constructed RegExp: a template literal eats the
+ * backslash in `\s`, which is how this silently stopped matching the first time.
+ */
+function unwrapInlineAroundBlocks(html: string): string {
+  const patterns: [RegExp, string][] = [
+    [/<strong>((?:(?!<\/?strong>)[\s\S])*?<(?:p|h[1-6]|ul|ol|table|blockquote|figure)\b[\s\S]*?)<\/strong>/gi, "$1"],
+    [/<em>((?:(?!<\/?em>)[\s\S])*?<(?:p|h[1-6]|ul|ol|table|blockquote|figure)\b[\s\S]*?)<\/em>/gi, "$1"],
+    [/<u>((?:(?!<\/?u>)[\s\S])*?<(?:p|h[1-6]|ul|ol|table|blockquote|figure)\b[\s\S]*?)<\/u>/gi, "$1"],
+    [/<s>((?:(?!<\/?s>)[\s\S])*?<(?:p|h[1-6]|ul|ol|table|blockquote|figure)\b[\s\S]*?)<\/s>/gi, "$1"],
+  ];
+  let out = html;
+  // Repeat until stable: Docs can nest more than one wrapper.
+  for (let pass = 0; pass < 4; pass++) {
+    const before = out;
+    for (const [re, to] of patterns) out = out.replace(re, to);
+    if (out === before) break;
+  }
+  return out;
+}
+
 export interface NormaliseOptions {
   /**
    * Unwrap every anchor, keeping the words and dropping the link.
@@ -259,6 +287,17 @@ export interface NormaliseOptions {
    * which is why this is off by default and only paste turns it on.
    */
   stripLinks?: boolean;
+
+  /**
+   * Remove images entirely, figure and caption with them.
+   *
+   * Also for paste. An image copied from another page is that page's file on that page's server: it
+   * hotlinks to somewhere outside our control, it carries no alt text we wrote, and it can vanish or
+   * change without warning. Images belong in the media library, added with the image tool, so they
+   * are hosted, sized and described here. A remote <img> in an article body is a liability, not
+   * content.
+   */
+  stripImages?: boolean;
 }
 
 export function normaliseHtml(input: string, options: NormaliseOptions = {}): string {
@@ -270,6 +309,21 @@ export function normaliseHtml(input: string, options: NormaliseOptions = {}): st
     // The lookahead matters: /<a[^>]*>/ on its own also matches <abbr>, <address> and <article>.
     html = html.replace(/<a(?=[\s>])[^>]*>/gi, "").replace(/<\/a\s*>/gi, "");
   }
+
+  if (options.stripImages) {
+    // The whole figure goes, not just the image: a caption with no picture describes nothing.
+    html = html.replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, "");
+    html = html.replace(/<img\b[^>]*>/gi, "");
+  }
+
+  // An image whose source did not survive sanitising is not an image. A data: or javascript: src is
+  // rejected above, which used to leave <img alt="..."> behind: an empty box in the article.
+  html = html.replace(/<img\b(?![^>]*\bsrc=)[^>]*>/gi, "");
+
+  // Google Docs wraps its paste in <b style="font-weight:normal">, so the block content came out
+  // inside <strong>: a paragraph nested in an inline element, which is invalid and styles wrongly.
+  // An inline wrapper that contains block content is unwrapped and its own tags dropped.
+  html = unwrapInlineAroundBlocks(html);
 
   // Collapse the whitespace Word and Docs pad every tag with, but keep it inside <pre>.
   const pres: string[] = [];

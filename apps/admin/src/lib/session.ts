@@ -10,13 +10,21 @@
  * cannot be listed or revoked, and they expire on their own within thirty days.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { Role } from "./crm-constants.js";
 
 const MAX_AGE_SECONDS = 60 * 60 * 24; // one day for a standard sign-in
 const REMEMBER_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // thirty days with "keep me signed in"
 
 export interface SessionPayload {
   sub: string; // staff id
-  role: "admin" | "salesperson" | "viewer";
+  /**
+   * The staff role this cookie carries.
+   *
+   * Kept in step with ROLES in crm-constants: "ceo" and "executive" were added to the role model and
+   * the database constraint but not here, so the type stopped describing what the cookie could
+   * actually hold and TypeScript could no longer protect this path.
+   */
+  role: Role;
   name: string;
   exp: number; // unix seconds
   /** staff_session.id. Absent only on cookies issued before the session store existed. */

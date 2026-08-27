@@ -6,6 +6,7 @@
  */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cmsDb } from "../../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../../lib/auth.js";
 import { generateEditorial, type EditorialInput, type EditorialKind } from "../../../../../lib/oge-content.js";
 
@@ -17,8 +18,23 @@ const KINDS: readonly EditorialKind[] = ["seo", "tldr", "excerpt", "faqs", "auth
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
   if (!staff) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const body = (await request.json().catch(() => ({}))) as Partial<EditorialInput>;
+  const body = (await request.json().catch(() => ({}))) as Partial<EditorialInput> & { template?: string };
   if (!body.kind || !KINDS.includes(body.kind)) return NextResponse.json({ error: "invalid kind" }, { status: 400 });
-  const { result, source } = await generateEditorial(body as EditorialInput);
+
+  // A chosen template decides the page's sections. The template was stored on the row and shown in
+  // the picker but never reached the generator, so every programmatic page came out with the same
+  // eight headings whichever template was selected: a control that looked like it did something.
+  let sections: string[] | undefined;
+  if (body.kind === "page-body" && body.template) {
+    const { rows } = await cmsDb().query<{ sections: unknown }>(
+      "SELECT sections FROM cms_template WHERE name = $1 AND active LIMIT 1", [body.template]);
+    const raw = rows[0]?.sections;
+    if (Array.isArray(raw)) {
+      const named = raw.map((s) => String(s).trim()).filter(Boolean);
+      if (named.length > 0) sections = named;
+    }
+  }
+
+  const { result, source } = await generateEditorial({ ...(body as EditorialInput), ...(sections ? { sections } : {}) });
   return NextResponse.json({ result, source });
 }

@@ -1,15 +1,19 @@
 /**
  * Proposal review (CMS Programmatic SEO design). Review and approve an AI-generated page opportunity: the
- * opportunity overview, Oge's rationale, the estimated impact (derived from search volume and difficulty),
- * and a suggested structure. Approving creates a draft generated page seeded from the proposal. CMS access
- * only. Responsive.
+ * opportunity overview, Oge's rationale, the projected impact, and a suggested structure. Approving
+ * creates a draft generated page seeded from the proposal. CMS access only. Responsive.
+ *
+ * The impact figures state their own basis. Clicks come from this site's measured Search Console
+ * click-through rate; effort and time to rank are stated as what they are, judgements from the
+ * keyword difficulty rather than forecasts.
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Sparkles, TrendingUp, Users, Clock, Gauge, Layers } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingUp, Clock, Gauge, Layers } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
+import { fetchGscDaily } from "../../../../../lib/google/gsc.js";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +28,44 @@ export default async function ProposalReviewPage({ params }: { params: Promise<{
   if (!p) notFound();
 
   const diff = p.difficulty ?? 50;
-  const trafficLow = Math.round(p.search_volume * 0.12), trafficHigh = Math.round(p.search_volume * 0.22);
-  const leadsLow = Math.round(trafficLow * 0.018), leadsHigh = Math.round(trafficHigh * 0.028);
   const effort = diff >= 55 ? "High" : diff >= 40 ? "Medium" : "Low";
-  const timeToRank = diff >= 55 ? "4 - 8 months" : diff >= 40 ? "3 - 6 months" : "1 - 3 months";
+  const timeToRank = diff >= 55 ? "4 to 8 months" : diff >= 40 ? "3 to 6 months" : "1 to 3 months";
   const structure = ["Introduction", `Benefits of ${p.keyword}`, "Key Applications & Use Cases", "Key Technologies", "Why Choose Nexoris Technologies", "FAQ", "Call To Action"];
+
+  /**
+   * Projected clicks, from this site's own measured click-through rate.
+   *
+   * This used to read `search_volume * 0.12` to `* 0.22` for traffic and that again `* 0.018` to
+   * `* 0.028` for leads: a forecast dressed as data, from four multipliers nobody had measured, on
+   * the screen where someone decides whether a page is worth writing. Search Console knows what
+   * share of impressions this site actually converts to clicks, so that is the number used. The
+   * range is a wide band around it, because a new page ranking is uncertain and the label says so.
+   * With Search Console unavailable it shows a dash rather than a guess.
+   *
+   * The leads projection is gone. There is no conversion rate to derive one from, and inventing one
+   * put a number of new customers on the screen that nothing in the platform could support.
+   */
+  const CTR_WINDOW_DAYS = 90;
+  const daily = await fetchGscDaily(CTR_WINDOW_DAYS);
+  const totals = (daily ?? []).reduce(
+    (acc, d) => ({ clicks: acc.clicks + d.clicks, impressions: acc.impressions + d.impressions }),
+    { clicks: 0, impressions: 0 },
+  );
+  const siteCtr = totals.impressions > 0 ? totals.clicks / totals.impressions : null;
+  const clicksLow = siteCtr === null ? 0 : Math.round(p.search_volume * siteCtr * 0.6);
+  const clicksHigh = siteCtr === null ? 0 : Math.round(p.search_volume * siteCtr * 1.4);
+
   const impact = [
-    { icon: TrendingUp, label: "Est. Monthly Traffic", value: `${trafficLow.toLocaleString()} - ${trafficHigh.toLocaleString()}` },
-    { icon: Users, label: "Potential Leads", value: `${leadsLow} - ${leadsHigh}` },
-    { icon: Layers, label: "Content Effort", value: effort },
-    { icon: Clock, label: "Time to Rank", value: timeToRank },
+    {
+      icon: TrendingUp,
+      label: "Projected monthly clicks",
+      value: siteCtr === null ? "—" : `${clicksLow.toLocaleString()} - ${clicksHigh.toLocaleString()}`,
+      note: siteCtr === null
+        ? "Connect Search Console to project this"
+        : `At this site's ${(siteCtr * 100).toFixed(1)}% click rate over ${CTR_WINDOW_DAYS} days`,
+    },
+    { icon: Layers, label: "Content Effort", value: effort, note: "From the keyword difficulty" },
+    { icon: Clock, label: "Time to Rank", value: timeToRank, note: "A rule of thumb, not a forecast" },
   ];
 
   return (
@@ -82,7 +114,13 @@ export default async function ProposalReviewPage({ params }: { params: Promise<{
               {impact.map((x) => (
                 <div key={x.label} className="flex items-center gap-3">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#EEEBFC] text-[#543CDA]"><x.icon size={16} /></span>
-                  <span className="min-w-0"><span className="block text-[0.72rem] text-slate-500">{x.label}</span><span className="block text-[0.92rem] font-700 text-slate-900">{x.value}</span></span>
+                  <span className="min-w-0">
+                    <span className="block text-[0.72rem] text-slate-500">{x.label}</span>
+                    <span className="block text-[0.92rem] font-700 text-slate-900">{x.value}</span>
+                    {/* Where the figure comes from, next to the figure. A projection with no stated
+                        basis reads as a measurement. */}
+                    <span className="block text-[0.68rem] text-slate-500">{x.note}</span>
+                  </span>
                 </div>
               ))}
               <div className="mt-1 flex items-center gap-3">

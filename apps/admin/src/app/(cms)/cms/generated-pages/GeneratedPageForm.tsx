@@ -62,6 +62,9 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
   const [shortEdited, setShortEdited] = useState(Boolean(initial?.shortTitle));
   const [shortTitle, setShortTitle] = useState(initial?.shortTitle ?? "");
   const [keyword, setKeyword] = useState(initial?.targetKeyword ?? "");
+  // Controlled, so the chosen template can be sent with the generate request. It used to be
+  // uncontrolled and reached only the form post, which is why the picker never shaped the page.
+  const [template, setTemplate] = useState(initial?.template ?? "");
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [body, setBody] = useState(initial?.body ?? "");
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
@@ -86,7 +89,7 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
     try {
       const res = await fetch("/api/cms/oge/generate", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "page-body", title, focusKeyword: keyword, industry, service }),
+        body: JSON.stringify({ kind: "page-body", title, focusKeyword: keyword, industry, service, template }),
       });
       const json = (await res.json().catch(() => ({}))) as { result?: string };
       if (typeof json.result === "string" && json.result.trim()) rte.current?.setHtml(json.result);
@@ -179,7 +182,7 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2"><ImageUpload name="featured_image" altName="featured_image_alt" label="Featured Image" folder="Programmatic SEO" aspect="aspect-[16/9]" initialUrl={initial?.featuredImage ?? ""} initialAlt={initial?.featuredImageAlt ?? ""} /></div>
               <label className="flex flex-col gap-1.5"><span className={label}>Template</span>
-                <select name="template" defaultValue={initial?.template ?? ""} className={`cursor-pointer ${field}`}><option value="">No template</option>{templates.map((t) => <option key={t}>{t}</option>)}</select>
+                <select name="template" value={template} onChange={(e) => setTemplate(e.target.value)} className={`cursor-pointer ${field}`}><option value="">No template</option>{templates.map((t) => <option key={t}>{t}</option>)}</select>
               </label>
               <label className="flex flex-col gap-1.5"><span className={label}>Status</span>
                 <select name="status" defaultValue={initial?.status ?? "draft"} className={`cursor-pointer ${field}`}><option value="draft">Draft</option><option value="in_review">In Review</option><option value="scheduled">Scheduled</option><option value="published">Published</option><option value="archived">Archived</option></select>

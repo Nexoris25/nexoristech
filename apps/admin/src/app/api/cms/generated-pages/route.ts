@@ -38,10 +38,10 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // PRD §9.7: a programmatic page that fails the gate is held at draft and forced to noindex, so a thin
   // or unready page can never reach Google. The system holds it back; it does not rely on care.
-  const gate = evaluatePseoGate({
-    body, authorId, metaDescription: metaDesc,
-    readinessScore: Number(f.get("readiness_score")) || null,
-  });
+  const targetLocation = String(f.get("target_location") ?? "").trim() || null;
+  // Readiness is measured from the page. It used to be read from a "readiness_score" form field that
+  // this form has never had, so it arrived null on every save and the gate refused every publish.
+  const gate = evaluatePseoGate({ body, authorId, metaDescription: metaDesc, targetLocation });
   const gated = applyPseoGate(requestedStatus, f.get("noindex") != null, gate);
   const status = gated.status;
   const vals = [
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     excerpt,                                                     // 4
     String(f.get("service_industry") ?? "").trim() || null,      // 5 primary service
     String(f.get("industry") ?? "").trim() || null,              // 6
-    String(f.get("target_location") ?? "").trim() || null,       // 7
+    targetLocation,                                              // 7
     String(f.get("search_intent") ?? "").trim() || null,         // 8
     String(f.get("target_keyword") ?? "").trim() || null,        // 9
     String(f.get("template") ?? "").trim() || null,              // 10
@@ -74,6 +74,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     // The category the page belongs to. Insights have carried one from the start; programmatic pages
     // did not, so there was no way to group them, filter them, or show a reader what a page sits under.
     String(f.get("category_id") ?? "").trim() || null,            // 24
+    // Measured, not supplied. The column was only ever read before, so it was null on every row.
+    gate.readinessScore,                                          // 25
   ];
   const pool = cmsDb();
 
@@ -83,9 +85,9 @@ export async function POST(request: NextRequest): Promise<Response> {
               search_intent=$8, target_keyword=$9, template=$10, status=$11, featured_image=$12, featured_image_alt=$13,
               meta_title=$14, meta_description=$15, noindex=$16, author_id=$17, fact_checker_id=$18,
               author_bio=$19, fact_checker_bio=$20, short_title=$21, faqs=$22::jsonb, tldr=$23::jsonb,
-              category_id=$24::uuid, updated_at=now(),
+              category_id=$24::uuid, readiness_score=$25, updated_at=now(),
               published_at = CASE WHEN $11='published' AND published_at IS NULL THEN now() ELSE published_at END
-        WHERE id=$25 AND kind='generated_page'`,
+        WHERE id=$26 AND kind='generated_page'`,
       [...vals, id]);
     await syncToKnowledgeBase({ kind: "generated_page", slug, title, status, excerpt, metaDescription: metaDesc, body });
     await notifyPublished({ path: `/${slug}`, kind: "generated_page", published: status === "published" && !gated.noindex });
@@ -95,9 +97,9 @@ export async function POST(request: NextRequest): Promise<Response> {
     `INSERT INTO cms_content (kind, title, slug, body, excerpt, service_industry, industry, target_location,
             search_intent, target_keyword, template, status, featured_image, featured_image_alt, meta_title,
             meta_description, noindex, author_id, fact_checker_id, author_bio, fact_checker_bio, short_title, faqs, tldr,
-            category_id, published_at)
+            category_id, readiness_score, published_at)
      VALUES ('generated_page',$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
-            $22::jsonb,$23::jsonb,$24::uuid,
+            $22::jsonb,$23::jsonb,$24::uuid,$25,
             CASE WHEN $11='published' THEN now() ELSE NULL END) RETURNING id`,
     vals);
   await syncToKnowledgeBase({ kind: "generated_page", slug, title, status, excerpt, metaDescription: metaDesc, body });

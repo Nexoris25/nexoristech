@@ -12,18 +12,19 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CheckCircle2, AlertTriangle, XCircle, ListChecks } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, ListChecks, MinusCircle } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { MIN_BODY_WORDS, MIN_READINESS } from "../../../../lib/pseo-gate.js";
 
 export const dynamic = "force-dynamic";
 
-type Status = "passed" | "warning" | "failed";
+type Status = "passed" | "warning" | "failed" | "none";
 const MAP: Record<Status, { icon: typeof CheckCircle2; color: string; bg: string; label: string }> = {
   passed: { icon: CheckCircle2, color: "#15803D", bg: "#DCFCE7", label: "Passing" },
   warning: { icon: AlertTriangle, color: "#B45309", bg: "#FEF3C7", label: "Partial" },
   failed: { icon: XCircle, color: "#DC2626", bg: "#FEE2E2", label: "Failing" },
+  none: { icon: MinusCircle, color: "#64748B", bg: "#F1F5F9", label: "Not assessed" },
 };
 
 function Gauge({ value, sub }: { value: number; sub: string }): ReactNode {
@@ -88,7 +89,9 @@ export default async function QualityGatePage(): Promise<ReactNode> {
   ];
 
   const statusOf = (ok: number): Status => {
-    if (total === 0) return "failed";
+    // With no pages there is nothing to measure, so nothing is failing. Reporting seven failures
+    // against an empty corpus told the owner the platform was broken when it was simply empty.
+    if (total === 0) return "none";
     const pct = (ok / total) * 100;
     return pct >= 95 ? "passed" : pct >= 50 ? "warning" : "failed";
   };
@@ -96,11 +99,12 @@ export default async function QualityGatePage(): Promise<ReactNode> {
   // The score is the share of all condition-checks the corpus satisfies, not an average of verdicts.
   const satisfied = checks.reduce((sum, c) => sum + c.ok, 0);
   const score = total === 0 ? 0 : Math.round((satisfied / (total * checks.length)) * 100);
-  const sub = score >= 80 ? "Publishable" : score >= 60 ? "Needs work" : "Not ready";
+  const sub = total === 0 ? "No pages yet" : score >= 80 ? "Publishable" : score >= 60 ? "Needs work" : "Not ready";
   const counts = {
     passed: checks.filter((c) => statusOf(c.ok) === "passed").length,
     warning: checks.filter((c) => statusOf(c.ok) === "warning").length,
     failed: checks.filter((c) => statusOf(c.ok) === "failed").length,
+    none: checks.filter((c) => statusOf(c.ok) === "none").length,
   };
 
   return (
@@ -127,6 +131,7 @@ export default async function QualityGatePage(): Promise<ReactNode> {
             <div className="rounded-lg bg-[#DCFCE7] p-2"><p className="text-[1.1rem] font-700 text-[#15803D]">{counts.passed}</p><p className="text-[0.7rem] font-600 text-[#15803D]">Passing</p></div>
             <div className="rounded-lg bg-[#FEF3C7] p-2"><p className="text-[1.1rem] font-700 text-[#B45309]">{counts.warning}</p><p className="text-[0.7rem] font-600 text-[#B45309]">Partial</p></div>
             <div className="rounded-lg bg-[#FEE2E2] p-2"><p className="text-[1.1rem] font-700 text-[#DC2626]">{counts.failed}</p><p className="text-[0.7rem] font-600 text-[#DC2626]">Failing</p></div>
+            {counts.none > 0 ? <div className="rounded-lg bg-[#F1F5F9] p-2"><p className="text-[1.1rem] font-700 text-slate-600">{counts.none}</p><p className="text-[0.7rem] font-600 text-slate-600">Not assessed</p></div> : null}
           </div>
         </section>
 

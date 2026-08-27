@@ -28,7 +28,7 @@ function publicPath(kind: string, slug: string): string | null {
 }
 const safeBack = (raw: string): string => (raw.startsWith("/") && !raw.startsWith("//") ? raw : "/cms");
 
-interface Row { title: string; slug: string; excerpt: string | null; meta_description: string | null; body: string | null; author_id: string | null; readiness_score: number | null }
+interface Row { title: string; slug: string; excerpt: string | null; meta_description: string | null; body: string | null; author_id: string | null; target_location: string | null }
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const pool = cmsDb();
 
   const { rows } = await pool.query<Row>(
-    "SELECT title, slug, excerpt, meta_description, body, author_id, readiness_score FROM cms_content WHERE id=$1 AND kind=$2", [id, kind]);
+    "SELECT title, slug, excerpt, meta_description, body, author_id, target_location FROM cms_content WHERE id=$1 AND kind=$2", [id, kind]);
   const row = rows[0];
   if (!row) return NextResponse.redirect(new URL(back, request.url), { status: 303 });
 
@@ -74,7 +74,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   } else if (action === "publish") {
     // A programmatic page must clear the PRD §9.7 gate before it can be published from the list.
     if (kind === "generated_page") {
-      const gate = evaluatePseoGate({ body: row.body, authorId: row.author_id, readinessScore: row.readiness_score, metaDescription: row.meta_description });
+      // Readiness is measured here rather than read back, so publishing from the list applies the
+      // same rule as saving from the editor, and the stored score is refreshed to match.
+      const gate = evaluatePseoGate({ body: row.body, authorId: row.author_id, metaDescription: row.meta_description, targetLocation: row.target_location });
       if (!gate.passes) return NextResponse.redirect(new URL(`${back}?gate=held`, request.url), { status: 303 });
     }
     await pool.query(

@@ -22,10 +22,11 @@ describe("composePageBody", () => {
   });
 
   it("satisfies the publish gate's body check", () => {
+    // Only the body condition is under test here, so the other failures are filtered out.
     const failures = evaluatePseoGate({
-      body: sample(), authorId: "a1", readinessScore: 100, metaDescription: "Set.",
+      body: sample(), authorId: "a1", metaDescription: "Set.",
     }).failures;
-    expect(failures).toEqual([]);
+    expect(failures.some((f) => /words|no body content/i.test(f))).toBe(false);
   });
 
   it("uses the same floor the gate enforces", () => {
@@ -35,7 +36,10 @@ describe("composePageBody", () => {
   it("carries the topic, industry and service through the copy", () => {
     const html = sample();
     expect(html).toContain("Healthcare");
-    expect(html).toContain("ai solutions for healthcare");
+    // The topic keeps its acronym casing. This used to assert the lowercase form, which was the
+    // bug: the page published "Ai solutions for healthcare" in its opening line and a heading.
+    expect(html).toContain("AI solutions for healthcare");
+    expect(html).not.toContain("Ai solutions");
     expect(html).toContain("AI Solutions");
   });
 

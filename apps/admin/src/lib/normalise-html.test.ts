@@ -206,3 +206,78 @@ describe("normaliseHtml stripLinks", () => {
     expect(out).toContain("API");
   });
 });
+
+/**
+ * Paste brings words, not the source page's pictures or wrappers.
+ *
+ * An image copied from another page is that page's file on that page's server: it hotlinks outside
+ * our control, carries no alt text we wrote, and can change or vanish. Images belong in the media
+ * library, added with the image tool.
+ *
+ * These also guard the patterns themselves. Three times in this work a regex written through a shell
+ * heredoc lost its backslash and silently matched nothing, so each block below includes a case that
+ * fails if the pattern stops matching at all rather than only checking what should survive.
+ */
+describe("normaliseHtml stripImages", () => {
+  const paste = { stripLinks: true, stripImages: true };
+
+  it("removes a pasted image and keeps the words around it", () => {
+    const out = normaliseHtml('<p>Before <img src="https://elsewhere.test/p.jpg" alt="x"> after</p>', paste);
+    expect(out).not.toContain("<img");
+    expect(out).toContain("Before");
+    expect(out).toContain("after");
+  });
+
+  it("removes the whole figure, not just the picture", () => {
+    // A caption with no image describes nothing.
+    const out = normaliseHtml('<figure><img src="/a.png" alt="a"><figcaption>Chart of revenue</figcaption></figure><p>Body</p>', paste);
+    expect(out).not.toContain("<img");
+    expect(out).not.toContain("Chart of revenue");
+    expect(out).toContain("Body");
+  });
+
+  it("leaves images alone when not pasting, which the image tool relies on", () => {
+    const out = normaliseHtml('<p><img src="/media/hero.png" alt="Hero"></p>');
+    expect(out).toContain("<img");
+  });
+
+  it("actually matches, rather than silently doing nothing", () => {
+    const input = '<p><img src="/a.png" alt="a"></p>';
+    expect(normaliseHtml(input, paste)).not.toBe(normaliseHtml(input));
+  });
+});
+
+describe("normaliseHtml removes an image with no usable source", () => {
+  it("drops a data-uri image rather than leaving an empty box", () => {
+    // The src is rejected by the sanitiser, which used to leave <img alt="inline"> behind.
+    const out = normaliseHtml('<p>Text <img src="data:image/png;base64,iVBORw0KGgo=" alt="inline"> more</p>');
+    expect(out).not.toContain("<img");
+    expect(out).toContain("Text");
+    expect(out).toContain("more");
+  });
+
+  it("keeps an image that does have a source", () => {
+    expect(normaliseHtml('<p><img src="/media/x.png" alt="x"></p>')).toContain("<img");
+  });
+});
+
+describe("normaliseHtml unwraps an inline element around block content", () => {
+  it("handles the Google Docs wrapper", () => {
+    // Docs wraps everything in <b style="font-weight:normal">, which became a real <strong>
+    // containing the whole document: invalid, and it rendered the entire paste bold.
+    const out = normaliseHtml('<b style="font-weight:normal" id="docs-internal-guid-1"><p>One</p><p>Two</p></b>');
+    expect(out).not.toMatch(/<strong>\s*<p>/);
+    expect(out).toContain("<p>One</p>");
+    expect(out).toContain("<p>Two</p>");
+  });
+
+  it("keeps genuine inline emphasis inside a paragraph", () => {
+    const out = normaliseHtml("<p>Some <strong>bold</strong> words</p>");
+    expect(out).toContain("<strong>bold</strong>");
+  });
+
+  it("actually matches, rather than silently doing nothing", () => {
+    const input = "<strong><p>Block inside inline</p></strong>";
+    expect(normaliseHtml(input)).not.toContain("<strong>");
+  });
+});
