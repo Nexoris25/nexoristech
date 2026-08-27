@@ -10,6 +10,7 @@ import { getLegalPage, type LegalType } from "../lib/cms.js";
 import { formatLagosDate, resolveDateTokens } from "../lib/date.js";
 import { ScrollFx } from "./home/ScrollFx.js";
 import { FloatingToc } from "./FloatingToc.js";
+import { TocSpy } from "./TocSpy.js";
 import "../styles/legal.css";
 
 /** Stable, readable anchor id from a section heading. */
@@ -81,7 +82,7 @@ export async function LegalPageView({
             <div className="legal-layout">
               {/* Hidden below 1024px, where the floating control takes over: stacking the full list
                   above the copy pushed the policy itself off the first screen. */}
-              <nav className="toc reveal" aria-label="On this page">
+              <nav className="toc reveal" data-toc aria-label="On this page">
                 <h2>On this page</h2>
                 <ol>
                   {anchors.map((s) => (
@@ -128,6 +129,7 @@ export async function LegalPageView({
 
       {/* The same entries as the column, as a sheet on small screens. */}
       <FloatingToc entries={anchors.map((a) => ({ id: a.id, text: a.heading }))} />
+      <TocSpy ids={anchors.map((a) => a.id)} />
     </div>
   );
 }

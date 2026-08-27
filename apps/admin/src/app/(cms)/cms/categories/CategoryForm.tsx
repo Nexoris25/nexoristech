@@ -72,10 +72,12 @@ export function CategoryForm({ initial, parents }: { initial?: Initial; parents:
                 Unpublish
               </button>
             ) : null}
-            <button type="submit" name="intent" value="draft"
-              className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
-              Save as Draft
-            </button>
+            {!edit ? (
+              <button type="submit" name="intent" value="draft"
+                className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
+                Save as Draft
+              </button>
+            ) : null}
             <button type="submit" name="intent" value="save" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Save Changes" : "Create Category"}</button>
           </div>
         </div>

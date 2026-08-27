@@ -82,6 +82,12 @@
 .legal-page .toc {
   position: sticky;
   top: 96px;
+  /* Policy pages have the longest contents lists on the site, so this is the one that most needed
+     a bound and its own scroll rather than running off the bottom of the column. */
+  max-height: calc(100vh - 116px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
 }
 .legal-page .toc h2 {
   font-family: "JetBrains Mono", monospace;
@@ -124,6 +130,12 @@
 .legal-page .toc a:hover {
   background: var(--purple-100, #eeebfc);
   color: var(--purple-700, #4330b8);
+}
+/* The clause the reader is on. */
+.legal-page .toc a.on {
+  background: var(--purple-100, #eeebfc);
+  color: var(--purple-700, #4330b8);
+  font-weight: 700;
 }
 
 .legal-page .legal-body {

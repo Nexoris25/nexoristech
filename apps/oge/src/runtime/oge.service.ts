@@ -12,13 +12,14 @@ import {
 } from "@nestjs/common";
 import pg from "pg";
 import { ExactMatchCache } from "../cache/exact-cache.js";
-import { SemanticCache } from "../cache/semantic-cache.js";
+import { SemanticCache, semanticThreshold } from "../cache/semantic-cache.js";
 import { normaliseQuery } from "../cache/normalise.js";
 import { QuotaGovernor, type DenyReason } from "../quota/governor.js";
 import { embedBatch } from "../providers/embeddings.js";
-import { generateGrounded } from "../providers/generation.js";
+import { generateGroundedStream } from "../providers/generation.js";
 import { retrieve, type RetrievedChunk } from "../retrieval/retrieve.js";
 import { buildSystemPrompt, PROMPT_VERSION } from "./prompt.js";
+import { SentenceStream, unsupportedFigures } from "./grounding.js";
 import { WEBSITE_BOT_MODELS, type Env } from "../config/models.js";
 import type { Source } from "../db.js";
 import type { ChatContext, ChatEvent } from "./events.js";
@@ -118,17 +119,39 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    // 2. Embed once, for the semantic cache and retrieval.
+    /*
+     * 2. Embed once, in one call, for two different jobs.
+     *
+     * Retrieval wants the question as asked, because every word of it is signal about which pages to
+     * pull. The semantic cache wants the normalised form, and getting that wrong was returning wrong
+     * answers: it embedded the raw string, where shared surface (capitals, the company name, the
+     * question mark) dominates short questions. Measured against the live cache, "Who founded Nexoris
+     * Technologies?" scored 0.885 against the stored answer to "What services does Nexoris
+     * Technologies offer?", cleared the 0.88 threshold, and a visitor asking who founded the company
+     * was told what it sells. The same pair on normalised text scores 0.834, and is correctly a miss.
+     *
+     * Both vectors come from a single batch, so this costs one round trip, exactly as before.
+     */
+    const normalised = normaliseQuery(trimmed);
     let queryVector: number[] | undefined;
+    let cacheVector: number[] | undefined;
     try {
-      const { vectors } = await embedBatch([trimmed], this.env);
+      const { vectors } = await embedBatch([trimmed, normalised], this.env);
       queryVector = vectors[0];
+      cacheVector = vectors[1];
     } catch {
       queryVector = undefined;
+      cacheVector = undefined;
     }
 
-    if (queryVector) {
-      const semantic = await this.semanticCache.find(queryVector, kbVersion);
+    if (cacheVector) {
+      const semantic = await this.semanticCache.find(
+        cacheVector,
+        kbVersion,
+        // The override existed, was documented, and was never passed, so the tuning knob for the one
+        // setting that decides whether a cached answer is reused did nothing.
+        semanticThreshold(this.env),
+      );
       if (semantic) {
         yield { type: "meta", retrieval: "semantic-cache" };
         yield { type: "sources", sources: semantic.sources };
@@ -159,23 +182,66 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
     yield { type: "meta", retrieval: usedKeyword ? "hybrid" : "vector-only" };
     yield { type: "sources", sources };
 
-    // 4. Grounded generation across the website-bot chain.
+    /*
+     * 4. Grounded generation across the website-bot chain, streamed.
+     *
+     * The answer used to be generated in full and then replayed word by word, which made the
+     * visitor watch typing dots for as long as the model took: measured at 8.5 seconds of silence
+     * followed by the whole reply in one burst. The tokens now pass straight through.
+     */
+    let emitted = false;
     try {
-      const { value: answer } = await generateGrounded(
-        WEBSITE_BOT_MODELS,
-        this.env,
-        {
-          system: buildSystemPrompt(chunks),
-          user: trimmed,
-          ...(ctx.history ? { history: ctx.history } : {}),
-        },
-      );
-      yield* this.streamText(answer);
+      const stream = generateGroundedStream(WEBSITE_BOT_MODELS, this.env, {
+        system: buildSystemPrompt(chunks),
+        user: trimmed,
+        ...(ctx.history ? { history: ctx.history } : {}),
+      });
+
+      /*
+       * Streamed a sentence at a time so every figure can be checked against the pages the answer
+       * was grounded in before the visitor reads it. A sentence carrying a price, percentage or
+       * amount that appears nowhere in the context is dropped rather than shown: the prompt has
+       * been told four different ways not to invent one and still produced "such as 99.5%, 99.9%"
+       * for an uptime guarantee we do not publish. Holding one sentence back costs a fraction of a
+       * second; the alternative is a number a customer could quote back to us.
+       */
+      const context = chunks.map((c) => c.content).join("\n");
+      const sentences = new SentenceStream();
+      let answer = "";
+      const emit = function* (this: void, text: string): Generator<ChatEvent> {
+        if (text.length === 0) return;
+        const invented = unsupportedFigures(text, context);
+        if (invented.length > 0) {
+          console.warn(
+            `[oge] dropped a sentence citing figures absent from the retrieved context: ${invented.join(", ")}`,
+          );
+          return;
+        }
+        answer += text;
+        yield { type: "token", text };
+      };
+
+      let next = await stream.next();
+      while (!next.done) {
+        for (const sentence of sentences.push(next.value)) {
+          for (const event of emit(sentence)) {
+            emitted = true;
+            yield event;
+          }
+        }
+        next = await stream.next();
+      }
+      for (const event of emit(sentences.flush())) {
+        emitted = true;
+        yield event;
+      }
+      // What was actually shown, not what the model produced: caching the unfiltered answer would
+      // serve the dropped sentences back to the next visitor.
       await this.exactCache.set(trimmed, kbVersion, answer, sources);
-      if (queryVector) {
+      if (cacheVector) {
         await this.semanticCache.add(
-          queryVector,
-          normaliseQuery(trimmed),
+          cacheVector,
+          normalised,
           kbVersion,
           answer,
           sources,
@@ -184,11 +250,21 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
       yield { type: "done" };
     } catch {
       // 5. Extractive fallback with handoff (PRD 10.2): never a stack trace to the UI.
-      const top = chunks[0] as RetrievedChunk;
-      const quote = top.content.replace(/\s+/g, " ").slice(0, 400);
-      yield* this.streamText(
-        `${FALLBACK_PREAMBLE}\n\nFrom ${top.title}: ${quote}`,
-      );
+      if (emitted) {
+        // Part of an answer is already on screen. Restating the preamble and then quoting a page
+        // would read as the assistant talking over itself, so this just closes what was said and
+        // offers the team.
+        yield { type: "token", text: "\n\n" };
+        yield* this.streamText(
+          "That is as far as I can take this one. The team can pick it up from here.",
+        );
+      } else {
+        const top = chunks[0] as RetrievedChunk;
+        const quote = top.content.replace(/\s+/g, " ").slice(0, 400);
+        yield* this.streamText(
+          `${FALLBACK_PREAMBLE}\n\nFrom ${top.title}: ${quote}`,
+        );
+      }
       yield this.handoff();
       yield { type: "done", fallback: true };
     }

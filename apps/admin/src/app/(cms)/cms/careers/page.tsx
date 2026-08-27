@@ -37,7 +37,19 @@ export default async function CareersDashboardPage(): Promise<ReactNode> {
               (SELECT count(*) FROM cms_content WHERE kind='application' AND application_stage='interviewed')::text interviews,
               (SELECT count(*) FROM cms_content WHERE kind='application' AND application_stage='reviewed')::text reviewed`),
     pool.query<RecentApp>("SELECT id, title, applied_job, ai_fit_score, created_at::text FROM cms_content WHERE kind='application' ORDER BY created_at DESC LIMIT 5"),
-    pool.query<TopJob>("SELECT id, title, (views/50)::text apps, ai_fit_score FROM cms_content WHERE kind='job' ORDER BY views DESC LIMIT 5"),
+    // Counted, not guessed. This read `(views/50)::text apps` and printed the result as
+    // "N applications", so a job with 500 page views reported 10 applicants who did not exist.
+    // Applications are real rows; applied_job holds the role name, which is what the applications
+    // screens display, so that is what they are matched on.
+    pool.query<TopJob>(
+      `SELECT j.id, j.title, j.ai_fit_score,
+              (SELECT count(*) FROM cms_content a
+                WHERE a.kind='application' AND a.applied_job = j.title)::text apps
+         FROM cms_content j
+        WHERE j.kind='job'
+        ORDER BY j.views DESC NULLS LAST
+        LIMIT 5`,
+    ),
     pool.query<Pipe>("SELECT status, count(*)::text n FROM cms_content WHERE kind='job' GROUP BY status"),
   ]);
 
@@ -101,7 +113,7 @@ export default async function CareersDashboardPage(): Promise<ReactNode> {
           <div className="mt-3 flex flex-col divide-y divide-slate-100">
             {topJobs.map((j) => (
               <Link key={j.id} href={`/cms/jobs/${j.id}`} className="flex items-center gap-3 py-2.5 hover:bg-slate-50/60">
-                <span className="min-w-0 flex-1"><span className="block truncate text-[0.85rem] font-600 text-slate-900">{j.title}</span><span className="block text-[0.74rem] text-slate-500">{j.apps} applications</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-[0.85rem] font-600 text-slate-900">{j.title}</span><span className="block text-[0.74rem] text-slate-500">{j.apps === "1" ? "1 application" : `${j.apps} applications`}</span></span>
                 <span className="inline-flex items-center gap-1 text-[0.78rem] font-700 text-slate-600"><ArrowUpRight size={13} className="text-[#15803D]" />{fit(j.ai_fit_score)}</span>
               </Link>
             ))}

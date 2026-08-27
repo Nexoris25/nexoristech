@@ -2,7 +2,7 @@
 /**
  * Oge, the Nexoris Technologies website assistant (PRD 10.5), redesigned to the approved "Meet Oge"
  * handoff. A floating avatar launcher opens a calm dark chat panel that streams grounded answers
- * over server-sent events, names and links its sources, offers a lead-capture step that shows
+ * over server-sent events without revealing which pages they came from, offers a lead-capture step that shows
  * exactly what will be sent before it goes to the team, and degrades to a WhatsApp/contact fallback
  * when the assistant is unavailable. It speaks to the gateway through the same-origin /api/chat
  * proxy and files leads through /api/contact. A small window.Oge API lets the Meet-Oge page and the
@@ -12,11 +12,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { OgeMark } from "./home/OgeMark.js";
 import "../styles/oge-widget.css";
-
-/** A page title without the brand suffix, so a source list reads as pages rather than repetition. */
-function sourceLabel(title: string): string {
-  return (title.split("|")[0] ?? title).trim();
-}
 
 interface Source {
   url: string;
@@ -307,7 +302,9 @@ export function OgeWidget(): ReactNode {
     return (
       <button type="button" className="ogw-launch" onClick={() => setOpen(true)} aria-label="Chat with Oge, the Nexoris Technologies assistant">
         {pulse ? <span className="ogw-ring" aria-hidden="true" /> : null}
-        <Avatar size={60} />
+        {/* Must match the button's width in oge-widget.css. It asked for 60 while the button was
+            48, and .ogw-av clips what overflows, so the right edge of the face was sliced off. */}
+        <Avatar size={48} />
         <span className="ogw-online" aria-hidden="true" />
       </button>
     );
@@ -393,24 +390,12 @@ export function OgeWidget(): ReactNode {
                 ) : (
                   <p>…</p>
                 )}
-                {/* The pages the answer came from.
-                    The gateway has always sent these and the widget has always stored them, but
-                    nothing rendered them, so every answer arrived with its evidence discarded. The
-                    prompt is right to keep page names out of the prose, because "according to our
-                    About page" reads badly; a short list underneath is the other half of that, and
-                    it is what lets a visitor check the answer rather than take it on trust. */}
-                {m.sources && m.sources.length > 0 && !streaming ? (
-                  <div className="ogw-sources">
-                    <span className="ogw-src-label">From our pages</span>
-                    <ul>
-                      {m.sources.slice(0, 4).map((s) => (
-                        <li key={s.url}>
-                          <a href={s.url} target="_blank" rel="noopener noreferrer">{sourceLabel(s.title)}</a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
+                {/* Sources are deliberately not shown.
+                    The gateway still sends them and the widget still holds them, because retrieval
+                    needs them and they are worth having for debugging, but the visitor never sees
+                    which page an answer was drawn from. That matches the prompt, which already
+                    forbids naming a page in the prose: Oge answers as the company, not as a search
+                    result over its own site. */}
                 {m.handoff ? (
                   <div className="ogw-actions">
                     <a className="ogw-btn wa" href={m.handoff.whatsapp} target="_blank" rel="noopener noreferrer">

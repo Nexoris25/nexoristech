@@ -196,6 +196,10 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
                 The status dropdown could always do this, but only if you knew to change it before
                 saving, and nothing said so. An explicit control is what an editor reaches for when
                 a piece is not ready, or when something already live has to come down now.
+                Each belongs to one moment. "Save as Draft" is for a new piece being parked before
+                it is finished, so it only appears while creating; on an existing piece the status
+                dropdown is right there and "Update" respects it. "Unpublish" only appears on
+                something currently published, because there is nothing else it could mean.
                 `intent` travels with the form, so the route decides the status rather than the
                 dropdown deciding it silently. */}
             <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
@@ -206,10 +210,12 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
                   Unpublish
                 </button>
               ) : null}
-              <button type="submit" name="intent" value="draft"
-                className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
-                Save as Draft
-              </button>
+              {!edit ? (
+                <button type="submit" name="intent" value="draft"
+                  className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
+                  Save as Draft
+                </button>
+              ) : null}
               <button type="submit" name="intent" value="save" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
             </div>
           </section>

@@ -165,6 +165,13 @@
   position: sticky;
   top: 92px;
   align-self: start;
+  /* A contents list longer than the screen used to run off the bottom of the sticky column with no
+     way to reach the rest of it. Bounded to the visible height, it scrolls on its own, and TocSpy
+     keeps the reader's current section inside that view. */
+  max-height: calc(100vh - 112px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
 }
 .article-page .toc-aside .toc-title {
   font-family: "JetBrains Mono", monospace;
@@ -208,6 +215,19 @@
 .article-page .toc-aside a:hover {
   background: var(--purple-100, #eeebfc);
   color: var(--purple-700, #4330b8);
+}
+/* The section the reader is in. The left rule is the part that reads at a glance while scrolling;
+   the tint alone was too close to the hover state to tell them apart. */
+.article-page .toc-aside a.on {
+  background: var(--purple-100, #eeebfc);
+  color: var(--purple-700, #4330b8);
+  border-left-color: var(--purple-500, #6a55f2);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .article-page .toc-aside {
+    scroll-behavior: auto;
+  }
 }
 
 .article-page .reading {

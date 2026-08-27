@@ -20,36 +20,16 @@
  */
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { useActiveHeading } from "../lib/use-active-heading.js";
 import "../styles/floating-toc.css";
 
 export interface TocEntry { id: string; text: string }
 
 export function FloatingToc({ entries, label = "On this page" }: { entries: TocEntry[]; label?: string }): ReactNode {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<string>("");
-
-  // Track the heading currently in view so the sheet can show where the reader is.
-  useEffect(() => {
-    if (entries.length === 0) return;
-    const targets = entries
-      .map((e) => document.getElementById(e.id))
-      .filter((el): el is HTMLElement => el !== null);
-    if (targets.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (records) => {
-        const visible = records
-          .filter((r) => r.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (visible?.target.id) setActive(visible.target.id);
-      },
-      // The band sits near the top of the viewport: a heading is "current" once it reaches the point a
-      // reader would be reading from, not when it first appears at the bottom.
-      { rootMargin: "-88px 0px -70% 0px", threshold: 0 },
-    );
-    targets.forEach((t) => observer.observe(t));
-    return () => observer.disconnect();
-  }, [entries]);
+  // Shared with the sticky desktop column, so the sheet and the column can never disagree about
+  // where the reader is.
+  const active = useActiveHeading(entries.map((e) => e.id));
 
   // A sheet covering the page should not leave the page scrolling behind it, and Escape should close it.
   useEffect(() => {

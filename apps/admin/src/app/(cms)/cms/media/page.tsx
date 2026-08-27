@@ -85,7 +85,15 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
           {assets.map((a) => {
             const Icon = KIND_ICON[a.kind] ?? FileText;
             return (
-              <div key={a.id} className="group cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md">
+              // The tile had a pointer cursor and a hover lift and did nothing at all: the whole
+              // media library looked clickable and was not. Opening the file is the action the
+              // cursor was already promising. A row with no stored URL is not dressed as a control.
+              <a
+                key={a.id}
+                {...(a.url ? { href: a.url, target: "_blank", rel: "noreferrer" } : {})}
+                title={a.url ? `Open ${a.name}` : undefined}
+                className={`group block overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow ${a.url ? "cursor-pointer hover:shadow-md" : ""}`}
+              >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
                   {a.url ? <img src={a.url} alt="" className="h-full w-full object-cover" /> : (
                     <span className="grid h-full w-full place-items-center" style={{ background: `${KIND_TINT[a.kind] ?? "#F1F5F9"}` }}>
@@ -98,7 +106,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                   <p className="truncate text-[0.78rem] font-600 text-slate-800" title={a.name}>{a.name}</p>
                   <p className="mt-0.5 flex items-center justify-between text-[0.68rem] text-slate-500"><span>{a.folder}</span><span>{fmtSize(Number(a.size_bytes))}</span></p>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

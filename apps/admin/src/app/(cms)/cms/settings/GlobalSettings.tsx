@@ -93,7 +93,10 @@ export function GlobalSettings({ initial, services, info }: { initial: GlobalCon
                   <span className="mx-auto grid h-9 w-9 place-items-center rounded-lg text-white" style={{ background: `linear-gradient(135deg, ${c.primaryColor}, ${c.secondaryColor})` }}>N</span>
                   <p className="mt-2 text-[0.95rem] font-700 text-slate-900">{c.companyName || "Nexoris CMS"}</p>
                   <p className="text-[0.78rem] text-slate-500">Welcome back!</p>
-                  <button type="button" className="mt-3 w-full rounded-lg py-2 text-[0.82rem] font-600 text-white" style={{ background: c.primaryColor }}>Sign In</button>
+                  {/* A picture of a button, so it is drawn as one rather than being one. As a real
+                      <button> it took keyboard focus and invited a click that could never do
+                      anything, which is the definition of a dead control. */}
+                  <span aria-hidden="true" className="mt-3 block w-full rounded-lg py-2 text-center text-[0.82rem] font-600 text-white" style={{ background: c.primaryColor }}>Sign In</span>
                 </div>
               </div>
             </div>

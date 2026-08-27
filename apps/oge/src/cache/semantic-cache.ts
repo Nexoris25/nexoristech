@@ -3,18 +3,40 @@
  * recent prompt embeddings; a cosine match at or above the threshold returns the cached answer,
  * catching paraphrases of a question already answered. Embedding is far cheaper than generation,
  * so this turns a paraphrase into a near-free hit. Scoped by knowledge-base version.
+ *
+ * The embedding passed to find and add must be of the NORMALISED query, the same text stored in
+ * normalised_query. Storing the normalised text beside a vector built from the raw string was how
+ * unrelated questions came to look like paraphrases; see the threshold note below.
  */
 import type { DbClient, GroundedAnswer, Source } from "../db.js";
 import type { Env } from "../config/models.js";
 import { toVectorLiteral } from "../providers/embeddings.js";
 
 /**
- * Cosine threshold for a semantic-cache hit. PRD 10.2 specifies 0.92, but that was calibrated for
- * the original embedding stack. Measured with Mistral Embed (DECISIONS D-014), genuine
- * paraphrases score 0.85 to 0.89 and unrelated queries about 0.68, so 0.92 would almost never
- * hit. The default is set to 0.88: it catches the clearest paraphrases while staying well above
- * the unrelated band, and it errs safe (a miss just falls through to generation, whereas a false
- * hit would return a wrong answer). Override with OGE_SEMANTIC_CACHE_THRESHOLD.
+ * Cosine threshold for a semantic-cache hit.
+ *
+ * PRD 10.2 specifies 0.92, calibrated for the original embedding stack. The default here is 0.88,
+ * and it only holds because the vectors compared are of the NORMALISED query. That distinction is
+ * the whole safety margin, so it is worth stating what happens without it.
+ *
+ * Re-measured against the live cache with Mistral Embed, in both forms:
+ *
+ *                                                       raw text   normalised
+ *   "who founded nexoris technologies"
+ *     vs "what services does nexoris technologies offer"   0.885       0.834
+ *   "who is the ceo of nexoris" vs "what is nexoris"       0.882       0.819
+ *   "what is nexoris" vs "what does nexoris technologies do" (a real paraphrase)  0.898
+ *   "how much does a website cost" vs "what is the price of a website"            0.928
+ *
+ * On raw text, short questions are dominated by shared surface (capitals, the company name, the
+ * question mark) and two genuinely different questions clear 0.88. That is not a threshold problem;
+ * it is the wrong comparison, and it was answering "who founded the company" with the list of
+ * services. On normalised text the worst unrelated pair measured sits at 0.834 and real paraphrases
+ * at 0.898 and above, so 0.88 separates them with room either side.
+ *
+ * The bands do touch at the edges, and the error is deliberately one-sided: a miss costs one
+ * generation, a false hit answers a question nobody asked. Override with
+ * OGE_SEMANTIC_CACHE_THRESHOLD, which the runtime now actually passes.
  */
 export const SEMANTIC_CACHE_THRESHOLD = 0.88;
 

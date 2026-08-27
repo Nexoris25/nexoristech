@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Plus, Eye } from "lucide-react";
+import { Plus } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
 import { ListFilters } from "../../../../components/cms/ListFilters.js";
@@ -98,7 +98,13 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
                     <td className="px-5 py-3">{r.category ? <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.72rem] font-500 text-slate-600">{r.category}</span> : <span className="text-slate-300">—</span>}</td>
                     <td className="px-5 py-3 text-[0.82rem] text-slate-600">{r.author ?? "—"}</td>
                     <td className="px-5 py-3"><span className="inline-flex rounded-full px-2.5 py-1 text-[0.72rem] font-600" style={{ background: s.bg, color: s.fg }}>{s.label}</span></td>
-                    <td className="px-5 py-3"><span className="inline-flex items-center gap-1 text-[0.82rem] font-600 text-slate-700"><Eye size={13} className="text-slate-500" />{abbr(+r.views)}</span></td>
+                    {/* A bare number, not an icon.
+                        The eye icon that used to sit here is the same icon the row menu uses for
+                        "View", which opens the live article, so a metric was wearing the costume of
+                        a button and readers kept clicking a figure that does nothing. The column
+                        header already says Views, and the authors list has always shown Total Views
+                        as a plain number, so this is also the consistent form. */}
+                    <td className="px-5 py-3 text-[0.82rem] font-600 text-slate-700">{abbr(+r.views)}</td>
                     <td className="px-5 py-3 text-[0.8rem] text-slate-600">{r.published_at ? new Date(r.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : <span className="text-slate-300">—</span>}</td>
                     <td className="px-5 py-3 text-right"><RowActions id={r.id} kind="insight" status={r.status} editHref={`/cms/insights/${r.id}`} viewHref={`https://nexoristech.com/insights/${r.slug}`} back="/cms/insights" label={r.title} /></td>
                   </tr>

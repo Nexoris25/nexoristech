@@ -23,6 +23,7 @@ import { formatLagosDate } from "../../../lib/date.js";
 import { getInsight, getInsightSlugs, type Author } from "../../../lib/cms.js";
 import { headingsOf, withHeadingIds, stepsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
+import { TocSpy } from "../../../components/TocSpy.js";
 import "../../../styles/article.css";
 
 export const revalidate = 300;
@@ -194,7 +195,12 @@ export default async function ArticlePage({
     ...(article.faq.length > 0 ? { faq: article.faq } : {}),
   });
 
-  const toc = headingsOf(article.body);
+  // From the body as it will actually be rendered, not as it is stored.
+  // stripDuplicateBlocks removes a TL;DR that was inserted into the body when one is also stored as
+  // its own field, so building the contents from the stored body listed a "TL;DR" entry whose anchor
+  // had been stripped off the page: the first link in the contents of every such article went nowhere.
+  const readableBody = stripDuplicateBlocks(article.body, { tldr: article.tldr, faq: article.faq });
+  const toc = headingsOf(readableBody);
   const people = [
     article.author ? { kind: "Written by", person: article.author } : null,
     article.factChecker ? { kind: "Fact-checked by", person: article.factChecker } : null,
@@ -202,8 +208,6 @@ export default async function ArticlePage({
 
   // Anything the assistant inserted into the body that the page also renders from its own fields is
   // removed here, so an article saved before those buttons went away stops publishing twice.
-  const readableBody = stripDuplicateBlocks(article.body, { tldr: article.tldr, faq: article.faq });
-
   const reading = (
     <div className="reading">
       {article.tldr && article.tldr.length > 0 ? (
@@ -342,7 +346,10 @@ export default async function ArticlePage({
       <div className="wrap">
         {toc.length > 0 ? (
           <div className="art-layout">
-            <aside className="toc-aside" aria-label="On this page">
+            {/* data-toc is how TocSpy finds this list. The markup stays on the server so the
+                contents are in the HTML and work without JavaScript; only the "you are here"
+                marker needs a browser. */}
+            <aside className="toc-aside" data-toc aria-label="On this page">
               <p className="toc-title">On this page</p>
               <ol>
                 {toc.map((h) => (
@@ -364,6 +371,8 @@ export default async function ArticlePage({
       {/* The sticky column above is hidden below 1024px, which left a phone — where a long article is
           hardest to navigate — with no contents at all. Same entries, shown as a sheet. */}
       <FloatingToc entries={toc} />
+      {/* Lights up the sticky column above as the reader moves through the article. */}
+      <TocSpy ids={toc.map((h) => h.id)} />
     </div>
   );
 }
