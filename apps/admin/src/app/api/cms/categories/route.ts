@@ -25,7 +25,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   const description = String(f.get("description") ?? "").trim() || null;
   const parent = String(f.get("parent_id") ?? "").trim();
   const parentId = parent && parent !== id ? parent : null;
-  const active = f.get("active") != null;
+  // "Save as Draft" and "Unpublish" both mean the same thing for a category: not live. The
+  // intent decides it, so an editor does not have to know which checkbox controls visibility.
+  const intent = String(f.get("intent") ?? "save").trim();
+  const active = intent === "draft" || intent === "unpublish" ? false : f.get("active") != null;
   const pool = cmsDb();
 
   if (id) {

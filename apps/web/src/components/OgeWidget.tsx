@@ -13,6 +13,11 @@ import type { FormEvent, ReactNode } from "react";
 import { OgeMark } from "./home/OgeMark.js";
 import "../styles/oge-widget.css";
 
+/** A page title without the brand suffix, so a source list reads as pages rather than repetition. */
+function sourceLabel(title: string): string {
+  return (title.split("|")[0] ?? title).trim();
+}
+
 interface Source {
   url: string;
   title: string;
@@ -388,6 +393,24 @@ export function OgeWidget(): ReactNode {
                 ) : (
                   <p>…</p>
                 )}
+                {/* The pages the answer came from.
+                    The gateway has always sent these and the widget has always stored them, but
+                    nothing rendered them, so every answer arrived with its evidence discarded. The
+                    prompt is right to keep page names out of the prose, because "according to our
+                    About page" reads badly; a short list underneath is the other half of that, and
+                    it is what lets a visitor check the answer rather than take it on trust. */}
+                {m.sources && m.sources.length > 0 && !streaming ? (
+                  <div className="ogw-sources">
+                    <span className="ogw-src-label">From our pages</span>
+                    <ul>
+                      {m.sources.slice(0, 4).map((s) => (
+                        <li key={s.url}>
+                          <a href={s.url} target="_blank" rel="noopener noreferrer">{sourceLabel(s.title)}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
                 {m.handoff ? (
                   <div className="ogw-actions">
                     <a className="ogw-btn wa" href={m.handoff.whatsapp} target="_blank" rel="noopener noreferrer">

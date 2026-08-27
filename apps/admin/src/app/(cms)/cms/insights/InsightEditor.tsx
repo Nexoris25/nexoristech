@@ -192,9 +192,25 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
                 <span><span className="block text-[0.82rem] font-600 text-slate-700">Hide from search engines (noindex)</span><span className="block text-[0.74rem] text-slate-500">On means this page emits a noindex tag and is left out of the sitemap. Leave off to let it rank normally.</span></span>
               </label>
             </div>
-            <div className="mt-4 flex items-center justify-end gap-2">
+            {/* Draft and unpublish as their own buttons.
+                The status dropdown could always do this, but only if you knew to change it before
+                saving, and nothing said so. An explicit control is what an editor reaches for when
+                a piece is not ready, or when something already live has to come down now.
+                `intent` travels with the form, so the route decides the status rather than the
+                dropdown deciding it silently. */}
+            <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
               <a href="/cms/insights" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-600 hover:bg-slate-50">Cancel</a>
-              <button type="submit" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
+              {edit && initial?.status === "published" ? (
+                <button type="submit" name="intent" value="unpublish"
+                  className="rounded-lg border border-[#DC2626]/30 px-5 py-2.5 text-[0.85rem] font-600 text-[#DC2626] hover:bg-red-50">
+                  Unpublish
+                </button>
+              ) : null}
+              <button type="submit" name="intent" value="draft"
+                className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
+                Save as Draft
+              </button>
+              <button type="submit" name="intent" value="save" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
             </div>
           </section>
         </div>

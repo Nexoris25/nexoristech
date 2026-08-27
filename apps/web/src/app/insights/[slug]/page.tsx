@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { stripDuplicateBlocks } from "../../../lib/article-body.js";
+import { CountView } from "../../../components/CountView.js";
 import Link from "next/link";
 import {
   buildMetadata,
@@ -273,6 +274,9 @@ export default async function ArticlePage({
   return (
     <div className="svc-page article-page">
       <JsonLd graph={graph} />
+      {/* Counts one view per session. The page is statically generated, so there is no per-reader
+          server render to count from; this reports from the browser instead. */}
+      <CountView slug={slug} />
 
       <section className="art-hero" aria-label={article.title}>
         <div className="glow" />

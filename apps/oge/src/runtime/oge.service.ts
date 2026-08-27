@@ -18,7 +18,7 @@ import { QuotaGovernor, type DenyReason } from "../quota/governor.js";
 import { embedBatch } from "../providers/embeddings.js";
 import { generateGrounded } from "../providers/generation.js";
 import { retrieve, type RetrievedChunk } from "../retrieval/retrieve.js";
-import { buildSystemPrompt } from "./prompt.js";
+import { buildSystemPrompt, PROMPT_VERSION } from "./prompt.js";
 import { WEBSITE_BOT_MODELS, type Env } from "../config/models.js";
 import type { Source } from "../db.js";
 import type { ChatContext, ChatEvent } from "./events.js";
@@ -73,13 +73,23 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Queried per request (a single indexed row) rather than memoised, so a CMS re-ingest that
-  // updates the latest chunk's version invalidates the caches without a gateway restart.
+  /**
+   * The version the answer caches are keyed on.
+   *
+   * The knowledge-base version alone was not enough. Both caches store a finished answer, so an
+   * answer written under an older system prompt kept being served long after the prompt changed:
+   * fixing the assistant to say "we build" rather than "they build" had no effect on any question
+   * somebody had already asked, and there was no way to tell from the outside. The prompt is part of
+   * what produced the answer, so it belongs in the key.
+   *
+   * Queried per request (one indexed row) rather than memoised, so a CMS re-ingest still invalidates
+   * without a gateway restart.
+   */
   private async kbVersion(): Promise<string> {
     const { rows } = await this.pool.query<{ kb_version: string }>(
       "SELECT kb_version FROM kb_chunk ORDER BY updated_at DESC LIMIT 1",
     );
-    return rows[0]?.kb_version ?? "none";
+    return `${rows[0]?.kb_version ?? "none"}:${PROMPT_VERSION}`;
   }
 
   /** Stream a grounded answer for one visitor message. */

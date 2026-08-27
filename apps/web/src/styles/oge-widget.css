@@ -473,3 +473,45 @@
     animation: none;
   }
 }
+
+/* Sources under an answer.
+   The gateway has always sent these and the widget has always stored them, but nothing rendered
+   them, so every answer arrived with its evidence discarded. Kept quiet: the answer is the content,
+   these are the receipts a visitor can check. */
+.ogw-sources {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.ogw-src-label {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 5px;
+}
+.ogw-sources ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ogw-sources li a {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+}
+.ogw-sources li a:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.ogw-sources li a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}

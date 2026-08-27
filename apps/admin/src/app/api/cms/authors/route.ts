@@ -52,7 +52,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   const xUrl = httpUrl(f.get("x_url"));
   const showOnWebsite = f.get("show_on_website") != null;
   const featured = f.get("featured") != null;
-  const active = f.get("active") != null;
+  // "Save as Draft" and "Unpublish" both mean the same thing for a author: not live. The
+  // intent decides it, so an editor does not have to know which checkbox controls visibility.
+  const intent = String(f.get("intent") ?? "save").trim();
+  const active = intent === "draft" || intent === "unpublish" ? false : f.get("active") != null;
   const pool = cmsDb();
   // The website derives an author's URL from their display name; there is no stored slug.
   const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");

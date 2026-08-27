@@ -31,7 +31,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   const authorId = String(f.get("author_id") ?? "").trim() || null;
   const factCheckerId = String(f.get("fact_checker_id") ?? "").trim() || null;
   const statusRaw = String(f.get("status") ?? "draft").trim();
-  const status = VALID.has(statusRaw) ? statusRaw : "draft";
+  // "Save as Draft" and "Unpublish" are their own buttons, so the intent they carry decides the
+  // status rather than whatever the dropdown happens to be showing. Both land on draft: unpublish is
+  // the same state change, named for what the editor is actually doing when the piece is already live.
+  const intent = String(f.get("intent") ?? "save").trim();
+  const requested = intent === "draft" || intent === "unpublish" ? "draft" : statusRaw;
+  const status = VALID.has(requested) ? requested : "draft";
   const featured = String(f.get("featured_image") ?? "").trim() || null;
   const featuredAlt = String(f.get("featured_image_alt") ?? "").trim() || null;
   const metaTitle = String(f.get("meta_title") ?? "").trim() || null;

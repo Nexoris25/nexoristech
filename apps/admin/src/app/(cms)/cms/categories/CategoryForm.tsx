@@ -61,9 +61,22 @@ export function CategoryForm({ initial, parents }: { initial?: Initial; parents:
             </label>
           </section>
 
-          <div className="flex items-center justify-end gap-2">
+          {/* A category has no draft state of its own; "active" is what decides whether it appears
+              on the site. These name that in the words an editor uses, so taking one out of
+              circulation does not mean remembering which checkbox means what. */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <a href="/cms/categories" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-600 hover:bg-slate-50">Cancel</a>
-            <button type="submit" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Save Changes" : "Create Category"}</button>
+            {edit && initial?.active !== false ? (
+              <button type="submit" name="intent" value="unpublish"
+                className="rounded-lg border border-[#DC2626]/30 px-5 py-2.5 text-[0.85rem] font-600 text-[#DC2626] hover:bg-red-50">
+                Unpublish
+              </button>
+            ) : null}
+            <button type="submit" name="intent" value="draft"
+              className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
+              Save as Draft
+            </button>
+            <button type="submit" name="intent" value="save" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Save Changes" : "Create Category"}</button>
           </div>
         </div>
 
