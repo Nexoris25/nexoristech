@@ -17,7 +17,6 @@ const DEFAULTS: GlobalConfig = {
   defaultLanguage: "English (en)", timezone: "(GMT+01:00) West Africa Time", dateFormat: "MMM DD, YYYY", currency: "NGN — Nigerian Naira (₦)",
   primaryColor: "#543CDA", secondaryColor: "#6A55F2",
   numberFormat: "1,234.56", firstDayOfWeek: "Monday", measurementSystem: "Metric (km, kg, °C)", rtlSupport: false,
-  emailProvider: "SMTP", smtpHost: "", smtpPort: "587", smtpEncryption: "STARTTLS", fromEmail: "hello@nexoristech.com", fromName: "Nexoris Technologies",
   notifyReview: true, notifyPublishing: true, notifyInvitations: true, notifyAi: true, notifySecurity: true, quietHours: false,
   // These four are read by lib/security-policy and applied to sign-in and to every password change.
   minPasswordLength: "12 characters", requireSpecial: true, sessionTimeout: "1 day", lockoutAttempts: "5 attempts",

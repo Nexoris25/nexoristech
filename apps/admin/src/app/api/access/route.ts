@@ -6,7 +6,10 @@
  *   revoke  - remove a module grant
  *   invite  - create the login account for someone onboarded in HR and issue a link they follow to set
  *             their own password, linking employee.staff_id so the HR record and the login are the same
- *             person. Nothing is emailed: the admin copies the link from the access screen and shares it.
+ *             person. The link is emailed, and it is also on the access screen to copy: the email is
+ *             the route in, the copyable link is what makes an unconfigured or failing provider a
+ *             delay rather than a lockout. This path is module-agnostic by design, so somebody who
+ *             will only ever open Finance or HR is invited exactly like an editor.
  *   reissue - mint a fresh link for a pending invite, for when the old one expired or went astray.
  * Admin only. Every change writes to the shared audit log.
  */

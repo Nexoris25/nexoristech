@@ -1,9 +1,13 @@
 "use client";
 /**
- * Global Settings (CMS design). Tabbed configuration for the whole platform: General, Branding,
- * Localization, Email, Notifications, Security and System. The configurable tabs submit one JSON blob
- * to /api/cms/global-settings (cms_setting scope='global'); System is a read-only status view whose
+ * Global Settings (CMS design). Tabbed configuration for the CMS: General, Branding, Localization,
+ * Email, Notifications, Security and System. The configurable tabs submit one JSON blob to
+ * /api/cms/global-settings (cms_setting scope='global'); System is a read-only status view whose
  * checks are performed on the server when the page loads.
+ *
+ * The Email tab no longer configures anything. Its fields were never read by the sender, and email is
+ * a platform concern rather than a CMS one, so it now points at Settings, Email Delivery, which is
+ * where the configuration lives and where sending reads it from.
  *
  * Two things were removed rather than kept as switches that changed nothing. The Security card offered
  * password expiry and "Require MFA", neither of which any code read: there is no rotation prompt and no
@@ -27,7 +31,6 @@ export interface GlobalConfig {
   defaultLanguage: string; timezone: string; dateFormat: string; currency: string;
   primaryColor: string; secondaryColor: string;
   numberFormat: string; firstDayOfWeek: string; measurementSystem: string; rtlSupport: boolean;
-  emailProvider: string; smtpHost: string; smtpPort: string; smtpEncryption: string; fromEmail: string; fromName: string;
   notifyReview: boolean; notifyPublishing: boolean; notifyInvitations: boolean; notifyAi: boolean; notifySecurity: boolean; quietHours: boolean;
   minPasswordLength: string; requireSpecial: boolean; sessionTimeout: string; lockoutAttempts: string;
 }
@@ -111,17 +114,26 @@ export function GlobalSettings({ initial, services, info }: { initial: GlobalCon
               <Toggle title="RTL Support" sub="Enable right-to-left layout support." checked={c.rtlSupport} set={(v) => set("rtlSupport", v)} />
             </div>
           ) : tab === "email" ? (
-            <div className="flex flex-col gap-4">
-              <h2 className="text-[0.95rem] font-700 text-slate-900">Email Provider</h2>
-              <label className="flex flex-col gap-1.5"><span className={label}>Provider</span><select value={c.emailProvider} onChange={(e) => set("emailProvider", e.target.value)} className={`cursor-pointer ${field}`}><option>SMTP</option><option>Microsoft 365</option><option>Google Workspace</option><option>Mailgun</option><option>Resend</option><option>SendGrid</option></select></label>
-              <h2 className="mt-2 text-[0.95rem] font-700 text-slate-900">SMTP Configuration</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-1.5"><span className={label}>SMTP Host</span><input value={c.smtpHost} onChange={(e) => set("smtpHost", e.target.value)} placeholder="smtp.mailgun.org" className={field} /></label>
-                <label className="flex flex-col gap-1.5"><span className={label}>Port</span><input value={c.smtpPort} onChange={(e) => set("smtpPort", e.target.value)} placeholder="587" className={field} /></label>
-                <label className="flex flex-col gap-1.5"><span className={label}>Encryption</span><select value={c.smtpEncryption} onChange={(e) => set("smtpEncryption", e.target.value)} className={`cursor-pointer ${field}`}><option>STARTTLS</option><option>SSL/TLS</option><option>None</option></select></label>
-                <label className="flex flex-col gap-1.5"><span className={label}>From Name</span><input value={c.fromName} onChange={(e) => set("fromName", e.target.value)} className={field} /></label>
-                <label className="flex flex-col gap-1.5 sm:col-span-2"><span className={label}>From Email</span><input type="email" value={c.fromEmail} onChange={(e) => set("fromEmail", e.target.value)} className={field} /></label>
-              </div>
+            /* Moved, not duplicated. These fields lived here and nothing read them: the sender took
+               its provider and key from the environment, so an operator could set an SMTP host, save
+               it, watch it persist, and send exactly nothing. Email is also not a CMS setting, since
+               invitations go to whoever has access to any module. It is one screen now, in the
+               platform's own settings, and it is the screen that sending actually reads. */
+            <div className="flex flex-col gap-3">
+              <h2 className="text-[0.95rem] font-700 text-slate-900">Email Delivery</h2>
+              <p className="text-[0.84rem] text-slate-600">
+                Outbound email is configured once for the whole platform, not per module. Invitations
+                and password resets for the CMS are sent by the same settings that send them for
+                Finance, HR and CRM.
+              </p>
+              <a href="/settings/email" className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2.5 text-[0.84rem] font-600 text-white hover:bg-[#4330B8]">
+                <Mail size={15} /> Open Email Delivery
+              </a>
+              <p className="text-[0.78rem] text-slate-500">
+                The fields that used to be here (provider, SMTP host, port, encryption) are gone. Mail
+                goes over HTTPS to Mailjet, so there is no SMTP host to set and no encryption mode that
+                could be turned off.
+              </p>
             </div>
           ) : tab === "notifications" ? (
             <div className="flex flex-col gap-3">

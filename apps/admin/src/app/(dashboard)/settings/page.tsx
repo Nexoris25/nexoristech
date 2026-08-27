@@ -6,9 +6,10 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { UsersRound, ShieldCheck, FileClock, Building2, ReceiptText, ArrowRight } from "lucide-react";
+import { UsersRound, ShieldCheck, FileClock, Building2, ReceiptText, Mail, ArrowRight } from "lucide-react";
 import { requireAdmin } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
+import { emailConfigured } from "../../../lib/email.js";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,16 @@ export default async function SettingsOverview(): Promise<ReactNode> {
             (SELECT nrs_enabled FROM company_settings WHERE id=true) nrs_enabled,
             (SELECT nrs_environment FROM company_settings WHERE id=true) nrs_env`);
   const s = rows[0]!;
+  // Whether mail actually goes out, not whether a form was filled in. The old CMS Email tab could be
+  // completed in full while nothing was ever sent, so the hub says which of the two is true.
+  const emailReady = await emailConfigured();
 
   const cards = [
     { href: "/settings/access", icon: UsersRound, title: "People & Access", desc: "Grant module access and roles. The one place access is decided.", stat: `${s.active_users} active`, sub: `${s.grants} module grants` },
     { href: "/settings/roles", icon: ShieldCheck, title: "Roles & Permissions", desc: "The platform's fixed role model and what each role can do per module.", stat: "4 modules", sub: "Read-only matrix" },
     { href: "/audit", icon: FileClock, title: "Audit", desc: "The one immutable record of who did what, across every module.", stat: `${s.audit_today} today`, sub: "Platform-wide" },
     { href: "/settings/company", icon: Building2, title: "Company", desc: "Legal profile, registration, contact, fiscal calendar, and notifications.", stat: "Nexoris Technologies", sub: "Single record" },
+    { href: "/settings/email", icon: Mail, title: "Email Delivery", desc: "How invitations and password resets reach people, for every module.", stat: emailReady ? "Configured" : "Not sending", sub: emailReady ? "Mailjet over HTTPS" : "Links must be shared by hand" },
     { href: "/e-invoicing", icon: ReceiptText, title: "NRS e-Invoicing", desc: "Readiness for the Nigeria Revenue Service e-invoicing system.", stat: s.nrs_enabled ? "Enabled" : "Not live", sub: `${s.nrs_env} environment` },
   ];
 
