@@ -328,7 +328,12 @@ export function normaliseHtml(input: string, options: NormaliseOptions = {}): st
   // Collapse the whitespace Word and Docs pad every tag with, but keep it inside <pre>.
   const pres: string[] = [];
   html = html.replace(/<pre>[\s\S]*?<\/pre>/gi, (m) => `${PRE_MARK}${pres.push(m) - 1}${PRE_MARK}`);
-  html = html.replace(/&nbsp;/g, " ").replace(/[\t\r\n]+/g, " ").replace(/ {2,}/g, " ");
+  // Both forms of the non-breaking space: the entity, and the character itself. Only the entity was
+  // handled, so a paste from Word or Google Docs carried real U+00A0 characters straight into the
+  // body. They look like ordinary spaces in the editor but refuse to line-break, which is how a
+  // paragraph ends up with a strange gap or a heading pushes past its column on a narrow screen.
+  html = html.replace(/&nbsp;/g, " ").replace(/\u00a0/g, " ")
+    .replace(/[\t\r\n]+/g, " ").replace(/ {2,}/g, " ");
 
   html = fixTables(html);
   html = paragraphsToLists(html);

@@ -37,19 +37,35 @@ export interface Insight {
 }
 
 /**
- * Date tokens an editor can type in the CMS: [month], [year], [month year] and [monthyear] resolve when
- * the page renders, so "Best CRM software in [month] [year]" stays current on its own as the calendar
- * turns over. Pages revalidate on a timer, so the change lands without anyone re-editing the article.
- * Case-insensitive, and Lagos time so a UK-hosted render never shows yesterday's month.
+ * Date tokens an editor can type in the CMS: [day], [month], [year], and the [month year] and
+ * [monthyear] pairs, resolve when the page renders. So "Best CRM software in [month] [year]" stays
+ * current on its own as the calendar turns over, and nobody has to remember to edit every evergreen
+ * article each January. Pages revalidate on a timer, so the change lands without a re-edit.
+ *
+ * Resolved at render, never at save: substituting on save would freeze the value at the date someone
+ * pressed publish, which is the problem rather than the fix.
+ *
+ * Case-insensitive, and Lagos time so a render on a UK-hosted box never shows yesterday's date.
+ * Anything else in brackets is left alone, so an aside like [sic] survives untouched.
+ *
+ * One honest limit: a statically generated page shows the date it was last built. The revalidate
+ * windows and revalidation on publish close that on their own; a page nobody touches for a year is
+ * the case to know about.
  */
 export function expandDateTokens(text: string): string {
   if (!text || !text.includes("[")) return text;
   const now = new Date();
-  const month = new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", month: "long" }).format(now);
-  const year = new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", year: "numeric" }).format(now);
+  const part = (options: Intl.DateTimeFormatOptions): string =>
+    new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", ...options }).format(now);
+  const month = part({ month: "long" });
+  const year = part({ year: "numeric" });
+  const day = part({ day: "numeric" });
   return text
+    // Longest patterns first, so "[day month year]" is not eaten by "[day]".
+    .replace(/\[day\s+month\s+year\]/gi, `${day} ${month} ${year}`)
     .replace(/\[month\s+year\]/gi, `${month} ${year}`)
     .replace(/\[monthyear\]/gi, `${month} ${year}`)
+    .replace(/\[day\]/gi, day)
     .replace(/\[month\]/gi, month)
     .replace(/\[year\]/gi, year);
 }
@@ -361,7 +377,9 @@ export async function getInsight(slug: string): Promise<Insight | null> {
   // Kept as a list. Joining it here is what turned the short version into a wall of text.
   const tldrRaw = r.tldr;
   const tldr = Array.isArray(tldrRaw)
-    ? (tldrRaw as unknown[]).map((x) => String(x).trim()).filter(Boolean)
+    // Through str(), like every other prose field, so a date token in a TL;DR bullet resolves too.
+    // These were mapped with a bare String() and were the one reader-facing text that did not.
+    ? (tldrRaw as unknown[]).map((x) => str(String(x).trim()) ?? "").filter(Boolean)
     : (str(tldrRaw) ? [str(tldrRaw) as string] : []);
   return {
     title,
