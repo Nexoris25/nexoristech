@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import { db } from "../../../lib/db.js";
 import { verifyInviteToken } from "../../../lib/invite.js";
 import { securityPolicy, passwordProblem } from "../../../lib/security-policy.js";
+import { issueRecoveryCodes } from "../../../lib/recovery-codes.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,5 +49,28 @@ export async function POST(request: NextRequest): Promise<Response> {
   await pool.query(
     "UPDATE staff SET password_hash=$1, account_status='active', active=true, invite_token=NULL, invite_expires=NULL WHERE id=$2",
     [hash, payload.sub]);
-  return NextResponse.redirect(new URL("/login?accepted=1", request.url), { status: 303 });
+
+  /*
+   * Recovery codes, issued here because this is the one moment the person is definitely present and
+   * definitely themselves. Handing them out later means catching somebody who has no reason to care
+   * yet; handing them out now costs one extra screen at the point where they are already setting up.
+   *
+   * Failing to issue them must not fail the activation. The account works either way, and somebody
+   * whose password was accepted and who was then shown an error would have no idea whether they can
+   * sign in. They can ask an administrator for a reset link, which is the fallback anyway.
+   */
+  let codes: string[] = [];
+  try {
+    codes = await issueRecoveryCodes(payload.sub);
+  } catch (e) {
+    console.error(`[recovery] could not issue codes on activation: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  if (codes.length === 0) return NextResponse.redirect(new URL("/login?accepted=1", request.url), { status: 303 });
+
+  // Shown once, on the next screen, and never again. They travel in the URL fragment rather than the
+  // query so they are not sent to the server on that request and do not reach any access log.
+  const url = new URL("/recovery-codes", request.url);
+  url.hash = `codes=${encodeURIComponent(codes.join(","))}`;
+  return NextResponse.redirect(url, { status: 303 });
 }

@@ -20,6 +20,7 @@ import { createResetToken, resetLink, RESET_MAX_AGE_MINUTES } from "../../../../
 import { shareOrigin } from "../../../../lib/invite.js";
 import { sendEmail } from "../../../../lib/email.js";
 import { passwordResetEmail } from "../../../../lib/email-templates.js";
+import { consumeRecoveryCode } from "../../../../lib/recovery-codes.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,34 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     const form = await request.formData();
     const submitted = String(form.get("email") ?? "").trim().toLowerCase();
+    const recovery = String(form.get("code") ?? "").trim();
+
+    /*
+     * A recovery code is proof, so it short-circuits the whole request.
+     *
+     * This is the only path that resets a password without either a mailbox or an administrator. It
+     * spends the code and hands back a reset link directly, because the person is standing right
+     * there: mailing it to them would need the provider this exists to work without.
+     *
+     * A wrong code is counted against the lockout the sign-in form uses, so this cannot be turned
+     * into an oracle for guessing codes at any useful rate.
+     */
+    if (recovery) {
+      const owner = submitted.includes("@") ? await consumeRecoveryCode(submitted, recovery) : null;
+      if (owner) {
+        const token = createResetToken(owner.staffId, submitted);
+        await db().query(
+          `UPDATE staff SET reset_token = $1, reset_expires = now() + ($2 || ' minutes')::interval
+            WHERE id = $3`,
+          [token, String(RESET_MAX_AGE_MINUTES), owner.staffId],
+        );
+        return NextResponse.redirect(new URL(`/reset-password?token=${encodeURIComponent(token)}`, request.url), { status: 303 });
+      }
+      await db()
+        .query("INSERT INTO login_attempt (email, ip) VALUES ($1, $2::inet)", [submitted, null])
+        .catch(() => undefined);
+      return NextResponse.redirect(new URL("/forgot-password?badcode=1", request.url), { status: 303 });
+    }
 
     if (submitted.includes("@")) {
       const pool = db();

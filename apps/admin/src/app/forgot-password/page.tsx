@@ -27,9 +27,9 @@ export const dynamic = "force-dynamic";
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string }>;
+  searchParams: Promise<{ sent?: string; badcode?: string }>;
 }): Promise<ReactNode> {
-  const { sent } = await searchParams;
+  const { sent, badcode } = await searchParams;
   // What will actually happen when they press the button.
   const byEmail = await emailConfigured();
 
@@ -91,6 +91,32 @@ export default async function ForgotPasswordPage({
             <button type="submit" className="w-full cursor-pointer rounded-lg bg-[#543CDA] py-2.5 text-[0.9rem] font-600 text-white transition-colors hover:bg-[#4330B8]">
               {byEmail ? "Send reset link" : "Request a reset link"}
             </button>
+
+            {/* The self-service route, and the only one that needs nobody else.
+                It sits inside the same form: the code is optional, and supplying it takes over. That
+                keeps one submit button and one mental model, rather than two forms competing for the
+                same email field. */}
+            <details className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
+              <summary className="cursor-pointer text-[0.82rem] font-600 text-slate-700">
+                I have a recovery code
+              </summary>
+              <p className="mt-2 text-[0.79rem] text-slate-500">
+                The codes you saved when you set up your account. Enter your email above and one code
+                here to set a new password straight away. Each code works once.
+              </p>
+              {badcode ? (
+                <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-[0.79rem] font-600 text-red-600">
+                  That code and email did not match, or the code has already been used.
+                </p>
+              ) : null}
+              <input
+                name="code"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
+                className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 font-mono text-[0.86rem] tracking-wide text-slate-900 placeholder:text-slate-400 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15"
+              />
+            </details>
           </form>
         )}
 
