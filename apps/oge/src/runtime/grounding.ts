@@ -90,6 +90,40 @@ export function unsupportedFigures(text: string, context: string): string[] {
 }
 
 /**
+ * The marker a reply ends with when the context could not answer the question.
+ *
+ * A model asked to admit it does not know will do so in a hundred different sentences, and matching
+ * prose to decide whether an answer was a decline is guesswork that fails on the wording nobody
+ * anticipated. Asking for one fixed token instead makes it a string comparison: the token is stripped
+ * before the visitor sees anything, and its presence is what puts the visitor in touch with a person.
+ */
+export const CONNECT_MARKER = "[[CONNECT]]";
+
+/**
+ * Remove chat-markup decoration from an answer.
+ *
+ * The widget renders plain text, so `**Custom Software**` reaches the visitor with the asterisks
+ * still attached and reads as though the assistant is shouting in punctuation. The prompt asks for no
+ * markdown; this is the part that does not depend on the model remembering.
+ *
+ * Only decoration is removed. A leading "- " on a line is left alone, because a list of services is
+ * structure the reader wants, not ornament.
+ */
+export function stripDecoration(text: string): string {
+  return text
+    // Bold and italic, in both spellings. The inner text is kept exactly as written.
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,;:!?]|$)/g, "$1$2")
+    // Markdown headings, which a chat bubble has no use for.
+    .replace(/^#{1,6}\s+/gm, "")
+    // Backticks around a word, which look like a typo in a sentence about software.
+    .replace(/`([^`\n]+)`/g, "$1")
+    // Any asterisk that survived the pairs above, so an unmatched one never reaches the page.
+    .replace(/\*\*/g, "");
+}
+
+/**
  * Split streamed text into complete sentences, holding back the last partial one.
  *
  * The guard has to see a whole sentence to judge it, and the answer has to keep streaming, so the

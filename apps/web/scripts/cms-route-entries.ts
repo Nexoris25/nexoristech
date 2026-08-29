@@ -50,7 +50,10 @@ export interface CmsManifestEntry {
 const CLASSES: { dir: string; routeClass: RouteClass }[] = [
   { dir: "insights", routeClass: "insight" },
   { dir: "authors", routeClass: "author" },
-  { dir: "case-studies", routeClass: "case-study" },
+  // Case studies are deliberately absent. They are portfolio evidence reached from the listing, not
+  // pages written to rank, so they carry no meta title or meta description and the gate has nothing
+  // to check. Including them meant every build reported a missing description for content that is
+  // not supposed to have one.
   { dir: "careers", routeClass: "job" },
 ];
 

@@ -85,13 +85,45 @@ export function sanitiseHtml(input: string): string {
   }
 
   // Pass two: keep only allowed elements, and only their meaningful attributes.
-  return html.replace(/<\/?([a-zA-Z][\w:-]*)((?:"[^"]*"|'[^']*'|[^>])*?)\/?>/g, (whole, rawName: string, attrs: string) => {
+  html = html.replace(/<\/?([a-zA-Z][\w:-]*)((?:"[^"]*"|'[^']*'|[^>])*?)\/?>/g, (whole, rawName: string, attrs: string) => {
     const name = rawName.toLowerCase();
     if (!ALLOWED.has(name)) return "";
     if (whole.startsWith("</")) return `</${name}>`;
     if (VOID.has(name)) return `<${name}${cleanAttributes(name, attrs)}>`;
     return `<${name}${cleanAttributes(name, attrs)}>`;
   });
+
+  /*
+   * Pass three: repair paragraph nesting, then drop paragraphs with nothing in them.
+   *
+   * A paragraph cannot contain another paragraph, or a list, or a heading. When the stored HTML says
+   * it does, no sanitiser sees a problem and the browser's parser silently rewrites it: it closes the
+   * outer <p> before the block it cannot contain, and turns the now-orphaned </p> into a second empty
+   * paragraph somewhere else. The published article opened with `<p><p>A standard business website`
+   * and ended with `handover.</p><br></p>`, and the page rendered a blank line at the top and another
+   * at the bottom. The one at the bottom is what made the space before the FAQ section look wrong:
+   * the section margin was 40px and the gap on screen was closer to ninety.
+   *
+   * This is worth fixing in the markup rather than hiding in CSS, because the same invalid nesting is
+   * what a crawler and a reading-mode parser see too.
+   */
+
+  // An opening <p> immediately in front of a block element is not a paragraph, it is a wrapper the
+  // parser is about to discard anyway.
+  html = html.replace(
+    /<p\b[^>]*>(\s*)(?=<(?:p|div|ul|ol|h[1-6]|table|blockquote|figure|pre|section)\b)/gi,
+    "$1",
+  );
+  // Line breaks padding the end of a paragraph, which are spacing by another name.
+  html = html.replace(/(?:<br\s*\/?>\s*)+(?=<\/p>)/gi, "");
+  // The closing half of a wrapper whose opening half has just been removed, left dangling at the end.
+  html = html.replace(/(<\/(?:p|ul|ol|div|h[1-6]|table|blockquote|figure)>\s*)<\/p>\s*$/i, "$1");
+  // Trailing breaks with no paragraph left to sit in.
+  html = html.replace(/(?:\s*<br\s*\/?>)+\s*$/i, "");
+
+  // Whitespace, non-breaking spaces and a lone <br> all count as empty. An image does not, so a
+  // paragraph wrapping a picture survives.
+  return html.replace(/<p\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "");
 }
 
 /**

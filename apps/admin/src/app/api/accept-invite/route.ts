@@ -25,8 +25,16 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!payload) return NextResponse.redirect(new URL("/accept-invite", request.url), { status: 303 });
   // The configured policy, not a hardcoded eight characters. Global Settings said twelve with a symbol
   // and this accepted "password" regardless.
-  if (passwordProblem(password, await securityPolicy())) {
-    return NextResponse.redirect(new URL(`${back}&error=weak`, request.url), { status: 303 });
+  // The reason travels with the redirect. It used to be thrown away for a bare `error=weak`, and the
+  // page then rendered a fixed "Use at least 8 characters" while the policy required twelve and a
+  // symbol. Someone typing a ten-character password was told to use eight, typed nine, and was
+  // refused again with the same sentence: the screen was describing a rule the server did not apply.
+  const problem = passwordProblem(password, await securityPolicy());
+  if (problem) {
+    return NextResponse.redirect(
+      new URL(`${back}&error=weak&why=${encodeURIComponent(problem)}`, request.url),
+      { status: 303 },
+    );
   }
   if (password !== confirm) return NextResponse.redirect(new URL(`${back}&error=mismatch`, request.url), { status: 303 });
 

@@ -42,10 +42,14 @@ export default async function SettingsOverview(): Promise<ReactNode> {
       <h1 className="text-[1.4rem] font-700 text-slate-900">Settings</h1>
       <p className="mt-1 text-[0.88rem] text-slate-500">Access, roles, audit, company profile, and NRS e-invoicing.</p>
 
+      {/* Neutral, and not amber. This said "awaiting action" and coloured itself like a problem, for
+          requests that need no action at all: resets are self-service and the link is emailed to the
+          person. An admin reading a warning about work that does not exist eventually stops reading
+          the warnings that do. */}
       {Number(s.open_resets) > 0 ? (
-        <Link href="/settings/access" className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 hover:bg-amber-100/70">
-          <span className="text-[0.85rem] font-600 text-amber-800">{s.open_resets} password reset request{s.open_resets === "1" ? "" : "s"} awaiting action</span>
-          <ArrowRight size={16} className="text-amber-700" />
+        <Link href="/settings/access" className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-[#543CDA]/40">
+          <span className="text-[0.85rem] font-600 text-slate-700">{s.open_resets} recent password reset request{s.open_resets === "1" ? "" : "s"}</span>
+          <ArrowRight size={16} className="text-slate-500" />
         </Link>
       ) : null}
 

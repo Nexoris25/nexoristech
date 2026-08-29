@@ -19,10 +19,8 @@ import { RichTextEditor, type RichTextApi } from "../../../../components/cms/Ric
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 import { ImageGallery, type GalleryImage } from "../../../../components/cms/ImageGallery.js";
 import { SERVICE_PAGES, SERVICE_LABELS } from "../../../../lib/site-pages.js";
-import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
-import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
 
-interface Initial { id?: string; title?: string; slug?: string; serviceIndustry?: string; gallery?: GalleryImage[]; servicePaths?: string[]; excerpt?: string; body?: string; highlights?: string; technologies?: string; featuredImage?: string; featuredImageAlt?: string; status?: string; featured?: boolean; displayOrder?: number; metaTitle?: string; metaDescription?: string }
+interface Initial { id?: string; title?: string; slug?: string; serviceIndustry?: string; gallery?: GalleryImage[]; servicePaths?: string[]; excerpt?: string; body?: string; highlights?: string; technologies?: string; featuredImage?: string; featuredImageAlt?: string; status?: string; featured?: boolean; displayOrder?: number }
 
 export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
   const edit = Boolean(initial?.id);
@@ -33,19 +31,11 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
   const [technologies, setTechnologies] = useState(initial?.technologies ?? "");
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
-  const [metaTitle, setMetaTitle] = useState(initial?.metaTitle ?? "");
-  const [metaDesc, setMetaDesc] = useState(initial?.metaDescription ?? "");
-  const [body, setBody] = useState(initial?.body ?? "");
+  // The editor still reports changes; nothing on this form reads the value now that the SEO
+  // panel, which scored the word count, is gone.
+  const [, setBody] = useState(initial?.body ?? "");
   const rte = useRef<RichTextApi | null>(null);
 
-  // The panel shows a score, so there has to be something real behind it.
-  const bodyWords = body.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
-  const checks = [
-    excerpt.trim().length > 0,
-    ...metaChecks({ title, metaTitle, metaDesc }),
-    bodyWords >= 300,
-  ];
-  const seoScore = metaScore(checks);
   const shownSlug = slugEdited ? slug : slugify(title);
   const chips = (s: string): string[] => s.split(",").map((x) => x.trim()).filter(Boolean);
 
@@ -53,8 +43,6 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
     <form action="/api/cms/proof" method="post">
       <input type="hidden" name="kind" value="case_study" />
       {/* The meta fields live in the Oge panel's SEO tab and submit from here. */}
-      <input type="hidden" name="meta_title" value={metaTitle} />
-      <input type="hidden" name="meta_description" value={metaDesc} />
       {edit ? <input type="hidden" name="id" value={initial!.id} /> : null}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.5fr_1fr]">
         <div className="flex flex-col gap-5">
@@ -65,7 +53,7 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
               <label className="flex flex-col gap-1.5 sm:col-span-2"><span className={label}>Slug</span><input name="slug" value={shownSlug} onChange={(e) => { setSlugEdited(true); setSlug(e.target.value); }} placeholder="nexpay-payment-gateway" className={`${field} font-mono`} /></label>
               <label className="flex flex-col gap-1.5"><span className={label}>Industry</span><input name="service_industry" defaultValue={initial?.serviceIndustry ?? ""} placeholder="e.g. Fintech" className={field} /></label>
               <label className="flex flex-col gap-1.5"><span className={label}>Display Order</span><input name="display_order" type="number" min={0} defaultValue={initial?.displayOrder ?? 0} className={field} /></label>
-              <label className="flex flex-col gap-1.5 sm:col-span-2"><span className={label}>Short Summary</span><textarea name="excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} maxLength={200} placeholder="A short, scannable summary of the project..." className={field} /></label>
+              <label className="flex flex-col gap-1.5 sm:col-span-2"><span className={label}>Short Summary <span className="font-400 text-slate-400">(shown on the card and under the heading)</span></span><textarea name="excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} maxLength={200} placeholder="A short, scannable summary of the project..." className={field} /></label>
 
               <div className="sm:col-span-2">
                 <span className={label}>Proof for these services</span>
@@ -126,14 +114,15 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
             </label>
           </section>
 
-          {/* SEO only. The narrative is still not drafted from a prompt — a case study reports work done
-              for a named client — but the meta fields belong in this panel like every other page's. */}
-          <OgeAssistant
-            tabs={["seo"]}
-            getContext={() => ({ title, body, expertise: [] })}
-            seo={{ score: seoScore, metaTitle, setMetaTitle, metaDesc, setMetaDesc}}
-            apply={{ seo: (r) => { setMetaTitle(r.metaTitle); setMetaDesc(r.metaDescription); } }}
-          />
+          {/* No SEO panel, on purpose.
+              A case study is portfolio evidence, not a page written to be found in search: it reports
+              work done for a named client, and it is reached from the case-studies listing rather than
+              from a query. Giving it a meta title and meta description invited editors to write search
+              copy for something nobody searches for, and made the SEO gate demand those fields on every
+              build. The page derives its title from the case study's own title.
+
+              Short Summary stays. It is not SEO copy, it is the sentence shown on the listing card and
+              under the heading on the page itself. */}
 
 
           <div className="flex items-center justify-end gap-2">

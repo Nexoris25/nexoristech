@@ -86,8 +86,22 @@
      a bound and its own scroll rather than running off the bottom of the column. */
   max-height: calc(100vh - 116px);
   overflow-y: auto;
-  scrollbar-width: thin;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple-500, #6a55f2) transparent;
+}
+.legal-page .toc::-webkit-scrollbar {
+  width: 6px;
+}
+.legal-page .toc::-webkit-scrollbar-track {
+  background: transparent;
+}
+.legal-page .toc::-webkit-scrollbar-thumb {
+  background: var(--purple-300, #bcb0f5);
+  border-radius: 999px;
+}
+.legal-page .toc:hover::-webkit-scrollbar-thumb {
+  background: var(--purple-500, #6a55f2);
 }
 .legal-page .toc h2 {
   font-family: "JetBrains Mono", monospace;

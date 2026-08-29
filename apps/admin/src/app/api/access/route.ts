@@ -20,20 +20,27 @@ import { requireAdmin } from "../../../lib/auth.js";
 import { MODULES, MODULE_ROLES, type ModuleId } from "../../../lib/shell-constants.js";
 import { createInviteToken, inviteLink, shareOrigin } from "../../../lib/invite.js";
 import { sendEmail } from "../../../lib/email.js";
-import { invitationEmail } from "../../../lib/email-templates.js";
+import { invitationEmail, passwordResetEmail } from "../../../lib/email-templates.js";
+import { createResetToken, resetLink, RESET_MAX_AGE_MINUTES } from "../../../lib/reset.js";
 
 /**
  * Email an invitation. Never throws and never blocks the redirect: an account that was just created
  * must not look like it failed because a mail provider was slow, and the link is on the next screen
  * either way.
+ *
+ * It does report what happened, though. Silently returning void meant the screen said the same thing
+ * whether the invitation had been delivered or had never left the building, so "the invite is not
+ * sending" was invisible from the one page an admin was looking at.
  */
-async function emailInvitation(to: string, name: string, invitedBy: string, token: string): Promise<void> {
+async function emailInvitation(to: string, name: string, invitedBy: string, token: string): Promise<"sent" | "not-sent"> {
   try {
     const link = inviteLink(await shareOrigin(), token);
     const message = invitationEmail(name || to, invitedBy, link, 7);
-    await sendEmail({ to, ...message }, "invitation");
+    const result = await sendEmail({ to, ...message }, "invitation");
+    return result.status === "sent" ? "sent" : "not-sent";
   } catch (e) {
     console.error("[invite] could not send:", e instanceof Error ? e.message : e);
+    return "not-sent";
   }
 }
 
@@ -92,7 +99,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       const emp = rows[0];
       if (!emp) return back(request, "?error=employee");
       name = emp.full_name;
-      email = (emp.work_email ?? emp.personal_email ?? "").trim().toLowerCase();
+      // The address on the HR record, or the one typed alongside the picker when that record has
+      // none. The list offers employees marked "(no email on record)" and this used to reject them
+      // with a bare error, so the people most likely to need a platform-only login were the ones who
+      // could not be given one.
+      email = (emp.work_email ?? emp.personal_email ?? "").trim().toLowerCase() || emailRaw;
     }
     if (!name || !email) return back(request, "?error=email");
 
@@ -114,10 +125,10 @@ export async function POST(request: NextRequest): Promise<Response> {
       `INSERT INTO audit_log (actor_id, action, entity, entity_id, after)
        VALUES ($1,'create','staff',$2,$3::jsonb)`,
       [admin.id, staffId, JSON.stringify({ invited: email })]);
-    await emailInvitation(email, name, admin.name, token);
+    const delivery = await emailInvitation(email, name, admin.name, token);
     // The admin still lands on the person's row, where the link is there to copy if the email does
-    // not arrive or no provider is configured yet.
-    return back(request, `?invited=${encodeURIComponent(staffId)}`);
+    // not arrive or no provider is configured yet. The screen now says which of those happened.
+    return back(request, `?invited=${encodeURIComponent(staffId)}&mail=${delivery}`);
   }
 
   if (action === "reissue") {
@@ -135,8 +146,41 @@ export async function POST(request: NextRequest): Promise<Response> {
       `INSERT INTO audit_log (actor_id, action, entity, entity_id, after)
        VALUES ($1,'reissue-invite','staff',$2,$3::jsonb)`,
       [admin.id, staffId, JSON.stringify({ email: row.email })]);
-    await emailInvitation(row.email, row.name ?? "", admin.name, token);
-    return back(request, `?invited=${encodeURIComponent(staffId)}`);
+    const delivery = await emailInvitation(row.email, row.name ?? "", admin.name, token);
+    return back(request, `?invited=${encodeURIComponent(staffId)}&mail=${delivery}`);
+  }
+
+  /*
+   * Start someone else's password reset, rather than choosing a password for them.
+   *
+   * The same mechanism as /forgot-password, including the rule that matters: the link is sent to the
+   * address on the staff record and never to one supplied in this request. An admin can start the
+   * flow; only the person holding the mailbox can finish it.
+   */
+  if (action === "send-reset") {
+    const staffId = String(f.get("staffId") ?? "").trim();
+    if (!staffId) return back(request);
+    const { rows } = await pool.query<{ id: string; name: string; email: string }>(
+      "SELECT id, name, email FROM staff WHERE id=$1 AND active = true", [staffId]);
+    const person = rows[0];
+    if (!person) return back(request, "?error=reset");
+
+    const token = createResetToken(person.id, person.email);
+    // The stored copy is what makes it single-use; the signature alone keeps verifying until expiry.
+    await pool.query(
+      "UPDATE staff SET reset_token=$1, reset_expires=now() + ($2 || ' minutes')::interval WHERE id=$3",
+      [token, String(RESET_MAX_AGE_MINUTES), person.id]);
+
+    const message = passwordResetEmail(person.name, resetLink(await shareOrigin(), token), RESET_MAX_AGE_MINUTES);
+    const result = await sendEmail({ to: person.email, ...message }, "password reset");
+
+    await pool.query(
+      `INSERT INTO audit_log (actor_id, action, entity, entity_id, after)
+       VALUES ($1,'send-reset-link','staff',$2,$3::jsonb)`,
+      // What was done, not what the password became: nobody here chose one.
+      [admin.id, person.id, JSON.stringify({ delivered: result.status === "sent" })]);
+
+    return back(request, `?reset=${result.status === "sent" ? "sent" : "not-sent"}`);
   }
 
   return back(request);

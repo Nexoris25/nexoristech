@@ -170,8 +170,25 @@
      keeps the reader's current section inside that view. */
   max-height: calc(100vh - 112px);
   overflow-y: auto;
-  scrollbar-width: thin;
   overscroll-behavior: contain;
+  /* Brand purple, not the browser's grey. The column scrolls independently of the page, and a
+     default-grey bar next to a purple-marked list read as part of the browser rather than part of
+     the article. Firefox takes the two-value form; the WebKit rules below cover the rest. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple-500, #6a55f2) transparent;
+}
+.article-page .toc-aside::-webkit-scrollbar {
+  width: 6px;
+}
+.article-page .toc-aside::-webkit-scrollbar-track {
+  background: transparent;
+}
+.article-page .toc-aside::-webkit-scrollbar-thumb {
+  background: var(--purple-300, #bcb0f5);
+  border-radius: 999px;
+}
+.article-page .toc-aside:hover::-webkit-scrollbar-thumb {
+  background: var(--purple-500, #6a55f2);
 }
 .article-page .toc-aside .toc-title {
   font-family: "JetBrains Mono", monospace;
@@ -373,9 +390,16 @@
 
 /* faq */
 .article-page .faq-block {
-  margin-top: 40px;
+  /* One section step, the same 32px the article uses between its own major blocks. The 40px here
+     was not the real problem: empty paragraphs at the end of the body were adding a blank line and
+     its margin on top of it, which sanitiseHtml now removes at the source. */
+  margin-top: 32px;
 }
 .article-page .faq-block > h2 {
+  /* The contents list links here now, and this heading is outside .prose, so it does not inherit the
+     scroll offset that keeps a target clear of the sticky header. Without it the anchor lands the
+     heading underneath the header. */
+  scroll-margin-top: 88px;
   font-family: "Roboto", sans-serif;
   font-size: 1.55rem;
   font-weight: 700;

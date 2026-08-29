@@ -200,7 +200,17 @@ export default async function ArticlePage({
   // its own field, so building the contents from the stored body listed a "TL;DR" entry whose anchor
   // had been stripped off the page: the first link in the contents of every such article went nowhere.
   const readableBody = stripDuplicateBlocks(article.body, { tldr: article.tldr, faq: article.faq });
-  const toc = headingsOf(readableBody);
+  /*
+   * The contents, plus the FAQ section.
+   *
+   * headingsOf only sees the body, and the FAQ accordion is a separate section rendered after it, so
+   * the last thing on the page was the one thing the contents did not list. It is a real H2 with a
+   * real anchor and readers go looking for it, so it belongs in the list like any other section.
+   */
+  const toc = [
+    ...headingsOf(readableBody),
+    ...(article.faq.length > 0 ? [{ id: "faq-heading", text: "Common questions" }] : []),
+  ];
   const people = [
     article.author ? { kind: "Written by", person: article.author } : null,
     article.factChecker ? { kind: "Fact-checked by", person: article.factChecker } : null,

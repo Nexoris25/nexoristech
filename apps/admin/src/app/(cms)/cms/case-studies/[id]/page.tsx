@@ -30,7 +30,7 @@ export default async function EditCaseStudyPage({ params }: { params: Promise<{ 
           id: r.id, title: r.title, slug: r.slug ?? "", serviceIndustry: r.service_industry ?? "",
           excerpt: r.excerpt ?? "", body: r.body ?? "", highlights: r.highlights.join(", "),
           technologies: r.technologies.join(", "), featuredImage: r.featured_image ?? "", featuredImageAlt: r.featured_image_alt ?? "", status: r.status,
-          featured: r.featured, displayOrder: r.display_order, metaTitle: r.meta_title ?? "", metaDescription: r.meta_description ?? "",
+          featured: r.featured, displayOrder: r.display_order,
           // Neither of these was selected, so the service checkboxes came back empty and the uploaded
           // project images disappeared from the form every time the record was reopened. Both were
           // stored correctly the whole time; the editor simply never read them back.

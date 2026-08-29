@@ -122,3 +122,33 @@ describe("stepsOf", () => {
     expect(stepsOf("<p>Just prose.</p>")).toEqual([]);
   });
 });
+
+describe("sanitiseHtml paragraph repair", () => {
+  it("unwraps the outer paragraph that wrapped a whole article body", () => {
+    // The exact shape published on the live article: a <p> wrapping the document, and a stray </p>
+    // and <br> at the end. The browser turned both halves into empty paragraphs.
+    const stored = "<p><p>First para.</p><p>Second para.</p><br></p>";
+    expect(sanitiseHtml(stored)).toBe("<p>First para.</p><p>Second para.</p>");
+  });
+
+  it("drops paragraphs that hold nothing", () => {
+    expect(sanitiseHtml("<p>Real.</p><p></p><p>&nbsp;</p><p><br></p>")).toBe("<p>Real.</p>");
+  });
+
+  it("keeps a paragraph that wraps an image", () => {
+    const html = '<p><img src="/a.png" alt="A chart"></p>';
+    expect(sanitiseHtml(html)).toContain("<img");
+  });
+
+  it("does not unwrap a paragraph holding real text", () => {
+    expect(sanitiseHtml("<p>Text <strong>here</strong>.</p>")).toBe("<p>Text <strong>here</strong>.</p>");
+  });
+
+  it("unwraps a paragraph wrapped around a list", () => {
+    expect(sanitiseHtml("<p><ul><li>One</li></ul></p>")).toBe("<ul><li>One</li></ul>");
+  });
+
+  it("leaves a trailing break inside a paragraph out of the text", () => {
+    expect(sanitiseHtml("<p>Line.<br></p>")).toBe("<p>Line.</p>");
+  });
+});

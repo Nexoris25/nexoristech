@@ -73,6 +73,20 @@ export async function securityPolicy(): Promise<SecurityPolicy> {
   }
 }
 
+/**
+ * The rule, in the words a person setting a password needs before they type one.
+ *
+ * Every screen that asks for a password used to state the rule from memory, and every one of them was
+ * wrong: "At least 8 characters" against a policy of twelve plus a symbol. Someone typing ten was
+ * refused and told to use eight. Written once, from the policy itself, so the sentence and the check
+ * cannot drift apart again.
+ */
+export function passwordRule(policy: SecurityPolicy): string {
+  return policy.requireSpecial
+    ? `At least ${policy.minPasswordLength} characters, including a symbol`
+    : `At least ${policy.minPasswordLength} characters`;
+}
+
 /** Check a password against the policy. Returns the reason it fails, or null when it passes. */
 export function passwordProblem(password: string, policy: SecurityPolicy): string | null {
   if (password.length < policy.minPasswordLength) {

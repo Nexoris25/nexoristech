@@ -2,8 +2,18 @@
 /**
  * Invite a user (PRD 3.2). Two ways in: pick someone already onboarded in HR who has no login yet, or
  * type a name and email for a new person. Either way it creates the login account, links it to the HR
- * record where there is one, and issues a link the person follows to set their own password. Nothing is
- * emailed; the link comes back on the access screen to copy. Posts natively to /api/access so it works framed.
+ * record where there is one, and issues a link the person follows to set their own password.
+ *
+ * The invitation is emailed, and the link also comes back on the access screen to copy. Both, on
+ * purpose: the email is the route in, and the copyable link is what turns a mail provider being down
+ * into a delay rather than a lockout.
+ *
+ * An address is always required, including on the HR path. An employee record without one used to be
+ * offered in the picker as "(no email on record)" and then rejected on submit, so the accounts most
+ * likely to be platform-only were the ones that could not be created. Picking such a person now
+ * reveals a box for the address to send to.
+ *
+ * Posts natively to /api/access so it works framed.
  */
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +24,9 @@ export interface InvitableEmployee { id: string; name: string; email: string }
 export function InviteUser({ employees }: { employees: InvitableEmployee[] }): ReactNode {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"employee" | "new">(employees.length > 0 ? "employee" : "new");
+  // Which employee is selected, so the address box can appear exactly when their record has none.
+  const [picked, setPicked] = useState<string>(employees[0]?.id ?? "");
+  const pickedEmail = employees.find((e) => e.id === picked)?.email ?? "";
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,7 +52,7 @@ export function InviteUser({ employees }: { employees: InvitableEmployee[] }): R
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-[1.05rem] font-700 text-slate-900">Invite a user</h2>
-                <p className="mt-1 text-[0.82rem] text-slate-500">You get a link to share with them. They set their own password and sign in. Grant modules once they do.</p>
+                <p className="mt-1 text-[0.82rem] text-slate-500">They get an email with a link, and you get the same link to copy. They set their own password and sign in. Grant modules once they do.</p>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-600 hover:bg-slate-100"><X size={17} /></button>
             </div>
@@ -57,11 +70,18 @@ export function InviteUser({ employees }: { employees: InvitableEmployee[] }): R
                 ) : (
                   <label className="flex flex-col gap-1.5">
                     <span className="text-[0.8rem] font-600 text-slate-700">Employee</span>
-                    <select name="employeeId" required className={`cursor-pointer ${field}`}>
+                    <select name="employeeId" required value={picked} onChange={(e) => setPicked(e.target.value)} className={`cursor-pointer ${field}`}>
                       {employees.map((e) => <option key={e.id} value={e.id}>{e.name}{e.email ? ` — ${e.email}` : " (no email on record)"}</option>)}
                     </select>
                   </label>
                 )}
+                {employees.length > 0 && !pickedEmail ? (
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[0.8rem] font-600 text-slate-700">Email address</span>
+                    <input name="email" type="email" required placeholder="name@nexoristech.com" className={field} />
+                    <span className="text-[0.74rem] text-slate-500">This person has no address on their HR record, and the invitation has to be sent somewhere.</span>
+                  </label>
+                ) : null}
                 <button type="submit" disabled={employees.length === 0} className="mt-1 rounded-lg bg-[#543CDA] px-4 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8] disabled:cursor-not-allowed disabled:opacity-50">Create invitation link</button>
               </form>
             ) : (

@@ -16,7 +16,7 @@ import { shareOrigin, inviteLink } from "../../../../lib/invite.js";
 import { CopyLink } from "./CopyLink.js";
 import { GrantAccess } from "./GrantAccess.js";
 import { InviteUser } from "./InviteUser.js";
-import { ResetPassword } from "./ResetPassword.js";
+import { SendResetLink } from "./SendResetLink.js";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,7 @@ const ACCESS_LABEL: Record<string, string> = {
 
 interface InvitableRow { id: string; full_name: string; email: string | null }
 
-export default async function AccessPage({ searchParams }: { searchParams: Promise<{ invited?: string; granted?: string; error?: string }> }): Promise<ReactNode> {
+export default async function AccessPage({ searchParams }: { searchParams: Promise<{ invited?: string; granted?: string; error?: string; mail?: string; reset?: string }> }): Promise<ReactNode> {
   await requireAdmin();
   const notice = await searchParams;
   const pool = db();
@@ -93,13 +93,31 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
         <InviteUser employees={invitableEmployees} />
       </div>
 
+      {/* Whether the invitation was actually delivered, said plainly.
+          This panel used to appear identically whether the email had gone out or had never left the
+          building, so an admin had no way to know that invitations were not sending. The copyable
+          link is shown either way, because it is the fallback; what changed is that the screen now
+          says which situation it is. */}
       {justInvited?.invite_token ? (
         <section className="mt-4 rounded-2xl border border-[#543CDA]/30 bg-[#F6F4FE] p-4">
-          <h2 className="text-[0.92rem] font-700 text-slate-900">Share this link with {justInvited.name}</h2>
-          <p className="mt-0.5 text-[0.82rem] text-slate-600">They open it, set their own password, and sign in. The link works once and expires in 7 days.</p>
+          <h2 className="text-[0.92rem] font-700 text-slate-900">
+            {notice.mail === "sent" ? `Invitation emailed to ${justInvited.name}` : `Share this link with ${justInvited.name}`}
+          </h2>
+          <p className="mt-0.5 text-[0.82rem] text-slate-600">
+            {notice.mail === "sent"
+              ? `Sent to ${justInvited.email}. They open it, set their own password, and sign in. The link works once and expires in 7 days. Here it is as well, in case the email goes astray.`
+              : "They open it, set their own password, and sign in. The link works once and expires in 7 days."}
+          </p>
+          {notice.mail === "not-sent" ? (
+            <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[0.8rem] font-600 text-amber-800">
+              The invitation email could not be sent, so this link is the only way in. Check <Link href="/settings/email" className="underline">Email Delivery</Link>.
+            </p>
+          ) : null}
           <CopyLink link={inviteLink(origin, justInvited.invite_token)} />
         </section>
       ) : null}
+      {notice.reset === "sent" ? <p className="mt-4 rounded-lg bg-[#DCFCE7] px-3.5 py-2.5 text-[0.83rem] font-600 text-[#15803D]">Reset link emailed. It expires in 30 minutes and can be used once.</p> : null}
+      {notice.reset === "not-sent" ? <p className="mt-4 rounded-lg bg-amber-50 px-3.5 py-2.5 text-[0.83rem] font-600 text-amber-800">The reset link could not be emailed. Check <Link href="/settings/email" className="underline">Email Delivery</Link>.</p> : null}
       {notice.granted ? <p className="mt-4 rounded-lg bg-[#DCFCE7] px-3.5 py-2.5 text-[0.83rem] font-600 text-[#15803D]">Access granted.</p> : null}
       {notice.error === "reissue" ? <p className="mt-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-[0.83rem] font-600 text-red-600">That account is already active, so it has no invitation to reissue. The person signs in with their own password.</p>
         : notice.error ? <p className="mt-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-[0.83rem] font-600 text-red-600">That invitation could not be completed. Check the name and email and try again.</p> : null}
@@ -122,15 +140,20 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
         </section>
       ) : null}
 
-      {/* Password reset requests */}
+      {/* Password resets people asked for themselves.
+          Not a work queue. Anyone can reset their own password from the sign-in page, which emails a
+          single-use link to the address on their record, so nothing here is waiting on an admin. It
+          is shown because a run of requests is worth being able to see, and because re-sending the
+          link is a reasonable thing to do for someone who says the email never arrived. */}
       {resets.length > 0 ? (
         <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
-          <h2 className="flex items-center gap-2 text-[0.95rem] font-700 text-slate-900"><KeyRound size={17} className="text-[#543CDA]" /> Password reset requests <span className="rounded-full bg-[#EEEBFC] px-2 py-0.5 text-[0.72rem] font-600 text-[#543CDA]">{resets.length}</span></h2>
+          <h2 className="flex items-center gap-2 text-[0.95rem] font-700 text-slate-900"><KeyRound size={17} className="text-[#543CDA]" /> Recent password reset requests <span className="rounded-full bg-[#EEEBFC] px-2 py-0.5 text-[0.72rem] font-600 text-[#543CDA]">{resets.length}</span></h2>
+          <p className="mt-1 text-[0.8rem] text-slate-500">People reset their own passwords from the sign-in page. Nothing here needs your action; re-send the link if someone says it never arrived.</p>
           <ul className="mt-3 flex flex-col gap-2">
             {resets.map((req) => (
               <li key={req.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 px-3.5 py-2.5">
                 <span className="text-[0.85rem] text-slate-800">{req.staff_name ?? req.email}{req.staff_name ? <span className="text-slate-500"> · {req.email}</span> : null}</span>
-                {req.staff_id ? <ResetPassword requestId={req.id} staffId={req.staff_id} /> : <span className="text-[0.78rem] text-slate-500">No matching account</span>}
+                {req.staff_id ? <SendResetLink staffId={req.staff_id} email={req.email} /> : <span className="text-[0.78rem] text-slate-500">No matching account</span>}
               </li>
             ))}
           </ul>

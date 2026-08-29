@@ -19,7 +19,12 @@ import { embedBatch } from "../providers/embeddings.js";
 import { generateGroundedStream } from "../providers/generation.js";
 import { retrieve, type RetrievedChunk } from "../retrieval/retrieve.js";
 import { buildSystemPrompt, PROMPT_VERSION } from "./prompt.js";
-import { SentenceStream, unsupportedFigures } from "./grounding.js";
+import {
+  CONNECT_MARKER,
+  SentenceStream,
+  stripDecoration,
+  unsupportedFigures,
+} from "./grounding.js";
 import { WEBSITE_BOT_MODELS, type Env } from "../config/models.js";
 import type { Source } from "../db.js";
 import type { ChatContext, ChatEvent } from "./events.js";
@@ -115,6 +120,9 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
       yield { type: "meta", retrieval: "exact-cache" };
       yield { type: "sources", sources: exact.sources };
       yield* this.streamText(exact.answer);
+      // A cached decline is still a decline. Without this the first visitor to ask an unanswerable
+      // question was offered the team and everyone after them was not.
+      if (this.isDecline(exact.answer)) yield this.handoff();
       yield { type: "done", cached: "exact" };
       return;
     }
@@ -156,6 +164,7 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
         yield { type: "meta", retrieval: "semantic-cache" };
         yield { type: "sources", sources: semantic.sources };
         yield* this.streamText(semantic.answer);
+        if (this.isDecline(semantic.answer)) yield this.handoff();
         yield { type: "done", cached: "semantic" };
         return;
       }
@@ -208,13 +217,31 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
       const context = chunks.map((c) => c.content).join("\n");
       const sentences = new SentenceStream();
       let answer = "";
-      const emit = function* (this: void, text: string): Generator<ChatEvent> {
-        if (text.length === 0) return;
+      /*
+       * Whether this answer should end by offering a person.
+       *
+       * Two ways it becomes true, and both mean the same thing to the visitor: the assistant did not
+       * answer the question. The model says so with CONNECT_MARKER, and the figure guard says so by
+       * having had to drop a sentence, which means the reply was drifting into invention whatever it
+       * looked like. Before this, a decline ended the conversation: the handoff was only ever offered
+       * when generation failed outright, so being told "I do not have that detail" left the visitor
+       * with nowhere to go, on the page whose job is to get them talking to us.
+       */
+      let connect = false;
+      const emit = function* (this: void, raw: string): Generator<ChatEvent> {
+        let text = raw;
+        if (text.includes(CONNECT_MARKER)) {
+          connect = true;
+          text = text.replaceAll(CONNECT_MARKER, "");
+        }
+        text = stripDecoration(text);
+        if (text.trim().length === 0) return;
         const invented = unsupportedFigures(text, context);
         if (invented.length > 0) {
           console.warn(
             `[oge] dropped a sentence citing figures absent from the retrieved context: ${invented.join(", ")}`,
           );
+          connect = true;
           return;
         }
         answer += text;
@@ -235,8 +262,19 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
         emitted = true;
         yield event;
       }
+      // A person, when the assistant could not answer. The widget turns this into the WhatsApp button
+      // and "Share your details instead", which opens the contact form inside the chat and files the
+      // lead with Oge as its source.
+      //
+      // The marker is the signal and the wording is the backstop, because the model does not always
+      // remember to emit one. Asked when we were established it answered "We do not publish the year
+      // we were established. If you would like to know, I can put you in touch with the team." and
+      // sent no marker, so the one reply that explicitly offered a person was the one that did not
+      // produce the button to reach them.
+      if (connect || this.isDecline(answer)) yield this.handoff();
+
       // What was actually shown, not what the model produced: caching the unfiltered answer would
-      // serve the dropped sentences back to the next visitor.
+      // serve the dropped sentences, the decoration and the marker back to the next visitor.
       await this.exactCache.set(trimmed, kbVersion, answer, sources);
       if (cacheVector) {
         await this.semanticCache.add(
@@ -282,6 +320,17 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
       if (!seen.has(c.url)) seen.set(c.url, { url: c.url, title: c.title });
     }
     return [...seen.values()];
+  }
+
+  /**
+   * Whether a stored answer was a decline.
+   *
+   * The marker is stripped before an answer is cached, so this reads the shape of what was said. It
+   * is only ever used to decide whether to *offer* a person, so a false positive costs an extra
+   * button and a false negative costs what the situation already was.
+   */
+  private isDecline(answer: string): boolean {
+    return /\b(do not|don't) (have|publish)\b|\bnot something we publish\b/i.test(answer);
   }
 
   private handoff(): ChatEvent {

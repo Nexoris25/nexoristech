@@ -8,7 +8,12 @@
  * 99.9% uptime targets, the same answer passes, and should.
  */
 import { describe, expect, it } from "vitest";
-import { figuresIn, SentenceStream, unsupportedFigures } from "./grounding.js";
+import {
+  figuresIn,
+  SentenceStream,
+  stripDecoration,
+  unsupportedFigures,
+} from "./grounding.js";
 
 /** An extract of the maintenance page, cut before the section that lists the plan levels. */
 const MAINTENANCE =
@@ -97,5 +102,33 @@ describe("SentenceStream", () => {
     const chunks = ["The fee ", "is ₦5. ", "Really! ", "Is it?\n\nYes"];
     const out = chunks.flatMap((c) => stream.push(c)).join("") + stream.flush();
     expect(out).toBe(chunks.join(""));
+  });
+});
+
+describe("stripDecoration", () => {
+  it("removes the bold markers that were reaching the page", () => {
+    expect(stripDecoration("- **Custom Software & App Development**: We build")).toBe(
+      "- Custom Software & App Development: We build",
+    );
+  });
+
+  it("keeps list structure, which is not decoration", () => {
+    expect(stripDecoration("Here is what we do:\n- Websites\n- Mobile apps")).toBe(
+      "Here is what we do:\n- Websites\n- Mobile apps",
+    );
+  });
+
+  it("removes italics, headings and backticks", () => {
+    expect(stripDecoration("## Services")).toBe("Services");
+    expect(stripDecoration("We use `TypeScript` daily.")).toBe("We use TypeScript daily.");
+    expect(stripDecoration("That is *really* useful.")).toBe("That is really useful.");
+  });
+
+  it("leaves an unmatched asterisk nowhere to hide", () => {
+    expect(stripDecoration("**Broken")).toBe("Broken");
+  });
+
+  it("does not eat a multiplication sign between numbers", () => {
+    expect(stripDecoration("2 * 3 = 6")).toBe("2 * 3 = 6");
   });
 });

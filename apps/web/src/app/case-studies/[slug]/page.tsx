@@ -34,8 +34,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const study = await getCaseStudy(slug);
   if (!study) return buildMetadata({ title: "Case study | Nexoris Technologies", description: "", path: `/case-studies/${slug}` });
   return buildMetadata({
-    title: study.metaTitle ?? `${study.title} | Nexoris Technologies`,
-    description: study.metaDescription ?? study.summary ?? "",
+    // Derived, not authored. A case study is portfolio evidence rather than a page written to be
+    // found in search, so it carries no meta title or meta description of its own; the heading and
+    // the summary shown on the page are what describe it.
+    title: `${study.title} | Nexoris Technologies`,
+    description: study.summary ?? "",
     path: `/case-studies/${study.slug}`,
     // Deliberately kept out of the index. A case study is proof shown to someone already reading a
     // service page, not a page meant to rank on its own, and the owner does not want these counted

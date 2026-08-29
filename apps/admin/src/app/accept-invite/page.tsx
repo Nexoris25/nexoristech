@@ -10,11 +10,15 @@ import { ShieldCheck, AlertTriangle } from "lucide-react";
 import { db } from "../../lib/db.js";
 import { verifyInviteToken } from "../../lib/invite.js";
 import { PasswordInput } from "../../components/auth/PasswordInput.js";
+import { securityPolicy, passwordRule } from "../../lib/security-policy.js";
 
 export const dynamic = "force-dynamic";
 
-export default async function AcceptInvitePage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string }> }): Promise<ReactNode> {
-  const { token, error } = await searchParams;
+export default async function AcceptInvitePage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string; why?: string }> }): Promise<ReactNode> {
+  const { token, error, why } = await searchParams;
+  // The rule as configured, so the page cannot describe one the server does not apply.
+  const policy = await securityPolicy();
+  const rule = passwordRule(policy);
   const payload = verifyInviteToken(token);
   let valid = false;
   let name = "";
@@ -39,11 +43,11 @@ export default async function AcceptInvitePage({ searchParams }: { searchParams:
             <div className="mt-6 flex items-center gap-2 text-[#543CDA]"><ShieldCheck size={18} /><h1 className="text-[1.15rem] font-700 text-slate-900">Set your password</h1></div>
             <p className="mt-1.5 text-[0.86rem] text-slate-500">Welcome{name ? `, ${name.split(/\s+/)[0]}` : ""}. Choose a password to activate your Nexoris Technologies account.</p>
             {error === "mismatch" ? <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[0.8rem] font-600 text-red-600">The two passwords did not match.</p> : null}
-            {error === "weak" ? <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[0.8rem] font-600 text-red-600">Use at least 8 characters.</p> : null}
+            {error === "weak" ? <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[0.8rem] font-600 text-red-600">{why || rule}</p> : null}
             <form action="/api/accept-invite" method="post" className="mt-5 flex flex-col gap-4">
               <input type="hidden" name="token" value={token} />
               <label className="flex flex-col gap-1.5"><span className="text-[0.82rem] font-600 text-slate-700">New password</span>
-                <PasswordInput name="password" placeholder="At least 8 characters" autoComplete="new-password" showStrength />
+                <PasswordInput name="password" placeholder={rule} autoComplete="new-password" showStrength />
               </label>
               <label className="flex flex-col gap-1.5"><span className="text-[0.82rem] font-600 text-slate-700">Confirm password</span>
                 <PasswordInput name="confirm" placeholder="Re-enter your password" autoComplete="new-password" />

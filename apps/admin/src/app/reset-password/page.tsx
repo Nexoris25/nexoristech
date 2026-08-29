@@ -12,15 +12,18 @@ import { KeyRound, AlertTriangle } from "lucide-react";
 import { db } from "../../lib/db.js";
 import { verifyResetToken } from "../../lib/reset.js";
 import { PasswordInput } from "../../components/auth/PasswordInput.js";
+import { securityPolicy, passwordRule } from "../../lib/security-policy.js";
 
 export const dynamic = "force-dynamic";
 
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string; error?: string }>;
+  searchParams: Promise<{ token?: string; error?: string; why?: string }>;
 }): Promise<ReactNode> {
-  const { token, error } = await searchParams;
+  const { token, error, why } = await searchParams;
+  // The rule as configured, so the page cannot describe one the server does not apply.
+  const rule = passwordRule(await securityPolicy());
   const payload = verifyResetToken(token);
 
   let valid = false;
@@ -69,7 +72,7 @@ export default async function ResetPasswordPage({
             ) : null}
             {error === "weak" ? (
               <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[0.8rem] font-600 text-red-600">
-                That password does not meet the security policy. Use a longer one.
+                {why || rule}
               </p>
             ) : null}
             {error === "expired" ? (
@@ -82,7 +85,7 @@ export default async function ResetPasswordPage({
               <input type="hidden" name="token" value={token} />
               <label className="flex flex-col gap-1.5">
                 <span className="text-[0.82rem] font-600 text-slate-700">New password</span>
-                <PasswordInput name="password" placeholder="At least 8 characters" autoComplete="new-password" showStrength />
+                <PasswordInput name="password" placeholder={rule} autoComplete="new-password" showStrength />
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-[0.82rem] font-600 text-slate-700">Confirm password</span>
