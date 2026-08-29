@@ -62,12 +62,18 @@ importers:
       '@react-pdf/renderer':
         specifier: 4.1.6
         version: 4.1.6(react@19.0.0)
+      '@types/fontkit':
+        specifier: 2.0.9
+        version: 2.0.9
       bcryptjs:
         specifier: 2.4.3
         version: 2.4.3
       decimal.js:
         specifier: 10.6.0
         version: 10.6.0
+      fontkit:
+        specifier: 2.0.4
+        version: 2.0.4
       google-auth-library:
         specifier: 10.9.1
         version: 10.9.1
@@ -1373,6 +1379,9 @@ packages:
 
   '@types/express@5.0.5':
     resolution: {integrity: sha512-LuIQOcb6UmnF7C1PCFmEU1u2hmiHL43fgFQX67sN3H4Z+0Yk0Neo++mFsBjhOAuLzvlQeqAAkeDOZrJs9rzumQ==}
+
+  '@types/fontkit@2.0.9':
+    resolution: {integrity: sha512-qNYerFky3muCmZPq+R+B3cUDRA5OONw/oh6aGGFxx2LOBz6yu8eamKusrhkHnC6rc2fm76+G9z9QoWSB2SaQaw==}
 
   '@types/hast@3.0.4':
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
@@ -5249,6 +5258,10 @@ snapshots:
       '@types/body-parser': 1.19.6
       '@types/express-serve-static-core': 5.1.3
       '@types/serve-static': 1.15.10
+
+  '@types/fontkit@2.0.9':
+    dependencies:
+      '@types/node': 22.10.2
 
   '@types/hast@3.0.4':
     dependencies:

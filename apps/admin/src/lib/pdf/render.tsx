@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderToBuffer, Font } from "@react-pdf/renderer";
 import { NexorisDocument } from "./document.js";
+import { sanitiseForFonts } from "./glyphs.js";
 import type { DocumentData } from "./types.js";
 
 // Register a real TTF so font metrics resolve in the server runtime (the bundled standard fonts
@@ -66,8 +67,24 @@ function dataUrlToBuffer(value: string | undefined): Buffer | undefined {
   }
 }
 
-export async function renderDocument(data: DocumentData): Promise<Buffer> {
+/** The TTFs actually embedded, which is what decides whether a character can be drawn. */
+function embeddedFontFiles(): string[] {
+  const dir = join(process.cwd(), "public");
+  return ["jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf"]
+    .map((f) => join(dir, f));
+}
+
+export async function renderDocument(input: DocumentData): Promise<Buffer> {
   registerFonts();
+  /*
+   * Fold the text to what the embedded fonts can draw, before anything tries to lay it out.
+   *
+   * react-pdf does not skip a character it has no glyph for; it throws from inside textkit and the
+   * whole document is lost. A real proposal failed exactly this way, on one character somewhere in
+   * twenty pages of pasted copy. Cleaning the payload once here covers every render path at the only
+   * point that all of them share.
+   */
+  const data = sanitiseForFonts(input, embeddedFontFiles());
   // The full-resolution marks: white for the purple cover band, purple for the plain letterheads.
   const logo = asset("logo-mark-white.png");
   const mark = asset("logo-mark-purple.png");
