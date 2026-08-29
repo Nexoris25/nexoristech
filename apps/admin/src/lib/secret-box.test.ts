@@ -41,10 +41,21 @@ describe("seal and open", () => {
   it("refuses to open a value tampered with in the database", () => {
     const sealed = seal(SECRET) as string;
     const parts = sealed.split(".");
-    // Flip one character of the ciphertext, which is what an edited row looks like.
-    const body = parts[3] as string;
-    const flipped = `${body.slice(0, -1)}${body.endsWith("A") ? "B" : "A"}`;
-    expect(open([parts[0], parts[1], parts[2], flipped].join("."))).toBeNull();
+    // Flip a bit in the ciphertext itself rather than a character of its encoding. Editing the last
+    // base64url character is not reliably a change at all: its trailing bits can be padding that
+    // decodes to the same bytes, so that version of this test passed or failed depending on the
+    // random IV. Going through the buffer guarantees the ciphertext really differs.
+    const body = Buffer.from(parts[3] as string, "base64url");
+    body[0] = (body[0] as number) ^ 0xff;
+    expect(open([parts[0], parts[1], parts[2], body.toString("base64url")].join("."))).toBeNull();
+  });
+
+  it("refuses to open a value whose authentication tag was swapped", () => {
+    // The other half of what GCM buys: a tag from a different message must not verify this one.
+    const a = seal(SECRET) as string;
+    const b = seal("something else") as string;
+    const pa = a.split("."), pb = b.split(".");
+    expect(open([pa[0], pa[1], pb[2], pa[3]].join("."))).toBeNull();
   });
 
   it("refuses to open a value sealed under a different key", () => {

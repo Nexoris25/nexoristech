@@ -20,7 +20,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { MailCheck } from "lucide-react";
 
-export function SendResetLink({ staffId, email }: { staffId: string; email: string }): ReactNode {
+export function SendResetLink({ staffId, email, byEmail = false }: { staffId: string; email: string; byEmail?: boolean }): ReactNode {
   const [sent, setSent] = useState(false);
 
   return (
@@ -35,10 +35,10 @@ export function SendResetLink({ staffId, email }: { staffId: string; email: stri
       <button
         type="submit"
         disabled={sent}
-        title={`Email a reset link to ${email}`}
+        title={byEmail ? `Email a reset link to ${email}` : `Create a reset link for ${email} to pass on`}
         className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-[0.78rem] font-600 text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <MailCheck size={14} /> {sent ? "Sending…" : "Send reset link"}
+        <MailCheck size={14} /> {sent ? "Working…" : byEmail ? "Send reset link" : "Create reset link"}
       </button>
     </form>
   );

@@ -171,16 +171,33 @@ export async function POST(request: NextRequest): Promise<Response> {
       "UPDATE staff SET reset_token=$1, reset_expires=now() + ($2 || ' minutes')::interval WHERE id=$3",
       [token, String(RESET_MAX_AGE_MINUTES), person.id]);
 
-    const message = passwordResetEmail(person.name, resetLink(await shareOrigin(), token), RESET_MAX_AGE_MINUTES);
+    const link = resetLink(await shareOrigin(), token);
+    const message = passwordResetEmail(person.name, link, RESET_MAX_AGE_MINUTES);
     const result = await sendEmail({ to: person.email, ...message }, "password reset");
 
     await pool.query(
       `INSERT INTO audit_log (actor_id, action, entity, entity_id, after)
        VALUES ($1,'send-reset-link','staff',$2,$3::jsonb)`,
-      // What was done, not what the password became: nobody here chose one.
+      // What was done, not what the password became: nobody here chose one. The link is not recorded
+      // either, because the audit log is read by more people than may use it.
       [admin.id, person.id, JSON.stringify({ delivered: result.status === "sent" })]);
 
-    return back(request, `?reset=${result.status === "sent" ? "sent" : "not-sent"}`);
+    /*
+     * When it could not be emailed, hand the link back so the admin can pass it on.
+     *
+     * Marking the outstanding request resolved is what keeps the queue honest: the person asked, the
+     * admin acted, and the row should stop looking like it still needs attention.
+     *
+     * The token is in the URL, which is the same place the invitation link already appears on this
+     * screen. It is single-use and lives thirty minutes, and it is only ever produced for an admin who
+     * has just been authorised to produce it.
+     */
+    await pool.query(
+      "UPDATE password_reset_request SET status='resolved', resolved_at=now(), resolved_by=$1 WHERE staff_id=$2 AND status='open'",
+      [admin.id, person.id]);
+
+    if (result.status === "sent") return back(request, "?reset=sent");
+    return back(request, `?resetlink=${encodeURIComponent(link)}&resetfor=${encodeURIComponent(person.name)}`);
   }
 
   return back(request);

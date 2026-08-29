@@ -39,7 +39,7 @@ const ACCESS_LABEL: Record<string, string> = {
 
 interface InvitableRow { id: string; full_name: string; email: string | null }
 
-export default async function AccessPage({ searchParams }: { searchParams: Promise<{ invited?: string; granted?: string; error?: string; mail?: string; reset?: string }> }): Promise<ReactNode> {
+export default async function AccessPage({ searchParams }: { searchParams: Promise<{ invited?: string; granted?: string; error?: string; mail?: string; reset?: string; resetlink?: string; resetfor?: string }> }): Promise<ReactNode> {
   await requireAdmin();
   const notice = await searchParams;
   const pool = db();
@@ -131,7 +131,21 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
         </section>
       ) : null}
       {notice.reset === "sent" ? <p className="mt-4 rounded-lg bg-[#DCFCE7] px-3.5 py-2.5 text-[0.83rem] font-600 text-[#15803D]">Reset link emailed. It expires in 30 minutes and can be used once.</p> : null}
-      {notice.reset === "not-sent" ? <p className="mt-4 rounded-lg bg-amber-50 px-3.5 py-2.5 text-[0.83rem] font-600 text-amber-800">The reset link could not be emailed. Check <Link href="/settings/email" className="underline">Email Delivery</Link>.</p> : null}
+      {/* The same link, to pass on by hand, when there is no provider to send it.
+          This is the whole reset loop without email: the person asks from the sign-in page, the
+          request lands in the list below, and the admin hands them this. What it protects is that
+          the admin never chooses or learns their password. */}
+      {notice.resetlink ? (
+        <section className="mt-4 rounded-2xl border border-[#543CDA]/30 bg-[#F6F4FE] p-4">
+          <h2 className="text-[0.92rem] font-700 text-slate-900">Send this link to {notice.resetfor ?? "them"}</h2>
+          <p className="mt-0.5 text-[0.82rem] text-slate-600">
+            They open it and set their own password. It works once and expires in 30 minutes, so send
+            it now and ask them to use it straight away. Check you are talking to the right person
+            before you send it.
+          </p>
+          <CopyLink link={notice.resetlink} />
+        </section>
+      ) : null}
       {notice.granted ? <p className="mt-4 rounded-lg bg-[#DCFCE7] px-3.5 py-2.5 text-[0.83rem] font-600 text-[#15803D]">Access granted.</p> : null}
       {notice.error === "reissue" ? <p className="mt-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-[0.83rem] font-600 text-red-600">That account is already active, so it has no invitation to reissue. The person signs in with their own password.</p>
         : notice.error ? <p className="mt-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-[0.83rem] font-600 text-red-600">That invitation could not be completed. Check the name and email and try again.</p> : null}
@@ -167,7 +181,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
             {resets.map((req) => (
               <li key={req.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 px-3.5 py-2.5">
                 <span className="text-[0.85rem] text-slate-800">{req.staff_name ?? req.email}{req.staff_name ? <span className="text-slate-500"> · {req.email}</span> : null}</span>
-                {req.staff_id ? <SendResetLink staffId={req.staff_id} email={req.email} /> : <span className="text-[0.78rem] text-slate-500">No matching account</span>}
+                {req.staff_id ? <SendResetLink staffId={req.staff_id} email={req.email} byEmail={emailReady} /> : <span className="text-[0.78rem] text-slate-500">No matching account</span>}
               </li>
             ))}
           </ul>
