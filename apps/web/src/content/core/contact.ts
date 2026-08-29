@@ -63,7 +63,12 @@ export const contact: MarketingPage = {
       heading: "Other ways to reach us.",
       body: [
         "WhatsApp: message us directly, we reply during business hours. Phone: +234 913 813 3224. General questions: hello@nexoristech.com. New business: business@nexoristech.com. LinkedIn: Nexoris Technologies.",
-        "No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos",
+        // Labelled, not bare. The address used to sit here as a line on its own, with no word
+        // anywhere near it connecting it to an office or a visit, so a visitor asking Oge "how do I
+        // visit your office" got nothing: the words that question is made of appeared on service
+        // pages talking about back-office work, and this page ranked nowhere. The address is
+        // unchanged; only the sentence around it is new.
+        "Our office, if you would like to visit us: No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos.",
       ],
     },
     {

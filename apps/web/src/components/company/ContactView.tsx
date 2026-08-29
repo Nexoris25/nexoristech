@@ -165,8 +165,10 @@ export function ContactView(): ReactNode {
                   </span>
                 </div>
                 <p className="addr-txt">
+                  {/* Exactly the address the rest of the platform uses. This card had "Lekki Lagos
+                      State." while the footer, the content module, the schema and the invoice all
+                      say "Lekki Lagos", so the one page devoted to contacting us was the odd one. */}
                   <b>Nexoris Technologies Ltd</b>No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos
-                  State.
                 </p>
               </div>
             </aside>

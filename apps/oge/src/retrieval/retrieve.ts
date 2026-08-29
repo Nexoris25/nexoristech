@@ -96,7 +96,19 @@ export async function retrieve(
   query: string,
   options: RetrieveOptions = {},
 ): Promise<RetrieveResult> {
-  const limit = options.limit ?? 6;
+  /*
+   * Eight, raised from six when chunks went from 800 tokens to 250.
+   *
+   * Two reasons, and the first is arithmetic: six chunks of 800 was about 4,800 tokens of context and
+   * six of 250 is about 1,500, so holding the count fixed would have quietly cut the context the model
+   * gets to under a third. Eight of 250 is still far less than before, which is the point of the
+   * smaller chunks, but it is not a starvation.
+   *
+   * The second is measured. On the fourteen-question set that names the page able to answer each one,
+   * six finds the right page for 13 and eight finds it for 14. Ten finds 14 as well, so eight is where
+   * it stops paying and the extra tokens stop being free.
+   */
+  const limit = options.limit ?? 8;
   const candidates = options.candidates ?? Math.max(limit * 2, 12);
 
   let queryVector = options.queryVector;

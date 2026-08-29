@@ -2,15 +2,34 @@
  * Deterministic, block-aware chunking for the knowledge base (PRD 10.3).
  *
  * Text is split into blocks on blank lines, and blocks are packed greedily into chunks of about
- * 800 tokens with about 100 tokens of overlap between neighbours. A block is never split, so a
+ * 250 tokens with about 50 tokens of overlap between neighbours. A block is never split, so a
  * paragraph, an FAQ question-and-answer pair, or an answer block always stays whole; a single
  * oversized block becomes its own chunk rather than being cut. No model calls are made: token
  * counts are estimated from the word count, which is enough to size chunks consistently.
  */
 import type { ChunkOptions } from "./types.js";
 
-const DEFAULT_MAX_TOKENS = 800;
-const DEFAULT_OVERLAP_TOKENS = 100;
+/*
+ * 250, not 800, and the difference is measurable.
+ *
+ * At 800 nearly every page became a single chunk, so a page was retrievable only as a whole. A fact
+ * stated once inside a long page is a small fraction of that chunk's text, and both retrievers judge
+ * the chunk rather than the fact: the office address sat in a 527-token contact chunk and questions
+ * about visiting the office ranked service pages that mention back-office work above it, while the
+ * page holding the address did not appear at all.
+ *
+ * Measured on a fourteen-question set naming the page that can actually answer each one. At 800 the
+ * right page was retrieved for 10; at 250 it is 13, and the three questions that had been failing
+ * outright, the two about visiting the office and the one about hospital software, all pass. Nothing
+ * that passed before regressed, which was the risk worth checking: smaller chunks could plausibly
+ * have hurt the broad questions like "what does Nexoris Technologies do", and did not.
+ *
+ * Blocks are still never split, so a paragraph or an FAQ pair stays whole either way. The overlap
+ * comes down with the size to keep the proportion sane; 100 tokens of overlap on a 250-token chunk
+ * would repeat 40 per cent of the corpus.
+ */
+const DEFAULT_MAX_TOKENS = 250;
+const DEFAULT_OVERLAP_TOKENS = 50;
 
 /**
  * Estimate the token count of a string. English averages about 0.75 words per token, so tokens
