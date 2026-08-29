@@ -13,6 +13,7 @@ import { db } from "../../../../lib/db.js";
 import { deactivateStaff } from "../../../../lib/people-actions.js";
 import { MODULE_LABEL, type ModuleId } from "../../../../lib/shell-constants.js";
 import { shareOrigin, inviteLink } from "../../../../lib/invite.js";
+import { emailConfigured } from "../../../../lib/email.js";
 import { CopyLink } from "./CopyLink.js";
 import { GrantAccess } from "./GrantAccess.js";
 import { InviteUser } from "./InviteUser.js";
@@ -74,6 +75,8 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
   ]);
   const a = agg[0]!;
   const origin = await shareOrigin();
+  // Whether an invitation will actually be emailed, so the dialog promises only what will happen.
+  const emailReady = await emailConfigured();
   // The person just invited, so their link can be surfaced at the top rather than hunted for in the list.
   const justInvited = notice.invited ? staff.find((p) => p.id === notice.invited) : undefined;
   const noAccess = staff.filter((p) => p.active && (p.grants ?? []).length === 0).length;
@@ -90,7 +93,7 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
           <h1 className="text-[1.4rem] font-700 text-slate-900">People &amp; Access</h1>
           <p className="mt-1 text-[0.88rem] text-slate-500">The one place module access and role are granted. People are created in <Link href="/people/onboard" className="font-600 text-[#543CDA]">HR onboarding</Link>; invite them here to give them a login.</p>
         </div>
-        <InviteUser employees={invitableEmployees} />
+        <InviteUser employees={invitableEmployees} emailReady={emailReady} />
       </div>
 
       {/* Whether the invitation was actually delivered, said plainly.

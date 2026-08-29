@@ -108,7 +108,10 @@ async function delivery(): Promise<Delivery | { missing: string }> {
   const apiKey = open(row.api_key_sealed);
   const apiSecret = open(row.api_secret_sealed);
   if (!apiKey || !apiSecret) {
-    return { missing: "no Mailjet API key and secret are stored, or they were sealed under a different ADMIN_SETTINGS_KEY" };
+    // Deliberately not naming a provider. No credentials are stored, which is a decision as often as
+    // it is an oversight: invitations and resets produce a link that works without any provider at
+    // all, and running that way is a supported state rather than a broken one.
+    return { missing: "no email provider credentials are stored, so invitations and resets are shared as links" };
   }
   if (!row.from_email) return { missing: "no From address is set" };
 

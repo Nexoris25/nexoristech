@@ -21,7 +21,7 @@ import { UserPlus, X } from "lucide-react";
 
 export interface InvitableEmployee { id: string; name: string; email: string }
 
-export function InviteUser({ employees }: { employees: InvitableEmployee[] }): ReactNode {
+export function InviteUser({ employees, emailReady = false }: { employees: InvitableEmployee[]; emailReady?: boolean }): ReactNode {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"employee" | "new">(employees.length > 0 ? "employee" : "new");
   // Which employee is selected, so the address box can appear exactly when their record has none.
@@ -52,7 +52,14 @@ export function InviteUser({ employees }: { employees: InvitableEmployee[] }): R
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-[1.05rem] font-700 text-slate-900">Invite a user</h2>
-                <p className="mt-1 text-[0.82rem] text-slate-500">They get an email with a link, and you get the same link to copy. They set their own password and sign in. Grant modules once they do.</p>
+                {/* What will actually happen, which depends on whether a provider is configured.
+                    Promising an email that cannot be sent is how an admin closes this dialog believing
+                    the person has been contacted. */}
+                <p className="mt-1 text-[0.82rem] text-slate-500">
+                  {emailReady
+                    ? "They get an email with a link, and you get the same link to copy. They set their own password and sign in. Grant modules once they do."
+                    : "You get a link to send them however you like. They open it, set their own password, and sign in. Grant modules once they do."}
+                </p>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-600 hover:bg-slate-100"><X size={17} /></button>
             </div>
