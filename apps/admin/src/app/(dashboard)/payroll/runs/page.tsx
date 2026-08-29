@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Wallet } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ function naira(v: string): string {
 }
 
 export default async function PayRunsPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.prepare");
   const pool = db();
   const [{ rows }, { rows: emp }] = await Promise.all([
     pool.query<{ id: string; period: string; run_type: string; status: string; employee_count: number; gross: string; net: string; created_at: string }>(

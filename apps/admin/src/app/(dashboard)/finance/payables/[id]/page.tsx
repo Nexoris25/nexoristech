@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireAdmin } from "../../../../../lib/auth.js";
+import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 import { naira } from "../../../../../lib/finance.js";
 
@@ -19,7 +19,7 @@ interface Exp {
 }
 
 export default async function ExpensePage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.read");
   const { id } = await params;
   const { rows } = await db().query<Exp>(
     `SELECT e.seq::text, e.expense_date::text, e.vendor, e.description, c.name category, e.amount::text, e.vat::text,

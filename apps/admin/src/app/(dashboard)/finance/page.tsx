@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, TriangleAlert, Wallet, TrendingUp, TrendingDown } from "lucide-react";
-import { requireAdmin } from "../../../lib/auth.js";
+import { requireCapability } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 import { naira } from "../../../lib/finance.js";
 
@@ -17,7 +17,7 @@ interface Txn { kind: "Income" | "Expense"; label: string; party: string; amount
 interface Alert { id: string; client_name: string; due_date: string; outstanding: string; overdue: boolean }
 
 export default async function FinanceDashboard(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.read");
   const pool = db();
   const [totals, txns, alerts] = await Promise.all([
     pool.query<{ income: string; expenses: string; receivables: string; payables: string }>(

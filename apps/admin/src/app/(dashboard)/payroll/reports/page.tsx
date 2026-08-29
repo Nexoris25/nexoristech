@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import { BarChart3 } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ interface RunRow {
 function naira(v: string | number): string { return `₦${Number(v).toLocaleString("en-NG", { maximumFractionDigits: 0 })}`; }
 
 export default async function PayrollReportsPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.read");
   const year = new Date().getFullYear();
   const { rows } = await db().query<RunRow>(
     `SELECT r.id, r.period, r.run_type, r.disbursed_at, r.employee_count,

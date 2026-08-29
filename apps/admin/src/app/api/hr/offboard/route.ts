@@ -6,16 +6,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
+  const staff = await getStaffFor("hr.offboard");
+  if (!staff) return NextResponse.json({ ok: false }, { status: 403 });
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
-  if (!staff || staff.role !== "admin" || !id) {
+  if (!staff || !id) {
     return NextResponse.redirect(new URL("/people", request.url), { status: 303 });
   }
   const pool = db();

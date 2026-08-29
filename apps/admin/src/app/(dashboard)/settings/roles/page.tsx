@@ -10,20 +10,32 @@ import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { requireAdmin } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
-import { MODULES, MODULE_LABEL, MODULE_ROLES } from "../../../../lib/shell-constants.js";
+import { MODULES, MODULE_LABEL, MODULE_ROLES, type ModuleId } from "../../../../lib/shell-constants.js";
+import { CAPABILITY_LABEL, MODULE_ROLE_CAPABILITIES } from "../../../../lib/permissions.js";
+import {
+  CAPABILITY_LABEL as CMS_CAPABILITY_LABEL,
+  ROLE_CAPABILITIES as CMS_ROLE_CAPABILITIES,
+} from "../../../../lib/cms-roles.js";
 
 export const dynamic = "force-dynamic";
 
-const ROLE_DESC: Record<string, string> = {
-  "CRM Admin": "Full CRM: pipeline, reassignment, templates, targets.",
-  Salesperson: "Own leads and deals; request reassignment.",
-  Viewer: "Read-only access to the module.",
-  "Finance Admin": "Full Finance: invoices, expenses, void, chart of accounts.",
-  "Finance Viewer": "Read-only Finance, for leadership.",
-  "HR Admin": "Full HR: onboarding, records, leave, offboarding.",
-  "HR Assistant": "Day-to-day HR without offboarding or sensitive edits.",
-  "Payroll Admin": "Run payroll, approve, disburse, manage statutory settings.",
-};
+/**
+ * What a role permits, written from the model rather than from memory.
+ *
+ * This was a hand-maintained map of one-line descriptions, and it was already a third source of
+ * truth beside the roles list and the capability model. It described "Viewer" and "HR Assistant",
+ * had never heard of nine of the roles now defined, and would have rendered blank for each of them.
+ * Listing the capabilities a role actually holds cannot drift, because it is the same data the gates
+ * read.
+ */
+function permits(module: ModuleId, role: string): string {
+  if (module === "cms") {
+    return (CMS_ROLE_CAPABILITIES[role] ?? []).map((c) => CMS_CAPABILITY_LABEL[c]).join(" · ");
+  }
+  const caps = MODULE_ROLE_CAPABILITIES[module][role] ?? [];
+  return caps.map((c) => CAPABILITY_LABEL[c]).join(" · ");
+}
+
 const PLATFORM = [
   ["admin", "Full platform access, including People & Access and Settings."],
   ["salesperson", "A working user; module access is granted per module."],
@@ -57,7 +69,7 @@ export default async function RolesPage(): Promise<ReactNode> {
             <div className="mt-3 flex flex-col divide-y divide-slate-100">
               {MODULE_ROLES[m].map((role) => (
                 <div key={role} className="flex items-start justify-between gap-3 py-2.5">
-                  <div className="min-w-0"><p className="text-[0.85rem] font-600 text-slate-900">{role}</p><p className="text-[0.76rem] text-slate-500">{ROLE_DESC[role] ?? ""}</p></div>
+                  <div className="min-w-0"><p className="text-[0.85rem] font-600 text-slate-900">{role}</p><p className="text-[0.76rem] leading-relaxed text-slate-500">{permits(m, role)}</p></div>
                   <span className="shrink-0 rounded-full bg-[#EEEBFC] px-2.5 py-1 text-[0.72rem] font-600 text-[#543CDA]">{count(m, role)} {count(m, role) === "1" ? "person" : "people"}</span>
                 </div>
               ))}

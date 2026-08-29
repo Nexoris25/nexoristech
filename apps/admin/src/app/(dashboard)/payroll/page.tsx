@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Wallet, Users2, Landmark, Clock, CalendarClock, ChevronRight, AlertTriangle } from "lucide-react";
-import { requireAdmin } from "../../../lib/auth.js";
+import { requireCapability } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ function naira(v: string | number): string {
 }
 
 export default async function PayrollDashboard(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.read");
   const pool = db();
   const [{ rows: emp }, { rows: last }, { rows: pend }, { rows: runs }, { rows: cfg }] = await Promise.all([
     pool.query<{ c: number }>("SELECT count(*)::int c FROM employee WHERE employment_status <> 'Exited'"),

@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,8 +25,8 @@ function d(v: FormDataEntryValue | null): string | null {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
-  if (!staff || staff.role !== "admin") {
+  const staff = await getStaffFor("hr.write");
+  if (!staff) {
     return NextResponse.redirect(new URL("/people", request.url), { status: 303 });
   }
 

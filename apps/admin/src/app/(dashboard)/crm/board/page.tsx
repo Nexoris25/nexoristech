@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { LayoutGrid, List } from "lucide-react";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
 import { PipelineBoard, type BoardLead } from "./PipelineBoard.js";
@@ -15,7 +15,7 @@ import { PipelineBoard, type BoardLead } from "./PipelineBoard.js";
 export const dynamic = "force-dynamic";
 
 export default async function PipelineBoardPage({ searchParams }: { searchParams: Promise<{ view?: string }> }): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.read");
   const asList = (await searchParams).view === "list";
   const mine = staff.role === "salesperson";
   const where = mine ? "WHERE l.assigned_to = $1" : "";

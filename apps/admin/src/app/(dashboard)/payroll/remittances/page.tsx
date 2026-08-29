@@ -16,7 +16,7 @@
  */
 import type { ReactNode } from "react";
 import { CalendarClock, Landmark, Users } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +47,7 @@ const DEADLINES: { authority: string; item: string; due: string }[] = [
 ];
 
 export default async function RemittancesPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.remit");
   const pool = db();
   const { rows } = await pool.query<Agg>(
     `SELECT r.id, r.period, r.disbursed_at,

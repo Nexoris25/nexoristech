@@ -5,7 +5,7 @@
  * from payments and expenses, never recalculated a second way.
  */
 import type { ReactNode } from "react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { naira } from "../../../../lib/finance.js";
 
@@ -29,7 +29,7 @@ function Bars({ rows, color }: { rows: Cat[]; color: string }): ReactNode {
 }
 
 export default async function ReportsPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.report");
   const year = new Date().getFullYear();
   const pool = db();
   const [{ rows: income }, { rows: expense }, { rows: months }, { rows: pos }] = await Promise.all([

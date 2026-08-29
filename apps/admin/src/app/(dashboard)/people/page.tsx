@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Search, UserPlus, Users2, UserCheck, CalendarClock, LogOut } from "lucide-react";
-import { requireAdmin } from "../../../lib/auth.js";
+import { requireCapability } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ function initials(name: string): string {
 }
 
 export default async function EmployeeDirectoryPage({ searchParams }: { searchParams: Promise<{ q?: string; dept?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("hr.read");
   const { q, dept } = await searchParams;
   const query = (q ?? "").trim();
   const pool = db();

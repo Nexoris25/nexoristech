@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ const field = "rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.85r
 const lbl = "text-[0.76rem] font-600 text-slate-700";
 
 export default async function FinanceSettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.settings");
   const { saved } = await searchParams;
   const pool = db();
   const [{ rows: s }, { rows: cats }, { rows: methods }] = await Promise.all([

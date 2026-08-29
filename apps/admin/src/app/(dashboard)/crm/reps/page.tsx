@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { UserCog, ChevronRight } from "lucide-react";
 import { industryLabel, isIndustrySlug } from "@nexoris/recommend";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ function labelFor(slug: string): string {
 }
 
 export default async function SalesRepsPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("crm.assign");
 
   const { rows } = await db().query<RepRow>(
     `SELECT s.id, s.name, s.email, s.industries, s.capacity_cap,

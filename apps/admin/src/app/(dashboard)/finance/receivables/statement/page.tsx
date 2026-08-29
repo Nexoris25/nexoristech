@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
-import { requireAdmin } from "../../../../../lib/auth.js";
+import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 import { naira } from "../../../../../lib/finance.js";
 
@@ -17,7 +17,7 @@ interface Client { client_name: string; invoices: number; billed: string; paid: 
 interface Line { id: string; seq: string; issue_date: string; due_date: string; total: string; amount_paid: string; status: string }
 
 export default async function StatementPage({ searchParams }: { searchParams: Promise<{ client?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.report");
   const { client } = await searchParams;
   const pool = db();
 

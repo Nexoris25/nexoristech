@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireAdmin } from "../../../../../lib/auth.js";
+import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 import { RepProfileForm } from "./RepProfileForm.js";
 
@@ -31,7 +31,7 @@ export default async function RepProfilePage({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("crm.assign");
   const { id } = await params;
   const pool = db();
 

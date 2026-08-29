@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { naira } from "../../../../lib/finance.js";
 
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 interface Row { kind: "Income" | "Expense"; label: string; party: string; amount: string; txn_date: string; href: string }
 
 export default async function TransactionsPage({ searchParams }: { searchParams: Promise<{ type?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.reconcile");
   const { type } = await searchParams;
   const filter = type === "income" ? "Income" : type === "expense" ? "Expense" : null;
 

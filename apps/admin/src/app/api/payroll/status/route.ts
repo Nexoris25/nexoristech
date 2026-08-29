@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,10 +15,11 @@ export const dynamic = "force-dynamic";
 const NEXT: Record<string, string> = { Draft: "Reviewed", Reviewed: "Approved", Approved: "Disbursed" };
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
+  const staff = await getStaffFor("payroll.approve");
+  if (!staff) return NextResponse.json({ ok: false }, { status: 403 });
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
-  if (!staff || staff.role !== "admin" || !id) return NextResponse.redirect(new URL("/payroll/runs", request.url), { status: 303 });
+  if (!staff || !id) return NextResponse.redirect(new URL("/payroll/runs", request.url), { status: 303 });
 
   const pool = db();
   const run = (await pool.query<{ status: string; net: string }>("SELECT status, net::text FROM pay_run WHERE id=$1", [id])).rows[0];

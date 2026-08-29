@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
-import { requireAdmin } from "../../../../../lib/auth.js";
+import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,7 @@ interface Line {
 }
 
 export default async function RunDetailsPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.prepare");
   const { id } = await params;
   const [{ rows: runs }, { rows: lines }] = await Promise.all([
     db().query<{ period: string; run_type: string; status: string; employee_count: number; gross: string; deductions: string; net: string; employer_cost: string; created_at: string }>(

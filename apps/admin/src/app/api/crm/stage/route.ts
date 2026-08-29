@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
 import { recommendationForLead } from "../../../../lib/lead-recommendation.js";
 import { prepareFollowUp } from "../../../../lib/followup.js";
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 const NEEDS_DETAIL = new Set(["Won", "Lost", "Nurture"]);
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
+  const staff = await getStaffFor("crm.write");
   if (!staff || staff.role === "viewer") return NextResponse.json({ error: "You cannot move leads." }, { status: 403 });
 
   let leadId = "", status = "";

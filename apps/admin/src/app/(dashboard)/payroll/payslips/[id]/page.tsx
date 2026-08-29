@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Download } from "lucide-react";
-import { requireAdmin } from "../../../../../lib/auth.js";
+import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ interface Slip {
 function naira(v: string): string { return `₦${Number(v).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
 
 export default async function PayslipPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.read");
   const { id } = await params;
   const { rows } = await db().query<Slip>(
     `SELECT l.employee_name, l.regime, r.period, r.disbursed_at,

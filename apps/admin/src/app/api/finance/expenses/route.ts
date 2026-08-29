@@ -7,14 +7,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
-  if (!staff || staff.role !== "admin") return NextResponse.redirect(new URL("/finance/payables", request.url), { status: 303 });
+  const staff = await getStaffFor("finance.payment.record");
+  if (!staff) return NextResponse.redirect(new URL("/finance/payables", request.url), { status: 303 });
   const f = await request.formData();
 
   const description = String(f.get("description") ?? "").trim();

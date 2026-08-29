@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CheckCircle2, MessageSquareWarning } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { assignLead, autoAssignLead } from "../../../../lib/people-actions.js";
 import { decideReassignment } from "../../../../lib/crm-reassign-actions.js";
@@ -37,7 +37,7 @@ interface RequestRow {
 }
 
 export default async function ReassignmentQueuePage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("crm.assign");
   const pool = db();
 
   const [{ rows: queue }, { rows: salespeople }, { rows: requests }] = await Promise.all([

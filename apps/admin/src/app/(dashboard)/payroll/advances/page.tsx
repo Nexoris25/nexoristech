@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import { HandCoins } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ const STATUS: Record<string, string> = {
 function naira(v: string): string { return `₦${Number(v).toLocaleString("en-NG", { maximumFractionDigits: 0 })}`; }
 
 export default async function AdvancesPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.prepare");
   const [{ rows }, { rows: emps }] = await Promise.all([
     db().query<Row>(
       `SELECT sa.id, e.full_name AS employee, sa.amount::text, sa.reason, sa.status, sa.repayment_months,

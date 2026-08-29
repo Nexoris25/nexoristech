@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { naira } from "../../../../lib/finance.js";
 
@@ -17,7 +17,7 @@ const field = "rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.85r
 const lbl = "text-[0.76rem] font-600 text-slate-700";
 
 export default async function PayablesPage({ searchParams }: { searchParams: Promise<{ vendor?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.read");
   const { vendor } = await searchParams;
   const pool = db();
   const [{ rows }, { rows: cats }, { rows: methods }, { rows: vendors }, { rows: sum }] = await Promise.all([

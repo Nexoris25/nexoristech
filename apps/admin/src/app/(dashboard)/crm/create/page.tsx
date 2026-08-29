@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { INDUSTRIES } from "@nexoris/recommend";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
 import { SOURCE_LABEL } from "../../../../lib/lead-ui.js";
@@ -22,7 +22,7 @@ const BUDGETS = ["Under ₦1M", "₦1M – ₦5M", "₦5M – ₦20M", "₦20M �
 const SOURCES = Object.keys(SOURCE_LABEL);
 
 export default async function CreateLeadPage(): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.write");
   if (staff.role === "viewer") {
     return <p className="text-[0.9rem] text-slate-500">Viewers cannot create leads.</p>;
   }

@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +82,7 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
 }
 
 export default async function EmployeeRecordPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("hr.read");
   const { id } = await params;
   const [{ rows }, { rows: guarantors }] = await Promise.all([
     db().query<Emp>(

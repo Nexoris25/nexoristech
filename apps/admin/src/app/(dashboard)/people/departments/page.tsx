@@ -4,13 +4,13 @@
  */
 import type { ReactNode } from "react";
 import { Building2 } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
 
 export default async function DepartmentsPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("hr.settings");
   const { rows } = await db().query<{ id: string; name: string; description: string | null; c: number }>(
     `SELECT d.id, d.name, d.description, count(e.id)::int c
        FROM hr_department d LEFT JOIN employee e ON e.department_id = d.id

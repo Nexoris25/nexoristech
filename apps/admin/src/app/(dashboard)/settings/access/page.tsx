@@ -64,13 +64,24 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
               count(*) FILTER (WHERE NOT active)::text exited,
               count(*) FILTER (WHERE role='admin' AND active)::text admins,
               (SELECT count(*) FROM module_access)::text grants FROM staff`),
-    // People onboarded in HR who have no login account yet — these are the ones to invite.
+    /*
+     * People in HR who have no login yet. Candidates, not a to-do list.
+     *
+     * Being on the payroll is not a reason to have a platform account, and most people never need
+     * one: a driver, a cleaner and a workshop technician are all HR records that should never be
+     * able to sign in. The admin picks from this list; nothing about appearing here implies an
+     * invitation is owed.
+     *
+     * Employees with no address on file are included now. They used to be filtered out, which quietly
+     * made them uninvitable, and they are exactly the people most likely to need a platform-only
+     * account set up by hand. The invite form asks for an address when the record has none.
+     */
     pool.query<InvitableRow>(
-      `SELECT e.id::text, e.full_name, COALESCE(e.work_email, e.personal_email) AS email
+      `SELECT e.id::text, e.full_name, COALESCE(e.work_email, e.personal_email, '') AS email
          FROM employee e
         WHERE e.staff_id IS NULL
-          AND COALESCE(e.work_email, e.personal_email) IS NOT NULL
-          AND lower(COALESCE(e.work_email, e.personal_email)) NOT IN (SELECT lower(email) FROM staff)
+          AND lower(COALESCE(e.work_email, e.personal_email, '')) NOT IN (
+                SELECT lower(email) FROM staff WHERE email <> '')
         ORDER BY e.full_name`),
   ]);
   const a = agg[0]!;

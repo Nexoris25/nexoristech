@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, CheckCircle2 } from "lucide-react";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { businessDayDeadline } from "../../../../lib/business-days.js";
 
@@ -36,7 +36,7 @@ function hoursLabel(ms: number): string {
 }
 
 export default async function SlaBoardPage(): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.settings");
   const mine = staff.role === "salesperson";
   const { rows } = await db().query<Row>(
     `SELECT l.id, l.name, l.company, l.band, l.source, s.name AS assignee_name, l.created_at

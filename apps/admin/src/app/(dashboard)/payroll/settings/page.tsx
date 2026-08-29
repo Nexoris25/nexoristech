@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { PAYE_BANDS } from "../../../../lib/tax-engine.js";
 
@@ -32,7 +32,7 @@ function naira(n: number): string {
 }
 
 export default async function PayrollSettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.settings");
   const { saved } = await searchParams;
   const s = (await db().query<Settings>("SELECT * FROM payroll_settings WHERE id=true")).rows[0]!;
 

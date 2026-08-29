@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ interface Row { id: string; employee_name: string; regime: string; period: strin
 function naira(v: string): string { return `₦${Number(v).toLocaleString("en-NG", { maximumFractionDigits: 0 })}`; }
 
 export default async function PayslipsPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("payroll.read");
   const { rows } = await db().query<Row>(
     `SELECT l.id, l.employee_name, l.regime, r.period, l.gross::text, l.net::text, r.disbursed_at
        FROM pay_run_line l JOIN pay_run r ON r.id = l.pay_run_id

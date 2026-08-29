@@ -7,13 +7,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
+  const staff = await getStaffFor("payroll.prepare");
   if (!staff) return NextResponse.redirect(new URL("/payroll/advances", request.url), { status: 303 });
   const f = await request.formData();
   const action = String(f.get("action") ?? "");

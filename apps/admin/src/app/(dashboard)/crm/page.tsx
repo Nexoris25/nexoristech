@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Search, Upload, Plus, ArrowUpRight } from "lucide-react";
-import { requireStaff } from "../../../lib/auth.js";
+import { requireCapability } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 import { SOURCE_LABEL } from "../../../lib/lead-ui.js";
 
@@ -57,7 +57,7 @@ export default async function LeadsPage({
 }: {
   searchParams: Promise<{ tab?: string; q?: string }>;
 }): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.read");
   const { tab = "all", q } = await searchParams;
   const query = (q ?? "").trim();
   const mine = staff.role === "salesperson";

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { TrendingUp, TrendingDown, ArrowRight, Sparkles, Trophy, UserPlus, Briefcase, Coins } from "lucide-react";
 import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
 import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { buildActionCenter } from "../../../../lib/action-center.js";
 import { PRIORITY_STYLE, SOURCE_LABEL } from "../../../../lib/lead-ui.js";
@@ -53,7 +53,7 @@ function Delta({ value }: { value: number | null }): ReactNode {
 }
 
 export default async function CrmOverviewPage({ searchParams }: { searchParams: Promise<{ range?: string }> }): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.read");
   const pool = db();
   const now = new Date();
   const period = resolvePeriod((await searchParams).range, "mtd", now);

@@ -9,6 +9,8 @@ import { db } from "./db.js";
 import { SESSION_COOKIE, verifySession } from "./session.js";
 import { sessionIsLive } from "./sessions.js";
 import { cmsCan, type CmsCapability } from "./cms-roles.js";
+import { moduleOf, roleAllows, type Capability } from "./permissions.js";
+import type { ModuleId } from "./shell-constants.js";
 import { rethrowAsUserFacing } from "./db-errors.js";
 
 export interface CurrentStaff {
@@ -114,6 +116,69 @@ export async function getCmsStaffFor(capability: CmsCapability): Promise<Current
   const staff = await getCmsStaff();
   if (!staff) return null;
   return (await cmsAllows(staff, capability)) ? staff : null;
+}
+
+/**
+ * The role a staff member holds in a module, or null when they hold no grant there.
+ *
+ * One grant per person per module is what the access screen writes, so LIMIT 1 is the shape of the
+ * data rather than a guess at it.
+ */
+export async function moduleRoleOf(staffId: string, module: ModuleId): Promise<string | null> {
+  const { rows } = await db().query<{ role: string }>(
+    "SELECT role FROM module_access WHERE staff_id = $1 AND module = $2 LIMIT 1",
+    [staffId, module],
+  );
+  return rows[0]?.role ?? null;
+}
+
+/**
+ * Whether the signed-in person may do a particular thing.
+ *
+ * The base admin role is above the module model and holds everything, which is what makes it the
+ * account you use to hand out access rather than an account you grant into every module by hand.
+ * Everyone else is judged on the role they were granted in that module and nothing else, so being
+ * signed in stops being an implicit permission the way it was for CRM.
+ */
+export async function can(staff: CurrentStaff, capability: Capability): Promise<boolean> {
+  if (staff.role === "admin") return true;
+  const module = moduleOf(capability);
+  return roleAllows(module, await moduleRoleOf(staff.id, module), capability);
+}
+
+/**
+ * Require a capability for a page. Anyone without it goes to their own dashboard.
+ *
+ * Their dashboard, not the CRM. requireAdmin has always sent refusals to /crm, which was harmless
+ * when only admins reached these pages and is not once other people do: it would drop a Payroll
+ * Officer into a module they may have no grant for at all.
+ */
+export async function requireCapability(capability: Capability): Promise<CurrentStaff> {
+  const staff = await requireStaff();
+  if (!(await can(staff, capability))) redirect("/dashboard");
+  return staff;
+}
+
+/**
+ * Require any access at all to a module, for a module's layout.
+ *
+ * This is the gate that was missing entirely. A module's pages used to ask "is anyone signed in",
+ * so the sidebar hiding a link was the only thing keeping people out of it, and a URL typed by hand
+ * went straight through. Read capability is the floor: holding no role in a module means holding
+ * none of its capabilities, including reading.
+ */
+export async function requireModule(module: ModuleId): Promise<CurrentStaff> {
+  const staff = await requireStaff();
+  if (staff.role === "admin") return staff;
+  if (await moduleRoleOf(staff.id, module)) return staff;
+  redirect("/dashboard");
+}
+
+/** The same capability check for an API route: the staff member, or null when they may not do this. */
+export async function getStaffFor(capability: Capability): Promise<CurrentStaff | null> {
+  const staff = await getCurrentStaff();
+  if (!staff) return null;
+  return (await can(staff, capability)) ? staff : null;
 }
 
 /**

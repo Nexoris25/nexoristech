@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { LIFECYCLE_LABEL, LIFECYCLE_STYLE, NRS_LABEL, NRS_STYLE, PAYMENT_STYLE, docNumber, naira, paymentStatus } from "../../../../lib/einvoice.js";
 
@@ -24,7 +24,7 @@ const PAY_SQL: Record<string, string> = {
 };
 
 export default async function FinanceInvoicesPage({ searchParams }: { searchParams: Promise<{ pay?: string }> }): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.read");
   const { pay } = await searchParams;
   const payFilter = pay && PAY_SQL[pay] ? pay : "";
 

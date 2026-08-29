@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Briefcase } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ function initials(name: string): string {
 }
 
 export default async function ContractRegisterPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("hr.write");
   const { rows } = await db().query<Row>(
     `SELECT e.id, e.full_name, e.staff_number, e.job_title, e.employment_type, d.name AS department,
             e.commission_eligible, e.employment_status

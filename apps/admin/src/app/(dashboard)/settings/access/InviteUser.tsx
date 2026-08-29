@@ -27,6 +27,11 @@ export function InviteUser({ employees, emailReady = false }: { employees: Invit
   // Which employee is selected, so the address box can appear exactly when their record has none.
   const [picked, setPicked] = useState<string>(employees[0]?.id ?? "");
   const pickedEmail = employees.find((e) => e.id === picked)?.email ?? "";
+  // A plain select of everyone in HR is a picker at twenty people and a wall at two hundred.
+  const [filter, setFilter] = useState("");
+  const shown = filter.trim()
+    ? employees.filter((e) => `${e.name} ${e.email}`.toLowerCase().includes(filter.trim().toLowerCase()))
+    : employees;
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,12 +80,22 @@ export function InviteUser({ employees, emailReady = false }: { employees: Invit
                 {employees.length === 0 ? (
                   <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-[0.82rem] text-slate-600">Everyone onboarded in HR already has a login. Use <span className="font-600">New person</span> instead.</p>
                 ) : (
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-[0.8rem] font-600 text-slate-700">Employee</span>
-                    <select name="employeeId" required value={picked} onChange={(e) => setPicked(e.target.value)} className={`cursor-pointer ${field}`}>
-                      {employees.map((e) => <option key={e.id} value={e.id}>{e.name}{e.email ? ` — ${e.email}` : " (no email on record)"}</option>)}
-                    </select>
-                  </label>
+                  <>
+                    <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-[0.78rem] text-slate-600">
+                      An HR record does not create a login, and most people never need one. Pick only
+                      the people who will actually use the platform.
+                    </p>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-[0.8rem] font-600 text-slate-700">Find someone</span>
+                      <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search by name or email" autoComplete="off" className={field} />
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-[0.8rem] font-600 text-slate-700">Employee <span className="font-400 text-slate-400">({shown.length} of {employees.length})</span></span>
+                      <select name="employeeId" required value={picked} onChange={(e) => setPicked(e.target.value)} size={Math.min(6, Math.max(2, shown.length))} className={`cursor-pointer ${field}`}>
+                        {shown.map((e) => <option key={e.id} value={e.id}>{e.name}{e.email ? ` — ${e.email}` : " (no email on record)"}</option>)}
+                      </select>
+                    </label>
+                  </>
                 )}
                 {employees.length > 0 && !pickedEmail ? (
                   <label className="flex flex-col gap-1.5">

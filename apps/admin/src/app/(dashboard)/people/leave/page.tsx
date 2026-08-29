@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 import { CalendarClock } from "lucide-react";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ const STATUS: Record<string, string> = {
 };
 
 export default async function LeavePage(): Promise<ReactNode> {
-  await requireStaff();
+  await requireCapability("hr.leave.decide");
   const { rows } = await db().query<Row>(
     `SELECT lr.id, e.full_name AS employee, lr.leave_type, lr.start_date::text, lr.end_date::text, lr.days, lr.reason, lr.status
        FROM leave_request lr JOIN employee e ON e.id = lr.employee_id

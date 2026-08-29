@@ -8,7 +8,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Info } from "lucide-react";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { GenerateDocument } from "../../crm/[id]/GenerateDocument.js";
 
@@ -28,7 +28,7 @@ export default async function RaiseInvoicePage({
 }: {
   searchParams: Promise<{ deal?: string }>;
 }): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("finance.read");
   if (staff.role === "viewer") {
     return <p className="text-[0.9rem] text-neutral-600">Viewers cannot raise invoices.</p>;
   }

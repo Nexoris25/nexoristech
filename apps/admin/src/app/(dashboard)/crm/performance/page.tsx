@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES, TARGET_METRICS, QUALIFIED_PLUS } from "../../../../lib/crm-constants.js";
 
@@ -40,7 +40,7 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export default async function PerformancePage(): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.read");
   const mine = staff.role === "salesperson";
   const where = mine ? "WHERE assigned_to = $1" : "";
   const params = mine ? [staff.id] : [];

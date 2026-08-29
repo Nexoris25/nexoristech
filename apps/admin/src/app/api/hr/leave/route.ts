@@ -2,13 +2,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
-import { getCurrentStaff } from "../../../../lib/auth.js";
+import { getStaffFor } from "../../../../lib/auth.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const staff = await getCurrentStaff();
+  const staff = await getStaffFor("hr.leave.decide");
+  if (!staff) return NextResponse.json({ ok: false }, { status: 403 });
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
   const decision = String(f.get("decision") ?? "");

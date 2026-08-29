@@ -7,14 +7,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { requireAdmin } from "../../../../../lib/auth.js";
+import { requireCapability } from "../../../../../lib/auth.js";
 import { rulesForDate } from "../../../../../lib/fiscal/rules.js";
 import { DocumentForm } from "../../../e-invoicing/_components/DocumentForm.js";
 
 export const dynamic = "force-dynamic";
 
 export default async function RaiseInvoicePage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("finance.invoice.raise");
   // The preview must price the way the server will, so it reads the same versioned rule rather than
   // the flat finance_settings number the two used to disagree over.
   const today = new Date().toISOString().slice(0, 10);

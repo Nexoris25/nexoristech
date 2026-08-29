@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { requireAdmin } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 import { PayBreakdown } from "./PayBreakdown.js";
 
@@ -35,7 +35,7 @@ function F({ label, name, type = "text", required = false, placeholder }: { labe
 }
 
 export default async function OnboardPage(): Promise<ReactNode> {
-  await requireAdmin();
+  await requireCapability("hr.onboard");
   const [{ rows: depts }, { rows: managers }] = await Promise.all([
     db().query<{ id: string; name: string }>("SELECT id, name FROM hr_department ORDER BY name"),
     db().query<{ id: string; full_name: string }>("SELECT id, full_name FROM employee WHERE employment_status <> 'Exited' ORDER BY full_name"),

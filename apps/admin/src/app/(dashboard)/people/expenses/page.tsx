@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 import { Receipt } from "lucide-react";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ function naira(v: string): string {
 }
 
 export default async function ExpensesPage(): Promise<ReactNode> {
-  await requireStaff();
+  await requireCapability("hr.read");
   const { rows } = await db().query<Row>(
     `SELECT ec.id, e.full_name AS employee, ec.description, ec.amount::text, ec.incurred_on::text, ec.status
        FROM expense_claim ec JOIN employee e ON e.id = ec.employee_id

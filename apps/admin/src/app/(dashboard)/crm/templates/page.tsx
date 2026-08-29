@@ -6,7 +6,7 @@
  */
 import type { ReactNode } from "react";
 import { FileText, ScrollText, ShieldCheck, FileSignature } from "lucide-react";
-import { requireStaff } from "../../../../lib/auth.js";
+import { requireCapability } from "../../../../lib/auth.js";
 import { GenerateDocument } from "../[id]/GenerateDocument.js";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ const TEMPLATES = [
 ] as const;
 
 export default async function TemplatesPage(): Promise<ReactNode> {
-  const staff = await requireStaff();
+  const staff = await requireCapability("crm.settings");
 
   return (
     <div className="mx-auto max-w-4xl">
