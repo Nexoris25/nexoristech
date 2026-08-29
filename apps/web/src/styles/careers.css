@@ -87,9 +87,16 @@
 }
 
 /* benefits */
+/* Eight short benefits, so the column count follows the content rather than a fixed number.
+   Two fixed columns made each card 585px wide holding a title and a line of about 26 characters,
+   which left roughly three quarters of every card empty and read as eight wide, hollow bars. A
+   260px floor lets the browser fit four across a desktop, three on a tablet, two on a large phone
+   and one on a small one, without a media query, and keeps the card close to the width its text
+   actually needs. Four matters for this list specifically: there are eight benefits, so four per
+   row fills two rows exactly, where a 220px floor fitted five and left an orphan row of three. */
 .cr-ben-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 14px;
   margin-top: 40px;
 }
@@ -100,9 +107,11 @@
   padding: 20px 22px;
   box-shadow: var(--sh-sm);
   display: flex;
-  flex-direction: row;
+  /* Stacked, now that the card is roughly square. Icon beside text works at 585px and crushes the
+     title into two or three words at 260px. */
+  flex-direction: column;
   align-items: flex-start;
-  gap: 15px;
+  gap: 14px;
 }
 .cr-ben .bi {
   width: 42px;
@@ -362,14 +371,12 @@
 }
 
 @media (max-width: 980px) {
-  .cr-ben-grid,
   .cr-proc {
     grid-template-columns: 1fr 1fr;
   }
 }
 @media (max-width: 760px) {
   .cr-cult-grid,
-  .cr-ben-grid,
   .cr-proc {
     grid-template-columns: 1fr;
   }

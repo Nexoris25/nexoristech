@@ -233,7 +233,11 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
             {STORY_STEPS.map((s) => (
               <article className="det-step" key={s.n}>
                 <div className="ds-n">{s.n}</div>
-                <h4>{s.title}</h4>
+                {/* H3, under the section's H2. These were H4s, which skipped a level: a reader
+                    using headings to navigate hears "How we tell each story" and then a jump two
+                    ranks down, and the outline it builds has a hole where the H3 should be. The
+                    size is set in CSS, so the rank is free to be correct. */}
+                <h3>{s.title}</h3>
                 <p>{s.body}</p>
               </article>
             ))}

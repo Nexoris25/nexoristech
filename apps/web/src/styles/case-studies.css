@@ -421,7 +421,7 @@
   color: var(--purple-600, #543cda);
   font-weight: 600;
 }
-.case-studies-page .det-step h4 {
+.case-studies-page .det-step h3 {
   font-size: 1.02rem;
   font-weight: 700;
   letter-spacing: -0.01em;
