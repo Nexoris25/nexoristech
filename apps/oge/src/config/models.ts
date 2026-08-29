@@ -88,13 +88,39 @@ export interface EmbeddingGroup {
  * Tier 1, Website Bot (serves nexoristech.com visitors). Fast token streaming, friendly tone,
  * grounded in the knowledge base. Gemini on the visitor-facing Project A key.
  */
+/*
+ * A note on model ids rotting, because all of these had.
+ *
+ * Checked against the providers on 2026-08-29, every generation model this file named was gone:
+ * gemini-2.0-flash answered 404 "no longer available", llama-3.3-70b-versatile 404 "does not exist
+ * or you do not have access", and mistral-large-latest 403 "not available in your subscription
+ * tier". Ten slots across every chain. The embedding models were the only ones still alive, which is
+ * why retrieval kept working and hid how much else did not.
+ *
+ * Two things let that sit unnoticed. A 403 was not classified as retriable, so a chain stopped dead
+ * on its first slot instead of moving on; and no caller ever passed the onRetriableError hook, so
+ * the reason a slot failed was discarded. Both are fixed: a refusal now advances the chain, and each
+ * failure is logged by the chain itself rather than by whoever remembered to ask.
+ *
+ * Names are pinned rather than aliased on purpose here. gemini-flash-latest is the durable-looking
+ * choice and answered 503 on four consecutive attempts, so it is not usable. The protection against
+ * the next retirement is not the name anyway, it is that the next one will be loud: the chain falls
+ * through to a working provider and logs exactly which slot refused and why.
+ *
+ * The Gemini slot is gemini-3.1-flash-lite on measurement, not preference. Timed twice each against
+ * the same prompt: groq gpt-oss-120b 673 and 789ms, gemini-3.1-flash-lite 837 and 804ms,
+ * ministral-8b 828 and 880ms, mistral-medium 1120 and 960ms, and gemini-3-flash-preview 2567 and
+ * 1578ms. The preview model was briefly the primary here and took first-token latency on the chat
+ * widget from about two seconds to six and a half. It is also a stable id rather than a preview one,
+ * so it is the better choice twice over.
+ */
 export const WEBSITE_BOT_MODELS: GenerationGroup = {
   id: "website-bot",
   purpose:
     "Website virtual assistant, FAQ responses, knowledge-base search and retrieval, service discovery guidance, and general visitor engagement.",
   primary: {
     provider: "gemini",
-    model: "gemini-2.0-flash",
+    model: "gemini-3.1-flash-lite",
     label: "Gemini Flash",
     envOverride: "OGE_WEBSITE_BOT_PRIMARY_MODEL",
     geminiProject: "A",
@@ -102,7 +128,7 @@ export const WEBSITE_BOT_MODELS: GenerationGroup = {
   backups: [
     {
       provider: "groq",
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_WEBSITE_BOT_BACKUP_1_MODEL",
     },
@@ -126,21 +152,21 @@ export const CRM_WORKER_MODELS: GenerationGroup = {
     "Lead scoring, lead qualification, opportunity analysis, follow-up email drafting, CRM insights and recommendations, and customer engagement summaries.",
   primary: {
     provider: "mistral",
-    model: "mistral-large-latest",
+    model: "mistral-medium-latest",
     label: "Mistral Large",
     envOverride: "OGE_CRM_WORKER_PRIMARY_MODEL",
   },
   backups: [
     {
       provider: "gemini",
-      model: "gemini-2.0-flash",
+      model: "gemini-3.1-flash-lite",
       label: "Gemini Flash",
       envOverride: "OGE_CRM_WORKER_BACKUP_1_MODEL",
       geminiProject: "B",
     },
     {
       provider: "groq",
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_CRM_WORKER_BACKUP_2_MODEL",
     },
@@ -157,21 +183,21 @@ export const CMS_AI_MODELS: GenerationGroup = {
     "Internal linking recommendations, SEO optimisation suggestions, metadata generation, content categorisation and tagging, related content recommendations, content summaries, programmatic SEO content assistance, and content quality analysis.",
   primary: {
     provider: "mistral",
-    model: "mistral-large-latest",
+    model: "mistral-medium-latest",
     label: "Mistral Large",
     envOverride: "OGE_CMS_AI_PRIMARY_MODEL",
   },
   backups: [
     {
       provider: "gemini",
-      model: "gemini-2.0-flash",
+      model: "gemini-3.1-flash-lite",
       label: "Gemini Flash",
       envOverride: "OGE_CMS_AI_BACKUP_1_MODEL",
       geminiProject: "B",
     },
     {
       provider: "groq",
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_CMS_AI_BACKUP_2_MODEL",
     },
@@ -190,7 +216,7 @@ export const SERVICE_RECOMMENDER_MODELS: GenerationGroup = {
     "Personalised explanation text for the deterministic service and industry-page recommendations. The match itself is rule-based, not a model call.",
   primary: {
     provider: "gemini",
-    model: "gemini-2.0-flash",
+    model: "gemini-3.1-flash-lite",
     label: "Gemini Flash",
     envOverride: "OGE_SERVICE_RECOMMENDER_PRIMARY_MODEL",
     geminiProject: "A",
@@ -198,7 +224,7 @@ export const SERVICE_RECOMMENDER_MODELS: GenerationGroup = {
   backups: [
     {
       provider: "groq",
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       label: "Llama 3.3 70B (Groq)",
       envOverride: "OGE_SERVICE_RECOMMENDER_BACKUP_1_MODEL",
     },

@@ -235,7 +235,21 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
           text = text.replaceAll(CONNECT_MARKER, "");
         }
         text = stripDecoration(text);
-        if (text.trim().length === 0) return;
+        if (text.length === 0) return;
+        /*
+         * A piece that is only whitespace is a paragraph break, and it has to survive.
+         *
+         * The sentence splitter emits the blank line between two sentences as its own piece, and the
+         * guard here used to drop anything whose trimmed length was zero. That deleted every
+         * paragraph break in every answer, so sentences arrived welded together: "what your project
+         * needs.To help me understand". Nothing to check for invented figures in whitespace either,
+         * so the check below is skipped rather than run against it.
+         */
+        if (text.trim().length === 0) {
+          answer += text;
+          yield { type: "token", text };
+          return;
+        }
         const invented = unsupportedFigures(text, context);
         if (invented.length > 0) {
           console.warn(

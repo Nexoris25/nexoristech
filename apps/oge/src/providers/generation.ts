@@ -25,6 +25,7 @@ import {
 import {
   ChainExhaustedError,
   isRetriable,
+  ProviderForbiddenError,
   ModelNotFoundError,
   ProviderError,
   ProviderUnavailableError,
@@ -52,6 +53,10 @@ async function httpError(
   const body = await response.text().catch(() => "");
   const detail = `${source} returned ${response.status}: ${body.slice(0, 300)}`;
   if (response.status === 429) return new RateLimitError(detail, source);
+  // A refusal of this account or this model. The next slot may well be fine, so the chain should
+  // move on rather than fail the request; see ProviderForbiddenError.
+  if (response.status === 401 || response.status === 403)
+    return new ProviderForbiddenError(detail, source);
   if (response.status >= 500)
     return new ProviderUnavailableError(detail, source);
   // A retired identifier reads as 404, or as a 400 naming the model, depending on the provider. Either
@@ -428,6 +433,11 @@ export async function* generateGroundedStream(
       // the answer with the handoff.
       if (committed) throw error;
       if (isRetriable(error)) {
+        // Same reasoning as runChain: the reason a slot was skipped is the useful part.
+        console.warn(
+          `[chain:${group.id}] ${slot.provider}:${modelId} failed, trying the next slot: ` +
+          `${error instanceof Error ? error.message.slice(0, 200) : String(error)}`,
+        );
         hooks.onRetriableError?.(slot, error);
         continue;
       }

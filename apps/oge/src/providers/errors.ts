@@ -36,6 +36,18 @@ export class ProviderUnavailableError extends ProviderError {}
 export class ModelNotFoundError extends ProviderError {}
 
 /**
+ * The provider refused this account: a key it will not accept, or a model outside the plan.
+ *
+ * Retriable, because the chain's question is "can this slot answer", and a refusal is a clear no.
+ * Found live: Mistral answered mistral-large-latest with 403 "This model is not available in your
+ * subscription tier", which fell through to the catch-all ProviderError, which is not retriable, so
+ * the chain stopped on its first slot instead of moving to the next. Both the cms-ai and crm-worker
+ * chains lead with that model, so every excerpt, meta description and CRM draft returned a 500 while
+ * two working providers sat untried behind it.
+ */
+export class ProviderForbiddenError extends ProviderError {}
+
+/**
  * A response that expected structured output did not validate against its schema. PRD 10.2
  * treats malformed JSON as a service error, so the chain advances to the next slot.
  */
@@ -64,6 +76,7 @@ export function isRetriable(error: unknown): boolean {
     error instanceof RateLimitError ||
     error instanceof ProviderUnavailableError ||
     error instanceof SchemaValidationError ||
-    error instanceof ModelNotFoundError
+    error instanceof ModelNotFoundError ||
+    error instanceof ProviderForbiddenError
   );
 }

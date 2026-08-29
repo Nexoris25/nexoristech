@@ -66,6 +66,14 @@ export async function runChain<T>(
       return { value, slot, modelId };
     } catch (error) {
       if (isRetriable(error)) {
+        // Logged here rather than left to the hook. No caller has ever passed one, so a chain could
+        // burn through every provider and report only "exhausted", with the reason for each failure
+        // discarded. That is how a 403 telling us the primary model was outside our plan went
+        // unnoticed while it broke every CMS generation.
+        console.warn(
+          `[chain:${group.id}] ${identifier} failed, trying the next slot: ` +
+          `${error instanceof Error ? error.message.slice(0, 200) : String(error)}`,
+        );
         hooks.onRetriableError?.(slot, error);
         continue;
       }
