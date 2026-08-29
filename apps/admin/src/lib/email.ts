@@ -47,7 +47,19 @@ export interface EmailMessage {
 }
 
 export type EmailResult =
-  /** Handed to the provider, which accepted it. */
+  /**
+   * The provider accepted the message. Accepted, not delivered.
+   *
+   * This distinction cost real time, so it is worth stating. Mailjet answers a v3.1 send with
+   * `Status: "success"` and a MessageID as soon as it has taken the message, and that is all it
+   * means. A brand-new account that has not been validated yet takes every message this way and
+   * sends none of them: the API says success, the message store returns 404 for the ID it just
+   * issued, and the account's lifetime counters stay empty.
+   *
+   * So this status means the message left here and the provider owns it now. Anything downstream,
+   * validation holds, bounces, spam foldering, is between the provider and the recipient, and the
+   * only honest thing this code can report is the handover.
+   */
   | { status: "sent" }
   /** No provider is configured yet. Not an error: the caller falls back to a copyable link. */
   | { status: "not-configured"; reason: string }

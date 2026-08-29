@@ -101,11 +101,11 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
       {justInvited?.invite_token ? (
         <section className="mt-4 rounded-2xl border border-[#543CDA]/30 bg-[#F6F4FE] p-4">
           <h2 className="text-[0.92rem] font-700 text-slate-900">
-            {notice.mail === "sent" ? `Invitation emailed to ${justInvited.name}` : `Share this link with ${justInvited.name}`}
+            {notice.mail === "sent" ? `Invitation sent to ${justInvited.name}` : `Share this link with ${justInvited.name}`}
           </h2>
           <p className="mt-0.5 text-[0.82rem] text-slate-600">
             {notice.mail === "sent"
-              ? `Sent to ${justInvited.email}. They open it, set their own password, and sign in. The link works once and expires in 7 days. Here it is as well, in case the email goes astray.`
+              ? `Handed to Mailjet for delivery to ${justInvited.email}. They open it, set their own password, and sign in. The link works once and expires in 7 days. Here it is as well, in case the email goes astray.`
               : "They open it, set their own password, and sign in. The link works once and expires in 7 days."}
           </p>
           {notice.mail === "not-sent" ? (

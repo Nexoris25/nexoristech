@@ -134,6 +134,35 @@ async function verify(request: NextRequest, pool: ReturnType<typeof db>): Promis
     });
     if (res.status === 401) return fail(request, "Mailjet rejected the credentials.");
     if (!res.ok) return fail(request, `Mailjet returned ${res.status}.`);
+
+    /*
+     * Credentials being accepted is not the same as the account being able to send, and the gap
+     * between the two is silent. A newly created Mailjet account takes every message the API is
+     * given, answers "success" with a real MessageID, and delivers none of them until the account
+     * has been validated. Nothing in the send response says so; the only visible sign is that the
+     * account has never processed a message.
+     *
+     * apikeytotals is that sign. An account that has sent even one message has a row here. Empty
+     * means everything handed over so far has gone nowhere, which is worth saying out loud on the
+     * screen whose job is to answer "does email work".
+     */
+    const totals = await fetch("https://api.mailjet.com/v3/REST/apikeytotals", {
+      headers: { Authorization: `Basic ${Buffer.from(`${key}:${secret}`).toString("base64")}` },
+      signal: AbortSignal.timeout(10_000),
+    })
+      .then(async (r) => (r.ok ? ((await r.json()) as { Total?: number }) : null))
+      .catch(() => null);
+
+    if (totals && (totals.Total ?? 0) === 0) {
+      return fail(
+        request,
+        "Mailjet accepted the credentials, but this account has never delivered a message. " +
+        "Mailjet takes messages from a new account and holds them until the account is validated: " +
+        "sign in at app.mailjet.com, complete the account profile, and confirm the account. " +
+        "Until then invitations are accepted and never arrive, so share the copyable link by hand.",
+      );
+    }
+
     return back(request, "?tested=ok");
   } catch (e) {
     return fail(request, `Could not reach Mailjet: ${e instanceof Error ? e.message : String(e)}`);
