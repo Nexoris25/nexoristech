@@ -238,7 +238,22 @@ export async function POST(request: NextRequest): Promise<Response> {
     return Response.json({ error: "invalid-document" }, { status: 400 });
   }
 
-  const pdf = await renderDocument(data);
+  /*
+   * A render failure is ours, and it must say so rather than escaping as an unhandled 500 with no
+   * trace of what the document contained. The one that prompted this was a line break inside an
+   * inline run, which react-pdf cannot lay out with a registered TTF; the kind and title are enough
+   * to find the record again without putting a client's document body in the log.
+   */
+  let pdf: Buffer;
+  try {
+    pdf = await renderDocument(data);
+  } catch (e) {
+    console.error(
+      `[documents] rendering a ${data.kind} titled "${data.title}" failed: ` +
+      `${e instanceof Error ? e.message : String(e)}`,
+    );
+    return Response.json({ error: "render-failed" }, { status: 500 });
+  }
   const filename = `${data.kind.replace(/\s+/g, "-").toLowerCase()}.pdf`;
   return new Response(new Uint8Array(pdf), {
     status: 200,

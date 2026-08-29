@@ -182,6 +182,17 @@ const n = StyleSheet.create({
  * which the registered brand font supports. Italic has no registered face, so emphasised text is
  * kept but shown in the brand accent rather than a synthetic slant, which react-pdf cannot lay out.
  */
+/**
+ * Fold any line break inside an inline run down to a single space.
+ *
+ * A run sits inside a block that already carries the paragraph structure, so a newline within one is
+ * incidental whitespace from the source HTML rather than an intended break. Folding it keeps the
+ * sentence and, more importantly, keeps react-pdf alive: see the note in RichRuns.
+ */
+function collapseNewlines(text: string): string {
+  return text.replace(/\s*\r?\n\s*/g, " ");
+}
+
 function RichRuns({ runs }: { runs: RichRun[] }): React.ReactElement {
   return (
     <>
@@ -191,9 +202,25 @@ function RichRuns({ runs }: { runs: RichRun[] }): React.ReactElement {
         if (run.underline) parts.push(n.rUnderline);
         if (run.href) parts.push(n.rLink);
         else if (run.italic) parts.push(n.rAccent);
+        /*
+         * Newlines are collapsed, not rendered.
+         *
+         * react-pdf throws "Cannot read properties of undefined (reading unitsPerEm)" on a literal
+         * newline inside a single <Text> when a TTF is registered. TextLines above exists for exactly
+         * that reason and splits block text into one <Text> per line; runs never got the same
+         * treatment, so a paragraph whose inline text carried a line break, which is what pasting
+         * multi-line copy into the editor produces, crashed the whole render. The endpoint returned
+         * 500 and the CRM reported "Could not generate the document. Check the fields and retry",
+         * which sent people looking at fields that were fine.
+         *
+         * A run is inline, inside a block that already carries the paragraph structure, so a newline
+         * within one is incidental whitespace from the source HTML rather than an intended break.
+         * Collapsing it to a single space keeps the sentence and cannot crash.
+         */
+        const text = collapseNewlines(run.text);
         return (
           <Text key={i} style={parts}>
-            {run.text.length > 0 ? run.text : " "}
+            {text.length > 0 ? text : " "}
           </Text>
         );
       })}

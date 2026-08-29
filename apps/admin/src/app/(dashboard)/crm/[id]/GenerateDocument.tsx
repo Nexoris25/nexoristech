@@ -163,7 +163,19 @@ export function GenerateDocument({
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        setError("Could not generate the document. Check the fields and retry.");
+        /*
+         * Say which kind of failure it was. This told everybody to check their fields whatever had
+         * happened, including when the fields were fine: a line break in pasted body copy crashed the
+         * renderer, the endpoint returned 500, and this sent people back to a form with nothing wrong
+         * with it. A 400 is the only case where the fields are the answer.
+         */
+        setError(
+          res.status === 400
+            ? "Some details are missing or invalid. Check the title and the fields above, then retry."
+            : res.status === 401
+              ? "Your session has expired. Sign in again and retry."
+              : "The document could not be produced. This is a fault on our side, not with what you entered.",
+        );
         return;
       }
       const blob = await res.blob();
