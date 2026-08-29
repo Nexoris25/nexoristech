@@ -8,6 +8,7 @@
  */
 import { db } from "./db.js";
 import { cmsDb } from "./cms-db.js";
+import { ogeDb } from "./oge-db.js";
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -95,14 +96,56 @@ function checkGoogle(): ServiceCheck {
   };
 }
 
+/** How long a knowledge base may go unrefreshed before it is worth saying so. */
+const KB_STALE_DAYS = 30;
+
+/**
+ * How current Oge's knowledge of the website is.
+ *
+ * This exists because it went wrong quietly for two months. Publishing anything in the CMS re-ingests
+ * automatically, so the content an editor touches stays current and everyone reasonably assumes the
+ * rest does too. The hardcoded pages, which is where the company address, the services and how we
+ * work all live, are only ingested when someone runs kb:export and kb:ingest by hand.
+ *
+ * Nobody did, so when the office address was corrected on the site, Oge carried on giving visitors
+ * the older, longer version it had learned in June. It was not inventing anything, which is what made
+ * it hard to spot: the answer was confident, well-formed, and faithfully quoted a source that had
+ * stopped being true.
+ *
+ * Reported as a service rather than buried in the info list because "is what Oge tells people still
+ * what the website says" is an operational question, and the answer is a date.
+ */
+async function checkKnowledgeBase(): Promise<ServiceCheck> {
+  const name = "Oge knowledge base";
+  const url = process.env.DATABASE_URL_OGE;
+  if (!url) return { name, health: "not-configured", detail: "DATABASE_URL_OGE is not set" };
+  try {
+    const { rows } = await ogeDb().query<{ chunks: string; days: string | null }>(
+      `SELECT count(*)::text chunks,
+              extract(day from now() - max(updated_at))::int::text days
+         FROM kb_chunk`,
+    );
+    const chunks = Number(rows[0]?.chunks ?? 0);
+    const days = rows[0]?.days === null ? null : Number(rows[0]?.days ?? 0);
+    if (chunks === 0) return { name, health: "down", detail: "no pages ingested" };
+    const age = days === null ? "unknown age" : days === 0 ? "refreshed today" : `refreshed ${days} day${days === 1 ? "" : "s"} ago`;
+    return days !== null && days > KB_STALE_DAYS
+      ? { name, health: "down", detail: `${chunks} pages, ${age}. Run kb:export then kb:ingest.` }
+      : { name, health: "up", detail: `${chunks} pages, ${age}` };
+  } catch (e) {
+    return { name, health: "unknown", detail: e instanceof Error ? e.message.slice(0, 80) : "could not be read" };
+  }
+}
+
 export async function systemStatus(): Promise<{ services: ServiceCheck[]; info: SystemInfo[] }> {
-  const [adminDb, contentDb, oge, queue] = await Promise.all([
+  const [adminDb, contentDb, oge, queue, kb] = await Promise.all([
     checkPostgres(db, "Admin database"),
     checkPostgres(cmsDb, "Content database"),
     checkOge(),
     checkFiscalQueue(),
+    checkKnowledgeBase(),
   ]);
-  const services = [adminDb, contentDb, oge, checkStorage(), queue, checkGoogle()];
+  const services = [adminDb, contentDb, oge, kb, checkStorage(), queue, checkGoogle()];
 
   const info: SystemInfo[] = [
     { key: "Environment", value: process.env.NODE_ENV === "production" ? "Production" : "Development" },
