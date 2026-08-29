@@ -89,13 +89,31 @@ export class MeiliClient {
     return res.status === "available";
   }
 
-  /** Create the index if it does not exist, with the given primary key. */
+  /**
+   * Create the index if it does not exist, with the given primary key.
+   *
+   * The existence check is the point, and it used to be missing. Creating an index that is already
+   * there is not refused by the API: it accepts the request, returns a task, and the task then fails
+   * with "Index `kb_chunk` already exists". waitForTask treats a failed task as fatal, correctly, so
+   * every re-ingest after the first threw here and never reached addDocuments.
+   *
+   * The comment this replaces said an already-existing index was fine, which was the intent and not
+   * what the code did. The cost was quiet and lasted months: the vector store updated, the keyword
+   * index did not, and retrieval fuses both, so Oge kept finding the old text through the keyword
+   * half of a search while the database had the new text all along.
+   */
   async ensureIndex(uid: string, primaryKey: string): Promise<void> {
+    try {
+      await this.request<{ uid: string }>("GET", `/indexes/${uid}`);
+      return; // Already there. Nothing to create, and nothing to fail on.
+    } catch {
+      // Not found, or not reachable. Either way the create below is the right next move: if the host
+      // is genuinely down it will throw there, with an error about the host rather than about a task.
+    }
     const task = await this.request<MeiliTask>("POST", "/indexes", {
       uid,
       primaryKey,
     });
-    // A 201 with a task means it is being created; an already-existing index is fine too.
     if (task.taskUid !== undefined) await this.waitForTask(task.taskUid);
   }
 
