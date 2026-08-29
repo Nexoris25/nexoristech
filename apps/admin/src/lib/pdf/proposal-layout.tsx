@@ -202,7 +202,10 @@ export function CoverPage({
           </View>
         </View>
         <View style={p.coverBandFoot}>
-          <Text style={p.coverSite}>{company.website ?? "www.nexoristech.com"}</Text>
+          {/* The canonical spelling of the site, which is the bare host. The fallback said
+              www.nexoristech.com, so a proposal sent to a client before the company profile was
+              filled in printed an address the site does not use. */}
+          <Text style={p.coverSite}>{company.website ?? "nexoristech.com"}</Text>
           <Text style={p.coverConf}>CONFIDENTIAL  ·  {data.date.toUpperCase()}</Text>
         </View>
       </View>
