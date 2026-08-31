@@ -94,6 +94,21 @@ export function sectionNumber(index: number): string {
 }
 
 /**
+ * Fold a value that is printed on one line down to one line.
+ *
+ * Every heading, title, name and date in these documents lands in a single Text. A line break inside
+ * one of those does not wrap: the text engine reads a font off the run the newline left undefined and
+ * the whole render dies, so a document that was fine except for one stray Enter cannot be produced at
+ * all. Collapsing at the edge is what makes that impossible rather than merely unlikely.
+ *
+ * Fields that are genuinely multi-line — the confidentiality notice, payment details — do not come
+ * through here; they are split into lines and rendered one Text per line.
+ */
+export function oneLine(value: string): string {
+  return value.replace(/[\r\n]+/g, " ").replace(/ {2,}/g, " ").trim();
+}
+
+/**
  * Separate a heading's own number from its words.
  *
  * A drafter who writes "7. Confidentiality", "Section 7 — Confidentiality" or "07 Confidentiality"

@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { htmlToBlocks } from "./html-to-blocks.js";
-import { splitLeadingNumber } from "./brand.js";
+import { oneLine, splitLeadingNumber } from "./brand.js";
 
 const parse = (html: string) => htmlToBlocks(html, new DOMParser().parseFromString(`<body>${html}</body>`, "text/html"));
 const textOf = (runs: { text: string }[] | undefined) => (runs ?? []).map((r) => r.text).join("");
@@ -89,6 +89,23 @@ describe("line breaks", () => {
     const every = blocks.flatMap((b) => [...(b.items ?? []).flat(), ...(b.runs ?? []), ...(b.lines ?? []).flat()]);
     expect(every.length).toBeGreaterThan(0);
     for (const run of every) expect(run.text).not.toMatch(/[\r\n]/);
+  });
+});
+
+describe("oneLine", () => {
+  /*
+   * The whole point of it: pressing Enter in the confidentiality notice made a proposal impossible to
+   * generate, because a newline inside a single Text ends the render rather than wrapping.
+   */
+  it("leaves no line break in a field that prints on one line", () => {
+    const typed = ["Confidential.", "", "Not to be copied without consent."].join("\n");
+    expect(oneLine(typed)).toBe("Confidential. Not to be copied without consent.");
+    expect(oneLine("A\r\nB")).toBe("A B");
+    expect(oneLine("A\rB")).toBe("A B");
+  });
+
+  it("leaves an ordinary value alone", () => {
+    expect(oneLine("Scope of Work")).toBe("Scope of Work");
   });
 });
 

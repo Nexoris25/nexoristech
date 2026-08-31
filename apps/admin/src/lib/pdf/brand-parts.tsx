@@ -41,17 +41,23 @@ const s = StyleSheet.create({
   title: { fontFamily: FONT.bold, fontSize: 14.5, color: C.white, marginTop: mm(8) },
   meta: { fontFamily: FONT.regular, fontSize: 9.2, color: C.coverSubtitle, marginTop: mm(2.4), lineHeight: 1.6 },
   metaLabel: { fontFamily: FONT.medium, color: C.coverMeta },
-  preparedByRule: { position: "absolute", left: COVER_X, bottom: mm(61), width: COVER_W, height: 0.8, backgroundColor: C.coverDivider },
-  /* The two parties side by side above the foot of the cover, as the reference sets them. */
-  parties: { position: "absolute", left: COVER_X, bottom: mm(34), width: COVER_W, flexDirection: "row" },
+  /*
+   * The foot of the cover, as one block anchored to the bottom edge.
+   *
+   * Each piece used to be positioned absolutely at its own distance from the bottom, which meant a
+   * notice of more than two lines grew upward into the party names and printed on top of them. As one
+   * column the group grows as a whole instead: a longer notice pushes the divider and the parties up,
+   * and nothing can ever overlap anything else.
+   */
+  foot: { position: "absolute", left: COVER_X, bottom: mm(16), width: COVER_W },
+  preparedByRule: { height: 0.8, backgroundColor: C.coverDivider, marginBottom: mm(6) },
+  /* The two parties side by side, as the reference sets them. */
+  parties: { flexDirection: "row", marginBottom: mm(7) },
   party: { flex: 1, paddingRight: mm(6) },
   preparedByLabel: { fontFamily: FONT.medium, fontSize: 8, color: C.coverLabel, letterSpacing: 0.6, marginBottom: mm(3) },
   partyName: { fontFamily: FONT.bold, fontSize: 10.5, color: C.white },
   preparedByLine: { fontFamily: FONT.regular, fontSize: 8.6, color: C.coverPreparedBy, lineHeight: 1.55, marginTop: mm(1.4) },
-  notice: {
-    position: "absolute", left: COVER_X, bottom: mm(16), width: COVER_W,
-    fontFamily: FONT.regular, fontSize: 8.3, color: C.coverMeta, lineHeight: 1.5,
-  },
+  notice: { fontFamily: FONT.regular, fontSize: 8.3, color: C.coverMeta, lineHeight: 1.5 },
 
   header: {
     position: "absolute", top: mm(11), left: PAGE.left, right: PAGE.right,
@@ -158,6 +164,8 @@ export function BrandCover({
   title, preparedFor, preparedByLines, proposalDate, validity, confidentiality, logoWhite,
 }: CoverProps): React.ReactElement {
   const client = preparedFor || "The client";
+  /* Blank lines are dropped: they are how a paragraph was typed, not something a cover should print. */
+  const noticeLines = (confidentiality ?? "").split(/\r\n?|\n/).map((l) => l.trim()).filter((l) => l !== "");
   return (
     <View style={{ position: "absolute", top: 0, left: 0, width: PAGE.width, height: PAGE.height, backgroundColor: C.navy }}>
       <View style={s.spine} />
@@ -184,21 +192,27 @@ export function BrandCover({
         ) : null}
       </View>
 
-      <View style={s.preparedByRule} />
-      <View style={s.parties}>
-        <View style={s.party}>
-          <Text style={s.preparedByLabel}>PREPARED FOR</Text>
-          <Text style={s.partyName}>{client}</Text>
+      <View style={s.foot}>
+        <View style={s.preparedByRule} />
+        <View style={s.parties}>
+          <View style={s.party}>
+            <Text style={s.preparedByLabel}>PREPARED FOR</Text>
+            <Text style={s.partyName}>{client}</Text>
+          </View>
+          <View style={s.party}>
+            <Text style={s.preparedByLabel}>PREPARED BY</Text>
+            <Text style={s.partyName}>{preparedByLines[0] || "Nexoris Technologies Ltd"}</Text>
+            {preparedByLines.slice(1).map((entry) => (
+              <Text key={entry} style={s.preparedByLine}>{entry}</Text>
+            ))}
+          </View>
         </View>
-        <View style={s.party}>
-          <Text style={s.preparedByLabel}>PREPARED BY</Text>
-          <Text style={s.partyName}>{preparedByLines[0] ?? ""}</Text>
-          {preparedByLines.slice(1).map((line) => (
-            <Text key={line} style={s.preparedByLine}>{line}</Text>
-          ))}
-        </View>
+        {/* Line by line: the notice is the one cover field somebody can press Enter in, and a
+            newline inside a single Text does not wrap, it ends the render. */}
+        {noticeLines.map((entry, i) => (
+          <Text key={i} style={s.notice}>{entry}</Text>
+        ))}
       </View>
-      {confidentiality ? <Text style={s.notice}>{confidentiality}</Text> : null}
     </View>
   );
 }

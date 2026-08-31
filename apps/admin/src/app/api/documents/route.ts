@@ -9,6 +9,7 @@ import type { NextRequest } from "next/server";
 import { getCurrentStaff } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 import { renderDocument } from "../../../lib/pdf/render.js";
+import { oneLine } from "../../../lib/pdf/brand.js";
 import {
   DOC_KINDS,
   type BillingBasis,
@@ -32,6 +33,16 @@ export const dynamic = "force-dynamic";
 function str(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
+/**
+ * A field that is one line wherever it is printed.
+ *
+ * Pressing Enter in the confidentiality notice was enough to make a proposal impossible to generate:
+ * a newline inside a single <Text> kills the render outright, and the person was told the fault was
+ * ours without being told what to change. Collapsing at the edge, once, is what stops that whole
+ * class of failure; see oneLine.
+ */
+const line = (value: unknown): string => oneLine(str(value));
+
 function num(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
@@ -124,7 +135,10 @@ function sanitizeRuns(value: unknown): RichRun[] {
   return value
     .map((r) => {
       const run = r as Record<string, unknown>;
-      const text = typeof run.text === "string" ? run.text : "";
+      // An inline run is inside a block that already carries the structure, so a break within one is
+      // never meant — and a raw newline in a single <Text> is fatal. The block's `lines` hold the
+      // breaks that were meant.
+      const text = typeof run.text === "string" ? run.text.replace(/[\r\n]+/g, " ") : "";
       const out: RichRun = { text };
       if (run.bold === true) out.bold = true;
       if (run.italic === true) out.italic = true;
@@ -201,18 +215,18 @@ function sanitizeRich(value: unknown): RichBlock[] {
 function sanitizeMeta(value: unknown): DocMeta[] {
   if (!Array.isArray(value)) return [];
   return value
-    .map((m) => ({ label: str((m as Record<string, unknown>).label), value: str((m as Record<string, unknown>).value) }))
+    .map((m) => ({ label: line((m as Record<string, unknown>).label), value: line((m as Record<string, unknown>).value) }))
     .filter((m) => m.label && m.value);
 }
 
 async function sanitize(body: Record<string, unknown>): Promise<DocumentData | null> {
   const kind = str(body.kind) as DocKind;
   if (!(DOC_KINDS as readonly string[]).includes(kind)) return null;
-  const title = str(body.title);
+  const title = line(body.title);
   if (!title) return null;
 
   const company = await loadCompany();
-  const date = str(body.date) || new Date().toLocaleDateString("en-NG");
+  const date = line(body.date) || new Date().toLocaleDateString("en-NG");
 
   if (kind === "Invoice") {
     const invoice = sanitizeInvoice(body);
@@ -251,20 +265,20 @@ async function sanitize(body: Record<string, unknown>): Promise<DocumentData | n
     insertStamp: body.insertStamp === true,
     ...(str(body.stampImage) ? { stampImage: str(body.stampImage) } : {}),
     ...(str(body.signatureImage) ? { signatureImage: str(body.signatureImage) } : {}),
-    ...(str(body.subtitle) ? { subtitle: str(body.subtitle) } : {}),
+    ...(line(body.subtitle) ? { subtitle: line(body.subtitle) } : {}),
     // The cover fields, each carried only when it was given: an empty line on a cover reads as a fault.
-    ...(str(body.preparedFor) ? { preparedFor: str(body.preparedFor) } : {}),
-    ...(str(body.preparedBy) ? { preparedBy: str(body.preparedBy) } : {}),
-    ...(str(body.validity) ? { validity: str(body.validity) } : {}),
+    ...(line(body.preparedFor) ? { preparedFor: line(body.preparedFor) } : {}),
+    ...(line(body.preparedBy) ? { preparedBy: line(body.preparedBy) } : {}),
+    ...(line(body.validity) ? { validity: line(body.validity) } : {}),
     ...(str(body.confidentiality) ? { confidentiality: str(body.confidentiality) } : {}),
     ...(meta.length > 0 ? { meta } : {}),
     ...(richContent.length > 0 ? { richContent } : {}),
     ...(signatory ? { signatory } : {}),
-    ...(str(body.reference) ? { reference: str(body.reference) } : {}),
-    ...(str(body.recipientName) ? { recipientName: str(body.recipientName) } : {}),
-    ...(str(body.recipientCompany) ? { recipientCompany: str(body.recipientCompany) } : {}),
-    ...(str(body.recipientAddress) ? { recipientAddress: str(body.recipientAddress) } : {}),
-    ...(str(body.intro) ? { intro: str(body.intro) } : {}),
+    ...(line(body.reference) ? { reference: line(body.reference) } : {}),
+    ...(line(body.recipientName) ? { recipientName: line(body.recipientName) } : {}),
+    ...(line(body.recipientCompany) ? { recipientCompany: line(body.recipientCompany) } : {}),
+    ...(line(body.recipientAddress) ? { recipientAddress: line(body.recipientAddress) } : {}),
+    ...(line(body.intro) ? { intro: line(body.intro) } : {}),
     ...(str(body.terms) ? { terms: str(body.terms) } : {}),
     ...(lineItems.length > 0 ? { lineItems } : {}),
   };
