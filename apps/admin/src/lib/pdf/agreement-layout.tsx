@@ -13,7 +13,7 @@
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CompanyInfo, DocumentData } from "./types.js";
-import { C as BRAND } from "./brand.js";
+import { C as BRAND, FONT } from "./brand.js";
 
 /*
  * The branding kit's palette, used with restraint.
@@ -34,13 +34,24 @@ const C = {
 
 const M = 56; // wider gutter than the proposal: agreements are read line by line and often annotated
 
+/*
+ * Set in the brand typeface, at the leading a legal document is normally set at.
+ *
+ * This was a serif at 10.5 point on 1.8 leading, which is a page-and-a-half of air for every page of
+ * terms: it pushed clauses apart, and it was a second typeface in a house that has one. Poppins at
+ * 9.8 on 1.5, the same face the rest of the document family uses, is the standard setting and reads
+ * as one body of work.
+ *
+ * Poppins is registered as a family per weight rather than one family with weights, so bold is
+ * selected by name. `fontWeight: 700` would silently resolve back to the regular cut.
+ */
 export const a = StyleSheet.create({
   /**
    * The top and bottom padding must sit on the Page, not on the content wrapper. A wrapper's padding
    * applies once, to the first page; every page after it would start at y=0 and run underneath the
    * fixed letterhead. This reserves the band on each page the body flows onto.
    */
-  page: { paddingTop: 78, paddingBottom: 66, fontFamily: "Lora", fontSize: 10.5, color: C.ink },
+  page: { paddingTop: 74, paddingBottom: 62, fontFamily: FONT.regular, fontSize: 9.8, color: C.ink },
 
   // Letterhead, not a cover. Rule and type only, no colour field.
   head: {
@@ -52,8 +63,8 @@ export const a = StyleSheet.create({
   headBrand: { flexDirection: "row", alignItems: "center" },
   /** 195x218 source, so 15pt wide lands at ~17pt tall: the mark's own proportions, never stretched. */
   headMark: { width: 15, height: 17, objectFit: "contain", marginRight: 7 },
-  headName: { fontFamily: "Jakarta", fontSize: 9, fontWeight: 700, letterSpacing: 0.6 },
-  headMeta: { fontFamily: "Jakarta", fontSize: 7, color: C.faint, textAlign: "right", lineHeight: 1.5 },
+  headName: { fontFamily: FONT.bold, fontSize: 9, letterSpacing: 0.6 },
+  headMeta: { fontFamily: FONT.regular, fontSize: 7, color: C.faint, textAlign: "right", lineHeight: 1.5 },
 
   foot: {
     position: "absolute", bottom: 0, left: 0, right: 0,
@@ -61,44 +72,50 @@ export const a = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: C.line,
     flexDirection: "row", justifyContent: "space-between",
   },
-  footText: { fontFamily: "Jakarta", fontSize: 7.5, color: C.faint },
+  footText: { fontFamily: FONT.regular, fontSize: 7.5, color: C.faint },
 
   body: { paddingHorizontal: M },
 
-  docType: { fontFamily: "Jakarta", fontSize: 7.5, letterSpacing: 2, color: C.faint, fontWeight: 700, textAlign: "center" },
-  title: { fontFamily: "Lora", fontSize: 16, fontWeight: 700, textAlign: "center", marginTop: 8, lineHeight: 1.3 },
-  titleRule: { height: 1, backgroundColor: C.rule, marginTop: 16, marginBottom: 20 },
+  docType: { fontFamily: FONT.bold, fontSize: 7.5, letterSpacing: 2, color: C.faint, textAlign: "center" },
+  title: { fontFamily: FONT.bold, fontSize: 15, textAlign: "center", marginTop: 8, lineHeight: 1.3 },
+  titleRule: { height: 1, backgroundColor: C.rule, marginTop: 14, marginBottom: 18 },
 
   // Who is bound, stated before anything else.
-  parties: { marginBottom: 20 },
-  partiesLabel: { fontFamily: "Jakarta", fontSize: 7, letterSpacing: 1.4, color: C.faint, fontWeight: 700, marginBottom: 8 },
-  partyRow: { flexDirection: "row", marginBottom: 7 },
-  partyTag: { fontFamily: "Lora", width: 62, fontSize: 8.5, fontWeight: 700 },
-  partyBody: { flex: 1, fontSize: 10.5, lineHeight: 1.65 },
-  dateLine: { fontSize: 10.5, marginTop: 10, lineHeight: 1.65 },
+  parties: { marginBottom: 18 },
+  partiesLabel: { fontFamily: FONT.bold, fontSize: 7, letterSpacing: 1.4, color: C.faint, marginBottom: 8 },
+  partyRow: { flexDirection: "row", marginBottom: 6 },
+  partyTag: { fontFamily: FONT.bold, width: 58, fontSize: 8.5 },
+  partyBody: { flex: 1, fontSize: 9.8, lineHeight: 1.5 },
+  dateLine: { fontSize: 9.8, marginTop: 9, lineHeight: 1.5 },
 
-  intro: { fontSize: 10.5, color: C.ink, lineHeight: 1.8, marginBottom: 18 },
+  intro: { fontSize: 9.8, color: C.ink, lineHeight: 1.5, marginBottom: 15 },
 
-  // Numbered clauses. The number sits in the margin so the text block stays flush.
-  clause: { flexDirection: "row", marginBottom: 14 },
-  clauseNum: { fontFamily: "Lora", width: 26, fontSize: 11, fontWeight: 700, color: C.accent },
+  /*
+   * Numbered clauses. The number hangs in the margin so the text block stays flush.
+   *
+   * The hanging column was 26 and 30 points wide against a 10.5 point face, which left a channel of
+   * white between every number and its clause. It is now just wide enough for the numbers actually
+   * used, which is what puts the text where the eye expects it.
+   */
+  clause: { flexDirection: "row", marginBottom: 10 },
+  clauseNum: { fontFamily: FONT.bold, width: 21, fontSize: 10, color: C.accent },
   /* Sub-clauses are indented under their parent and numbered 1.1, 1.2, so they can be cited. */
-  subClause: { flexDirection: "row", marginTop: 6, marginBottom: 2 },
-  subClauseNum: { fontFamily: "Lora", width: 30, fontSize: 10, fontWeight: 700, color: C.grey },
+  subClause: { flexDirection: "row", marginTop: 5, marginBottom: 2 },
+  subClauseNum: { fontFamily: FONT.bold, width: 25, fontSize: 9.5, color: C.grey },
   subClauseBody: { flex: 1 },
-  subClauseHeading: { fontFamily: "Jakarta", fontSize: 9.5, fontWeight: 700, marginBottom: 3 },
+  subClauseHeading: { fontFamily: FONT.bold, fontSize: 9.3, marginBottom: 3 },
   clauseBody: { flex: 1 },
-  clauseHeading: { fontFamily: "Lora", fontSize: 11, fontWeight: 700, marginBottom: 6, letterSpacing: 0.2 },
-  clauseText: { fontSize: 10.5, lineHeight: 1.8, color: C.ink },
+  clauseHeading: { fontFamily: FONT.bold, fontSize: 10.5, marginBottom: 5, letterSpacing: 0.2 },
+  clauseText: { fontSize: 9.8, lineHeight: 1.5, color: C.ink },
 
   // Signing page
-  signIntro: { fontSize: 10.5, lineHeight: 1.8, marginTop: 8, marginBottom: 26 },
+  signIntro: { fontSize: 9.8, lineHeight: 1.5, marginTop: 8, marginBottom: 22 },
   signRow: { flexDirection: "row", marginTop: 6 },
   signCol: { flex: 1, paddingRight: 30 },
-  signParty: { fontFamily: "Jakarta", fontSize: 7.5, fontWeight: 700, letterSpacing: 1.2, marginBottom: 16, color: C.faint },
-  signField: { marginBottom: 18 },
-  signLabel: { fontFamily: "Jakarta", fontSize: 7, color: C.faint, letterSpacing: 1.1, fontWeight: 700, marginBottom: 4 },
-  signValue: { fontFamily: "Lora", fontSize: 10, fontWeight: 700 },
+  signParty: { fontFamily: FONT.bold, fontSize: 7.5, letterSpacing: 1.2, marginBottom: 16, color: C.faint },
+  signField: { marginBottom: 16 },
+  signLabel: { fontFamily: FONT.medium, fontSize: 7, color: C.faint, letterSpacing: 1.1, marginBottom: 4 },
+  signValue: { fontFamily: FONT.bold, fontSize: 9.8 },
   /** Height reserved either way, so inserting a signature never moves the rule or the other column. */
   signSlot: { height: 46, justifyContent: "flex-end" },
   /** Aspect and orientation preserved; nothing painted behind it. */
@@ -171,7 +188,8 @@ export function SubClause({ n, heading, children }: { n: string; heading?: strin
 export function Clause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
   return (
     <View style={a.clause}>
-      <Text style={a.clauseNum}>{n}</Text>
+      {/* Never an empty string: textkit has no run to measure and throws on unitsPerEm. */}
+      <Text style={a.clauseNum}>{n || " "}</Text>
       <View style={a.clauseBody}>
         {heading ? <Text style={a.clauseHeading}>{heading}</Text> : null}
         {children}

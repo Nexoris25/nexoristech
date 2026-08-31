@@ -59,14 +59,39 @@ export interface RichRun {
   href?: string;
 }
 
-export type RichBlockType = "paragraph" | "h2" | "h3" | "bulleted" | "numbered" | "table";
+export type RichBlockType = "paragraph" | "h2" | "h3" | "bulleted" | "numbered" | "table" | "tree";
 
 export interface RichBlock {
   type: RichBlockType;
   /** For paragraph/h2/h3: the inline runs. */
   runs?: RichRun[];
-  /** For bulleted/numbered: each list item is its own run array. */
+  /**
+   * For a paragraph whose source carried line breaks: one run array per line.
+   *
+   * A break inside a paragraph used to be folded to a space, which is right for copy that merely
+   * wrapped in the source but wrong for anything where the lines are the content — an address, a
+   * schedule of names, a pasted outline. `runs` stays populated as the flattened form so nothing that
+   * ignores this field loses text.
+   */
+  lines?: RichRun[][];
+  /** For bulleted/numbered/tree: each item is its own run array. */
   items?: RichRun[][];
+  /**
+   * For bulleted/numbered/tree: how deep each item sits, 0 for the top level.
+   *
+   * Nested lists used to be flattened into their parent item, so a sitemap pasted as nested bullets
+   * arrived as one run-on line per top-level page. The depth is what makes it a structure rather than
+   * a list of words.
+   */
+  itemLevels?: number[];
+  /**
+   * For bulleted/numbered: the marker to print against each item, decided when the HTML is parsed.
+   *
+   * Numbering belongs to the pasted text, not to the renderer: an `<ol start="7">` continues at 7, a
+   * nested level counts a., b., c., and a writer who numbered their own lines keeps those numbers.
+   * Deciding it here is what makes that possible; a renderer that counts its own children cannot.
+   */
+  itemMarkers?: string[];
   /**
    * For a table: the rows, each a list of cells, each cell a run array.
    *
@@ -143,6 +168,19 @@ export interface DocumentData {
   recipientName?: string;
   recipientCompany?: string;
   recipientAddress?: string;
+  /**
+   * The cover page, which carries these and nothing else.
+   *
+   * A cover is not a summary of the engagement; it says what the document is, who it is for, who
+   * wrote it, when, how long it stands, and on what terms it may be read. Anything more belongs
+   * inside the document, where it can be read properly.
+   */
+  preparedFor?: string;
+  preparedBy?: string;
+  /** How long the offer stands, e.g. "30 days from the date above". */
+  validity?: string;
+  /** The confidentiality notice printed at the foot of the cover. */
+  confidentiality?: string;
   intro?: string;
   sections: DocSection[];
   /** Key facts strip: Project, Investment, Timeline, Engagement. Auto-filled from the deal. */

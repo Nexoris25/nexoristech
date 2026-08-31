@@ -78,15 +78,29 @@ export function GenerateDocument({
   const isLegal = kind === "Master Service Agreement" || kind === "Service Level Agreement" || kind === "Contract";
 
   // Shared narrative identity + meta, prefilled from the lead and deal.
-  const [title, setTitle] = useState(`${initialKind} for ${defaultCompany || defaultName || "your project"}`);
-  const [recipientName, setRecipientName] = useState(defaultName ?? "");
-  const [recipientCompany, setRecipientCompany] = useState(defaultCompany ?? "");
+  const [title, setTitle] = useState(initialKind === "Proposal" || initialKind === "Scope of Work" ? initialKind : `${initialKind} for ${defaultCompany || defaultName || "your project"}`);
+  const recipientName = defaultName ?? "";
+  const recipientCompany = defaultCompany ?? "";
   const [project, setProject] = useState(defaultProject ?? "");
   const cost = defaultCost ?? 0;
   const timeline = "";
   const [intro, setIntro] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
-  const [subtitle, setSubtitle] = useState("");
+
+  /*
+   * The cover page's six fields.
+   *
+   * "Prepared for" is seeded from the deal but stays editable, because the name on a cover is the
+   * client's registered name and the CRM holds whatever the salesperson typed. The notice has a
+   * default because every document needs one and nobody should have to write it each time; it is
+   * still a field, because a document sent under an NDA says something different.
+   */
+  const [preparedFor, setPreparedFor] = useState(defaultCompany || defaultName || "");
+  const [preparedByName, setPreparedByName] = useState("");
+  const [docDate, setDocDate] = useState(new Date().toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" }));
+  const [validity, setValidity] = useState("30 days from the date above");
+  const [confidentiality, setConfidentiality] = useState(
+    "Confidential. Prepared for the named recipient and not to be copied, distributed or disclosed to any third party without written consent.",
+  );
   const [bodyHtml, setBodyHtml] = useState("");
   const [signature, setSignature] = useState(initialKind !== "Proposal");
   // The two optional insertions, off by default. A document is unsigned and unstamped unless someone
@@ -121,7 +135,9 @@ export function GenerateDocument({
   function pickKind(next: DocKind): void {
     setKind(next);
     if (NARRATIVE_KINDS.includes(next)) {
-      setTitle(`${next} for ${recipientCompany || recipientName || "your project"}`);
+      // The cover prints the title on its own, under the client's name, so it is the document's name
+      // rather than a sentence about it. The agreements are titled by their own pasted text.
+      setTitle(next === "Proposal" || next === "Scope of Work" ? next : `${next} for ${recipientCompany || recipientName || "your project"}`);
       // A legal document is signed by default; a proposal usually is not until it is accepted.
       setSignature(next !== "Proposal");
     }
@@ -146,7 +162,7 @@ export function GenerateDocument({
     setBusy(true);
     setError("");
     try {
-      const date = new Date().toLocaleDateString("en-NG");
+      const date = isLegal ? new Date().toLocaleDateString("en-NG") : docDate.trim() || new Date().toLocaleDateString("en-NG");
       const signatory = repName ? { name: repName, title: repTitle || "Nexoris Technologies" } : undefined;
       const payload = isInvoice
         ? { kind, title: title || invoice.invoiceNumber, date, invoice }
@@ -156,8 +172,13 @@ export function GenerateDocument({
             date,
             ...(recipientName ? { recipientName } : {}),
             ...(recipientCompany ? { recipientCompany } : {}),
-            ...(recipientAddress ? { recipientAddress } : {}),
-            ...(subtitle ? { subtitle } : {}),
+            // The cover's own fields, sent only for the kinds that have a cover.
+            ...(isLegal ? {} : {
+              ...(preparedFor.trim() ? { preparedFor: preparedFor.trim() } : {}),
+              ...(preparedByName.trim() ? { preparedBy: preparedByName.trim() } : {}),
+              ...(validity.trim() ? { validity: validity.trim() } : {}),
+              ...(confidentiality.trim() ? { confidentiality: confidentiality.trim() } : {}),
+            }),
             ...(intro ? { intro } : {}),
             meta: buildMeta(),
             // The AST is the only body now; sections stay in the payload shape for the invoice path.
@@ -367,46 +388,58 @@ export function GenerateDocument({
           {/* Everything the cover page shows. Not offered for the agreements, which have no cover. */}
           {isLegal ? null : (
             <>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="flex flex-col gap-1.5 sm:col-span-2">
-                  <span className={LABEL}>Title</span>
-                  <input value={title} onChange={(e) => setTitle(e.target.value)} className={FIELD} />
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className={LABEL}>Client name</span>
-                  <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Contact name" className={FIELD} />
-                </label>
-                <label className="flex flex-col gap-1.5">
-                  <span className={LABEL}>Client company</span>
-                  <input value={recipientCompany} onChange={(e) => setRecipientCompany(e.target.value)} placeholder="Company" className={FIELD} />
-                </label>
-                <label className="flex flex-col gap-1.5 sm:col-span-2">
-                  <span className={LABEL}>Client address</span>
-                  <input value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} placeholder="Street, city, state" className={FIELD} />
-                </label>
-                <label className="flex flex-col gap-1.5 sm:col-span-2">
-                  <span className={LABEL}>Cover subtitle</span>
-                  <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="One line describing the engagement" className={FIELD} />
-                </label>
+              {/* The cover page, field for field. Nothing here that the cover does not print. */}
+              <div className="rounded-card border border-purple-200 bg-purple-100/30 p-3.5">
+                <span className={LABEL}>Cover page</span>
+                <div className="mt-2.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5 sm:col-span-2">
+                    <span className={LABEL}>Title</span>
+                    <input value={title} onChange={(e) => setTitle(e.target.value)} className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className={LABEL}>Prepared for</span>
+                    <input value={preparedFor} onChange={(e) => setPreparedFor(e.target.value)} placeholder="Client's registered name" className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className={LABEL}>Prepared by</span>
+                    <input value={preparedByName} onChange={(e) => setPreparedByName(e.target.value)} placeholder="Nexoris Technologies Ltd" className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className={LABEL}>Proposal date</span>
+                    <input value={docDate} onChange={(e) => setDocDate(e.target.value)} className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className={LABEL}>Validity</span>
+                    <input value={validity} onChange={(e) => setValidity(e.target.value)} placeholder="30 days from the date above" className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5 sm:col-span-2">
+                    <span className={LABEL}>Confidentiality notice</span>
+                    <textarea
+                      value={confidentiality}
+                      onChange={(e) => setConfidentiality(e.target.value)}
+                      rows={2}
+                      className={FIELD}
+                    />
+                  </label>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 rounded-card border border-purple-200 bg-purple-100/30 p-3.5 sm:grid-cols-3">
+              {/* Inside the document, not on the cover: the key-facts strip and the opening paragraph. */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">
                   <span className={LABEL}>Project / service</span>
                   <input value={project} onChange={(e) => setProject(e.target.value)} placeholder="Service line" className={FIELD} />
                 </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className={LABEL}>Opening paragraph (optional)</span>
+                  <input
+                    value={intro}
+                    onChange={(e) => setIntro(e.target.value)}
+                    placeholder="Set the context in a sentence."
+                    className={FIELD}
+                  />
+                </label>
               </div>
-
-              <label className="flex flex-col gap-1.5">
-                <span className={LABEL}>Opening paragraph (optional)</span>
-                <textarea
-                  value={intro}
-                  onChange={(e) => setIntro(e.target.value)}
-                  rows={2}
-                  placeholder="Set the context in a sentence or two."
-                  className={FIELD}
-                />
-              </label>
             </>
           )}
 

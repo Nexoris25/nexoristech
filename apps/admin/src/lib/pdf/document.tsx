@@ -18,6 +18,7 @@ import { computeInvoice } from "./types.js";
 import { nairaInWords } from "./amount-in-words.js";
 import { AgreementPages, Clause, SubClause, a as A } from "./agreement-layout.js";
 import { BrandedTemplate } from "./branded-layout.js";
+import { FONT, splitLeadingNumber } from "./brand.js";
 
 const C = {
   purple: "#543CDA",
@@ -135,16 +136,30 @@ const n = StyleSheet.create({
   h2: { fontSize: 11.5, fontWeight: 700, marginBottom: 4, color: C.purple },
   body: { lineHeight: 1.55 },
 
-  richPara: { marginBottom: 8, lineHeight: 1.55 },
-  richH2: { fontSize: 14, fontWeight: 700, marginTop: 10, marginBottom: 5, color: C.ink },
-  richH3: { fontSize: 11.5, fontWeight: 700, marginTop: 7, marginBottom: 3, color: C.purple },
-  rBold: { fontWeight: 700 },
+  /*
+   * The agreement body.
+   *
+   * Bold is selected by font family, not by weight: Poppins is registered as one family per weight,
+   * so `fontWeight: 700` finds nothing and silently falls back to the regular cut, which is how bold
+   * text in a pasted agreement would quietly stop being bold.
+   */
+  richPara: { marginBottom: 7, lineHeight: 1.5 },
+  richLine: { lineHeight: 1.5 },
+  richH2: { fontFamily: FONT.bold, fontSize: 13, marginTop: 9, marginBottom: 5, color: C.ink },
+  richH3: { fontFamily: FONT.bold, fontSize: 11, marginTop: 6, marginBottom: 3, color: C.purple },
+  rBold: { fontFamily: FONT.bold },
   rUnderline: { textDecoration: "underline" },
   rAccent: { color: C.purple },
   rLink: { color: C.purple, textDecoration: "underline" },
   listRow: { flexDirection: "row", marginBottom: 3, paddingLeft: 4 },
   listMark: { width: 16, lineHeight: 1.5 },
   listText: { flex: 1, lineHeight: 1.5 },
+  /* A pasted outline, kept as a structure: indent per level, hairline rail, no invented connectors. */
+  tree: { marginTop: 3, marginBottom: 8, paddingLeft: 4 },
+  treeRow: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 1.2 },
+  treeRail: { width: 12, alignSelf: "stretch", borderLeftWidth: 0.6, borderLeftColor: C.line },
+  treeMark: { width: 10, lineHeight: 1.5, color: C.grey },
+  treeText: { flex: 1, lineHeight: 1.5 },
 
   table: { marginTop: 8, marginBottom: 6, borderWidth: 1, borderColor: C.line, borderRadius: 4 },
   thead: { flexDirection: "row", backgroundColor: C.purpleSoft, paddingVertical: 7, paddingHorizontal: 10 },
@@ -152,7 +167,8 @@ const n = StyleSheet.create({
   totalRow: { flexDirection: "row", borderTopWidth: 2, borderTopColor: C.ink, paddingVertical: 8, paddingHorizontal: 10 },
   cellDesc: { flex: 1 },
   cellAmt: { width: 130, textAlign: "right" },
-  bold: { fontWeight: 700 },
+  /** By family, not weight: see the note above rBold. A header row that is not bold is not a header. */
+  bold: { fontFamily: FONT.bold },
 
   signWrap: { marginTop: 26, borderTopWidth: 1, borderTopColor: C.line, paddingTop: 16 },
   signCols: { flexDirection: "row", alignItems: "flex-end", gap: 28 },
@@ -278,16 +294,50 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
   if (block.type === "table") {
     return <RichTableView block={block} />;
   }
+  if (block.type === "tree") {
+    // A schedule or an architecture pasted as an outline keeps its shape here too. The connectors are
+    // drawn as rules rather than reproduced as characters, which the embedded fonts cannot draw.
+    return (
+      <View style={n.tree}>
+        {(block.items ?? []).map((item, i) => {
+          const level = block.itemLevels?.[i] ?? 0;
+          return (
+            <View key={i} style={n.treeRow} wrap={false}>
+              {Array.from({ length: level }, (_, r) => <View key={r} style={n.treeRail} />)}
+              <Text style={n.treeMark}>{level === 0 ? " " : "-"}</Text>
+              <Text style={[n.treeText, ...(level === 0 ? [n.rBold] : [])]}>
+                <RichRuns runs={item} />
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    );
+  }
   if (block.type === "bulleted" || block.type === "numbered") {
     return (
       <View style={{ marginBottom: 8 }}>
-        {(block.items ?? []).map((item, i) => (
-          <View key={i} style={n.listRow}>
-            <Text style={n.listMark}>{block.type === "numbered" ? `${i + 1}.` : "•"}</Text>
-            <Text style={n.listText}>
-              <RichRuns runs={item} />
-            </Text>
-          </View>
+        {(block.items ?? []).map((item, i) => {
+          const level = block.itemLevels?.[i] ?? 0;
+          // The marker the source gave, so an agreement's own (a), (b), (i) lettering survives.
+          const mark = block.itemMarkers?.[i] ?? (block.type === "numbered" ? `${i + 1}.` : "•");
+          return (
+            <View key={i} style={[n.listRow, ...(level > 0 ? [{ marginLeft: level * 14 }] : [])]}>
+              <Text style={n.listMark}>{mark}</Text>
+              <Text style={n.listText}>
+                <RichRuns runs={item} />
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    );
+  }
+  if (block.lines && block.lines.length > 1) {
+    return (
+      <View style={n.richPara}>
+        {block.lines.map((line, i) => (
+          <Text key={i} style={n.richLine}>{line.length > 0 ? <RichRuns runs={line} /> : " "}</Text>
         ))}
       </View>
     );
@@ -320,13 +370,16 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
  * Anything before the first h3 belongs to the clause itself and stays unnumbered; each h3 after that
  * opens a sub-clause numbered in order.
  */
-function splitSubClauses(blocks: RichBlock[]): { heading?: string; index: number; blocks: RichBlock[] }[] {
-  const parts: { heading?: string; index: number; blocks: RichBlock[] }[] = [{ index: 0, blocks: [] }];
+function splitSubClauses(blocks: RichBlock[]): { heading?: string; number?: string; index: number; blocks: RichBlock[] }[] {
+  const parts: { heading?: string; number?: string; index: number; blocks: RichBlock[] }[] = [{ index: 0, blocks: [] }];
   let sub = 0;
   for (const block of blocks) {
     if (block.type === "h3") {
       sub += 1;
-      parts.push({ heading: (block.runs ?? []).map((r) => r.text).join("").trim(), index: sub, blocks: [] });
+      const raw = (block.runs ?? []).map((r) => r.text).join("").trim();
+      // "4.2 Notices" keeps 4.2; only an unnumbered sub-heading is given a number by position.
+      const { number, title } = splitLeadingNumber(raw);
+      parts.push({ heading: title || raw, ...(number ? { number } : {}), index: sub, blocks: [] });
       continue;
     }
     parts[parts.length - 1]!.blocks.push(block);
@@ -351,12 +404,27 @@ function StructuredTemplate({
 
   // Group the pasted blocks into clauses: a heading opens a new clause and everything under it belongs
   // to that clause, so numbering follows the drafter's own structure rather than counting paragraphs.
-  const clauses: { heading?: string; blocks: RichBlock[] }[] = [];
+  /*
+   * The drafter's numbering is the document's numbering.
+   *
+   * An agreement is argued over by reference — "clause 14.2" — and those references are written into
+   * the text itself. A heading that already says "14. Confidentiality" was therefore renumbered to
+   * whatever position it happened to sit in, printing "3. 14. Confidentiality" and leaving every
+   * cross-reference in the body pointing somewhere else. The heading's own number wins; only a
+   * heading that carries none is numbered by position, continuing from the last number seen.
+   */
+  const clauses: { heading?: string; number: string; blocks: RichBlock[] }[] = [];
+  let last = 0;
   for (const block of rich) {
     if (block.type === "h2") {
-      clauses.push({ heading: (block.runs ?? []).map((r) => r.text).join("").trim(), blocks: [] });
+      const raw = (block.runs ?? []).map((r) => r.text).join("").trim();
+      const { number, title } = splitLeadingNumber(raw);
+      const own = number ? Number.parseInt(number, 10) : NaN;
+      if (Number.isFinite(own)) last = own;
+      else last += 1;
+      clauses.push({ heading: title || raw, number: number ?? String(last), blocks: [] });
     } else {
-      if (clauses.length === 0) clauses.push({ blocks: [] });
+      if (clauses.length === 0) clauses.push({ number: "", blocks: [] });
       clauses[clauses.length - 1]!.blocks.push(block);
     }
   }
@@ -371,14 +439,14 @@ function StructuredTemplate({
     >
       {clauses.length > 0
         ? clauses.map((c, i) => (
-            <Clause key={i} n={`${i + 1}.`} {...(c.heading ? { heading: c.heading } : {})}>
+            <Clause key={i} n={c.number ? `${c.number}.` : ""} {...(c.heading ? { heading: c.heading } : {})}>
               {/* An h3 inside a clause opens a numbered sub-clause, so the drafter's own structure
                   becomes 4.1, 4.2 and can be cited in a conversation about the agreement. */}
               {splitSubClauses(c.blocks).map((part, j) =>
                 part.heading === undefined ? (
                   part.blocks.map((b, k) => <RichBlockView key={`${j}-${k}`} block={b} />)
                 ) : (
-                  <SubClause key={j} n={`${i + 1}.${part.index}`} heading={part.heading}>
+                  <SubClause key={j} n={part.number ?? `${c.number || i + 1}.${part.index}`} heading={part.heading}>
                     {part.blocks.map((b, k) => <RichBlockView key={`${j}-${k}`} block={b} />)}
                   </SubClause>
                 ),

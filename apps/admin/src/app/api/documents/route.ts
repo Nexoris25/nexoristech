@@ -117,7 +117,7 @@ function sanitizeInvoice(body: Record<string, unknown>): InvoiceInfo | null {
   };
 }
 
-const RICH_TYPES = new Set<RichBlockType>(["paragraph", "h2", "h3", "bulleted", "numbered", "table"]);
+const RICH_TYPES = new Set<RichBlockType>(["paragraph", "h2", "h3", "bulleted", "numbered", "table", "tree"]);
 
 function sanitizeRuns(value: unknown): RichRun[] {
   if (!Array.isArray(value)) return [];
@@ -161,12 +161,39 @@ function sanitizeRich(value: unknown): RichBlock[] {
           ? ({ type, rows, headerRow: block.headerRow === true } as RichBlock)
           : null;
       }
-      if (type === "bulleted" || type === "numbered") {
-        const items = Array.isArray(block.items) ? block.items.map((it) => sanitizeRuns(it)).filter((r) => r.length > 0) : [];
-        return items.length > 0 ? ({ type, items } as RichBlock) : null;
+      if (type === "bulleted" || type === "numbered" || type === "tree") {
+        /*
+         * Items, and the depth and marker that go with them, kept in step.
+         *
+         * The three arrays are positional, so an item dropped for being empty must drop its level and
+         * its marker with it. Sanitising them separately is how a list ends up numbered off by one.
+         */
+        const raw = Array.isArray(block.items) ? block.items : [];
+        const levels = Array.isArray(block.itemLevels) ? block.itemLevels : [];
+        const markers = Array.isArray(block.itemMarkers) ? block.itemMarkers : [];
+        const kept = raw
+          .map((it, i) => ({
+            runs: sanitizeRuns(it),
+            level: Math.min(6, Math.max(0, Math.trunc(num(levels[i])))),
+            marker: typeof markers[i] === "string" ? (markers[i] as string).slice(0, 12) : "",
+          }))
+          .filter((it) => it.runs.length > 0);
+        if (kept.length === 0) return null;
+        return {
+          type,
+          items: kept.map((it) => it.runs),
+          itemLevels: kept.map((it) => it.level),
+          ...(kept.some((it) => it.marker !== "") ? { itemMarkers: kept.map((it) => it.marker) } : {}),
+        } as RichBlock;
       }
+      const lines = Array.isArray(block.lines)
+        ? block.lines.map((line) => sanitizeRuns(line)).filter((line, i, all) =>
+            // Interior blank lines are spacing the writer put there; leading and trailing ones are not.
+            line.length > 0 || (i > 0 && i < all.length - 1))
+        : [];
       const runs = sanitizeRuns(block.runs);
-      return runs.length > 0 ? ({ type, runs } as RichBlock) : null;
+      if (runs.length === 0) return null;
+      return (lines.length > 1 ? { type, runs, lines } : { type, runs }) as RichBlock;
     })
     .filter((b): b is RichBlock => b !== null);
 }
@@ -225,6 +252,11 @@ async function sanitize(body: Record<string, unknown>): Promise<DocumentData | n
     ...(str(body.stampImage) ? { stampImage: str(body.stampImage) } : {}),
     ...(str(body.signatureImage) ? { signatureImage: str(body.signatureImage) } : {}),
     ...(str(body.subtitle) ? { subtitle: str(body.subtitle) } : {}),
+    // The cover fields, each carried only when it was given: an empty line on a cover reads as a fault.
+    ...(str(body.preparedFor) ? { preparedFor: str(body.preparedFor) } : {}),
+    ...(str(body.preparedBy) ? { preparedBy: str(body.preparedBy) } : {}),
+    ...(str(body.validity) ? { validity: str(body.validity) } : {}),
+    ...(str(body.confidentiality) ? { confidentiality: str(body.confidentiality) } : {}),
     ...(meta.length > 0 ? { meta } : {}),
     ...(richContent.length > 0 ? { richContent } : {}),
     ...(signatory ? { signatory } : {}),

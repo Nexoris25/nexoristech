@@ -14,9 +14,10 @@
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import {
-  BrandCover, BrandTable, KeyValues, RunningFurniture, SectionHeading, TableOfContents, brandStyles,
+  BrandCover, BrandTable, KeyValues, Outline, RunningFurniture, SectionHeading, TableOfContents,
+  brandStyles, type RowEmphasis,
 } from "./brand-parts.js";
-import { BULLET_INDENT, C, FONT, PAGE, TYPE, mm, sectionNumber } from "./brand.js";
+import { BULLET_INDENT, C, FONT, PAGE, TYPE, mm, sectionNumber, splitLeadingNumber } from "./brand.js";
 import type { CompanyInfo, DocumentData, LineItem, RichBlock, RichRun } from "./types.js";
 
 const s = StyleSheet.create({
@@ -29,10 +30,10 @@ const s = StyleSheet.create({
   lead: TYPE.lead,
   h3: TYPE.h3,
   bulletRow: { flexDirection: "row", marginBottom: 4 },
-  bulletMark: { fontFamily: FONT.regular, fontSize: 9.3, color: C.purple, width: BULLET_INDENT.level1 },
+  bulletMark: { fontFamily: FONT.regular, fontSize: 9.3, color: C.purple, width: BULLET_INDENT.level1, textAlign: "left" },
   bulletText: { ...TYPE.bullet, flex: 1, marginBottom: 0 },
-  contentsTitle: { fontFamily: FONT.bold, fontSize: 14.5, color: C.ink, marginBottom: mm(5) },
-  contentsRule: { height: 1.1, backgroundColor: C.purple, marginBottom: mm(6) },
+  /** One step of nesting, the kit's second bullet indent less the first. */
+  bulletIndent: { marginLeft: BULLET_INDENT.level2 - BULLET_INDENT.level1 },
   runBold: { fontFamily: FONT.bold },
   runItalic: { fontFamily: FONT.regular, color: C.purple },
   runUnderline: { textDecoration: "underline" },
@@ -43,6 +44,13 @@ const s = StyleSheet.create({
   richTableRow: { flexDirection: "row", borderBottomWidth: 0.4, borderBottomColor: C.rule },
   richTableRowTint: { backgroundColor: C.rowTint },
   richTableCell: { ...TYPE.cell, paddingVertical: 5.5, paddingHorizontal: 6 },
+  richTableSubtotal: { backgroundColor: C.headTint },
+  richTableTotal: { backgroundColor: C.purpleDark },
+  richTableStrong: { fontFamily: FONT.bold },
+  richTableTotalText: { color: C.white },
+  cellRight: { textAlign: "right" },
+  /* A paragraph whose source had line breaks: one Text per line, never a newline inside one. */
+  lineRow: { marginBottom: 0 },
 
   acceptTitle: { fontFamily: FONT.bold, fontSize: 14.5, color: C.ink, marginBottom: mm(3) },
   acceptRule: { height: 1.1, backgroundColor: C.purple, marginBottom: mm(5) },
@@ -83,29 +91,90 @@ function Runs({ runs }: { runs: RichRun[] }): React.ReactElement {
  * from cell content produces a table that changes shape with the data; equal columns are predictable,
  * and a writer who needs a different balance can say so in the copy.
  */
+const cellText = (cell: RichRun[] | undefined): string => (cell ?? []).map((r) => r.text).join("").trim();
+
+/** A cell holding a figure: currency, percentage or plain number, however it is punctuated. */
+function isFigure(text: string): boolean {
+  return text !== "" && /^[^A-Za-z]*[\d][\d\s,.%()+/-]*$/.test(text) && /\d/.test(text);
+}
+
+/** A row that closes a table off: a total, a subtotal, a VAT line. */
+function summaryOf(cells: RichRun[][]): RowEmphasis {
+  const first = cellText(cells[0]).toLowerCase();
+  if (/^(grand )?total\b|^total (payable|due|project)|^amount (payable|due)/.test(first)) return "total";
+  if (/^(sub-?total|vat\b|less\b|discount\b)/.test(first)) return "subtotal";
+  return "none";
+}
+
 function RichTable({ block }: { block: RichBlock }): React.ReactElement | null {
   const rows = block.rows ?? [];
   if (rows.length === 0) return null;
   const header = block.headerRow === true ? rows[0] : undefined;
   const body = block.headerRow === true ? rows.slice(1) : rows;
   const columns = Math.max(...rows.map((r) => r.length));
+  /*
+   * Columns of figures are right-aligned, decided by what the column actually holds rather than by
+   * its position: a price table's last column is money in one document and a note in the next. A
+   * column counts as figures when most of its filled cells are.
+   */
+  const rightAligned = Array.from({ length: columns }, (_, i) => {
+    const filled = body.map((row) => cellText(row[i])).filter((t) => t !== "");
+    return filled.length > 0 && filled.filter(isFigure).length >= Math.ceil(filled.length * 0.6);
+  });
+  /*
+   * Only one row is the figure the table is about.
+   *
+   * A price schedule often carries a net total, then VAT, then the payable amount, and marking each
+   * of them as the total gives a table with three closing rows and no answer. The last one is the
+   * answer; the ones above it are steps towards it.
+   */
+  const marks = body.map(summaryOf);
+  const lastTotal = marks.lastIndexOf("total");
+  for (let i = 0; i < marks.length; i += 1) {
+    if (marks[i] === "total" && i !== lastTotal) marks[i] = "subtotal";
+  }
   const width = { flex: 1 };
   return (
     <View style={s.richTable}>
       {header ? (
         <View style={s.richTableHead} fixed>
           {Array.from({ length: columns }, (_, i) => (
-            <Text key={i} style={[s.richTableHeadCell, width]}><Runs runs={header[i] ?? []} /></Text>
+            <Text key={i} style={[s.richTableHeadCell, width, ...(rightAligned[i] ? [s.cellRight] : [])]}>
+              <Runs runs={header[i] ?? []} />
+            </Text>
           ))}
         </View>
       ) : null}
-      {body.map((row, r) => (
-        <View key={r} style={[s.richTableRow, ...(r % 2 === 1 ? [s.richTableRowTint] : [])]} wrap={false}>
-          {Array.from({ length: columns }, (_, i) => (
-            <Text key={i} style={[s.richTableCell, width]}><Runs runs={row[i] ?? []} /></Text>
-          ))}
-        </View>
-      ))}
+      {body.map((row, r) => {
+        const mark = marks[r] ?? "none";
+        return (
+          <View
+            key={r}
+            style={[
+              s.richTableRow,
+              ...(mark === "none" && r % 2 === 1 ? [s.richTableRowTint] : []),
+              ...(mark === "subtotal" ? [s.richTableSubtotal] : []),
+              ...(mark === "total" ? [s.richTableTotal] : []),
+            ]}
+            wrap={false}
+          >
+            {Array.from({ length: columns }, (_, i) => (
+              <Text
+                key={i}
+                style={[
+                  s.richTableCell,
+                  width,
+                  ...(rightAligned[i] ? [s.cellRight] : []),
+                  ...(mark === "none" ? [] : [s.richTableStrong]),
+                  ...(mark === "total" ? [s.richTableTotalText] : []),
+                ]}
+              >
+                <Runs runs={row[i] ?? []} />
+              </Text>
+            ))}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -118,14 +187,43 @@ function Block({ block }: { block: RichBlock }): React.ReactElement | null {
   if (block.type === "table") {
     return <RichTable block={block} />;
   }
+  if (block.type === "tree") {
+    return (
+      <Outline
+        items={(block.items ?? []).map((item, i) => <Runs key={i} runs={item} />)}
+        levels={block.itemLevels ?? []}
+      />
+    );
+  }
   if (block.type === "bulleted" || block.type === "numbered") {
+    /*
+     * Markers come from the parse, not from counting here.
+     *
+     * Counting rows is what loses the writer's numbering: a list that starts at seven restarts at
+     * one, and a nested level restarts alongside its parent. The fallback is only for content that
+     * reached this file without markers at all.
+     */
     return (
       <View>
-        {(block.items ?? []).map((item, i) => (
-          <View key={i} style={s.bulletRow} wrap={false}>
-            <Text style={s.bulletMark}>{block.type === "numbered" ? `${i + 1}.` : "•"}</Text>
-            <Text style={s.bulletText}><Runs runs={item} /></Text>
-          </View>
+        {(block.items ?? []).map((item, i) => {
+          const level = block.itemLevels?.[i] ?? 0;
+          const mark = block.itemMarkers?.[i] ?? (block.type === "numbered" ? `${i + 1}.` : "•");
+          return (
+            <View key={i} style={[s.bulletRow, ...(level > 0 ? [{ marginLeft: level * (BULLET_INDENT.level2 - BULLET_INDENT.level1) }] : [])]} wrap={false}>
+              <Text style={s.bulletMark}>{mark}</Text>
+              <Text style={s.bulletText}><Runs runs={item} /></Text>
+            </View>
+          );
+        })}
+      </View>
+    );
+  }
+  // A paragraph whose source carried line breaks keeps them, one Text per line.
+  if (block.lines && block.lines.length > 1) {
+    return (
+      <View style={s.body}>
+        {block.lines.map((line, i) => (
+          <Text key={i} style={s.lineRow}>{line.length > 0 ? <Runs runs={line} /> : " "}</Text>
         ))}
       </View>
     );
@@ -139,14 +237,32 @@ interface Section {
   blocks: RichBlock[];
 }
 
-/** Split the flat block list into numbered sections, one per h2. */
+/**
+ * Split the flat block list into numbered sections, one per h2.
+ *
+ * The writer's own numbering wins. A heading that already reads "07 Security Schedule" or
+ * "7. Security Schedule" keeps its seven, because that is the number the body text and the client's
+ * email will both refer to; renumbering it from the top produced a document whose contents page
+ * disagreed with its own cross-references. Only headings that carry no number are given one, and they
+ * are given the next one after the last number seen, so a mixed document still counts upwards.
+ */
 function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichBlock[] } {
   const preamble: RichBlock[] = [];
   const sections: Section[] = [];
+  let last = 0;
   for (const block of blocks) {
     if (block.type === "h2") {
-      const title = (block.runs ?? []).map((r) => r.text).join("").trim();
-      sections.push({ number: sectionNumber(sections.length + 1), title: title || "Section", blocks: [] });
+      const heading = (block.runs ?? []).map((r) => r.text).join("").trim();
+      const { number, title } = splitLeadingNumber(heading);
+      const own = number ? Number.parseInt(number, 10) : NaN;
+      if (Number.isFinite(own)) last = own;
+      else last += 1;
+      sections.push({
+        // Padded to the kit's two digits when it is a plain number; a multi-level one is left as written.
+        number: number && /^\d+$/.test(number) ? sectionNumber(Number.parseInt(number, 10)) : number ?? sectionNumber(last),
+        title: title || heading || "Section",
+        blocks: [],
+      });
       continue;
     }
     if (sections.length === 0) preamble.push(block);
@@ -186,12 +302,14 @@ function Investment({ items }: { items: LineItem[] }): React.ReactElement {
   const total = items.reduce((sum, i) => sum + i.amount, 0);
   return (
     <BrandTable
-      headers={["Item", "Amount"]}
+      headers={["Description", "Amount"]}
       rows={[
         ...items.map((i) => [i.description, naira(i.amount)]),
         ["Total", naira(total)],
       ]}
       widths={[3, 1]}
+      align={["left", "right"]}
+      emphasis={[...items.map((): RowEmphasis => "none"), "total"]}
     />
   );
 }
@@ -276,24 +394,23 @@ export function BrandedTemplate({
   signature?: Buffer;
 }): React.ReactElement {
   const { sections, preamble } = toSections(data.richContent ?? []);
-  const client = data.recipientCompany || data.recipientName || "Prepared for you";
+  const client = data.preparedFor || data.recipientCompany || data.recipientName || "Prepared for you";
   const running = `${data.kind.toUpperCase()}  ·  ${client.toUpperCase()}`;
   const footer = `${company.legalName}  |  Confidential  |  Prepared for the recipient named above`;
-  const metaLines = [
-    `Date: ${data.date}`,
-    ...(data.reference ? [`Reference: ${data.reference}`] : []),
-  ];
+  // Whoever the document says wrote it, falling back to the company record rather than to nothing.
+  const byLines = data.preparedBy ? [data.preparedBy, ...preparedBy(company).slice(1)] : preparedBy(company);
 
   return (
     <>
       {/* The cover is its own page with no padding: the artwork runs to the paper's edge. */}
       <Page size="A4" style={s.coverPage}>
         <BrandCover
+          title={data.title || data.kind}
           preparedFor={client}
-          title={data.kind}
-          {...(data.subtitle ? { subtitle: data.subtitle } : {})}
-          metaLines={metaLines}
-          preparedByLines={preparedBy(company)}
+          preparedByLines={byLines}
+          proposalDate={data.date}
+          {...(data.validity ? { validity: data.validity } : {})}
+          {...(data.confidentiality ? { confidentiality: data.confidentiality } : {})}
           {...(logoWhite ? { logoWhite } : {})}
         />
       </Page>
@@ -305,8 +422,9 @@ export function BrandedTemplate({
             furniture pretending to be navigation. */}
         {sections.length > 1 ? (
           <View>
-            <Text style={s.contentsTitle}>Contents</Text>
-            <View style={s.contentsRule} />
+            {/* Set with the same bar-and-title as every other section, so the contents page belongs
+                to the document rather than looking like a cover sheet for it. */}
+            <SectionHeading number="" title="Table of Contents" />
             <TableOfContents entries={sections.map((sec) => ({ number: sec.number, title: sec.title }))} />
             <View style={{ marginBottom: mm(10) }} />
           </View>

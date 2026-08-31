@@ -92,3 +92,21 @@ export const BULLET_INDENT = { level1: 13, level2: 23 } as const;
 export function sectionNumber(index: number): string {
   return index < 10 ? `0${index}` : String(index);
 }
+
+/**
+ * Separate a heading's own number from its words.
+ *
+ * A drafter who writes "7. Confidentiality", "Section 7 — Confidentiality" or "07 Confidentiality"
+ * has numbered their document, and that numbering is the one the parties will cite. Renumbering it
+ * from the top produces two numbers on the same heading and, worse, a citation in the body that
+ * points at the wrong clause. So the heading's own number wins wherever there is one, and the
+ * sequence is only a fallback for text that carries none.
+ *
+ * Multi-level numbers are kept whole ("4.2.1"), and a trailing dot is dropped: the templates supply
+ * their own punctuation.
+ */
+export function splitLeadingNumber(heading: string): { number?: string; title: string } {
+  const match = /^\s*(?:section\s+|clause\s+|article\s+)?(\d+(?:\.\d+)*)\s*[.)\]:–—-]?\s+(\S.*)$/i.exec(heading);
+  if (!match) return { title: heading.trim() };
+  return { number: match[1]!.replace(/\.$/, ""), title: match[2]!.trim() };
+}
