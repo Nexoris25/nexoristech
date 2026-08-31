@@ -11,6 +11,8 @@ import { db } from "../../lib/db.js";
 import { AdminShell } from "../../components/AdminShell.js";
 import { DatabaseDown } from "../../components/DatabaseDown.js";
 import { isDatabaseUnreachable, DB_UNREACHABLE_MARKER } from "../../lib/db-errors.js";
+import { buildActionCenter, type ActionItem } from "../../lib/action-center.js";
+import { readItemIds } from "../../lib/notification-read.js";
 
 export default async function DashboardLayout({
   children,
@@ -22,15 +24,18 @@ export default async function DashboardLayout({
   // Access is not granted here — requireStaff still runs and still refuses anyone without a valid
   // session; this only changes how an outage is reported.
   let staff: Awaited<ReturnType<typeof requireStaff>>;
-  let newLeadCount: number;
+  let unread: ActionItem[];
   let granted: string[];
   try {
     staff = await requireStaff();
-    const [{ rows }, { rows: grants }] = await Promise.all([
-      db().query<{ count: string }>("SELECT count(*) FROM lead WHERE status = 'New'"),
+    // The bell counts what this person has not yet read, not how many rows happen to exist. Anything
+    // else makes the badge a number that never goes down, which is what it was before.
+    const [items, read, { rows: grants }] = await Promise.all([
+      buildActionCenter(db(), new Date(), staff.role === "salesperson" ? staff.id : undefined),
+      readItemIds(staff.id),
       db().query<{ module: string }>("SELECT DISTINCT module FROM module_access WHERE staff_id = $1", [staff.id]),
     ]);
-    newLeadCount = Number(rows[0]?.count ?? 0);
+    unread = items.filter((i) => !read.has(i.id));
     granted = grants.map((g) => g.module);
   } catch (error) {
     if (isDatabaseUnreachable(error) || (error instanceof Error && error.message === DB_UNREACHABLE_MARKER)) {
@@ -50,7 +55,17 @@ export default async function DashboardLayout({
     : granted.filter((m) => m !== "cms");
 
   return (
-    <AdminShell staff={{ name: staff.name, role: staff.role }} newLeadCount={newLeadCount} access={access}>
+    <AdminShell
+      staff={{ name: staff.name, role: staff.role }}
+      unread={unread.length}
+      notifications={unread.slice(0, 5).map((i) => ({
+        id: i.id,
+        title: i.title,
+        detail: `${i.module} · ${i.detail}`,
+        href: i.href,
+      }))}
+      access={access}
+    >
       {children}
     </AdminShell>
   );

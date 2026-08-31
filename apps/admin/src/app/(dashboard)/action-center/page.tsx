@@ -6,56 +6,86 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Inbox } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Inbox } from "lucide-react";
 import { requireStaff } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
 import { buildActionCenter, type ActionItem } from "../../../lib/action-center.js";
+import { readItemIds } from "../../../lib/notification-read.js";
 import { PRIORITY_STYLE, type Priority } from "../../../lib/lead-ui.js";
 
 export const dynamic = "force-dynamic";
 
 const PRIORITIES: Priority[] = ["High", "Medium", "Low"];
 
-function Row({ item }: { item: ActionItem }): ReactNode {
+/**
+ * One alert.
+ *
+ * Opening it goes through /api/notifications, which records the read and then sends the person on to
+ * where the alert was pointing. That is the behaviour asked for: reading something marks it read,
+ * without a second deliberate act. The explicit toggle beside it is for the other two cases — marking
+ * something read without going to look at it, and putting one back when it still needs doing.
+ *
+ * A read item stays in the list. The alert is about work, and the work is still there; only its
+ * insistence drops away.
+ */
+function Row({ item, read }: { item: ActionItem; read: boolean }): ReactNode {
   const p = PRIORITY_STYLE[item.priority];
+  const open = `/api/notifications?id=${encodeURIComponent(item.id)}&to=${encodeURIComponent(item.href)}`;
   return (
-    <Link
-      href={item.href}
-      className="group flex items-center gap-3 border-t border-purple-200/50 px-5 py-3.5 first:border-t-0 hover:bg-neutral-50"
+    <div
+      className={`group flex items-center gap-3 border-t border-purple-200/50 px-5 py-3.5 first:border-t-0 hover:bg-neutral-50 ${read ? "bg-neutral-50/60" : ""}`}
     >
-      <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-card"
-        style={{ background: `${p.dot}1a`, color: p.dot }}
-      >
-        <Inbox size={16} strokeWidth={2} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[0.92rem] font-600 text-ink-950">{item.title}</span>
-        <span className="block truncate text-[0.8rem] text-neutral-600">
-          {item.module} · {item.detail}
+      <Link href={open} className="flex min-w-0 flex-1 items-center gap-3">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-card"
+          style={read ? { background: "#f2f2f5", color: "#9a9aa6" } : { background: `${p.dot}1a`, color: p.dot }}
+        >
+          <Inbox size={16} strokeWidth={2} />
         </span>
-      </span>
-      <span className="hidden shrink-0 text-[0.8rem] text-neutral-600 sm:block">{item.assignee}</span>
-      <ArrowRight
-        size={16}
-        strokeWidth={2}
-        className="shrink-0 text-neutral-300 transition-colors group-hover:text-purple-600"
-      />
-    </Link>
+        <span className="min-w-0 flex-1">
+          <span
+            className={`block truncate text-[0.92rem] ${read ? "font-400 text-neutral-600" : "font-600 text-ink-950"}`}
+          >
+            {item.title}
+          </span>
+          <span className={`block truncate text-[0.8rem] ${read ? "text-neutral-400" : "text-neutral-600"}`}>
+            {item.module} · {item.detail}
+          </span>
+        </span>
+        <span className="hidden shrink-0 text-[0.8rem] text-neutral-600 sm:block">{item.assignee}</span>
+        <ArrowRight
+          size={16}
+          strokeWidth={2}
+          className="shrink-0 text-neutral-300 transition-colors group-hover:text-purple-600"
+        />
+      </Link>
+      <form action="/api/notifications" method="post" className="shrink-0">
+        <input type="hidden" name="id" value={item.id} />
+        <input type="hidden" name="intent" value={read ? "unread" : "read"} />
+        <button
+          type="submit"
+          title={read ? "Mark as unread" : "Mark as read"}
+          aria-label={read ? `Mark "${item.title}" as unread` : `Mark "${item.title}" as read`}
+          className="grid h-7 w-7 place-items-center rounded-full text-neutral-300 transition-colors hover:bg-purple-100 hover:text-purple-600"
+        >
+          {read ? <Circle size={14} strokeWidth={2} /> : <CheckCircle2 size={15} strokeWidth={2} />}
+        </button>
+      </form>
+    </div>
   );
 }
 
 export default async function ActionCenterPage(): Promise<ReactNode> {
   const staff = await requireStaff();
   const now = new Date();
-  const items = await buildActionCenter(
-    db(),
-    now,
-    staff.role === "salesperson" ? staff.id : undefined,
-  );
+  const [items, read] = await Promise.all([
+    buildActionCenter(db(), now, staff.role === "salesperson" ? staff.id : undefined),
+    readItemIds(staff.id),
+  ]);
 
   const counts: Record<Priority, number> = { High: 0, Medium: 0, Low: 0 };
   for (const item of items) counts[item.priority] += 1;
+  const unread = items.filter((i) => !read.has(i.id));
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -63,6 +93,28 @@ export default async function ActionCenterPage(): Promise<ReactNode> {
       <p className="mt-1 text-[0.95rem] text-neutral-600">
         One inbox for everything that needs a decision across Nexoris Technologies.
       </p>
+
+      {unread.length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <span className="text-[0.85rem] text-neutral-600">
+            <span className="font-700 text-ink-950">{unread.length}</span>{" "}
+            {unread.length === 1 ? "alert is" : "alerts are"} unread.
+          </span>
+          <form action="/api/notifications" method="post">
+            <input type="hidden" name="intent" value="read" />
+            {unread.map((item) => (
+              <input key={item.id} type="hidden" name="id" value={item.id} />
+            ))}
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-white px-3 py-1.5 text-[0.8rem] font-600 text-purple-600 transition-colors hover:bg-purple-100"
+            >
+              <CheckCircle2 size={14} strokeWidth={2} />
+              Mark all as read
+            </button>
+          </form>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-3 gap-3 sm:max-w-md">
         {PRIORITIES.map((priority) => (
@@ -101,7 +153,7 @@ export default async function ActionCenterPage(): Promise<ReactNode> {
               </h2>
               <div className="overflow-hidden rounded-card border border-purple-200 bg-white shadow-subtle">
                 {items.filter((i) => i.priority === priority).map((item) => (
-                  <Row key={item.id} item={item} />
+                  <Row key={item.id} item={item} read={read.has(item.id)} />
                 ))}
               </div>
             </section>

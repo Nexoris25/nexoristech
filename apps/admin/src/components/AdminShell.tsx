@@ -397,7 +397,10 @@ function SubLink({ sub, active, onNavigate }: { sub: NavEntry; active: boolean; 
 
 const MENU_ITEM = "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.84rem] text-slate-700 hover:bg-slate-50";
 
-export function AdminShell({ staff, newLeadCount, access, children }: { staff: ShellStaff; newLeadCount: number; access: string[]; children: ReactNode }): ReactNode {
+/** One unread alert, as the bell shows it. The id is the ActionItem id the read state is keyed on. */
+export type ShellNotification = { id: string; title: string; detail: string; href: string };
+
+export function AdminShell({ staff, unread, notifications, access, children }: { staff: ShellStaff; unread: number; notifications: ShellNotification[]; access: string[]; children: ReactNode }): ReactNode {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
@@ -522,13 +525,13 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
               align="right"
               panelClassName="w-[300px]"
               buttonClassName="relative cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-              buttonLabel={newLeadCount > 0 ? `Notifications, ${newLeadCount} new` : "Notifications"}
+              buttonLabel={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
               label={
                 <>
                   <Bell size={17} strokeWidth={2} />
-                  {newLeadCount > 0 ? (
+                  {unread > 0 ? (
                     <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#DC2626] px-1 font-mono text-[0.56rem] font-700 text-white">
-                      {newLeadCount > 99 ? "99+" : newLeadCount}
+                      {unread > 99 ? "99+" : unread}
                     </span>
                   ) : null}
                 </>
@@ -536,9 +539,24 @@ export function AdminShell({ staff, newLeadCount, access, children }: { staff: S
             >
               <div className="flex items-center justify-between px-3 py-2">
                 <span className="text-[0.84rem] font-700 text-slate-900">Notifications</span>
-                <span className="rounded-full bg-[#EEEBFC] px-2 py-0.5 text-[0.66rem] font-600 text-[#543CDA]">{newLeadCount} new</span>
+                <span className="rounded-full bg-[#EEEBFC] px-2 py-0.5 text-[0.66rem] font-600 text-[#543CDA]">{unread} unread</span>
               </div>
-              <span className="block px-3 py-2 text-[0.8rem] text-slate-600">{newLeadCount} new lead{newLeadCount === 1 ? "" : "s"} need attention.</span>
+              {notifications.length === 0 ? (
+                <span className="block px-3 py-2 text-[0.8rem] text-slate-600">Nothing unread.</span>
+              ) : (
+                notifications.map((n) => (
+                  // Through the marking route, so reading one here marks it read, exactly as it does
+                  // in the Action Center itself.
+                  <Link
+                    key={n.id}
+                    href={`/api/notifications?id=${encodeURIComponent(n.id)}&to=${encodeURIComponent(n.href)}`}
+                    className="block border-t border-slate-100 px-3 py-2 first:border-t-0 hover:bg-slate-50"
+                  >
+                    <span className="block truncate text-[0.8rem] font-600 text-slate-900">{n.title}</span>
+                    <span className="block truncate text-[0.74rem] text-slate-600">{n.detail}</span>
+                  </Link>
+                ))
+              )}
               <Link href="/action-center" className="block border-t border-slate-100 px-3 py-2 text-center text-[0.8rem] font-600 text-[#543CDA] hover:bg-slate-50">View all</Link>
             </Dropdown>
 
