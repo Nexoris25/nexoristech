@@ -117,7 +117,7 @@ function sanitizeInvoice(body: Record<string, unknown>): InvoiceInfo | null {
   };
 }
 
-const RICH_TYPES = new Set<RichBlockType>(["paragraph", "h2", "h3", "bulleted", "numbered"]);
+const RICH_TYPES = new Set<RichBlockType>(["paragraph", "h2", "h3", "bulleted", "numbered", "table"]);
 
 function sanitizeRuns(value: unknown): RichRun[] {
   if (!Array.isArray(value)) return [];
@@ -143,6 +143,24 @@ function sanitizeRich(value: unknown): RichBlock[] {
       const block = b as Record<string, unknown>;
       const type = block.type as RichBlockType;
       if (!RICH_TYPES.has(type)) return null;
+      if (type === "table") {
+        /*
+         * Rows of cells of runs, validated at each level.
+         *
+         * A table that arrives here and is not understood does not degrade, it disappears: the block
+         * is dropped and the schedule it described is simply missing from the document. So the shape
+         * is checked rather than trusted, and an empty table is dropped deliberately rather than
+         * rendering an empty frame.
+         */
+        const rows = Array.isArray(block.rows)
+          ? block.rows
+              .map((row) => (Array.isArray(row) ? row.map((cell) => sanitizeRuns(cell)) : []))
+              .filter((row) => row.some((cell) => cell.length > 0))
+          : [];
+        return rows.length > 0
+          ? ({ type, rows, headerRow: block.headerRow === true } as RichBlock)
+          : null;
+      }
       if (type === "bulleted" || type === "numbered") {
         const items = Array.isArray(block.items) ? block.items.map((it) => sanitizeRuns(it)).filter((r) => r.length > 0) : [];
         return items.length > 0 ? ({ type, items } as RichBlock) : null;

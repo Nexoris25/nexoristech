@@ -12,7 +12,7 @@
  * unnumbered run of content rather than an empty shell.
  */
 import React from "react";
-import { Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import {
   BrandCover, BrandTable, KeyValues, RunningFurniture, SectionHeading, TableOfContents, brandStyles,
 } from "./brand-parts.js";
@@ -37,6 +37,27 @@ const s = StyleSheet.create({
   runItalic: { fontFamily: FONT.regular, color: C.purple },
   runUnderline: { textDecoration: "underline" },
   runLink: { color: C.purple, textDecoration: "underline" },
+  richTable: { borderWidth: 0.6, borderColor: C.rule, marginBottom: 10, marginTop: 4 },
+  richTableHead: { flexDirection: "row", backgroundColor: C.purple },
+  richTableHeadCell: { ...TYPE.cellHead, paddingVertical: 6.5, paddingHorizontal: 6 },
+  richTableRow: { flexDirection: "row", borderBottomWidth: 0.4, borderBottomColor: C.rule },
+  richTableRowTint: { backgroundColor: C.rowTint },
+  richTableCell: { ...TYPE.cell, paddingVertical: 5.5, paddingHorizontal: 6 },
+
+  acceptTitle: { fontFamily: FONT.bold, fontSize: 14.5, color: C.ink, marginBottom: mm(3) },
+  acceptRule: { height: 1.1, backgroundColor: C.purple, marginBottom: mm(5) },
+  acceptIntro: { ...TYPE.body, marginBottom: mm(8) },
+  acceptCols: { flexDirection: "row", gap: mm(12) },
+  acceptCol: { flex: 1 },
+  acceptParty: { fontFamily: FONT.medium, fontSize: 8, color: C.purple, letterSpacing: 1, marginBottom: mm(4) },
+  acceptField: { marginBottom: mm(6) },
+  acceptLabel: { fontFamily: FONT.medium, fontSize: 7.2, color: C.inkSoft, letterSpacing: 0.8, marginBottom: mm(1) },
+  /* A reserved slot, so dropping a signature image in never reflows the page below it. */
+  acceptSlot: { height: mm(11), justifyContent: "flex-end" },
+  acceptFilled: { fontFamily: FONT.bold, fontSize: 11, color: C.ink },
+  acceptSignImage: { height: mm(10), maxWidth: mm(45), objectFit: "contain", objectPosition: "left bottom" },
+  acceptLine: { borderTopWidth: 0.8, borderTopColor: C.ink },
+  stamp: { width: mm(28), height: mm(28), objectFit: "contain", marginTop: mm(6) },
 });
 
 /** Inline runs, with the same treatment the rest of the engine gives them. */
@@ -55,10 +76,47 @@ function Runs({ runs }: { runs: RichRun[] }): React.ReactElement {
   );
 }
 
+/**
+ * A table pasted into the editor, set in the kit's table style.
+ *
+ * Column widths are equal rather than measured. react-pdf has no auto-layout, and guessing widths
+ * from cell content produces a table that changes shape with the data; equal columns are predictable,
+ * and a writer who needs a different balance can say so in the copy.
+ */
+function RichTable({ block }: { block: RichBlock }): React.ReactElement | null {
+  const rows = block.rows ?? [];
+  if (rows.length === 0) return null;
+  const header = block.headerRow === true ? rows[0] : undefined;
+  const body = block.headerRow === true ? rows.slice(1) : rows;
+  const columns = Math.max(...rows.map((r) => r.length));
+  const width = { flex: 1 };
+  return (
+    <View style={s.richTable}>
+      {header ? (
+        <View style={s.richTableHead} fixed>
+          {Array.from({ length: columns }, (_, i) => (
+            <Text key={i} style={[s.richTableHeadCell, width]}><Runs runs={header[i] ?? []} /></Text>
+          ))}
+        </View>
+      ) : null}
+      {body.map((row, r) => (
+        <View key={r} style={[s.richTableRow, ...(r % 2 === 1 ? [s.richTableRowTint] : [])]} wrap={false}>
+          {Array.from({ length: columns }, (_, i) => (
+            <Text key={i} style={[s.richTableCell, width]}><Runs runs={row[i] ?? []} /></Text>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /** One block of body content. Headings that open sections are handled by the caller. */
 function Block({ block }: { block: RichBlock }): React.ReactElement | null {
   if (block.type === "h3") {
     return <Text style={s.h3}><Runs runs={block.runs ?? []} /></Text>;
+  }
+  if (block.type === "table") {
+    return <RichTable block={block} />;
   }
   if (block.type === "bulleted" || block.type === "numbered") {
     return (
@@ -138,13 +196,84 @@ function Investment({ items }: { items: LineItem[] }): React.ReactElement {
   );
 }
 
+/**
+ * The acceptance page, added only when it was asked for.
+ *
+ * A proposal that arrives with signing lines on it is asking to be signed, and that is not always
+ * what a proposal is for: plenty go out to be read and discussed first. So this is behind the
+ * checkbox on the form rather than being part of every document.
+ *
+ * Nexoris's side may be pre-completed, because the person generating the document is the person
+ * signing for Nexoris. The client's side never is: pre-filling somebody else's name, title and date
+ * on a document they have not seen is not a convenience.
+ */
+function AcceptancePage({
+  data, company, client, logoPurple, stamp, signatureImage,
+}: {
+  data: DocumentData;
+  company: CompanyInfo;
+  client: string;
+  logoPurple?: Buffer;
+  stamp?: Buffer;
+  signatureImage?: Buffer;
+}): React.ReactElement {
+  const running = `${data.kind.toUpperCase()}  ·  ${client.toUpperCase()}`;
+  const footer = `${company.legalName}  |  Confidential  |  Prepared for the recipient named above`;
+  const fields = ["NAME", "TITLE", "SIGNATURE", "DATE"] as const;
+  const ours: Partial<Record<(typeof fields)[number], string>> = {
+    NAME: data.signatory?.name ?? "",
+    TITLE: data.signatory?.title ?? "",
+  };
+  return (
+    <Page size="A4" style={s.page}>
+      <RunningFurniture runningTitle={running} footerText={footer} {...(logoPurple ? { logoPurple } : {})} />
+      <Text style={s.acceptTitle}>Acceptance</Text>
+      <View style={s.acceptRule} />
+      <Text style={s.acceptIntro}>
+        {`By signing below, both parties accept this ${data.kind.toLowerCase()} as the basis of the engagement described in it.`}
+      </Text>
+      <View style={s.acceptCols}>
+        <View style={s.acceptCol}>
+          <Text style={s.acceptParty}>{`FOR ${company.legalName.toUpperCase()}`}</Text>
+          {fields.map((label) => (
+            <View key={label} style={s.acceptField}>
+              <Text style={s.acceptLabel}>{label}</Text>
+              <View style={s.acceptSlot}>
+                {label === "SIGNATURE" && signatureImage ? (
+                  <Image src={signatureImage} style={s.acceptSignImage} />
+                ) : ours[label] ? (
+                  <Text style={s.acceptFilled}>{ours[label]}</Text>
+                ) : null}
+              </View>
+              <View style={s.acceptLine} />
+            </View>
+          ))}
+          {stamp ? <Image src={stamp} style={s.stamp} /> : null}
+        </View>
+        <View style={s.acceptCol}>
+          <Text style={s.acceptParty}>{`FOR ${(client || "THE CLIENT").toUpperCase()}`}</Text>
+          {fields.map((label) => (
+            <View key={label} style={s.acceptField}>
+              <Text style={s.acceptLabel}>{label}</Text>
+              <View style={s.acceptSlot} />
+              <View style={s.acceptLine} />
+            </View>
+          ))}
+        </View>
+      </View>
+    </Page>
+  );
+}
+
 export function BrandedTemplate({
-  data, company, logoWhite, logoPurple,
+  data, company, logoWhite, logoPurple, stamp, signature,
 }: {
   data: DocumentData;
   company: CompanyInfo;
   logoWhite?: Buffer;
   logoPurple?: Buffer;
+  stamp?: Buffer;
+  signature?: Buffer;
 }): React.ReactElement {
   const { sections, preamble } = toSections(data.richContent ?? []);
   const client = data.recipientCompany || data.recipientName || "Prepared for you";
@@ -200,6 +329,17 @@ export function BrandedTemplate({
         ))}
 
       </Page>
+
+      {data.signature ? (
+        <AcceptancePage
+          data={data}
+          company={company}
+          client={client}
+          {...(logoPurple ? { logoPurple } : {})}
+          {...(data.insertStamp && stamp ? { stamp } : {})}
+          {...(data.insertSignature && signature ? { signatureImage: signature } : {})}
+        />
+      ) : null}
     </>
   );
 }

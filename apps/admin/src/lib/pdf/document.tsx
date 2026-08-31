@@ -227,6 +227,39 @@ function RichRuns({ runs }: { runs: RichRun[] }): React.ReactElement {
   );
 }
 
+/**
+ * A pasted table, set plainly for an agreement.
+ *
+ * No purple header band here: a schedule inside a contract is read, not sold. Rules and a tinted
+ * header are enough to make the columns legible, and the point is only that the cells stay separate
+ * instead of running together into a sentence, which is what flattening them to a paragraph did.
+ */
+function RichTableView({ block }: { block: RichBlock }): React.ReactElement {
+  const rows = block.rows ?? [];
+  if (rows.length === 0) return <Text />;
+  const header = block.headerRow === true ? rows[0] : undefined;
+  const body = block.headerRow === true ? rows.slice(1) : rows;
+  const columns = Math.max(...rows.map((r) => r.length));
+  return (
+    <View style={n.table}>
+      {header ? (
+        <View style={n.thead} fixed>
+          {Array.from({ length: columns }, (_, i) => (
+            <Text key={i} style={[n.cellDesc, n.bold]}><RichRuns runs={header[i] ?? []} /></Text>
+          ))}
+        </View>
+      ) : null}
+      {body.map((row, r) => (
+        <View key={r} style={n.row} wrap={false}>
+          {Array.from({ length: columns }, (_, i) => (
+            <Text key={i} style={n.cellDesc}><RichRuns runs={row[i] ?? []} /></Text>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
   if (block.type === "h2") {
     return (
@@ -241,6 +274,9 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
         <RichRuns runs={block.runs ?? []} />
       </Text>
     );
+  }
+  if (block.type === "table") {
+    return <RichTableView block={block} />;
   }
   if (block.type === "bulleted" || block.type === "numbered") {
     return (
@@ -815,6 +851,8 @@ export function NexorisDocument({
           company={company}
           {...(brandLogoWhite ? { logoWhite: brandLogoWhite } : {})}
           {...(brandLogoPurple ? { logoPurple: brandLogoPurple } : {})}
+          {...(stamp ? { stamp } : {})}
+          {...(signature ? { signature } : {})}
         />
       ) : (
         <StructuredTemplate data={data} company={company} {...brand} />

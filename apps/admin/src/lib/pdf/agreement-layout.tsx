@@ -148,9 +148,17 @@ function Furniture({ data, company, client, mark }: { data: DocumentData; compan
  * cannot be pointed at, so every h3 inside a clause becomes a numbered sub-clause rather than a bold
  * line of text.
  */
+/*
+ * Neither a clause nor a sub-clause sets wrap={false}.
+ *
+ * Both did, and it silently truncated agreements: a clause in a real instrument routinely runs longer
+ * than the page it starts on, and a View that may not split simply loses whatever does not fit. That
+ * is the worst failure available to a document somebody is going to sign. Small units that should
+ * never be orphaned, a table row, a bullet, the execution block, still keep it.
+ */
 export function SubClause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
   return (
-    <View style={a.subClause} wrap={false}>
+    <View style={a.subClause}>
       <Text style={a.subClauseNum}>{n}</Text>
       <View style={a.subClauseBody}>
         {heading ? <Text style={a.subClauseHeading}>{heading}</Text> : null}
@@ -162,7 +170,7 @@ export function SubClause({ n, heading, children }: { n: string; heading?: strin
 
 export function Clause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
   return (
-    <View style={a.clause} wrap={false}>
+    <View style={a.clause}>
       <Text style={a.clauseNum}>{n}</Text>
       <View style={a.clauseBody}>
         {heading ? <Text style={a.clauseHeading}>{heading}</Text> : null}
@@ -253,36 +261,16 @@ export function AgreementPages({
   return (
     <Page size="A4" style={a.page}>
       <Furniture data={data} company={company} client={client} {...(mark ? { mark } : {})} />
+      {/*
+        The instrument is the pasted text, and nothing is generated on top of it.
+
+        An MSA, an SLA or a Contract is drafted whole: it carries its own title, its own BETWEEN
+        block and its own recitals. This template used to add a title page and a parties block of its
+        own, so a real agreement stated its title twice and named the parties twice, once in the
+        drafter's words and once in the platform's. What remains here is only what a sheet of paper
+        needs: letterhead, page furniture, the text, and the execution block when it is asked for.
+      */}
       <View style={a.body}>
-        <Text style={a.docType}>{data.kind.toUpperCase()}</Text>
-        <Text style={a.title}>{data.title}</Text>
-        <View style={a.titleRule} />
-
-        <View style={a.parties}>
-          <Text style={a.partiesLabel}>BETWEEN</Text>
-          <View style={a.partyRow}>
-            <Text style={a.partyTag}>(1)</Text>
-            <Text style={a.partyBody}>
-              {/* The spaces are explicit. JSX trims whitespace at a line break, so the address ran
-                  straight into the bracket: "Ajah, Lekki Lagos(the "Provider")". */}
-              {company.legalName}
-              {company.tin ? ` (TIN ${company.tin})` : ""}
-              {`, of ${company.address} (the "Provider")`}
-            </Text>
-          </View>
-          <View style={a.partyRow}>
-            <Text style={a.partyTag}>(2)</Text>
-            <Text style={a.partyBody}>
-              {client || "the Client"}
-              {data.recipientAddress ? `, of ${data.recipientAddress}` : ""}
-              {` (the "Client")`}
-            </Text>
-          </View>
-          <Text style={a.dateLine}>Dated {data.date}.</Text>
-        </View>
-
-        {data.intro ? <Text style={a.intro}>{data.intro}</Text> : null}
-
         {children}
 
         {data.signature ? (

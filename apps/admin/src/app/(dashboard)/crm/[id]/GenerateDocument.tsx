@@ -66,6 +66,16 @@ export function GenerateDocument({
   const initialKind = allowedKinds[0] ?? "Proposal";
   const [kind, setKind] = useState<DocKind>(initialKind);
   const isInvoice = kind === "Invoice";
+  /*
+   * The agreements are the text, not a form.
+   *
+   * An MSA, an SLA or a Contract is pasted in complete: it already carries its own title, its own
+   * parties and its own recitals. Offering fields for those again produced a document that stated its
+   * title twice and named the parties twice, once from the form and once from the drafter's own
+   * words. So for these kinds the identity fields are not shown and the template supplies only
+   * letterhead, page furniture and, if asked for, the execution block.
+   */
+  const isLegal = kind === "Master Service Agreement" || kind === "Service Level Agreement" || kind === "Contract";
 
   // Shared narrative identity + meta, prefilled from the lead and deal.
   const [title, setTitle] = useState(`${initialKind} for ${defaultCompany || defaultName || "your project"}`);
@@ -75,6 +85,8 @@ export function GenerateDocument({
   const cost = defaultCost ?? 0;
   const timeline = "";
   const [intro, setIntro] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [subtitle, setSubtitle] = useState("");
   const [bodyHtml, setBodyHtml] = useState("");
   const [signature, setSignature] = useState(initialKind !== "Proposal");
   // The two optional insertions, off by default. A document is unsigned and unstamped unless someone
@@ -144,6 +156,8 @@ export function GenerateDocument({
             date,
             ...(recipientName ? { recipientName } : {}),
             ...(recipientCompany ? { recipientCompany } : {}),
+            ...(recipientAddress ? { recipientAddress } : {}),
+            ...(subtitle ? { subtitle } : {}),
             ...(intro ? { intro } : {}),
             meta: buildMeta(),
             // The AST is the only body now; sections stay in the payload shape for the invoice path.
@@ -350,40 +364,51 @@ export function GenerateDocument({
         </>
       ) : (
         <>
-          {/* Narrative identity */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="flex flex-col gap-1.5 sm:col-span-2">
-              <span className={LABEL}>Title</span>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} className={FIELD} />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className={LABEL}>Client name</span>
-              <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Contact name" className={FIELD} />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className={LABEL}>Client company</span>
-              <input value={recipientCompany} onChange={(e) => setRecipientCompany(e.target.value)} placeholder="Company" className={FIELD} />
-            </label>
-          </div>
+          {/* Everything the cover page shows. Not offered for the agreements, which have no cover. */}
+          {isLegal ? null : (
+            <>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 sm:col-span-2">
+                  <span className={LABEL}>Title</span>
+                  <input value={title} onChange={(e) => setTitle(e.target.value)} className={FIELD} />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className={LABEL}>Client name</span>
+                  <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Contact name" className={FIELD} />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className={LABEL}>Client company</span>
+                  <input value={recipientCompany} onChange={(e) => setRecipientCompany(e.target.value)} placeholder="Company" className={FIELD} />
+                </label>
+                <label className="flex flex-col gap-1.5 sm:col-span-2">
+                  <span className={LABEL}>Client address</span>
+                  <input value={recipientAddress} onChange={(e) => setRecipientAddress(e.target.value)} placeholder="Street, city, state" className={FIELD} />
+                </label>
+                <label className="flex flex-col gap-1.5 sm:col-span-2">
+                  <span className={LABEL}>Cover subtitle</span>
+                  <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="One line describing the engagement" className={FIELD} />
+                </label>
+              </div>
 
-          {/* Deal facts, auto-filled and overridable */}
-          <div className="grid grid-cols-1 gap-3 rounded-card border border-purple-200 bg-purple-100/30 p-3.5 sm:grid-cols-3">
-            <label className="flex flex-col gap-1.5">
-              <span className={LABEL}>Project / service</span>
-              <input value={project} onChange={(e) => setProject(e.target.value)} placeholder="Service line" className={FIELD} />
-            </label>
-          </div>
+              <div className="grid grid-cols-1 gap-3 rounded-card border border-purple-200 bg-purple-100/30 p-3.5 sm:grid-cols-3">
+                <label className="flex flex-col gap-1.5">
+                  <span className={LABEL}>Project / service</span>
+                  <input value={project} onChange={(e) => setProject(e.target.value)} placeholder="Service line" className={FIELD} />
+                </label>
+              </div>
 
-          <label className="flex flex-col gap-1.5">
-            <span className={LABEL}>Opening paragraph (optional)</span>
-            <textarea
-              value={intro}
-              onChange={(e) => setIntro(e.target.value)}
-              rows={2}
-              placeholder="Set the context in a sentence or two."
-              className={FIELD}
-            />
-          </label>
+              <label className="flex flex-col gap-1.5">
+                <span className={LABEL}>Opening paragraph (optional)</span>
+                <textarea
+                  value={intro}
+                  onChange={(e) => setIntro(e.target.value)}
+                  rows={2}
+                  placeholder="Set the context in a sentence or two."
+                  className={FIELD}
+                />
+              </label>
+            </>
+          )}
 
           <div>
             <span className={LABEL}>{kind} body</span>
@@ -397,7 +422,11 @@ export function GenerateDocument({
 
           <label className="flex cursor-pointer items-center gap-2.5">
             <input type="checkbox" checked={signature} onChange={(e) => setSignature(e.target.checked)} className="h-4 w-4 cursor-pointer accent-purple-600" />
-            <span className="text-[0.85rem] text-ink-950">Add the acceptance page with signing lines for both parties</span>
+            <span className="text-[0.85rem] text-ink-950">
+              {isLegal
+                ? "Add the execution block for signing"
+                : "Add the acceptance page with signing lines for both parties"}
+            </span>
           </label>
 
           {/* Offered once there is a signing block to put them in. Each is an upload rather than a

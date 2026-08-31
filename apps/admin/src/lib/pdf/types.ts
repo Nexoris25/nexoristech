@@ -59,7 +59,7 @@ export interface RichRun {
   href?: string;
 }
 
-export type RichBlockType = "paragraph" | "h2" | "h3" | "bulleted" | "numbered";
+export type RichBlockType = "paragraph" | "h2" | "h3" | "bulleted" | "numbered" | "table";
 
 export interface RichBlock {
   type: RichBlockType;
@@ -67,6 +67,16 @@ export interface RichBlock {
   runs?: RichRun[];
   /** For bulleted/numbered: each list item is its own run array. */
   items?: RichRun[][];
+  /**
+   * For a table: the rows, each a list of cells, each cell a run array.
+   *
+   * Tables used to be flattened into paragraphs, which ran every cell of a row together into one
+   * sentence: a pricing table arrived as "Platform development 12,500,000 Certification 1,500,000".
+   * The structure is what a table is for, so it is carried through rather than discarded.
+   */
+  rows?: RichRun[][][];
+  /** Whether the first row is a header row, taken from thead or a row of th cells. */
+  headerRow?: boolean;
 }
 
 /** Who signs the document on behalf of Nexoris Technologies: the sales rep generating it. */

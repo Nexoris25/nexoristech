@@ -67,7 +67,8 @@ function runsOf(el: HTMLElement): RichRun[] {
 const hasText = (runs: RichRun[]): boolean => runs.some((r) => r.text.trim() !== "");
 
 /**
- * Parse editor HTML into blocks. Anything the PDF cannot lay out (tables, images, embeds) degrades to
+ * Parse editor HTML into blocks. Tables are carried through as rows and cells; anything else the
+ * PDF cannot lay out (images, embeds) degrades to
  * its text rather than being dropped, so a paste never silently loses content.
  */
 export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
@@ -110,6 +111,30 @@ export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
           .map((li) => runsOf(li as HTMLElement))
           .filter(hasText);
         if (items.length > 0) blocks.push({ type: el.tagName === "OL" ? "numbered" : "bulleted", items });
+        break;
+      }
+      case "TABLE": {
+        /*
+         * A real table, kept as rows and cells.
+         *
+         * The alternative, and what happened before, is that every cell of a row is concatenated into
+         * one paragraph, so a pasted price list arrives as a run-on sentence. Rows are read from
+         * wherever they are, which covers a table with a tbody, one without, and one with a thead.
+         */
+        const rowEls = Array.from(el.querySelectorAll("tr"));
+        const rows = rowEls
+          .map((tr) => Array.from(tr.children)
+            .filter((c) => c.tagName === "TD" || c.tagName === "TH")
+            .map((c) => runsOf(c as HTMLElement)))
+          .filter((row) => row.length > 0);
+        if (rows.length > 0) {
+          const first = rowEls[0];
+          const headerRow = Boolean(
+            el.querySelector("thead") ??
+            (first && Array.from(first.children).some((c) => c.tagName === "TH")),
+          );
+          blocks.push({ type: "table", rows, headerRow });
+        }
         break;
       }
       case "BLOCKQUOTE":
