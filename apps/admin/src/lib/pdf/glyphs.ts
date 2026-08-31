@@ -35,9 +35,16 @@ import * as fontkitNamespace from "fontkit";
 interface FontkitApi {
   create(buffer: Buffer): { characterSet?: number[] };
 }
-const fontkit =
-  (fontkitNamespace as { default?: FontkitApi }).default ??
-  (fontkitNamespace as unknown as FontkitApi);
+/*
+ * Resolved through an index rather than a named `.default`.
+ *
+ * fontkit 2.x genuinely has no default export, and webpack says so at build time when it sees the
+ * property named statically. The fallback is still wanted, because bundlers and the dev runtime do
+ * not agree about interop, so the lookup is done on an indexable type: the same runtime behaviour
+ * without a warning about a property that is allowed to be absent.
+ */
+const fontkitModule = fontkitNamespace as unknown as Record<string, unknown>;
+const fontkit = (fontkitModule["default"] ?? fontkitModule) as FontkitApi;
 
 /** Characters with a plain equivalent worth keeping rather than dropping. */
 const FOLD: [RegExp, string][] = [

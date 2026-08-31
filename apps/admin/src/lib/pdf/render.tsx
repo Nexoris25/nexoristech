@@ -23,6 +23,18 @@ function registerFonts(): void {
       { src: join(dir, "jakarta-700.ttf"), fontWeight: 700 },
     ],
   });
+  /*
+   * Poppins, from the branding kit. It is the typeface every Nexoris document in the kit is set in,
+   * so the proposal and scope of work use it and match documents produced by the kit's own script.
+   * Registered under separate family names per weight rather than one family with weights, because
+   * the layouts select them explicitly and a missed weight should be visible rather than silently
+   * synthesised.
+   */
+  Font.register({ family: "Poppins", fonts: [{ src: join(dir, "poppins-400.ttf") }] });
+  Font.register({ family: "PoppinsMedium", fonts: [{ src: join(dir, "poppins-500.ttf") }] });
+  Font.register({ family: "PoppinsBold", fonts: [{ src: join(dir, "poppins-700.ttf") }] });
+  Font.register({ family: "PoppinsLight", fonts: [{ src: join(dir, "poppins-300.ttf") }] });
+
   // Lora, for the legal documents. A serif is the convention for contracts and agreements: it is what
   // the reader expects on an instrument they will print, mark up and file, and the bracketed serifs
   // help the eye hold a line across a long clause. Instantiated as static 400/700 cuts from the
@@ -70,8 +82,10 @@ function dataUrlToBuffer(value: string | undefined): Buffer | undefined {
 /** The TTFs actually embedded, which is what decides whether a character can be drawn. */
 function embeddedFontFiles(): string[] {
   const dir = join(process.cwd(), "public");
-  return ["jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf"]
-    .map((f) => join(dir, f));
+  return [
+    "poppins-300.ttf", "poppins-400.ttf", "poppins-500.ttf", "poppins-700.ttf", "poppins-italic.ttf",
+    "jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf",
+  ].map((f) => join(dir, f));
 }
 
 export async function renderDocument(input: DocumentData): Promise<Buffer> {
@@ -87,6 +101,8 @@ export async function renderDocument(input: DocumentData): Promise<Buffer> {
   const data = sanitiseForFonts(input, embeddedFontFiles());
   // The full-resolution marks: white for the purple cover band, purple for the plain letterheads.
   const logo = asset("logo-mark-white.png");
+  const brandLogoWhite = asset("brand-logo-white.png");
+  const brandLogoPurple = asset("brand-logo-purple.png");
   const mark = asset("logo-mark-purple.png");
   // Uploaded images win. There is no fallback to a file on disk for either: a stamp pinned in the
   // repo would carry a stale date onto every document, which is the whole reason these are uploads.
@@ -100,6 +116,8 @@ export async function renderDocument(input: DocumentData): Promise<Buffer> {
         {...(mark ? { mark } : {})}
         {...(stamp ? { stamp } : {})}
         {...(signature ? { signature } : {})}
+        {...(brandLogoWhite ? { brandLogoWhite } : {})}
+        {...(brandLogoPurple ? { brandLogoPurple } : {})}
       />,
     );
   } catch (error) {

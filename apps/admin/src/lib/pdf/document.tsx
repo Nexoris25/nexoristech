@@ -11,14 +11,13 @@ import type {
   CompanyInfo,
   DocumentData,
   InvoiceInfo,
-  LineItem,
   RichBlock,
   RichRun,
 } from "./types.js";
 import { computeInvoice } from "./types.js";
 import { nairaInWords } from "./amount-in-words.js";
-import { CoverPage, DocumentInfoPage, TableOfContentsPage, tocEntries, AcceptancePage, ContactPage, PageFurniture, p as P } from "./proposal-layout.js";
-import { AgreementPages, Clause, a as A } from "./agreement-layout.js";
+import { AgreementPages, Clause, SubClause, a as A } from "./agreement-layout.js";
+import { BrandedTemplate } from "./branded-layout.js";
 
 const C = {
   purple: "#543CDA",
@@ -264,123 +263,41 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
   );
 }
 
-function PricingTable({
-  items,
-  total,
-  label,
-}: {
-  items: LineItem[];
-  total: number;
-  label: string;
-}): React.ReactElement {
-  return (
-    <View wrap={false}>
-      <Text style={n.h2}>{label}</Text>
-      <View style={n.table}>
-        <View style={n.thead}>
-          <Text style={[n.cellDesc, n.bold]}>Item</Text>
-          <Text style={[n.cellAmt, n.bold]}>Amount</Text>
-        </View>
-        {items.map((item, i) => (
-          <View key={i} style={n.row}>
-            <Text style={n.cellDesc}>{item.description}</Text>
-            <Text style={n.cellAmt}>{naira(item.amount)}</Text>
-          </View>
-        ))}
-        <View style={n.totalRow}>
-          <Text style={[n.cellDesc, n.bold]}>Total</Text>
-          <Text style={[n.cellAmt, n.bold]}>{naira(total)}</Text>
-        </View>
-      </View>
-      <Text style={{ fontSize: 8, color: C.grey, marginTop: 3 }}>
-        Final figures and terms are confirmed in writing before any work begins.
-      </Text>
-    </View>
-  );
-}
-
-
-/**
- * The Proposal, laid out to the approved handoff: a cover page, document information with the
- * confidentiality notice, the body the writer pasted into the editor, an acceptance page, and a
- * contact page. Everything except the body is furniture; the writer supplies only the content.
- */
-function ProposalTemplate({
-  data,
-  company,
-  logo,
-  stamp,
-  signature,
-}: {
-  data: DocumentData;
-  company: CompanyInfo;
-  logo?: Buffer;
-  stamp?: Buffer;
-  signature?: Buffer;
-}): React.ReactElement {
-  const items = data.lineItems ?? [];
-  const total = items.reduce((sum, i) => sum + i.amount, 0);
-  const client = [data.recipientCompany, data.recipientName].filter(Boolean).join(", ");
-  const rich = data.richContent ?? [];
-  const toc = tocEntries(rich);
-
-  return (
-    <>
-      <CoverPage
-        data={data}
-        company={company}
-        client={client}
-        {...(data.subtitle ? { subtitle: data.subtitle } : {})}
-        {...(logo ? { logo } : {})}
-      />
-      <DocumentInfoPage data={data} company={company} client={client} />
-      {/* Only worth a page when the body actually has sections to list. */}
-      {toc.length >= 3 ? <TableOfContentsPage data={data} company={company} client={client} entries={toc} /> : null}
-
-      {/* The pasted proposal. It flows across as many pages as it needs; the running header and
-          footer repeat on each because they are marked fixed. */}
-      <Page size="A4" style={P.page}>
-        <PageFurniture data={data} company={company} client={client} />
-        <View style={P.body}>
-          {rich.length > 0
-            ? rich.map((block, i) => <RichBlockView key={i} block={block} />)
-            : data.sections.map((section, i) => (
-                <View key={i} style={n.section}>
-                  <Text style={n.h2}>{section.heading}</Text>
-                  <TextLines text={section.body} style={n.body} />
-                </View>
-              ))}
-          {items.length > 0 ? <PricingTable items={items} total={total} label="Investment summary" /> : null}
-          {data.terms ? (
-            <View style={n.section}>
-              <Text style={n.h2}>Terms</Text>
-              <TextLines text={data.terms} style={n.body} />
-            </View>
-          ) : null}
-        </View>
-      </Page>
-
-      {data.signature ? (
-        <AcceptancePage
-          data={data}
-          company={company}
-          client={client}
-          {...(stamp ? { stamp } : {})}
-          {...(signature ? { signature } : {})}
-        />
-      ) : null}
-      <ContactPage data={data} company={company} client={client} />
-    </>
-  );
-}
-
-/**
- * Agreements: Scope of Work, Master Service Agreement, Service Level Agreement, Contract.
+/*
+ * PricingTable was removed with ProposalTemplate.
  *
- * Plain by design. The pasted body is rendered as numbered clauses so a term can be cited by number,
- * which is how these documents are actually used in a negotiation. Where the writer supplied headings
- * they become clause headings; where they did not, the clause is a bare numbered paragraph.
+ * The investment table it drew now lives in branded-layout, set in the kit's table style, so the
+ * Proposal still states its price; only the styling moved.
  */
+
+/*
+ * ProposalTemplate used to live here and has been removed.
+ *
+ * The Proposal and the Scope of Work now render from the branding kit, in branded-layout, so this
+ * was a second design for the same document sitting unreferenced next to the one in use. The kit is
+ * the authority for how these look, and two layouts for one kind is how they drift apart.
+ */
+
+/**
+ * Split a clause's blocks into a lead-in and its numbered sub-clauses.
+ *
+ * Anything before the first h3 belongs to the clause itself and stays unnumbered; each h3 after that
+ * opens a sub-clause numbered in order.
+ */
+function splitSubClauses(blocks: RichBlock[]): { heading?: string; index: number; blocks: RichBlock[] }[] {
+  const parts: { heading?: string; index: number; blocks: RichBlock[] }[] = [{ index: 0, blocks: [] }];
+  let sub = 0;
+  for (const block of blocks) {
+    if (block.type === "h3") {
+      sub += 1;
+      parts.push({ heading: (block.runs ?? []).map((r) => r.text).join("").trim(), index: sub, blocks: [] });
+      continue;
+    }
+    parts[parts.length - 1]!.blocks.push(block);
+  }
+  return parts.filter((p) => p.heading !== undefined || p.blocks.length > 0);
+}
+
 function StructuredTemplate({
   data,
   company,
@@ -419,7 +336,17 @@ function StructuredTemplate({
       {clauses.length > 0
         ? clauses.map((c, i) => (
             <Clause key={i} n={`${i + 1}.`} {...(c.heading ? { heading: c.heading } : {})}>
-              {c.blocks.map((b, j) => <RichBlockView key={j} block={b} />)}
+              {/* An h3 inside a clause opens a numbered sub-clause, so the drafter's own structure
+                  becomes 4.1, 4.2 and can be cited in a conversation about the agreement. */}
+              {splitSubClauses(c.blocks).map((part, j) =>
+                part.heading === undefined ? (
+                  part.blocks.map((b, k) => <RichBlockView key={`${j}-${k}`} block={b} />)
+                ) : (
+                  <SubClause key={j} n={`${i + 1}.${part.index}`} heading={part.heading}>
+                    {part.blocks.map((b, k) => <RichBlockView key={`${j}-${k}`} block={b} />)}
+                  </SubClause>
+                ),
+              )}
             </Clause>
           ))
         : data.sections.map((section, i) => (
@@ -854,6 +781,8 @@ export function NexorisDocument({
   mark,
   stamp,
   signature,
+  brandLogoWhite,
+  brandLogoPurple,
 }: {
   data: DocumentData;
   /** White mark, for the proposal's purple cover band. */
@@ -862,6 +791,9 @@ export function NexorisDocument({
   mark?: Buffer;
   stamp?: Buffer;
   signature?: Buffer;
+  /** The branding kit's marks: white for the navy cover, purple for the running header. */
+  brandLogoWhite?: Buffer;
+  brandLogoPurple?: Buffer;
 }): React.ReactElement {
   const company = data.company ?? DEFAULT_COMPANY;
   const brand = {
@@ -874,8 +806,16 @@ export function NexorisDocument({
     <Document title={`${data.kind}: ${data.title}`} author="Nexoris Technologies">
       {data.kind === "Invoice" && data.invoice ? (
         <InvoiceTemplate data={data} invoice={data.invoice} company={company} {...(logo ? { logo } : {})} />
-      ) : data.kind === "Proposal" ? (
-        <ProposalTemplate data={data} company={company} {...brand} />
+      ) : data.kind === "Proposal" || data.kind === "Scope of Work" ? (
+        /* The two documents a client reads before anything is agreed, so both carry the full brand
+           from the kit: navy cover, contents, numbered sections. The agreements below deliberately
+           do not. */
+        <BrandedTemplate
+          data={data}
+          company={company}
+          {...(brandLogoWhite ? { logoWhite: brandLogoWhite } : {})}
+          {...(brandLogoPurple ? { logoPurple: brandLogoPurple } : {})}
+        />
       ) : (
         <StructuredTemplate data={data} company={company} {...brand} />
       )}

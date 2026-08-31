@@ -13,13 +13,23 @@
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CompanyInfo, DocumentData } from "./types.js";
+import { C as BRAND } from "./brand.js";
 
+/*
+ * The branding kit's palette, used with restraint.
+ *
+ * This is the same brand as the proposal and it should look like it, but an agreement earns nothing
+ * from a field of colour. So the kit's ink, soft ink and rule carry the whole document, and the
+ * purple appears in exactly two places: the hairline under the letterhead and the clause numbers.
+ * That is enough to place the document in the family without turning an instrument into a brochure.
+ */
 const C = {
-  ink: "#111118",
-  grey: "#43434F",
-  faint: "#6B6B79",
-  line: "#D9D9E2",
-  rule: "#111118",
+  ink: BRAND.ink,
+  grey: BRAND.inkSoft,
+  faint: BRAND.inkSoft,
+  line: BRAND.rule,
+  rule: BRAND.ink,
+  accent: BRAND.purple,
 };
 
 const M = 56; // wider gutter than the proposal: agreements are read line by line and often annotated
@@ -71,7 +81,12 @@ export const a = StyleSheet.create({
 
   // Numbered clauses. The number sits in the margin so the text block stays flush.
   clause: { flexDirection: "row", marginBottom: 14 },
-  clauseNum: { fontFamily: "Lora", width: 26, fontSize: 11, fontWeight: 700 },
+  clauseNum: { fontFamily: "Lora", width: 26, fontSize: 11, fontWeight: 700, color: C.accent },
+  /* Sub-clauses are indented under their parent and numbered 1.1, 1.2, so they can be cited. */
+  subClause: { flexDirection: "row", marginTop: 6, marginBottom: 2 },
+  subClauseNum: { fontFamily: "Lora", width: 30, fontSize: 10, fontWeight: 700, color: C.grey },
+  subClauseBody: { flex: 1 },
+  subClauseHeading: { fontFamily: "Jakarta", fontSize: 9.5, fontWeight: 700, marginBottom: 3 },
   clauseBody: { flex: 1 },
   clauseHeading: { fontFamily: "Lora", fontSize: 11, fontWeight: 700, marginBottom: 6, letterSpacing: 0.2 },
   clauseText: { fontSize: 10.5, lineHeight: 1.8, color: C.ink },
@@ -126,6 +141,25 @@ function Furniture({ data, company, client, mark }: { data: DocumentData; compan
  * A clause. `heading` is optional because agreement text is often a bare numbered paragraph with no
  * sub-title, and forcing one would invent structure the drafter did not write.
  */
+/**
+ * A numbered sub-clause, e.g. 4.2.
+ *
+ * An agreement is discussed by reference: "clause 4.2 needs to change". A sub-heading with no number
+ * cannot be pointed at, so every h3 inside a clause becomes a numbered sub-clause rather than a bold
+ * line of text.
+ */
+export function SubClause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
+  return (
+    <View style={a.subClause} wrap={false}>
+      <Text style={a.subClauseNum}>{n}</Text>
+      <View style={a.subClauseBody}>
+        {heading ? <Text style={a.subClauseHeading}>{heading}</Text> : null}
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export function Clause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
   return (
     <View style={a.clause} wrap={false}>
@@ -229,15 +263,19 @@ export function AgreementPages({
           <View style={a.partyRow}>
             <Text style={a.partyTag}>(1)</Text>
             <Text style={a.partyBody}>
+              {/* The spaces are explicit. JSX trims whitespace at a line break, so the address ran
+                  straight into the bracket: "Ajah, Lekki Lagos(the "Provider")". */}
               {company.legalName}
-              {company.tin ? ` (TIN ${company.tin})` : ""}, of {company.address} (the &ldquo;Provider&rdquo;)
+              {company.tin ? ` (TIN ${company.tin})` : ""}
+              {`, of ${company.address} (the "Provider")`}
             </Text>
           </View>
           <View style={a.partyRow}>
             <Text style={a.partyTag}>(2)</Text>
             <Text style={a.partyBody}>
               {client || "the Client"}
-              {data.recipientAddress ? `, of ${data.recipientAddress}` : ""} (the &ldquo;Client&rdquo;)
+              {data.recipientAddress ? `, of ${data.recipientAddress}` : ""}
+              {` (the "Client")`}
             </Text>
           </View>
           <Text style={a.dateLine}>Dated {data.date}.</Text>
