@@ -69,7 +69,7 @@ export interface RichRun {
  * have to survive the parse.
  */
 export type RichBlockType =
-  | "paragraph" | "h1" | "h2" | "h3" | "h4" | "bulleted" | "numbered" | "table" | "tree";
+  | "paragraph" | "h1" | "h2" | "h3" | "h4" | "bulleted" | "numbered" | "table" | "tree" | "image";
 
 /** The heading levels, in order, for a layout working out which one opens a section. */
 export const HEADING_TYPES = ["h1", "h2", "h3", "h4"] as const;
@@ -118,6 +118,17 @@ export interface RichBlock {
   rows?: RichRun[][][];
   /** Whether the first row is a header row, taken from thead or a row of th cells. */
   headerRow?: boolean;
+  /**
+   * For an image: the picture itself, as a base64 data URL.
+   *
+   * Only ever a data URL. A remote address would mean the renderer fetching whatever a document
+   * happens to point at, from the server, which is not something a document generator should be able
+   * to do. An image that arrives as a link keeps its caption so its absence is visible rather than
+   * silent.
+   */
+  src?: string;
+  /** The caption or alt text printed under the image. */
+  caption?: RichRun[];
 }
 
 /** Who signs the document on behalf of Nexoris Technologies: the sales rep generating it. */

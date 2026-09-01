@@ -46,7 +46,14 @@ export interface RichTextApi {
   linkInline: (anchor: string, target: string) => boolean;
 }
 
-export function RichTextEditor({ name, initialHtml, onChange, registerApi }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void }): ReactNode {
+/**
+ * `allowImages` lets pictures into the body: a pasted screenshot or diagram is kept, and the toolbar
+ * button takes a file from the machine rather than asking for a web address. It is off by default,
+ * because an Insights article's images belong in the media library where they can be given alt text
+ * and served at a sensible size; a proposal's diagram has nowhere else to live and travels inside the
+ * document itself.
+ */
+export function RichTextEditor({ name, initialHtml, onChange, registerApi, allowImages = false }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void; allowImages?: boolean }): ReactNode {
   const ref = useRef<HTMLDivElement>(null);
   const cellRef = useRef<HTMLTableCellElement | null>(null);
   const [html, setHtml] = useState(initialHtml ?? "");
@@ -165,7 +172,7 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi }: { n
 
     e.preventDefault();
     // Paste brings the words, not the source page's links. See NormaliseOptions.stripLinks.
-    const clean = html ? normaliseHtml(html, { stripLinks: true, stripImages: true }) : normalisePlainText(text);
+    const clean = html ? normaliseHtml(html, { stripLinks: true, stripImages: !allowImages }) : normalisePlainText(text);
     if (!clean) return;
 
     // Parsed here rather than handed to execCommand('insertHTML'), which rewrites block markup and
@@ -176,7 +183,41 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi }: { n
   };
 
   const insertLink = (): void => { const url = window.prompt("Link URL", "https://"); if (url) { cmd("createLink", url); afterEdit(); } };
-  const insertImage = (): void => { const url = window.prompt("Image URL", "https://"); if (url) { cmd("insertImage", url); afterEdit(); } };
+  /*
+   * A picture from the machine, carried inside the document.
+   *
+   * Not a web address: a document is generated on the server and sent to a client, and an image that
+   * lives at a URL is one the server would have to go and fetch, from wherever the address points.
+   * Reading the file here means the picture travels with the document and nothing is fetched at all.
+   */
+  const insertImage = (): void => {
+    if (!allowImages) { const url = window.prompt("Image URL", "https://"); if (url) { cmd("insertImage", url); afterEdit(); } return; }
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/gif,image/webp";
+    input.onchange = (): void => {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (file.size > 3_000_000) { window.alert("That image is larger than 3 MB. Export it smaller and try again."); return; }
+      const reader = new FileReader();
+      reader.onload = (): void => {
+        const src = typeof reader.result === "string" ? reader.result : "";
+        if (!src.startsWith("data:image/")) return;
+        const figure = document.createElement("figure");
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = file.name.replace(/\.[a-z0-9]+$/i, "");
+        const caption = document.createElement("figcaption");
+        caption.textContent = "Caption";
+        figure.append(img, caption);
+        const after = document.createElement("p");
+        after.appendChild(document.createElement("br"));
+        insertAtCaret(figure, after);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
   const insertSymbol = (g: string): void => { insertAtCaret(document.createTextNode(g)); };
 
   const insertTable = (): void => {

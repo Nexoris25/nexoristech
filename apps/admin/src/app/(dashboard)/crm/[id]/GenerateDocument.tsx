@@ -447,10 +447,10 @@ export function GenerateDocument({
             <span className={LABEL}>{kind} body</span>
             <p className="mb-1.5 mt-0.5 text-[0.72rem] text-neutral-600">
               {isProposal
-                ? "Write or paste your content. Headings, bold, lists, and links are kept and rebranded into the PDF."
+                ? "Write or paste your content. Headings, bold, lists, tables, diagrams and pasted images are kept and rebranded into the PDF."
                 : "Write or paste the agreement. Each heading becomes a numbered clause you can cite; formatting is kept."}
             </p>
-            <RichTextEditor name="document_body" onChange={setBodyHtml} />
+            <RichTextEditor name="document_body" onChange={setBodyHtml} allowImages />
           </div>
 
           <label className="flex cursor-pointer items-center gap-2.5">

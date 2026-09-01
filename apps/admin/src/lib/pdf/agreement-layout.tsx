@@ -111,8 +111,19 @@ export const a = StyleSheet.create({
   // Signing page
   signIntro: { fontSize: 9.8, lineHeight: 1.5, marginTop: 8, marginBottom: 22 },
   signRow: { flexDirection: "row", marginTop: 6 },
-  signCol: { flex: 1, paddingRight: 30 },
-  signParty: { fontFamily: FONT.bold, fontSize: 7.5, letterSpacing: 1.2, marginBottom: 16, color: C.faint },
+  signCol: { flex: 1 },
+  /** A real gutter between the two blocks, rather than padding inside each that a long name eats. */
+  signGutter: { width: 34 },
+  /*
+   * Two lines' worth, whether the name needs them or not.
+   *
+   * A client whose registered name wraps would otherwise push its own column half a line down and
+   * leave the two sets of labels stepping past each other.
+   */
+  signParty: {
+    fontFamily: FONT.bold, fontSize: 7.5, letterSpacing: 1.2, marginBottom: 16, color: C.faint,
+    height: 22, lineHeight: 1.35,
+  },
   signField: { marginBottom: 16 },
   signLabel: { fontFamily: FONT.medium, fontSize: 7, color: C.faint, letterSpacing: 1.1, marginBottom: 4 },
   signValue: { fontFamily: FONT.bold, fontSize: 9.8 },
@@ -204,6 +215,48 @@ export function AgreementSigning({
   data: DocumentData; company: CompanyInfo; client: string;
   stamp?: Buffer; signature?: Buffer;
 }): React.ReactElement {
+  /*
+   * The two blocks are built from the same parts, in the same order, at the same heights.
+   *
+   * They were not, and it showed: Nexoris's name and title were plain lines of text while the
+   * client's were reserved slots, so the two columns kept different rhythms and the labels
+   * interleaved down the page — one side's SIGNATURE level with the other's TITLE, which reads as two
+   * blocks colliding. The party line is given the height of two lines for the same reason: a client
+   * whose registered name wraps must not push its own column half a line below the other.
+   */
+  const ours: Record<string, string> = {
+    NAME: data.signatory?.name ?? "",
+    TITLE: data.signatory?.title ?? "",
+    DATE: data.insertSignature ? data.date : "",
+  };
+  const fields = ["NAME", "TITLE", "SIGNATURE", "DATE"] as const;
+
+  const Party = ({ heading, filled }: { heading: string; filled: boolean }): React.ReactElement => (
+    <View style={a.signCol}>
+      <Text style={a.signParty}>{heading}</Text>
+      {fields.map((label) => (
+        <View key={label} style={a.signField}>
+          <Text style={a.signLabel}>{label}</Text>
+          <View style={a.signSlot}>
+            {filled && label === "SIGNATURE" && data.insertSignature && signature ? (
+              <Image src={{ data: signature, format: "png" }} style={a.signImg} />
+            ) : filled && ours[label] ? (
+              <Text style={a.signValue}>{ours[label]}</Text>
+            ) : null}
+          </View>
+          <View style={a.signRule} />
+        </View>
+      ))}
+      {/* Applied by Nexoris Technologies, so it belongs in the Nexoris column rather than floating at
+          the foot of the page between both signatories. */}
+      {filled && data.insertStamp && stamp ? (
+        <View style={a.stampWrap}>
+          <Image src={{ data: stamp, format: "png" }} style={a.stampImg} />
+        </View>
+      ) : null}
+    </View>
+  );
+
   return (
     <View wrap={false}>
       <Text style={a.signIntro}>
@@ -211,54 +264,11 @@ export function AgreementSigning({
         warranting that they are duly authorised to do so.
       </Text>
       <View style={a.signRow}>
-        <View style={a.signCol}>
-          <Text style={a.signParty}>FOR {company.legalName.toUpperCase()}</Text>
-          <View style={a.signField}>
-            <Text style={a.signLabel}>NAME</Text>
-            <Text style={a.signValue}>{data.signatory?.name || " "}</Text>
-          </View>
-          <View style={a.signField}>
-            <Text style={a.signLabel}>TITLE</Text>
-            <Text style={a.signValue}>{data.signatory?.title || " "}</Text>
-          </View>
-          <View style={a.signField}>
-            <Text style={a.signLabel}>SIGNATURE</Text>
-            <View style={a.signSlot}>
-              {data.insertSignature && signature
-                ? <Image src={{ data: signature, format: "png" }} style={a.signImg} />
-                : null}
-            </View>
-            <View style={a.signRule} />
-          </View>
-          <View style={a.signField}>
-            <Text style={a.signLabel}>DATE</Text>
-            <View style={a.signSlot}>
-              {data.insertSignature ? <Text style={a.signValue}>{data.date}</Text> : null}
-            </View>
-            <View style={a.signRule} />
-          </View>
-          {/* Applied by Nexoris Technologies, so it belongs in the Nexoris column rather than floating
-              at the foot of the page between both signatories. */}
-          {data.insertStamp && stamp ? (
-            <View style={a.stampWrap}>
-              <Image src={{ data: stamp, format: "png" }} style={a.stampImg} />
-            </View>
-          ) : null}
-        </View>
-
-        <View style={a.signCol}>
-          <Text style={a.signParty}>FOR {(client || "THE CLIENT").toUpperCase()}</Text>
-          {/* Never pre-completed on the client's behalf. */}
-          {["NAME", "TITLE", "SIGNATURE", "DATE"].map((label) => (
-            <View key={label} style={a.signField}>
-              <Text style={a.signLabel}>{label}</Text>
-              <View style={a.signSlot} />
-              <View style={a.signRule} />
-            </View>
-          ))}
-        </View>
+        <Party heading={`FOR ${company.legalName.toUpperCase()}`} filled />
+        <View style={a.signGutter} />
+        {/* Never pre-completed on the client's behalf. */}
+        <Party heading={`FOR ${(client || "THE CLIENT").toUpperCase()}`} filled={false} />
       </View>
-
     </View>
   );
 }

@@ -129,8 +129,16 @@ function sanitizeInvoice(body: Record<string, unknown>): InvoiceInfo | null {
 }
 
 const RICH_TYPES = new Set<RichBlockType>([
-  "paragraph", "h1", "h2", "h3", "h4", "bulleted", "numbered", "table", "tree",
+  "paragraph", "h1", "h2", "h3", "h4", "bulleted", "numbered", "table", "tree", "image",
 ]);
+
+/**
+ * The most picture a single document block may carry, before base64 expansion: about three megabytes.
+ *
+ * A generous limit for a diagram and a firm one against a payload that would take the renderer down.
+ * A screenshot pasted straight from a phone is well inside it.
+ */
+const MAX_IMAGE_BYTES = 4_000_000;
 
 function sanitizeRuns(value: unknown): RichRun[] {
   if (!Array.isArray(value)) return [];
@@ -159,6 +167,26 @@ function sanitizeRich(value: unknown): RichBlock[] {
       const block = b as Record<string, unknown>;
       const type = block.type as RichBlockType;
       if (!RICH_TYPES.has(type)) return null;
+      if (type === "image") {
+        /*
+         * A picture, and only ever an inline one.
+         *
+         * The source is pinned to a base64 image: a remote address here would have the renderer
+         * fetching whatever a document points at, from inside the network, which is not something a
+         * document generator should be able to be asked to do. An image that cannot be carried keeps
+         * its caption, so its absence is visible in the document rather than silent.
+         */
+        const src = typeof block.src === "string" ? block.src : "";
+        const usable = /^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=]+$/i.test(src)
+          && src.length <= MAX_IMAGE_BYTES;
+        const caption = sanitizeRuns(block.caption);
+        if (!usable && caption.length === 0) return null;
+        return {
+          type,
+          ...(usable ? { src } : {}),
+          ...(caption.length > 0 ? { caption } : {}),
+        } as RichBlock;
+      }
       if (type === "table") {
         /*
          * Rows of cells of runs, validated at each level.

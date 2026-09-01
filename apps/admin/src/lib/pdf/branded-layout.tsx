@@ -18,7 +18,8 @@ import {
   BrandCover, BrandTable, KeyValues, Outline, RunningFurniture, SectionHeading, TableOfContents,
   brandStyles, type RowEmphasis,
 } from "./brand-parts.js";
-import { BULLET_INDENT, C, FONT, PAGE, TYPE, mm, sectionNumber, splitLeadingNumber } from "./brand.js";
+import { BULLET_INDENT, C, CONTENT_WIDTH, FONT, PAGE, TYPE, mm, sectionNumber, splitLeadingNumber } from "./brand.js";
+import { drawWidth } from "./image-size.js";
 import { isHeading, type CompanyInfo, type DocumentData, type LineItem, type RichBlock, type RichRun } from "./types.js";
 
 const s = StyleSheet.create({
@@ -38,7 +39,7 @@ const s = StyleSheet.create({
   h3: TYPE.h3,
   h4: { ...TYPE.h3, fontFamily: FONT.medium, fontSize: 9.4, color: C.inkSoft },
   bulletRow: { flexDirection: "row", marginBottom: 4 },
-  bulletMark: { fontFamily: FONT.regular, fontSize: 9.3, color: C.purple, textAlign: "left", flexShrink: 0 },
+  bulletMark: { fontFamily: FONT.regular, fontSize: 9.6, color: C.ink, textAlign: "left", flexShrink: 0 },
   bulletText: { ...TYPE.bullet, flex: 1, marginBottom: 0 },
   /** One step of nesting, the kit's second bullet indent less the first. */
   bulletIndent: { marginLeft: BULLET_INDENT.level2 - BULLET_INDENT.level1 },
@@ -60,12 +61,32 @@ const s = StyleSheet.create({
   /* A paragraph whose source had line breaks: one Text per line, never a newline inside one. */
   lineRow: { marginBottom: 0 },
 
+  /*
+   * A diagram or illustration.
+   *
+   * Given the column's full width with the height left to follow, so an architecture drawing arrives
+   * at the size it was drawn to rather than being squeezed into a box of the layout's choosing. The
+   * cap keeps a tall one on a single page instead of splitting it across two.
+   */
+  figure: { marginTop: 6, marginBottom: 10, alignItems: "center" },
+  figureImage: { maxHeight: 520, objectFit: "contain" },
+  figureCaption: { ...TYPE.note, marginTop: 5, textAlign: "center" },
+  figureMissing: {
+    ...TYPE.note, width: "100%", borderWidth: 0.6, borderColor: C.rule, borderStyle: "dashed",
+    paddingVertical: 10, paddingHorizontal: 10, textAlign: "center", color: C.inkSoft,
+  },
+
   acceptTitle: { fontFamily: FONT.bold, fontSize: 14.5, color: C.ink, marginBottom: mm(3) },
   acceptRule: { height: 1.1, backgroundColor: C.purple, marginBottom: mm(5) },
   acceptIntro: { ...TYPE.body, marginBottom: mm(8) },
   acceptCols: { flexDirection: "row", gap: mm(12) },
   acceptCol: { flex: 1 },
-  acceptParty: { fontFamily: FONT.medium, fontSize: 8, color: C.purple, letterSpacing: 1, marginBottom: mm(4) },
+  /* Two lines' worth whatever the name needs, so a long client name cannot step this column out of
+     line with the other one. */
+  acceptParty: {
+    fontFamily: FONT.medium, fontSize: 8, color: C.purple, letterSpacing: 1, marginBottom: mm(4),
+    height: 23, lineHeight: 1.35,
+  },
   acceptField: { marginBottom: mm(6) },
   acceptLabel: { fontFamily: FONT.medium, fontSize: 7.2, color: C.inkSoft, letterSpacing: 0.8, marginBottom: mm(1) },
   /* A reserved slot, so dropping a signature image in never reflows the page below it. */
@@ -92,13 +113,7 @@ function Runs({ runs }: { runs: RichRun[] }): React.ReactElement {
   );
 }
 
-/**
- * A table pasted into the editor, set in the kit's table style.
- *
- * Column widths are equal rather than measured. react-pdf has no auto-layout, and guessing widths
- * from cell content produces a table that changes shape with the data; equal columns are predictable,
- * and a writer who needs a different balance can say so in the copy.
- */
+/** A table pasted into the editor, set in the kit's table style. */
 const cellText = (cell: RichRun[] | undefined): string => (cell ?? []).map((r) => r.text).join("").trim();
 
 /** A cell holding a figure: currency, percentage or plain number, however it is punctuated. */
@@ -141,13 +156,26 @@ function RichTable({ block }: { block: RichBlock }): React.ReactElement | null {
   for (let i = 0; i < marks.length; i += 1) {
     if (marks[i] === "total" && i !== lastTotal) marks[i] = "subtotal";
   }
-  const width = { flex: 1 };
+  /*
+   * Columns are weighted by what they hold, not shared out equally.
+   *
+   * Equal columns give a price schedule three identical thirds: a description wrapping over four
+   * lines beside two columns of whitespace with a figure in each. The reference gives the description
+   * roughly three times the width of an amount, which is what measuring produces here — a figure
+   * column needs only its digits, a prose column needs room in proportion to how much prose it holds.
+   */
+  const weights = Array.from({ length: columns }, (_, i) => {
+    if (rightAligned[i]) return 1;
+    const lengths = rows.map((row) => cellText(row[i]).length).filter((n) => n > 0);
+    const average = lengths.length > 0 ? lengths.reduce((a, b) => a + b, 0) / lengths.length : 1;
+    return Math.min(4, Math.max(1.4, average / 12));
+  });
   return (
     <View style={s.richTable} minPresenceAhead={mm(22)}>
       {header ? (
         <View style={s.richTableHead} fixed>
           {Array.from({ length: columns }, (_, i) => (
-            <Text key={i} style={[s.richTableHeadCell, width, ...(rightAligned[i] ? [s.cellRight] : [])]}>
+            <Text key={i} style={[s.richTableHeadCell, { flex: weights[i] ?? 1 }, ...(rightAligned[i] ? [s.cellRight] : [])]}>
               <Runs runs={header[i] ?? []} />
             </Text>
           ))}
@@ -171,7 +199,7 @@ function RichTable({ block }: { block: RichBlock }): React.ReactElement | null {
                 key={i}
                 style={[
                   s.richTableCell,
-                  width,
+                  { flex: weights[i] ?? 1 },
                   ...(rightAligned[i] ? [s.cellRight] : []),
                   ...(mark === "none" ? [] : [s.richTableStrong]),
                   ...(mark === "total" ? [s.richTableTotalText] : []),
@@ -205,6 +233,27 @@ function Block({ block }: { block: RichBlock }): React.ReactElement | null {
   }
   if (block.type === "table") {
     return <RichTable block={block} />;
+  }
+  if (block.type === "image") {
+    /*
+     * The picture, and its caption beneath it.
+     *
+     * An image that could not be carried — one that arrived as a link rather than as the picture
+     * itself — leaves its caption in a ruled frame instead of disappearing, so the gap in the
+     * document is visible to whoever is checking it before it goes out.
+     */
+    return (
+      <View style={s.figure} minPresenceAhead={mm(30)} wrap={false}>
+        {/* Its own size, or the column's, whichever is smaller: a small diagram is not enlarged. */}
+        {block.src ? <Image src={block.src} style={[s.figureImage, { width: drawWidth(block.src, CONTENT_WIDTH) }]} /> : null}
+        {block.caption && block.caption.length > 0 ? (
+          <Text style={block.src ? s.figureCaption : s.figureMissing}>
+            {block.src ? null : "Illustration not embedded: "}
+            <Runs runs={block.caption} />
+          </Text>
+        ) : null}
+      </View>
+    );
   }
   if (block.type === "tree") {
     return (

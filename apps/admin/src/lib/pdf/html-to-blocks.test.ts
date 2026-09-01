@@ -69,6 +69,38 @@ describe("the pattern the writer typed", () => {
   });
 });
 
+describe("diagrams and illustrations", () => {
+  const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==";
+
+  it("keeps a pasted picture and the caption under it", () => {
+    const [figure] = parse(`<figure><img src="${PNG}" alt="Architecture"><figcaption>Figure 1. The draw engine.</figcaption></figure>`);
+    expect(figure?.type).toBe("image");
+    expect(figure?.src).toBe(PNG);
+    expect(textOf(figure?.caption)).toBe("Figure 1. The draw engine.");
+  });
+
+  it("finds a picture inside a paragraph", () => {
+    const [figure] = parse(`<p><img src="${PNG}" alt="Topology"></p>`);
+    expect(figure?.type).toBe("image");
+    expect(textOf(figure?.caption)).toBe("Topology");
+  });
+
+  /*
+   * A remote address would have the renderer fetching whatever a document points at, from the
+   * server. The caption survives so the gap is visible to whoever checks the document.
+   */
+  it("refuses to carry an image that is only a link, but keeps what it was", () => {
+    const [figure] = parse('<figure><img src="https://example.com/a.png"><figcaption>Figure 2. Topology.</figcaption></figure>');
+    expect(figure?.type).toBe("image");
+    expect(figure?.src).toBeUndefined();
+    expect(textOf(figure?.caption)).toBe("Figure 2. Topology.");
+  });
+
+  it("drops an image that has neither a picture nor anything to say", () => {
+    expect(parse('<img src="https://example.com/a.png">')).toEqual([]);
+  });
+});
+
 describe("heading hierarchy", () => {
   it("carries the level that was written", () => {
     const blocks = parse("<h1>Part</h1><h2>Section</h2><h3>Sub</h3><h4>Detail</h4><h6>Deeper</h6>");

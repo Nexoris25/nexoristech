@@ -183,9 +183,10 @@ export function sanitiseForFonts<T>(value: T, fontFiles: string[]): T {
   if (value && typeof value === "object" && !Buffer.isBuffer(value)) {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      // Image payloads are long base64 strings. Filtering them would be pointless work on every
-      // render, and could corrupt them if the fold table ever grew a rule that touched base64.
-      out[k] = k.endsWith("Image") ? v : sanitiseForFonts(v, fontFiles);
+      // Image payloads are long base64 strings — the signing assets, and the `src` of a diagram
+      // pasted into the body. Filtering them would be pointless work on every render, and could
+      // corrupt them if the fold table ever grew a rule that touched base64.
+      out[k] = k.endsWith("Image") || k === "src" ? v : sanitiseForFonts(v, fontFiles);
     }
     return out as unknown as T;
   }

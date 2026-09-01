@@ -265,6 +265,28 @@ function manualList(lines: RichRun[][], markers: string[]): RichBlock {
   };
 }
 
+/**
+ * A picture, if it is one the document can carry.
+ *
+ * Only a base64 image travels. A remote address would mean the renderer fetching whatever address a
+ * document happens to contain, from the server, which is not a thing a document generator should be
+ * able to do for you. When the picture cannot come, its caption or alt text still does: an
+ * illustration that vanishes without trace is worse than one whose absence is stated.
+ */
+function imageBlock(img: HTMLElement, caption?: RichRun[]): RichBlock | null {
+  const src = img.getAttribute("src") ?? "";
+  const alt = (img.getAttribute("alt") ?? "").trim();
+  const words = caption && hasText(caption) ? caption : alt ? [{ text: alt }] : undefined;
+  const embeddable = /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(src);
+  // Nothing to show and nothing to say about it: an empty frame helps no one.
+  if (!embeddable && !words) return null;
+  return {
+    type: "image",
+    ...(embeddable ? { src } : {}),
+    ...(words ? { caption: words } : {}),
+  };
+}
+
 /* --------------------------------- outlines --------------------------------- */
 
 /**
@@ -374,7 +396,12 @@ export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
   };
 
   /** The tags that carry a block of their own and so must be read rather than flattened. */
-  const BLOCK_TAGS = new Set(["P", "DIV", "UL", "OL", "TABLE", "PRE", "BLOCKQUOTE", "H1", "H2", "H3", "H4", "H5", "H6"]);
+  const BLOCK_TAGS = new Set([
+    "P", "DIV", "UL", "OL", "TABLE", "PRE", "BLOCKQUOTE", "H1", "H2", "H3", "H4", "H5", "H6",
+    // A picture inside a paragraph is the usual shape of a pasted diagram, so a wrapper holding one
+    // is read through rather than flattened to the text it does not have.
+    "FIGURE", "IMG",
+  ]);
 
   const readNode = (node: Node): void => {
     if (node.nodeType === 3) {
@@ -424,6 +451,28 @@ export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
          * are read.
          */
         pushParagraph(runsOf(el, true), true);
+        break;
+      }
+      case "FIGURE": {
+        /*
+         * A figure: the picture and the words under it, kept together.
+         *
+         * A pasted diagram usually arrives wrapped this way, and the caption is part of the diagram —
+         * an architecture drawing whose caption has floated three paragraphs away explains nothing.
+         */
+        const img = el.querySelector("img");
+        const caption = el.querySelector("figcaption");
+        const figure = img ? imageBlock(img as HTMLElement, caption ? runsOf(caption as HTMLElement) : undefined) : null;
+        if (figure) {
+          blocks.push(figure);
+        } else if (!img) {
+          for (const child of Array.from(el.childNodes)) readNode(child);
+        }
+        break;
+      }
+      case "IMG": {
+        const picture = imageBlock(el);
+        if (picture) blocks.push(picture);
         break;
       }
       case "TABLE": {

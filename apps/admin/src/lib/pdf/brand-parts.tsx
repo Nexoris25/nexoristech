@@ -6,11 +6,10 @@
  * are measured from the top here rather than the bottom, because ReportLab's origin is bottom-left
  * and react-pdf's is top-left; every `PAGE_H - x` in the kit therefore becomes a plain `top: x`.
  *
- * One deliberate difference. The kit rotates "NEXORIS TECHNOLOGIES" ninety degrees up the purple
- * spine. react-pdf's transform support does not lay rotated text out reliably inside a fixed-height
- * band, and a spine that sometimes clips is worse than one that does not exist, so the spine carries
- * the rule pattern and the web address and the wordmark sits with the logo instead. Everything else
- * is the kit's geometry unchanged.
+ * The wordmark reads up the purple spine, as it does in the reference. It is drawn as a band the
+ * length of the page, rotated a quarter turn about its own centre, rather than as rotated text inside
+ * an upright box: the layout engine measures the band before the rotation is applied, so giving it
+ * the shape it will actually occupy is what stops it clipping.
  */
 import React from "react";
 import { View, Text, Image, StyleSheet } from "@react-pdf/renderer";
@@ -28,6 +27,27 @@ const s = StyleSheet.create({
   spineUrl: {
     position: "absolute", left: 0, bottom: mm(12), width: SPINE,
     textAlign: "center", fontFamily: FONT.regular, fontSize: 8.5, color: C.white,
+  },
+  /*
+   * The wordmark reading up the spine, as the reference sets it.
+   *
+   * Drawn as a box the height of the page turned a quarter turn: the text is laid out horizontally in
+   * a band as long as the page is tall, and the whole band is then rotated about its own centre so it
+   * stands upright in the 52mm spine. Rotating the text alone leaves the layout engine measuring a
+   * box of the wrong shape, which is what made an earlier attempt clip.
+   */
+  spineWordmark: {
+    position: "absolute",
+    top: PAGE.height / 2 - SPINE / 2,
+    left: SPINE / 2 - PAGE.height / 2,
+    width: PAGE.height,
+    height: SPINE,
+    transform: "rotate(-90deg)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  spineWordmarkText: {
+    fontFamily: FONT.bold, fontSize: 19, color: C.white, letterSpacing: 10, textAlign: "center",
   },
   coverLogo: { position: "absolute", right: mm(18), top: mm(14), height: mm(16), objectFit: "contain" },
   /* The eyebrow sits at the top of the cover, above everything, as it does in the reference. */
@@ -76,11 +96,25 @@ const s = StyleSheet.create({
   footerText: { fontFamily: FONT.regular, fontSize: 7.2, color: C.inkSoft },
   footerPage: { fontFamily: FONT.medium, fontSize: 7.2, color: C.purple },
 
-  section: { marginTop: mm(7), marginBottom: mm(5) },
-  sectionRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  section: { marginTop: 25, marginBottom: 17.5 },
+  sectionRow: { flexDirection: "row", alignItems: "flex-start", position: "relative" },
   sectionBar: { width: mm(2.6), height: mm(10.5), backgroundColor: C.purple, marginRight: mm(3.9) },
-  sectionTitle: { fontFamily: FONT.bold, fontSize: 14.5, color: C.ink, flex: 1, paddingTop: mm(1.6) },
-  sectionNumber: { fontFamily: FONT.bold, fontSize: 40, color: C.purpleFade, marginTop: -mm(3) },
+  sectionTitle: { fontFamily: FONT.bold, fontSize: 14.5, color: C.ink, flex: 1, paddingTop: 2.6 },
+  /*
+   * The big faded number sits outside the flow, at the right.
+   *
+   * In the flow its 40 point line box, not the purple bar, decided how tall the heading was, which
+   * pushed the rule below it a further fourteen points down the page. The reference lets the number
+   * overhang: the rule is measured from the bar, and the number reaches past it.
+   */
+  sectionNumber: {
+    // Width and right alignment, not `right: 0` alone: an auto-width absolute box lands at the margin
+    // and runs off the page rather than ending at it.
+    position: "absolute", right: 0, top: -6, width: 90, textAlign: "right",
+    fontFamily: FONT.bold, fontSize: 40, color: C.purpleFade,
+  },
+  /* The reference draws this under every section heading, and under the contents title, at 1.1pt. */
+  sectionRule: { height: 1.1, backgroundColor: C.purple, marginTop: 10 },
 
   callout: {
     flexDirection: "row", backgroundColor: C.rowTint, borderLeftWidth: 2.4, borderLeftColor: C.purple,
@@ -174,6 +208,9 @@ export function BrandCover({
       <SpineRules />
       <View style={s.spineFoot} />
       <Text style={s.spineUrl}>www.nexoristech.com</Text>
+      <View style={s.spineWordmark}>
+        <Text style={s.spineWordmarkText}>NEXORIS TECHNOLOGIES</Text>
+      </View>
       {logoWhite ? <Image src={logoWhite} style={s.coverLogo} /> : null}
       <Text style={s.eyebrow}>{`CONFIDENTIAL  ·  ${proposalDate.toUpperCase()}`}</Text>
 
@@ -262,6 +299,7 @@ export function SectionHeading({ number, title }: { number: string; title: strin
         <Text style={s.sectionTitle}>{title}</Text>
         {number ? <Text style={s.sectionNumber}>{number}</Text> : null}
       </View>
+      <View style={s.sectionRule} />
     </View>
   );
 }

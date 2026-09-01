@@ -19,6 +19,7 @@ import { nairaInWords } from "./amount-in-words.js";
 import { AgreementPages, Clause, SubClause, a as A } from "./agreement-layout.js";
 import { BrandedTemplate } from "./branded-layout.js";
 import { FONT, splitLeadingNumber } from "./brand.js";
+import { drawWidth } from "./image-size.js";
 
 const C = {
   purple: "#543CDA",
@@ -162,6 +163,14 @@ const n = StyleSheet.create({
   treeMark: { width: 10, lineHeight: 1.5, color: C.grey },
   treeText: { flex: 1, lineHeight: 1.5 },
 
+  figure: { marginTop: 6, marginBottom: 9, alignItems: "center" },
+  figureImage: { maxHeight: 480, objectFit: "contain" },
+  figureCaption: { fontSize: 8.4, color: C.grey, marginTop: 4, textAlign: "center" },
+  figureMissing: {
+    fontSize: 8.4, color: C.grey, width: "100%", borderWidth: 0.6, borderColor: C.line,
+    borderStyle: "dashed", paddingVertical: 9, paddingHorizontal: 9, textAlign: "center",
+  },
+
   table: { marginTop: 8, marginBottom: 6, borderWidth: 1, borderColor: C.line, borderRadius: 4 },
   thead: { flexDirection: "row", backgroundColor: C.purpleSoft, paddingVertical: 7, paddingHorizontal: 10 },
   row: { flexDirection: "row", borderTopWidth: 1, borderTopColor: C.line, paddingVertical: 7, paddingHorizontal: 10 },
@@ -290,6 +299,20 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
   }
   if (block.type === "table") {
     return <RichTableView block={block} />;
+  }
+  if (block.type === "image") {
+    // The picture and its caption, or the caption in a ruled frame when the picture could not travel.
+    return (
+      <View style={n.figure} minPresenceAhead={40} wrap={false}>
+        {block.src ? <Image src={block.src} style={[n.figureImage, { width: drawWidth(block.src, 483) }]} /> : null}
+        {block.caption && block.caption.length > 0 ? (
+          <Text style={block.src ? n.figureCaption : n.figureMissing}>
+            {block.src ? null : "Illustration not embedded: "}
+            <RichRuns runs={block.caption} />
+          </Text>
+        ) : null}
+      </View>
+    );
   }
   if (block.type === "tree") {
     // A schedule or an architecture pasted as an outline keeps its shape here too. The connectors are

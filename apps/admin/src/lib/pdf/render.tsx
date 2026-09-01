@@ -35,6 +35,16 @@ function registerFonts(): void {
   Font.register({ family: "PoppinsBold", fonts: [{ src: join(dir, "poppins-700.ttf") }] });
   Font.register({ family: "PoppinsLight", fonts: [{ src: join(dir, "poppins-300.ttf") }] });
 
+  /*
+   * No hyphenation.
+   *
+   * react-pdf's default callback breaks a word that will not fit and does not draw a hyphen, so a
+   * client's name in a signing block came out as "WHOL" on one line and "LY OWNED SUBSIDIARIES" on
+   * the next, which reads as a typo in a document somebody is about to sign. Words now stay whole and
+   * wrap to the next line like every other typesetting system does.
+   */
+  Font.registerHyphenationCallback((word) => [word]);
+
   // Lora, for the legal documents. A serif is the convention for contracts and agreements: it is what
   // the reader expects on an instrument they will print, mark up and file, and the bracketed serifs
   // help the eye hold a line across a long clause. Instantiated as static 400/700 cuts from the

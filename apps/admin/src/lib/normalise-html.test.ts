@@ -248,12 +248,22 @@ describe("normaliseHtml stripImages", () => {
 });
 
 describe("normaliseHtml removes an image with no usable source", () => {
-  it("drops a data-uri image rather than leaving an empty box", () => {
-    // The src is rejected by the sanitiser, which used to leave <img alt="inline"> behind.
+  /*
+   * A base64 picture is how a pasted diagram or screenshot actually arrives — the clipboard carries
+   * the image, not a link to one — so it is kept, pinned to a real image type. Anything else wearing
+   * a data: URL is not a picture and is still refused.
+   */
+  it("keeps a pasted base64 image", () => {
     const out = normaliseHtml('<p>Text <img src="data:image/png;base64,iVBORw0KGgo=" alt="inline"> more</p>');
-    expect(out).not.toContain("<img");
+    expect(out).toContain("data:image/png;base64,iVBORw0KGgo=");
     expect(out).toContain("Text");
     expect(out).toContain("more");
+  });
+
+  it("drops a data URL that is not an image, rather than leaving an empty box", () => {
+    const out = normaliseHtml('<p>Text <img src="data:text/html;base64,PHNjcmlwdD4=" alt="inline"> more</p>');
+    expect(out).not.toContain("<img");
+    expect(out).toContain("Text");
   });
 
   it("keeps an image that does have a source", () => {

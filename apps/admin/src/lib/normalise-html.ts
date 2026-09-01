@@ -103,8 +103,17 @@ function cleanAttrs(name: string, raw: string): string {
     const attr = (m[1] ?? "").toLowerCase();
     if (!keep.has(attr)) continue;
     const value = m[3] ?? m[4] ?? m[5] ?? "";
-    // A javascript: or data: href is a script in disguise, whatever it claims to link to.
-    if ((attr === "href" || attr === "src") && /^\s*(javascript|vbscript|data):/i.test(value)) continue;
+    /*
+     * A javascript: or data: href is a script in disguise, whatever it claims to link to.
+     *
+     * The one exception is a base64 image on an <img>, which is how a pasted diagram or screenshot
+     * actually arrives: the clipboard carries the picture itself, not a link to one. Dropping it left
+     * the writer with an empty box where their illustration had been. The type is pinned to a real
+     * image format and to base64, so nothing that is not a picture can travel this way.
+     */
+    const inlineImage = name === "img" && attr === "src"
+      && /^\s*data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]+$/i.test(value);
+    if (!inlineImage && (attr === "href" || attr === "src") && /^\s*(javascript|vbscript|data):/i.test(value)) continue;
     out.push(`${attr}="${value.replace(/"/g, "&quot;").trim()}"`);
   }
   // A link that opens a new tab without rel="noreferrer" hands the target a reference to this page.
