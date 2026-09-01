@@ -192,7 +192,22 @@ describe("splitLeadingNumber", () => {
 
   it("leaves a heading that carries no number", () => {
     expect(splitLeadingNumber("Confidentiality")).toEqual({ title: "Confidentiality" });
-    // A year is not a clause number, and neither is a figure the heading opens with.
-    expect(splitLeadingNumber("2026 outlook")).toEqual({ number: "2026", title: "outlook" });
+  });
+
+  /*
+   * The bug this pins down: any leading digits were read as a section number, and the count then
+   * continued from whatever it last saw. One heading beginning "2026" renumbered the rest of the
+   * document 2027, 2028, 2029, which is what "the section numbering is not working" looked like.
+   */
+  it("does not mistake a heading that merely starts with a number", () => {
+    expect(splitLeadingNumber("2026 Outlook")).toEqual({ title: "2026 Outlook" });
+    expect(splitLeadingNumber("5 key risks to manage")).toEqual({ title: "5 key risks to manage" });
+    expect(splitLeadingNumber("360 degree feedback")).toEqual({ title: "360 degree feedback" });
+  });
+
+  it("still takes a number that is plainly a number", () => {
+    expect(splitLeadingNumber("7 Security Schedule")).toEqual({ number: "7", title: "Security Schedule" });
+    expect(splitLeadingNumber("2026. Outlook")).toEqual({ title: "2026. Outlook" });
+    expect(splitLeadingNumber("12) Payment terms")).toEqual({ number: "12", title: "Payment terms" });
   });
 });

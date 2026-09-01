@@ -5,12 +5,13 @@
  * brand: the navy and purple cover, a contents page, numbered sections and the running furniture. The
  * agreements are deliberately not this; see agreement-layout.
  *
- * Sections come from the writing, not from a fixed list. Whichever heading level the document starts
- * at opens its sections — h1 for a writer who uses h1 for parts, h2 for one whose h1 is the title —
- * and every level below it is a sub-heading. Everything until the next section heading belongs to the
- * one before it, so the contents page is always what the document actually contains and a writer who
- * adds a section gets it numbered and listed without touching this file. A document with no headings
- * at all still renders: it becomes one unnumbered run of content rather than an empty shell.
+ * The heading hierarchy is the writer's, taken literally. h1 is the document itself, so an h1 at the
+ * head of the paste is the title and goes on the cover; h2 is a section, and gets the purple bar, the
+ * rule and the counted number; h3 and h4 are sub-headings within a section and are never numbered like
+ * one. Everything until the next h2 belongs to the section before it, so the contents page is always
+ * what the document actually contains and a writer who adds a section gets it numbered and listed
+ * without touching this file. A document with no headings at all still renders: it becomes one
+ * unnumbered run of content rather than an empty shell.
  */
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
@@ -496,7 +497,25 @@ export function BrandedTemplate({
   stamp?: Buffer;
   signature?: Buffer;
 }): React.ReactElement {
-  const { sections, preamble } = toSections(data.richContent ?? []);
+  /*
+   * The hierarchy the writer pasted, taken at its word: h1 is the document, h2 is a section.
+   *
+   * So an h1 at the head of the body is the title, and the title belongs on the cover. It is lifted
+   * there when the form was left on its default — which for these kinds is the bare word "Proposal" or
+   * "Scope of Work" — and removed from the body either way when it says what the cover already says.
+   * Printing it in both places is how the same words ended up on the front page and again as the first
+   * line inside.
+   */
+  const pasted = data.richContent ?? [];
+  const first = pasted[0];
+  const leadTitle = first?.type === "h1" ? (first.runs ?? []).map((r) => r.text).join("").trim() : "";
+  const untouched = !data.title || data.title.trim() === data.kind;
+  const coverTitle = leadTitle && untouched ? leadTitle : data.title || data.kind;
+  const same = (a: string, b: string): boolean =>
+    a.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === b.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const body = leadTitle && (untouched || same(leadTitle, coverTitle)) ? pasted.slice(1) : pasted;
+
+  const { sections, preamble } = toSections(body);
   const client = data.preparedFor || data.recipientCompany || data.recipientName || "Prepared for you";
   const running = `${data.kind.toUpperCase()}  ·  ${client.toUpperCase()}`;
   const footer = `${company.legalName}  |  Confidential  |  Prepared for the recipient named above`;
@@ -511,7 +530,7 @@ export function BrandedTemplate({
       {/* The cover is its own page with no padding: the artwork runs to the paper's edge. */}
       <Page size="A4" style={s.coverPage}>
         <BrandCover
-          title={data.title || data.kind}
+          title={coverTitle}
           preparedFor={client}
           {...(clientLines.length > 0 ? { clientLines } : {})}
           preparedByLines={byLines}
@@ -543,7 +562,7 @@ export function BrandedTemplate({
           * field and a pasted "Confidentiality" section said the same thing twice, a few centimetres
           * apart; between the two, the writer's own words win.
           */}
-        {data.confidentiality && !writesOwnConfidentiality(data.richContent ?? []) ? (
+        {data.confidentiality && !writesOwnConfidentiality(body) ? (
           <Callout heading="Confidentiality Notice">{data.confidentiality}</Callout>
         ) : null}
 

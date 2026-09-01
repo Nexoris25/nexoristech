@@ -121,7 +121,29 @@ export function oneLine(value: string): string {
  * their own punctuation.
  */
 export function splitLeadingNumber(heading: string): { number?: string; title: string } {
-  const match = /^\s*(?:section\s+|clause\s+|article\s+)?(\d+(?:\.\d+)*)\s*[.)\]:–—-]?\s+(\S.*)$/i.exec(heading);
+  const match = /^\s*(?:section\s+|clause\s+|article\s+)?(\d+(?:\.\d+)*)\s*([.)\]:–—-])?\s+(\S.*)$/i
+    .exec(heading);
   if (!match) return { title: heading.trim() };
-  return { number: match[1]!.replace(/\.$/, ""), title: match[2]!.trim() };
+  const [, digits, punctuation, rest] = match as unknown as [string, string, string | undefined, string];
+
+  /*
+   * A heading that opens with a number is not always a numbered heading.
+   *
+   * "7. Security" and "01 Document Control" are; "2026 Outlook" and "5 key risks" are not, and reading
+   * them as section numbers was worse than cosmetic — the count continues from whatever it last saw,
+   * so one heading beginning "2026" renumbered the rest of the document 2027, 2028, 2029. The signals
+   * that make it a number are punctuation after it, a leading zero, or a multi-level form; failing all
+   * three, a bare number counts only if it is small enough to be a section and the words after it
+   * start like a title rather than continuing the sentence.
+   */
+  const multiLevel = digits.includes(".");
+  const padded = /^0\d/.test(digits);
+  const value = Number.parseInt(digits, 10);
+  const looksLikeTitle = /^[A-Z(]/.test(rest);
+  const isNumbering = multiLevel || padded || (punctuation !== undefined && value <= 999)
+    || (value >= 1 && value <= 99 && looksLikeTitle);
+  if (!isNumbering) return { title: heading.trim() };
+
+  return { number: digits.replace(/\.$/, ""), title: rest.trim() };
 }
+
