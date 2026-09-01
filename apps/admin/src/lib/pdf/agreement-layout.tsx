@@ -13,7 +13,7 @@
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CompanyInfo, DocumentData } from "./types.js";
-import { C as BRAND } from "./brand.js";
+import { C as BRAND, PAGE } from "./brand.js";
 
 /*
  * The branding kit's palette, used with restraint.
@@ -33,6 +33,8 @@ const C = {
 };
 
 const M = 72; // an inch, as the executed Master Software Development Agreement is set
+/** The footer band: one line of type, its rule, and the margin below it. */
+const FOOT_H = 46;
 
 /*
  * Set the way the executed agreement is set: Arial, 11 point, an inch of margin, everything flush.
@@ -81,9 +83,20 @@ export const a = StyleSheet.create({
   headName: { fontFamily: SANS_BOLD, fontSize: 9, letterSpacing: 0.6 },
   headMeta: { fontFamily: SANS, fontSize: 7.5, color: C.faint, textAlign: "right" },
 
+  /*
+   * The footer is anchored from the top of the page, not the bottom.
+   *
+   * A `fixed` element positioned by `bottom` accumulates an offset as the pages go by: it holds for
+   * ten pages or so and then the number it computes for the border clip is nonsense — the renderer
+   * reported "unsupported number: -8.6e+21" and refused the document. Every agreement past about ten
+   * pages was impossible to produce, which is every real agreement.
+   *
+   * Anchoring by `top` with a known height removes the running offset. The height is fixed for the
+   * same reason: it has to be, for the top to be worked out from it.
+   */
   foot: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    paddingHorizontal: M, paddingBottom: 24, paddingTop: 10,
+    position: "absolute", top: PAGE.height - FOOT_H, left: 0, right: 0, height: FOOT_H,
+    paddingHorizontal: M, paddingTop: 10,
     borderTopWidth: 1, borderTopColor: C.line,
     flexDirection: "row", justifyContent: "space-between",
   },

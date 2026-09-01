@@ -109,9 +109,19 @@ const s = StyleSheet.create({
   headerRight: { fontFamily: FONT.medium, fontSize: 7.2, color: C.purple },
   headerRule: { position: "absolute", top: mm(16.5), left: PAGE.left, right: PAGE.right, height: 0.8, backgroundColor: C.purple },
 
-  footerRule: { position: "absolute", bottom: mm(16), left: PAGE.left, right: PAGE.right, height: 0.7, backgroundColor: C.rule },
+  /*
+   * Measured down from the top, not up from the bottom.
+   *
+   * A `fixed` element positioned by `bottom` drifts as the pages accumulate, and past about ten pages
+   * the renderer computes an impossible coordinate and refuses the whole document. The page height is
+   * known, so the same positions are expressed from the top and the drift has nowhere to come from.
+   */
+  footerRule: {
+    position: "absolute", top: PAGE.height - mm(16), left: PAGE.left, right: PAGE.right,
+    height: 0.7, backgroundColor: C.rule,
+  },
   footer: {
-    position: "absolute", bottom: mm(9), left: PAGE.left, right: PAGE.right,
+    position: "absolute", top: PAGE.height - mm(12), left: PAGE.left, right: PAGE.right,
     flexDirection: "row", justifyContent: "space-between",
   },
   footerText: { fontFamily: FONT.regular, fontSize: 7.2, color: C.inkSoft },
