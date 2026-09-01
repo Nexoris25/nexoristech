@@ -37,23 +37,22 @@ const M = 72; // an inch, as the executed Master Software Development Agreement 
 const FOOT_H = 46;
 
 /*
- * Set the way the executed agreement is set: Arial, 11 point, an inch of margin, everything flush.
+ * Set the way the executed agreement is set: 11 point, an inch of margin, everything flush.
  *
- * The reference here is the Master Software Development Agreement itself, not the branding kit. A
- * proposal is a Nexoris document and wears the house face; an agreement is an instrument the parties
- * print, mark up and file, and it is set in the face that instrument was drafted in. Measured off it:
- * Arial 11 on 14.6 leading, a 72 point margin, clause headings at 14 point bold, sub-clause numbers
- * run into the line in bold, and no indentation anywhere.
+ * The reference for the layout is the Master Software Development Agreement itself, not the branding
+ * kit. A proposal is a Nexoris document and wears the house display face; an agreement is an
+ * instrument the parties print, mark up and file, and it is set to be read.
  *
- * Arimo rather than Arial itself. Arimo is Arial's metric-compatible twin — the same widths, so the
- * same words fall on the same lines — and it is Apache licensed, which means it can live in the
- * repository. Arial cannot: it is licensed software. The built-in Helvetica was the obvious answer
- * and is not usable at all here, because this renderer cannot resolve metrics for the standard PDF
- * fonts; every attempt ends in the same crash a missing font does.
+ * The face is Inter, which is what the PRD specifies for body text (14.1) and what the executed
+ * agreement carries alongside Arial. Set at the executed agreement's own measurements: 11 point on
+ * 14.6 leading, a 72 point margin, headings at 14 point bold, everything flush.
+ *
+ * A built-in PDF font is not an option however well it would suit: this renderer cannot resolve
+ * metrics for the standard fonts at all, and every attempt ends in the crash a missing font does.
  */
-export const SANS = "Arimo";
-export const SANS_BOLD = "ArimoBold";
-export const SANS_ITALIC = "ArimoItalic";
+export const SANS = "Inter";
+export const SANS_BOLD = "InterBold";
+export const SANS_ITALIC = "InterItalic";
 export const a = StyleSheet.create({
   /**
    * The top and bottom padding must sit on the Page, not on the content wrapper. A wrapper's padding

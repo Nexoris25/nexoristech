@@ -392,20 +392,37 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
   );
 }
 
-/** The runs of a paragraph, with a leading clause number set in bold when it has one. */
+/**
+ * The runs of a paragraph, with its clause number and defined term set in bold.
+ *
+ * A numbered clause that opens by defining something — "1.12 Fees: "Fees" means the professional
+ * fees payable by the Client" — carries the term in bold along with the number, which is how the
+ * executed agreement sets it and how a reader finds a definition without reading the paragraph. So
+ * the bold runs from the start of the line through the first colon.
+ *
+ * Only after a number, and only across a short run of words. Without both conditions a clause whose
+ * first sentence happens to contain a colon would come out with half its opening in bold.
+ */
 function SubNumber({ runs }: { runs: RichRun[] }): React.ReactElement {
   const first = runs[0];
   const lead = first && !first.bold ? /^\s*(\d+(?:\.\d+)+|\(?[a-z0-9]{1,3}[.)])\s+/i.exec(first.text) : null;
   if (!lead) return <RichRuns runs={runs} />;
+
+  // The defined term after the number: up to five words, ending at the colon that closes it.
+  const rest = first!.text.slice(lead[0].length);
+  const term = /^([^:\n]{1,48}:)\s*/.exec(rest);
+  const runIn = term && term[1]!.split(/\s+/).length <= 5 ? term[0] : "";
+  const strong = lead[0].trimEnd() + (runIn ? ` ${runIn.trimEnd()}` : "");
+  const remainder = rest.slice(runIn.length);
+
   return (
     <>
-      <Text style={n.rBold}>{lead[0].trimEnd()}</Text>
+      <Text style={n.rBold}>{strong}</Text>
       <Text>{" "}</Text>
-      <RichRuns runs={[{ ...first!, text: first!.text.slice(lead[0].length) }, ...runs.slice(1)]} />
+      <RichRuns runs={[{ ...first!, text: remainder }, ...runs.slice(1)]} />
     </>
   );
 }
-
 /*
  * PricingTable was removed with ProposalTemplate.
  *
