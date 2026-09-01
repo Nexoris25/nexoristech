@@ -35,6 +35,7 @@ const s = StyleSheet.create({
    * h3 in ink, then a smaller ink heading. Three steps is what a document of this length needs and as
    * many as can be told apart at a glance.
    */
+  h1: { ...TYPE.h2, fontSize: 13, color: C.ink },
   h2: TYPE.h2,
   h3: TYPE.h3,
   h4: { ...TYPE.h3, fontFamily: FONT.medium, fontSize: 9.4, color: C.inkSoft },
@@ -224,7 +225,7 @@ function Block({ block }: { block: RichBlock }): React.ReactElement | null {
    * ever left alone at the foot of a page with its content overleaf.
    */
   if (isHeading(block.type)) {
-    const style = block.type === "h1" || block.type === "h2" ? s.h2 : block.type === "h3" ? s.h3 : s.h4;
+    const style = block.type === "h1" ? s.h1 : block.type === "h2" ? s.h2 : block.type === "h3" ? s.h3 : s.h4;
     return (
       <View minPresenceAhead={mm(18)} wrap={false}>
         <Text style={style}><Runs runs={block.runs ?? []} /></Text>
@@ -311,6 +312,17 @@ function Block({ block }: { block: RichBlock }): React.ReactElement | null {
   return <Text style={s.body}><Runs runs={block.runs ?? []} /></Text>;
 }
 
+/**
+ * Whether the pasted text already carries a confidentiality section of its own.
+ *
+ * Only a heading counts. A passing mention of the word in a sentence is not the writer taking
+ * responsibility for the notice, but a heading is, and in that case the template must keep quiet.
+ */
+function writesOwnConfidentiality(blocks: RichBlock[]): boolean {
+  return blocks.some((b) => isHeading(b.type)
+    && /confidential/i.test((b.runs ?? []).map((r) => r.text).join(" ")));
+}
+
 interface Section {
   number: string;
   title: string;
@@ -318,17 +330,14 @@ interface Section {
 }
 
 /**
- * Which heading level opens a section: the highest one the document actually uses.
+ * h2 is the section: the level that gets the purple bar, the rule and the counted number.
  *
- * Writers do not agree on where to start. One pastes a scope of work whose parts are h1 and whose
- * sections are h2; the next starts at h2 because h1 is the document's own title. Fixing on h2 made
- * the first writer's parts and sections identical and left the second's sub-headings looking like
- * sections. Reading the top level off the document keeps both hierarchies intact.
+ * Fixed at h2 rather than read from whichever level the document happens to start at. That was too
+ * clever: a stray h1 anywhere in a paste quietly demoted every h2 to a plain sub-heading, and the
+ * numbering the document was supposed to carry disappeared with it. h1 is set larger and left
+ * unnumbered, for the rare part title; h3 and h4 are sub-headings and never take a section number.
  */
-function topHeadingLevel(blocks: RichBlock[]): number {
-  const levels = blocks.filter((b) => isHeading(b.type)).map((b) => Number(b.type.slice(1)));
-  return levels.length > 0 ? Math.min(...levels) : 2;
-}
+const SECTION_LEVEL = "h2";
 
 /**
  * Split the flat block list into numbered sections, one per h2.
@@ -342,7 +351,7 @@ function topHeadingLevel(blocks: RichBlock[]): number {
 function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichBlock[] } {
   const preamble: RichBlock[] = [];
   const sections: Section[] = [];
-  const opensSection = `h${topHeadingLevel(blocks)}`;
+  const opensSection = SECTION_LEVEL;
   let last = 0;
   for (const block of blocks) {
     if (block.type === opensSection) {
@@ -530,11 +539,13 @@ export function BrandedTemplate({
         {/*
           * The confidentiality notice, in the document rather than across the foot of the cover.
           *
-          * A paragraph of terms under the front page is a legal page pretending to be a cover. Here it
-          * is what it is: the first thing the reader meets inside, set apart from the copy so it is
-          * plainly a notice and not an opening remark.
+          * Printed only when the writer has not already written one. A document that carried both the
+          * field and a pasted "Confidentiality" section said the same thing twice, a few centimetres
+          * apart; between the two, the writer's own words win.
           */}
-        {data.confidentiality ? <Callout>{data.confidentiality}</Callout> : null}
+        {data.confidentiality && !writesOwnConfidentiality(data.richContent ?? []) ? (
+          <Callout heading="Confidentiality Notice">{data.confidentiality}</Callout>
+        ) : null}
 
         {data.intro ? <Text style={s.lead}>{data.intro}</Text> : null}
         {data.meta && data.meta.length > 0 ? (

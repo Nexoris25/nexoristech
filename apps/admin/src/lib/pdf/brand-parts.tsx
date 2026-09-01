@@ -55,9 +55,11 @@ const s = StyleSheet.create({
     position: "absolute", right: mm(18), top: mm(34), width: COVER_W,
     textAlign: "right", fontFamily: FONT.medium, fontSize: 7.3, color: C.coverLabel, letterSpacing: 1.2,
   },
-  preparedForLabel: { fontFamily: FONT.medium, fontSize: 9, color: C.coverLabel, letterSpacing: 0.6 },
-  client: { fontFamily: FONT.bold, fontSize: 23, color: C.white, marginTop: mm(1.2) },
-  title: { fontFamily: FONT.bold, fontSize: 14.5, color: C.white, marginTop: mm(7) },
+  preparedForLabel: { fontFamily: FONT.medium, fontSize: 9, color: C.coverLabel, letterSpacing: 0.6, marginTop: mm(9) },
+  client: { fontFamily: FONT.bold, fontSize: 15, color: C.white, marginTop: mm(1.2) },
+  clientLine: { fontFamily: FONT.regular, fontSize: 9, color: C.coverSubtitle, marginTop: mm(1.2), lineHeight: 1.5 },
+  title: { fontFamily: FONT.bold, fontSize: 21, color: C.white, lineHeight: 1.25 },
+  titleRule: { height: 2, backgroundColor: C.purple, width: mm(24), marginTop: mm(6) },
   meta: { fontFamily: FONT.regular, fontSize: 9.2, color: C.coverSubtitle, marginTop: mm(3.6), lineHeight: 1.6 },
   metaLabel: { fontFamily: FONT.medium, color: C.coverMeta },
   /*
@@ -121,6 +123,8 @@ const s = StyleSheet.create({
     paddingVertical: 10, paddingHorizontal: 10, marginTop: 4, marginBottom: 12,
   },
   calloutText: { ...TYPE.note, marginBottom: 0 },
+  /* The same heading the body's own sub-headings use, so a notice reads as part of the document. */
+  calloutHeading: { ...TYPE.h3, marginTop: 0, marginBottom: 4 },
 
   tableHeadRow: { flexDirection: "row", backgroundColor: C.purple },
   tableHeadCell: { ...TYPE.cellHead, paddingVertical: 6.5, paddingHorizontal: 6 },
@@ -197,8 +201,13 @@ export interface CoverProps {
  * of a cover is a legal page pretending to be a front page. It belongs in the document, which is
  * where the reference puts it and where it now goes.
  *
- * The parties are named once each at the foot, with room under either for an address. "Prepared for"
- * is said at the top, where the client's name is set large, and nowhere else.
+ * The title comes first, because the first question a cover answers is what the document is; who it
+ * is for follows it. It read the other way round, opening with the client's name and reaching the
+ * title underneath, which is the order of an envelope rather than of a document.
+ *
+ * Each party is named exactly once. The client sits under the title with its address; Nexoris sits at
+ * the foot with its own. Naming the client twice on one page — large at the top and again in a column
+ * at the bottom — was a template showing through.
  */
 export function BrandCover({
   title, preparedFor, clientLines = [], preparedByLines, proposalDate, validity, logoWhite,
@@ -216,10 +225,14 @@ export function BrandCover({
       {logoWhite ? <Image src={logoWhite} style={s.coverLogo} /> : null}
       <Text style={s.eyebrow}>{`CONFIDENTIAL  ·  ${proposalDate.toUpperCase()}`}</Text>
 
-      <View style={{ position: "absolute", left: COVER_X, top: mm(75), width: COVER_W }}>
+      <View style={{ position: "absolute", left: COVER_X, top: mm(70), width: COVER_W }}>
+        <Text style={s.title}>{title}</Text>
+        <View style={s.titleRule} />
         <Text style={s.preparedForLabel}>PREPARED FOR</Text>
         <Text style={s.client}>{client}</Text>
-        <Text style={s.title}>{title}</Text>
+        {clientLines.map((entry) => (
+          <Text key={entry} style={s.clientLine}>{entry}</Text>
+        ))}
         <Text style={s.meta}>
           <Text style={s.metaLabel}>Proposal Date: </Text>
           {proposalDate}
@@ -234,23 +247,12 @@ export function BrandCover({
 
       <View style={s.foot}>
         <View style={s.preparedByRule} />
-        <View style={s.parties}>
-          {/* Labelled CLIENT, not PREPARED FOR: that is already said once, in full, at the top of
-              the cover, and saying it twice on one page is a template showing through. */}
-          <View style={s.party}>
-            <Text style={s.preparedByLabel}>CLIENT</Text>
-            <Text style={s.partyName}>{client}</Text>
-            {clientLines.map((entry) => (
-              <Text key={entry} style={s.preparedByLine}>{entry}</Text>
-            ))}
-          </View>
-          <View style={s.party}>
-            <Text style={s.preparedByLabel}>PREPARED BY</Text>
-            <Text style={s.partyName}>{preparedByLines[0] || "Nexoris Technologies Ltd"}</Text>
-            {preparedByLines.slice(1).map((entry) => (
-              <Text key={entry} style={s.preparedByLine}>{entry}</Text>
-            ))}
-          </View>
+        <View style={s.party}>
+          <Text style={s.preparedByLabel}>PREPARED BY</Text>
+          <Text style={s.partyName}>{preparedByLines[0] || "Nexoris Technologies Ltd"}</Text>
+          {preparedByLines.slice(1).map((entry) => (
+            <Text key={entry} style={s.preparedByLine}>{entry}</Text>
+          ))}
         </View>
       </View>
     </View>
@@ -338,10 +340,11 @@ export function Outline({
  * Rendered a line at a time, because the text can be typed into a textarea and a newline inside a
  * single Text does not wrap — it ends the render.
  */
-export function Callout({ children }: { children: string }): React.ReactElement {
+export function Callout({ children, heading }: { children: string; heading?: string }): React.ReactElement {
   const lines = children.split(/\r\n?|\n/).map((l) => l.trim()).filter((l) => l !== "");
   return (
     <View style={s.callout} minPresenceAhead={mm(16)}>
+      {heading ? <Text style={s.calloutHeading}>{heading}</Text> : null}
       {(lines.length > 0 ? lines : [" "]).map((entry, i) => (
         <Text key={i} style={s.calloutText}>{entry}</Text>
       ))}
