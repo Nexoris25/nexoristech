@@ -75,7 +75,6 @@ export default async function SeoSettingsPage(): Promise<ReactNode> {
 
   const quickActions = [
     { label: "Edit meta templates", href: "/cms/seo/settings/templates" },
-    { label: "Manage schemas", href: "/cms/seo/settings/schema" },
     { label: "Open redirect manager", href: "/cms/seo/redirects" },
     { label: "Edit robots.txt", href: "/cms/seo/robots" },
     { label: "Generate sitemap", href: "/cms/seo/sitemap" },
@@ -172,7 +171,9 @@ export default async function SeoSettingsPage(): Promise<ReactNode> {
             Insights and case studies emit Article, jobs emit JobPosting, and the rest emit WebPage. This
             reports what the site sends. What Google chooses to show is its own decision.
           </p>
-          <Link href="/cms/seo/settings/schema" className="mt-3 inline-flex items-center gap-1 text-[0.8rem] font-600 text-[#543CDA] hover:underline">Manage schemas <ChevronRight size={14} /></Link>
+          {/* No "manage schemas" link: there is nothing to manage. The type is decided by what the
+              content is, and this panel reports what that produces. The link pointed at a page that
+              was never built. */}
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
