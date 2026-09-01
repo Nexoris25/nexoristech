@@ -178,7 +178,9 @@ export interface CoverProps {
   title: string;
   /** Who it is for. Set large, because it is the first thing the reader looks for. */
   preparedFor: string;
-  /** Who wrote it: the legal name, and the registration it trades under. */
+  /** The client's address, when there is one to print. Optional: many documents do not need it. */
+  clientLines?: string[];
+  /** Who wrote it: the legal name, the registration it trades under, and an address if wanted. */
   preparedByLines: string[];
   /** The date the document is put forward. */
   proposalDate: string;
@@ -195,11 +197,11 @@ export interface CoverProps {
  * of a cover is a legal page pretending to be a front page. It belongs in the document, which is
  * where the reference puts it and where it now goes.
  *
- * The parties are named the way the reference names them, with the standing each takes in the
- * document underneath: the recipient as the Client, Nexoris as the Developer.
+ * The parties are named once each at the foot, with room under either for an address. "Prepared for"
+ * is said at the top, where the client's name is set large, and nowhere else.
  */
 export function BrandCover({
-  title, preparedFor, preparedByLines, proposalDate, validity, logoWhite,
+  title, preparedFor, clientLines = [], preparedByLines, proposalDate, validity, logoWhite,
 }: CoverProps): React.ReactElement {
   const client = preparedFor || "The client";
   return (
@@ -233,10 +235,14 @@ export function BrandCover({
       <View style={s.foot}>
         <View style={s.preparedByRule} />
         <View style={s.parties}>
+          {/* Labelled CLIENT, not PREPARED FOR: that is already said once, in full, at the top of
+              the cover, and saying it twice on one page is a template showing through. */}
           <View style={s.party}>
-            <Text style={s.preparedByLabel}>PREPARED FOR</Text>
+            <Text style={s.preparedByLabel}>CLIENT</Text>
             <Text style={s.partyName}>{client}</Text>
-            <Text style={s.preparedByLine}>(&quot;Client&quot;)</Text>
+            {clientLines.map((entry) => (
+              <Text key={entry} style={s.preparedByLine}>{entry}</Text>
+            ))}
           </View>
           <View style={s.party}>
             <Text style={s.preparedByLabel}>PREPARED BY</Text>
@@ -244,7 +250,6 @@ export function BrandCover({
             {preparedByLines.slice(1).map((entry) => (
               <Text key={entry} style={s.preparedByLine}>{entry}</Text>
             ))}
-            <Text style={s.preparedByLine}>(&quot;Developer&quot;)</Text>
           </View>
         </View>
       </View>

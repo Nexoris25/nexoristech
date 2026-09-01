@@ -372,8 +372,12 @@ function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichB
  * The street address and the web address are not here: one is correspondence detail that belongs in
  * the letterhead, and the other already runs up the spine.
  */
-function preparedBy(company: CompanyInfo): string[] {
-  return [company.legalName, ...(company.tin ? [`TIN ${company.tin}`] : [])];
+function preparedBy(company: CompanyInfo, address?: string): string[] {
+  return [
+    company.legalName,
+    ...(company.tin ? [`TIN ${company.tin}`] : []),
+    ...(address ? [address] : []),
+  ];
 }
 
 /** Amounts as the rest of the engine writes them. */
@@ -488,7 +492,10 @@ export function BrandedTemplate({
   const running = `${data.kind.toUpperCase()}  ·  ${client.toUpperCase()}`;
   const footer = `${company.legalName}  |  Confidential  |  Prepared for the recipient named above`;
   // Whoever the document says wrote it, falling back to the company record rather than to nothing.
-  const byLines = data.preparedBy ? [data.preparedBy, ...preparedBy(company).slice(1)] : preparedBy(company);
+  const byLines = preparedBy(company, data.senderAddress);
+  if (data.preparedBy) byLines[0] = data.preparedBy;
+  // The client's address, when one was given. One entry, wrapped by the column as it needs.
+  const clientLines = data.recipientAddress ? [data.recipientAddress] : [];
 
   return (
     <>
@@ -497,6 +504,7 @@ export function BrandedTemplate({
         <BrandCover
           title={data.title || data.kind}
           preparedFor={client}
+          {...(clientLines.length > 0 ? { clientLines } : {})}
           preparedByLines={byLines}
           proposalDate={data.date}
           {...(data.validity ? { validity: data.validity } : {})}

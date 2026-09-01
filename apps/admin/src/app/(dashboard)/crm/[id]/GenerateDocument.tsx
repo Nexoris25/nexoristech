@@ -87,15 +87,19 @@ export function GenerateDocument({
   const [intro, setIntro] = useState("");
 
   /*
-   * The cover page's six fields.
+   * The cover page's fields.
    *
    * "Prepared for" is seeded from the deal but stays editable, because the name on a cover is the
-   * client's registered name and the CRM holds whatever the salesperson typed. The confidentiality
-   * notice is not one of them: it is printed inside the document, where a paragraph of terms belongs,
-   * rather than across the foot of the front page.
+   * client's registered name and the CRM holds whatever the salesperson typed. The two addresses are
+   * optional and start empty: a cover is not a letterhead. The confidentiality notice is not a cover
+   * field at all — it is printed inside the document, where a paragraph of terms belongs, rather than
+   * across the foot of the front page.
    */
   const [preparedFor, setPreparedFor] = useState(defaultCompany || defaultName || "");
   const [preparedByName, setPreparedByName] = useState("");
+  /* Both optional, and empty by default: a cover is not a letterhead, and most do not need either. */
+  const [clientAddress, setClientAddress] = useState("");
+  const [senderAddress, setSenderAddress] = useState("");
   const [docDate, setDocDate] = useState(new Date().toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" }));
   const [validity, setValidity] = useState("30 days from the date above");
   const [confidentiality, setConfidentiality] = useState(
@@ -176,6 +180,8 @@ export function GenerateDocument({
             ...(isLegal ? {} : {
               ...(preparedFor.trim() ? { preparedFor: preparedFor.trim() } : {}),
               ...(preparedByName.trim() ? { preparedBy: preparedByName.trim() } : {}),
+              ...(clientAddress.trim() ? { recipientAddress: clientAddress.trim() } : {}),
+              ...(senderAddress.trim() ? { senderAddress: senderAddress.trim() } : {}),
               ...(validity.trim() ? { validity: validity.trim() } : {}),
               ...(confidentiality.trim() ? { confidentiality: confidentiality.trim() } : {}),
             }),
@@ -403,6 +409,14 @@ export function GenerateDocument({
                   <label className="flex flex-col gap-1.5">
                     <span className={LABEL}>Prepared by</span>
                     <input value={preparedByName} onChange={(e) => setPreparedByName(e.target.value)} placeholder="Nexoris Technologies Ltd" className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className={LABEL}>Client address (optional)</span>
+                    <input value={clientAddress} onChange={(e) => setClientAddress(e.target.value)} placeholder="Street, city, state" className={FIELD} />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className={LABEL}>Nexoris address (optional)</span>
+                    <input value={senderAddress} onChange={(e) => setSenderAddress(e.target.value)} placeholder="Street, city, state" className={FIELD} />
                   </label>
                   <label className="flex flex-col gap-1.5">
                     <span className={LABEL}>Proposal date</span>

@@ -206,6 +206,14 @@ export interface DocumentData {
   preparedBy?: string;
   /** How long the offer stands, e.g. "30 days from the date above". */
   validity?: string;
+  /**
+   * The address printed under Nexoris on the cover, when one is wanted.
+   *
+   * Separate from the company record's address, and optional, because a cover is not a letterhead:
+   * some documents want the registered address under the name and plenty do not. The client's own
+   * address is `recipientAddress`, on the same terms.
+   */
+  senderAddress?: string;
   /** The confidentiality notice printed at the foot of the cover. */
   confidentiality?: string;
   intro?: string;

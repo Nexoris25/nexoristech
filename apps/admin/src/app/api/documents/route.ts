@@ -308,6 +308,7 @@ async function sanitize(body: Record<string, unknown>): Promise<DocumentData | n
     ...(line(body.recipientName) ? { recipientName: line(body.recipientName) } : {}),
     ...(line(body.recipientCompany) ? { recipientCompany: line(body.recipientCompany) } : {}),
     ...(line(body.recipientAddress) ? { recipientAddress: line(body.recipientAddress) } : {}),
+    ...(line(body.senderAddress) ? { senderAddress: line(body.senderAddress) } : {}),
     ...(line(body.intro) ? { intro: line(body.intro) } : {}),
     ...(str(body.terms) ? { terms: str(body.terms) } : {}),
     ...(lineItems.length > 0 ? { lineItems } : {}),
