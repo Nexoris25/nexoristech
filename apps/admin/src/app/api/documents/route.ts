@@ -128,7 +128,9 @@ function sanitizeInvoice(body: Record<string, unknown>): InvoiceInfo | null {
   };
 }
 
-const RICH_TYPES = new Set<RichBlockType>(["paragraph", "h2", "h3", "bulleted", "numbered", "table", "tree"]);
+const RICH_TYPES = new Set<RichBlockType>([
+  "paragraph", "h1", "h2", "h3", "h4", "bulleted", "numbered", "table", "tree",
+]);
 
 function sanitizeRuns(value: unknown): RichRun[] {
   if (!Array.isArray(value)) return [];

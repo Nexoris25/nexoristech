@@ -35,6 +35,47 @@ describe("lists", () => {
   });
 });
 
+describe("the pattern the writer typed", () => {
+  it("folds consecutive bulleted paragraphs into one list, keeping the mark", () => {
+    const [list] = parse("<p>• Discovery report.</p><p>• Architecture confirmed.</p>");
+    expect(list?.type).toBe("bulleted");
+    expect(list?.itemMarkers).toEqual(["•", "•"]);
+    expect(textOf(list?.items?.[0])).toBe("Discovery report.");
+  });
+
+  it("leaves a lone marked paragraph alone, because one item is not a list", () => {
+    const blocks = parse("<p>- A single aside.</p>");
+    expect(blocks[0]?.type).toBe("paragraph");
+    expect(textOf(blocks[0]?.runs)).toBe("- A single aside.");
+  });
+
+  it("keeps the sentence that introduces a list out of it", () => {
+    const blocks = parse("<p>The following apply:<br>(a) Notices in writing.<br>(b) Effective on delivery.</p>");
+    expect(blocks.map((b) => b.type)).toEqual(["paragraph", "numbered"]);
+    expect(textOf(blocks[0]?.runs)).toBe("The following apply:");
+    expect(blocks[1]?.itemMarkers).toEqual(["(a)", "(b)"]);
+    // Every item sits at the top level: an ordered list's marks differ from each other by design.
+    expect(blocks[1]?.itemLevels).toEqual([0, 0]);
+  });
+
+  it("uses the bullet the list asks for", () => {
+    const [list] = parse('<ul style="list-style-type: square"><li>One</li><li>Two</li></ul>');
+    expect(list?.itemMarkers).toEqual(["-", "-"]);
+  });
+
+  it("reads a second bullet character as a sub-level", () => {
+    const [list] = parse("<p>• Top point.</p><p>– Something under it.</p><p>• Another top point.</p>");
+    expect(list?.itemLevels).toEqual([0, 1, 0]);
+  });
+});
+
+describe("heading hierarchy", () => {
+  it("carries the level that was written", () => {
+    const blocks = parse("<h1>Part</h1><h2>Section</h2><h3>Sub</h3><h4>Detail</h4><h6>Deeper</h6>");
+    expect(blocks.map((b) => b.type)).toEqual(["h1", "h2", "h3", "h4", "h4"]);
+  });
+});
+
 describe("tables", () => {
   it("keeps cells apart instead of running them into a sentence", () => {
     const [table] = parse("<table><tr><th>Item</th><th>Cost</th></tr><tr><td>SMS</td><td>NGN 480,000</td></tr></table>");

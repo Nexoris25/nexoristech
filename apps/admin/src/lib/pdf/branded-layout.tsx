@@ -5,11 +5,12 @@
  * brand: the navy and purple cover, a contents page, numbered sections and the running furniture. The
  * agreements are deliberately not this; see agreement-layout.
  *
- * Sections come from the writing, not from a fixed list. Every h2 in the editor's output opens a new
- * numbered section, and everything until the next h2 belongs to it. That means the contents page is
- * always what the document actually contains, and a writer who adds a section gets it numbered and
- * listed without touching this file. A document with no headings at all still renders: it becomes one
- * unnumbered run of content rather than an empty shell.
+ * Sections come from the writing, not from a fixed list. Whichever heading level the document starts
+ * at opens its sections — h1 for a writer who uses h1 for parts, h2 for one whose h1 is the title —
+ * and every level below it is a sub-heading. Everything until the next section heading belongs to the
+ * one before it, so the contents page is always what the document actually contains and a writer who
+ * adds a section gets it numbered and listed without touching this file. A document with no headings
+ * at all still renders: it becomes one unnumbered run of content rather than an empty shell.
  */
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
@@ -18,7 +19,7 @@ import {
   brandStyles, type RowEmphasis,
 } from "./brand-parts.js";
 import { BULLET_INDENT, C, FONT, PAGE, TYPE, mm, sectionNumber, splitLeadingNumber } from "./brand.js";
-import type { CompanyInfo, DocumentData, LineItem, RichBlock, RichRun } from "./types.js";
+import { isHeading, type CompanyInfo, type DocumentData, type LineItem, type RichBlock, type RichRun } from "./types.js";
 
 const s = StyleSheet.create({
   page: {
@@ -28,9 +29,16 @@ const s = StyleSheet.create({
   coverPage: { padding: 0, backgroundColor: C.navy },
   body: TYPE.body,
   lead: TYPE.lead,
+  /*
+   * The levels below a section, each visibly one step down from the last: the kit's h2 in purple, its
+   * h3 in ink, then a smaller ink heading. Three steps is what a document of this length needs and as
+   * many as can be told apart at a glance.
+   */
+  h2: TYPE.h2,
   h3: TYPE.h3,
+  h4: { ...TYPE.h3, fontFamily: FONT.medium, fontSize: 9.4, color: C.inkSoft },
   bulletRow: { flexDirection: "row", marginBottom: 4 },
-  bulletMark: { fontFamily: FONT.regular, fontSize: 9.3, color: C.purple, width: BULLET_INDENT.level1, textAlign: "left" },
+  bulletMark: { fontFamily: FONT.regular, fontSize: 9.3, color: C.purple, textAlign: "left", flexShrink: 0 },
   bulletText: { ...TYPE.bullet, flex: 1, marginBottom: 0 },
   /** One step of nesting, the kit's second bullet indent less the first. */
   bulletIndent: { marginLeft: BULLET_INDENT.level2 - BULLET_INDENT.level1 },
@@ -135,7 +143,7 @@ function RichTable({ block }: { block: RichBlock }): React.ReactElement | null {
   }
   const width = { flex: 1 };
   return (
-    <View style={s.richTable}>
+    <View style={s.richTable} minPresenceAhead={mm(22)}>
       {header ? (
         <View style={s.richTableHead} fixed>
           {Array.from({ length: columns }, (_, i) => (
@@ -181,18 +189,31 @@ function RichTable({ block }: { block: RichBlock }): React.ReactElement | null {
 
 /** One block of body content. Headings that open sections are handled by the caller. */
 function Block({ block }: { block: RichBlock }): React.ReactElement | null {
-  if (block.type === "h3") {
-    return <Text style={s.h3}><Runs runs={block.runs ?? []} /></Text>;
+  /*
+   * A heading inside a section, one step or more below the level that opens one.
+   *
+   * Each level is set distinctly and each keeps a heading with what follows it, so no sub-heading is
+   * ever left alone at the foot of a page with its content overleaf.
+   */
+  if (isHeading(block.type)) {
+    const style = block.type === "h1" || block.type === "h2" ? s.h2 : block.type === "h3" ? s.h3 : s.h4;
+    return (
+      <View minPresenceAhead={mm(18)} wrap={false}>
+        <Text style={style}><Runs runs={block.runs ?? []} /></Text>
+      </View>
+    );
   }
   if (block.type === "table") {
     return <RichTable block={block} />;
   }
   if (block.type === "tree") {
     return (
-      <Outline
-        items={(block.items ?? []).map((item, i) => <Runs key={i} runs={item} />)}
-        levels={block.itemLevels ?? []}
-      />
+      <View minPresenceAhead={mm(22)}>
+        <Outline
+          items={(block.items ?? []).map((item, i) => <Runs key={i} runs={item} />)}
+          levels={block.itemLevels ?? []}
+        />
+      </View>
     );
   }
   if (block.type === "bulleted" || block.type === "numbered") {
@@ -203,14 +224,24 @@ function Block({ block }: { block: RichBlock }): React.ReactElement | null {
      * one, and a nested level restarts alongside its parent. The fallback is only for content that
      * reached this file without markers at all.
      */
+    /*
+     * The marker column is as wide as the widest marker in this list, and no wider.
+     *
+     * A fixed column fitted the house bullet and nothing else: "(a)" broke across two lines, printing
+     * "(" beside the text and "a)" underneath it. Measuring the list gives "14." and "(viii)" the room
+     * they need while a list of plain bullets stays tight.
+     */
+    const markers = block.itemMarkers ?? [];
+    const widest = markers.reduce((w, m) => Math.max(w, m.length), 1);
+    const markWidth = Math.max(BULLET_INDENT.level1, widest * 5.2 + 4);
     return (
       <View>
         {(block.items ?? []).map((item, i) => {
           const level = block.itemLevels?.[i] ?? 0;
-          const mark = block.itemMarkers?.[i] ?? (block.type === "numbered" ? `${i + 1}.` : "•");
+          const mark = markers[i] ?? (block.type === "numbered" ? `${i + 1}.` : "•");
           return (
             <View key={i} style={[s.bulletRow, ...(level > 0 ? [{ marginLeft: level * (BULLET_INDENT.level2 - BULLET_INDENT.level1) }] : [])]} wrap={false}>
-              <Text style={s.bulletMark}>{mark}</Text>
+              <Text style={[s.bulletMark, { width: markWidth }]}>{mark}</Text>
               <Text style={s.bulletText}><Runs runs={item} /></Text>
             </View>
           );
@@ -238,6 +269,19 @@ interface Section {
 }
 
 /**
+ * Which heading level opens a section: the highest one the document actually uses.
+ *
+ * Writers do not agree on where to start. One pastes a scope of work whose parts are h1 and whose
+ * sections are h2; the next starts at h2 because h1 is the document's own title. Fixing on h2 made
+ * the first writer's parts and sections identical and left the second's sub-headings looking like
+ * sections. Reading the top level off the document keeps both hierarchies intact.
+ */
+function topHeadingLevel(blocks: RichBlock[]): number {
+  const levels = blocks.filter((b) => isHeading(b.type)).map((b) => Number(b.type.slice(1)));
+  return levels.length > 0 ? Math.min(...levels) : 2;
+}
+
+/**
  * Split the flat block list into numbered sections, one per h2.
  *
  * The writer's own numbering wins. A heading that already reads "07 Security Schedule" or
@@ -249,9 +293,10 @@ interface Section {
 function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichBlock[] } {
   const preamble: RichBlock[] = [];
   const sections: Section[] = [];
+  const opensSection = `h${topHeadingLevel(blocks)}`;
   let last = 0;
   for (const block of blocks) {
-    if (block.type === "h2") {
+    if (block.type === opensSection) {
       const heading = (block.runs ?? []).map((r) => r.text).join("").trim();
       const { number, title } = splitLeadingNumber(heading);
       const own = number ? Number.parseInt(number, 10) : NaN;

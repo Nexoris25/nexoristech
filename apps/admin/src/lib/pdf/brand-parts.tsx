@@ -36,10 +36,9 @@ const s = StyleSheet.create({
     textAlign: "right", fontFamily: FONT.medium, fontSize: 7.3, color: C.coverLabel, letterSpacing: 1.2,
   },
   preparedForLabel: { fontFamily: FONT.medium, fontSize: 9, color: C.coverLabel, letterSpacing: 0.6 },
-  client: { fontFamily: FONT.bold, fontSize: 23, color: C.white, marginTop: mm(5) },
-  titleRule: { height: 2.2, backgroundColor: C.purple, marginTop: mm(6), width: COVER_W },
-  title: { fontFamily: FONT.bold, fontSize: 14.5, color: C.white, marginTop: mm(8) },
-  meta: { fontFamily: FONT.regular, fontSize: 9.2, color: C.coverSubtitle, marginTop: mm(2.4), lineHeight: 1.6 },
+  client: { fontFamily: FONT.bold, fontSize: 23, color: C.white, marginTop: mm(1.2) },
+  title: { fontFamily: FONT.bold, fontSize: 14.5, color: C.white, marginTop: mm(7) },
+  meta: { fontFamily: FONT.regular, fontSize: 9.2, color: C.coverSubtitle, marginTop: mm(3.6), lineHeight: 1.6 },
   metaLabel: { fontFamily: FONT.medium, color: C.coverMeta },
   /*
    * The foot of the cover, as one block anchored to the bottom edge.
@@ -109,7 +108,10 @@ const s = StyleSheet.create({
   kv: { borderWidth: 0.6, borderColor: C.rule, marginBottom: 10 },
 
   /* The reference sets the contents flush left, number and title in the same size, generously led. */
-  tocRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: mm(3.4) },
+  tocRow: {
+    flexDirection: "row", alignItems: "flex-start",
+    paddingBottom: mm(1.9), marginBottom: mm(1.9), borderBottomWidth: 0.5, borderBottomColor: C.rule,
+  },
   tocNumber: { fontFamily: FONT.medium, fontSize: 9.3, color: C.purple, width: mm(9) },
   tocTitle: { fontFamily: FONT.regular, fontSize: 9.3, color: C.ink, flex: 1, lineHeight: 1.35 },
 
@@ -175,10 +177,9 @@ export function BrandCover({
       {logoWhite ? <Image src={logoWhite} style={s.coverLogo} /> : null}
       <Text style={s.eyebrow}>{`CONFIDENTIAL  ·  ${proposalDate.toUpperCase()}`}</Text>
 
-      <View style={{ position: "absolute", left: COVER_X, top: mm(80), width: COVER_W }}>
+      <View style={{ position: "absolute", left: COVER_X, top: mm(75), width: COVER_W }}>
         <Text style={s.preparedForLabel}>PREPARED FOR</Text>
         <Text style={s.client}>{client}</Text>
-        <View style={s.titleRule} />
         <Text style={s.title}>{title}</Text>
         <Text style={s.meta}>
           <Text style={s.metaLabel}>Proposal Date: </Text>
@@ -255,7 +256,7 @@ export function RunningFurniture({
  */
 export function SectionHeading({ number, title }: { number: string; title: string }): React.ReactElement {
   return (
-    <View style={s.section} wrap={false}>
+    <View style={s.section} wrap={false} minPresenceAhead={mm(24)}>
       <View style={s.sectionRow}>
         <View style={s.sectionBar} />
         <Text style={s.sectionTitle}>{title}</Text>

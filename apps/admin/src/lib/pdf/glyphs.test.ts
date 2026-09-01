@@ -10,22 +10,35 @@ import { describe, expect, it } from "vitest";
 import { join } from "node:path";
 import { resetGlyphCoverage, sanitiseForFonts, toRenderableText } from "./glyphs.js";
 
-const FONTS = ["jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf"]
+const FONTS = [
+  "poppins-300.ttf", "poppins-400.ttf", "poppins-500.ttf", "poppins-700.ttf",
+  "jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf",
+]
   .map((f) => join(process.cwd(), "public", f));
 
 const clean = (text: string): string => toRenderableText(text, FONTS);
 
+describe("a character the fonts can draw is left exactly as written", () => {
+  /*
+   * The fold is a fallback for a missing glyph, not a house style. It used to run unconditionally,
+   * which rewrote text the typeface was perfectly capable of setting: every bullet a writer pasted
+   * became a hyphen, and every curly quote and en dash became its typewriter equivalent.
+   */
+  it("keeps the bullet, the curly quotes and the em dash", () => {
+    expect(clean("• Discovery")).toBe("• Discovery");
+    expect(clean("“Phase 1” — the client’s scope")).toBe("“Phase 1” — the client’s scope");
+  });
+});
+
 describe("characters with a plain equivalent are folded, not dropped", () => {
   it("keeps a bulleted list readable", () => {
-    expect(clean("• Discovery ▪ Design ‣ Build")).toBe("- Discovery - Design - Build");
+    // The square and the triangle are in none of the embedded fonts, so each falls back to a mark
+    // that is, rather than disappearing and leaving the item unmarked.
+    expect(clean("▪ Design ‣ Build")).toBe("- Design - Build");
   });
 
   it("turns arrows into something a reader understands", () => {
     expect(clean("Design → Build ← Review")).toBe("Design -> Build <- Review");
-  });
-
-  it("normalises the quotes and dashes a word processor produces", () => {
-    expect(clean("“Phase 1” — the client’s scope")).toBe('"Phase 1" - the client\'s scope');
   });
 
   it("spells out ticks and crosses", () => {
@@ -76,7 +89,7 @@ describe("sanitiseForFonts walks a whole document", () => {
     };
     const out = sanitiseForFonts(doc, FONTS);
     expect(out.title).toBe("Ship it ");
-    expect(out.meta[0]!.value).toBe("- one");
+    expect(out.meta[0]!.value).toBe("• one");
     expect(out.richContent[0]!.runs[0]!.text).toBe("Design -> Build");
     // Not a candidate for folding, and rewriting base64 would be a good way to corrupt it.
     expect(out.signatureImage).toBe("data:image/png;base64,AAAA🚀");

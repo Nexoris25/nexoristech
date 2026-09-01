@@ -14,7 +14,7 @@ import type {
   RichBlock,
   RichRun,
 } from "./types.js";
-import { computeInvoice } from "./types.js";
+import { computeInvoice, isHeading } from "./types.js";
 import { nairaInWords } from "./amount-in-words.js";
 import { AgreementPages, Clause, SubClause, a as A } from "./agreement-layout.js";
 import { BrandedTemplate } from "./branded-layout.js";
@@ -152,7 +152,8 @@ const n = StyleSheet.create({
   rAccent: { color: C.purple },
   rLink: { color: C.purple, textDecoration: "underline" },
   listRow: { flexDirection: "row", marginBottom: 3, paddingLeft: 4 },
-  listMark: { width: 16, lineHeight: 1.5 },
+  /** Width is set per list from the widest marker in it; this is the floor. */
+  listMark: { width: 16, lineHeight: 1.5, flexShrink: 0 },
   listText: { flex: 1, lineHeight: 1.5 },
   /* A pasted outline, kept as a structure: indent per level, hairline rail, no invented connectors. */
   tree: { marginTop: 3, marginBottom: 8, paddingLeft: 4 },
@@ -277,18 +278,14 @@ function RichTableView({ block }: { block: RichBlock }): React.ReactElement {
 }
 
 function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
-  if (block.type === "h2") {
+  if (isHeading(block.type)) {
+    // A heading below the two the agreement numbers: kept as a heading, never flattened into copy.
     return (
-      <Text style={n.richH2}>
-        <RichRuns runs={block.runs ?? []} />
-      </Text>
-    );
-  }
-  if (block.type === "h3") {
-    return (
-      <Text style={n.richH3}>
-        <RichRuns runs={block.runs ?? []} />
-      </Text>
+      <View minPresenceAhead={40} wrap={false}>
+        <Text style={block.type === "h1" || block.type === "h2" ? n.richH2 : n.richH3}>
+          <RichRuns runs={block.runs ?? []} />
+        </Text>
+      </View>
     );
   }
   if (block.type === "table") {
@@ -315,15 +312,18 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
     );
   }
   if (block.type === "bulleted" || block.type === "numbered") {
+    // Wide enough for the widest marker this list actually uses, so "(viii)" is not broken in half.
+    const markers = block.itemMarkers ?? [];
+    const markWidth = Math.max(16, markers.reduce((w, m) => Math.max(w, m.length), 1) * 5 + 4);
     return (
       <View style={{ marginBottom: 8 }}>
         {(block.items ?? []).map((item, i) => {
           const level = block.itemLevels?.[i] ?? 0;
           // The marker the source gave, so an agreement's own (a), (b), (i) lettering survives.
-          const mark = block.itemMarkers?.[i] ?? (block.type === "numbered" ? `${i + 1}.` : "•");
+          const mark = markers[i] ?? (block.type === "numbered" ? `${i + 1}.` : "•");
           return (
             <View key={i} style={[n.listRow, ...(level > 0 ? [{ marginLeft: level * 14 }] : [])]}>
-              <Text style={n.listMark}>{mark}</Text>
+              <Text style={[n.listMark, { width: markWidth }]}>{mark}</Text>
               <Text style={n.listText}>
                 <RichRuns runs={item} />
               </Text>
@@ -370,11 +370,11 @@ function RichBlockView({ block }: { block: RichBlock }): React.ReactElement {
  * Anything before the first h3 belongs to the clause itself and stays unnumbered; each h3 after that
  * opens a sub-clause numbered in order.
  */
-function splitSubClauses(blocks: RichBlock[]): { heading?: string; number?: string; index: number; blocks: RichBlock[] }[] {
+function splitSubClauses(blocks: RichBlock[], opensSubClause: string): { heading?: string; number?: string; index: number; blocks: RichBlock[] }[] {
   const parts: { heading?: string; number?: string; index: number; blocks: RichBlock[] }[] = [{ index: 0, blocks: [] }];
   let sub = 0;
   for (const block of blocks) {
-    if (block.type === "h3") {
+    if (block.type === opensSubClause) {
       sub += 1;
       const raw = (block.runs ?? []).map((r) => r.text).join("").trim();
       // "4.2 Notices" keeps 4.2; only an unnumbered sub-heading is given a number by position.
@@ -413,10 +413,14 @@ function StructuredTemplate({
    * cross-reference in the body pointing somewhere else. The heading's own number wins; only a
    * heading that carries none is numbered by position, continuing from the last number seen.
    */
+  const levels = rich.filter((b) => isHeading(b.type)).map((b) => Number(b.type.slice(1)));
+  const top = levels.length > 0 ? Math.min(...levels) : 2;
+  const opensClause = "h" + String(top);
+  const opensSubClause = "h" + String(top + 1);
   const clauses: { heading?: string; number: string; blocks: RichBlock[] }[] = [];
   let last = 0;
   for (const block of rich) {
-    if (block.type === "h2") {
+    if (block.type === opensClause) {
       const raw = (block.runs ?? []).map((r) => r.text).join("").trim();
       const { number, title } = splitLeadingNumber(raw);
       const own = number ? Number.parseInt(number, 10) : NaN;
@@ -442,7 +446,7 @@ function StructuredTemplate({
             <Clause key={i} n={c.number ? `${c.number}.` : ""} {...(c.heading ? { heading: c.heading } : {})}>
               {/* An h3 inside a clause opens a numbered sub-clause, so the drafter's own structure
                   becomes 4.1, 4.2 and can be cited in a conversation about the agreement. */}
-              {splitSubClauses(c.blocks).map((part, j) =>
+              {splitSubClauses(c.blocks, opensSubClause).map((part, j) =>
                 part.heading === undefined ? (
                   part.blocks.map((b, k) => <RichBlockView key={`${j}-${k}`} block={b} />)
                 ) : (

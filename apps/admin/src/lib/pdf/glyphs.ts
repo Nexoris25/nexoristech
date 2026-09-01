@@ -8,15 +8,18 @@
  *
  * Two steps, in order, because the order is what makes the output readable rather than merely safe.
  *
- * First, fold the characters that have an obvious plain equivalent. A bullet becomes a hyphen and an
- * arrow becomes "->", which is what those characters meant; dropping them would silently delete the
- * structure of a list. This step runs whether or not the font could have drawn them, so the output is
- * consistent across fonts.
- *
- * Second, ask the font. Coverage is read from the TTF with fontkit, the same library react-pdf uses,
+ * First, ask the fonts. Coverage is read from the TTFs with fontkit, the same library react-pdf uses,
  * so this is the real answer for these files rather than a guess about which ranges a font "probably"
- * has. Anything still unsupported is dropped, because a missing glyph and a crash are not a trade:
- * one of them keeps the document.
+ * has.
+ *
+ * Second, fold the characters the fonts cannot draw but which have an obvious plain equivalent: a
+ * hollow bullet becomes a hyphen, an arrow becomes "->". That is what those characters meant, and
+ * dropping them would silently delete the structure of a list. The fold applies only where the glyph
+ * is genuinely missing — it used to run unconditionally, which rewrote perfectly setable text and
+ * turned every bullet a writer pasted into a hyphen.
+ *
+ * Anything still unsupported is dropped, because a missing glyph and a crash are not a trade: one of
+ * them keeps the document.
  *
  * Non-obvious characters are written as escapes rather than pasted in literally. This file is about
  * invisible and unusual characters, and a source file full of them is unreadable, unreviewable, and
@@ -60,8 +63,6 @@ const FOLD: [RegExp, string][] = [
   [/[✓✔]/g, "Yes"],
   [/[✗✘✕]/g, "No"],
   [/…/g, "..."],
-  // Non-breaking space, which is not the space the font has a glyph for.
-  [new RegExp("\u00a0", "g"), " "],
   [/⁄/g, "/"],
   [/[«»]/g, '"'],
   [/™/g, "(TM)"],
@@ -85,6 +86,15 @@ const INVISIBLE = new RegExp("[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff\u00
  */
 // eslint-disable-next-line no-control-regex
 const CONTROL = new RegExp("[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]", "g");
+
+/**
+ * Spaces that are not the ordinary space.
+ *
+ * Folded whatever the fonts can draw, because this is whitespace normalisation rather than a glyph
+ * fallback: text pasted from Word is full of non-breaking spaces, and a place the renderer is not
+ * allowed to break at is how a line ends up running past the margin.
+ */
+const HARD_SPACES = new RegExp("[\u00a0\u2007\u202f]", "g");
 
 let coverage: Set<number> | null = null;
 
@@ -129,11 +139,27 @@ export function resetGlyphCoverage(): void {
  * or dropped.
  */
 export function toRenderableText(text: string, fontFiles: string[]): string {
-  let out = text.normalize("NFC").replace(INVISIBLE, "").replace(CONTROL, "");
-  for (const [pattern, replacement] of FOLD) out = out.replace(pattern, replacement);
-
+  let out = text.normalize("NFC").replace(INVISIBLE, "").replace(CONTROL, "").replace(HARD_SPACES, " ");
   const supported = supportedCodePoints(fontFiles);
-  if (supported.size === 0) return out;
+
+  /*
+   * Fold only what the fonts cannot draw.
+   *
+   * This used to fold unconditionally, which quietly rewrote text the fonts were perfectly capable of
+   * setting: every bullet a writer pasted became a hyphen, and every curly quote and en dash became
+   * its typewriter equivalent, in a document whose typeface has all of them. The fold is a fallback
+   * for a missing glyph, not a house style, so a character the fonts have is left exactly as written.
+   */
+  if (supported.size === 0) {
+    for (const [pattern, replacement] of FOLD) out = out.replace(pattern, replacement);
+    return out;
+  }
+  for (const [pattern, replacement] of FOLD) {
+    out = out.replace(pattern, (match) => {
+      const cp = match.codePointAt(0);
+      return cp !== undefined && supported.has(cp) ? match : replacement;
+    });
+  }
 
   let result = "";
   for (const ch of out) {

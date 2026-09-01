@@ -160,8 +160,50 @@ function orderedMarker(index: number, level: number, type: string | null): strin
   return `${index}.`;
 }
 
-/** Bullets by depth. Only characters the embedded fonts actually draw. */
+/** Bullets by depth, for a list that expresses no preference. Only characters the fonts can draw. */
 const BULLETS = ["•", "-", "·"];
+
+/**
+ * The bullet a list asks for, when it asks for one.
+ *
+ * Editors record the choice as a list-style-type, either in the inline style or in the type
+ * attribute, and a writer who set it meant it. Poppins has no glyph for the hollow circle or the
+ * filled square, so those become the nearest mark it can actually draw rather than being requested
+ * and then silently dropped by the font fold, which would leave the item with no bullet at all.
+ */
+const LIST_STYLE_BULLET: Record<string, string> = {
+  disc: "•",
+  circle: "·",
+  square: "-",
+  none: " ",
+};
+
+function declaredBullet(el: HTMLElement): string | undefined {
+  const declared = (
+    /list-style-type\s*:\s*([a-z-]+)/i.exec(el.getAttribute("style") ?? "")?.[1] ??
+    el.getAttribute("type") ??
+    ""
+  ).toLowerCase();
+  return LIST_STYLE_BULLET[declared];
+}
+
+/**
+ * The marker a line writes for itself.
+ *
+ * Copy pasted from a document that was not written in this editor arrives as plain paragraphs with
+ * the bullets typed into the text: "• Discovery report", "- Staging environment", "(a) Notices".
+ * Those are the writer's own pattern, and they were being printed as ordinary sentences that happen
+ * to start with a dash. Recognising them turns the run back into a list, keeping the exact mark that
+ * was typed rather than substituting the house one.
+ */
+const MANUAL_MARKER = /^\s*([•‣◦▪▫⁃·*+–—-]|\(?[0-9]{1,2}[.)]|\(?[a-z][.)]|\(?[ivx]{1,4}[.)])\s+(?=\S)/i;
+
+/** What that line's marker and text are, or nothing if it carries no marker. */
+function manualMarker(text: string): { marker: string; rest: string } | undefined {
+  const match = MANUAL_MARKER.exec(text);
+  if (!match) return undefined;
+  return { marker: match[1]!.trim(), rest: text.slice(match[0].length) };
+}
 
 /**
  * Read a list, and the lists inside it, into flat items that each remember their depth.
@@ -175,23 +217,52 @@ function readList(el: HTMLElement, level: number, out: { runs: RichRun[]; level:
   const startAttr = Number.parseInt(el.getAttribute("start") ?? "", 10);
   let index = Number.isFinite(startAttr) ? startAttr : 1;
   const type = el.getAttribute("type");
+  const bullet = declaredBullet(el) ?? BULLETS[Math.min(level, BULLETS.length - 1)]!;
 
   for (const li of Array.from(el.children)) {
     if (li.tagName !== "LI") continue;
     const item = li as HTMLElement;
     const runs = runsOf(item);
     if (hasText(runs)) {
-      out.push({
-        runs,
-        level,
-        marker: ordered ? orderedMarker(index, level, type) : BULLETS[Math.min(level, BULLETS.length - 1)]!,
-      });
+      out.push({ runs, level, marker: ordered ? orderedMarker(index, level, type) : bullet });
       index += 1;
     }
     for (const child of Array.from(item.children)) {
       if (child.tagName === "UL" || child.tagName === "OL") readList(child as HTMLElement, level + 1, out);
     }
   }
+}
+
+/** Whether a marker counts up or just marks. Two lines only belong together if they agree on that. */
+const markerFamily = (marker: string): "ordered" | "bullet" =>
+  /[0-9a-z]/i.test(marker) ? "ordered" : "bullet";
+
+/** Strip a line's own marker from its runs, leaving the words. */
+function withoutMarker(line: RichRun[]): RichRun[] {
+  const [first, ...rest] = line;
+  if (!first) return line;
+  const found = manualMarker(first.text);
+  if (!found) return line;
+  return [{ ...first, text: found.rest }, ...rest].filter((r) => r.text !== "");
+}
+
+/**
+ * Build a list out of lines that were typed as one, keeping each line's own mark.
+ *
+ * A second bullet character inside the same run reads as a sub-level, which is how people write
+ * nested lists by hand: "•" for the point and "–" or "◦" for what hangs off it.
+ */
+function manualList(lines: RichRun[][], markers: string[]): RichBlock {
+  const top = markers[0]!;
+  const ordered = markerFamily(top) === "ordered";
+  return {
+    type: ordered ? "numbered" : "bulleted",
+    items: lines.map(withoutMarker),
+    // Only for bullets: a numbered list's markers differ from each other by definition, and reading
+    // that as depth indented every item after the first.
+    itemLevels: markers.map((m) => (ordered || m === top ? 0 : 1)),
+    itemMarkers: markers,
+  };
 }
 
 /* --------------------------------- outlines --------------------------------- */
@@ -256,17 +327,36 @@ function toOutline(lines: RichRun[][]): RichBlock {
  * A single `<p>` or `<pre>` carrying line breaks can be any of the three, and which one it is can
  * only be told from the text.
  */
-function blockFromLines(runs: RichRun[], preformatted: boolean): RichBlock | null {
-  if (!hasText(runs)) return null;
+function blocksFromLines(runs: RichRun[], preformatted: boolean): RichBlock[] {
+  if (!hasText(runs)) return [];
   const lines = toLines(runs);
-  if (lines.length === 1) return { type: "paragraph", runs };
-  if (looksLikeOutline(lines.map(plain))) return toOutline(lines);
+  if (lines.length === 1) return [{ type: "paragraph", runs }];
+  if (looksLikeOutline(lines.map(plain))) return [toOutline(lines)];
+  /*
+   * A list typed inside one paragraph, its bullets in the text and its items separated by breaks.
+   * Two marked lines is a list; one is a sentence that happens to open with a dash.
+   */
+  const filled = lines.filter((l) => plain(l).trim() !== "");
+  const marks = filled.map((l) => manualMarker(plain(l))?.marker);
+  /*
+   * The marked lines are usually the tail of the paragraph, introduced by an unmarked line: "The
+   * following are in scope:" and then the points. So the list is taken from the longest run of marked
+   * lines at the end, and whatever leads into it stays the sentence it is.
+   */
+  let start = filled.length;
+  while (start > 0 && marks[start - 1] !== undefined
+    && markerFamily(marks[start - 1]!) === markerFamily(marks[filled.length - 1]!)) start -= 1;
+  if (filled.length - start > 1) {
+    const list = manualList(filled.slice(start), marks.slice(start) as string[]);
+    const lead = filled.slice(0, start);
+    return lead.length > 0 ? [{ type: "paragraph", runs: flatten(lead) }, list] : [list];
+  }
   // Preformatted text keeps its lines; ordinary copy that merely wrapped is joined back up.
   if (preformatted) {
     const kept = lines.filter((l) => l.length > 0);
-    return { type: "paragraph", runs: flatten(kept), lines: kept };
+    return [{ type: "paragraph", runs: flatten(kept), lines: kept }];
   }
-  return { type: "paragraph", runs: flatten(lines), lines };
+  return [{ type: "paragraph", runs: flatten(lines), lines }];
 }
 
 /**
@@ -280,8 +370,7 @@ export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
   const blocks: RichBlock[] = [];
 
   const pushParagraph = (runs: RichRun[], preformatted = false): void => {
-    const block = blockFromLines(runs, preformatted);
-    if (block) blocks.push(block);
+    blocks.push(...blocksFromLines(runs, preformatted));
   };
 
   /** The tags that carry a block of their own and so must be read rather than flattened. */
@@ -298,17 +387,18 @@ export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
 
     switch (el.tagName) {
       case "H1":
-      case "H2": {
-        const runs = runsOf(el);
-        if (hasText(runs)) blocks.push({ type: "h2", runs: flatten(toLines(runs)) });
-        break;
-      }
+      case "H2":
       case "H3":
       case "H4":
       case "H5":
       case "H6": {
+        /*
+         * The level as written. h5 and h6 are read as h4: four levels is as many as a document of
+         * this kind can show apart, and pretending to more would mean two levels set identically.
+         */
         const runs = runsOf(el);
-        if (hasText(runs)) blocks.push({ type: "h3", runs: flatten(toLines(runs)) });
+        const level = Math.min(4, Number.parseInt(el.tagName.slice(1), 10));
+        if (hasText(runs)) blocks.push({ type: `h${level}` as RichBlock["type"], runs: flatten(toLines(runs)) });
         break;
       }
       case "UL":
@@ -383,5 +473,46 @@ export function htmlToBlocks(html: string, doc?: Document): RichBlock[] {
   };
 
   for (const node of Array.from(root.childNodes)) readNode(node);
-  return blocks;
+  return foldTypedLists(blocks);
+}
+
+/**
+ * Fold a run of paragraphs that were each typed as a bullet back into a single list.
+ *
+ * Copy pasted from Word or from an email arrives this way: one paragraph per point, the bullet
+ * character typed into the text. Left alone, each prints as a sentence beginning with a dash, flush
+ * with the margin and with no relationship to the ones around it. Folded, it is the list the writer
+ * wrote, with the marks they chose.
+ *
+ * It takes at least two to be a list. A lone paragraph opening with "1." is a sentence, and turning
+ * it into a one-item list would indent something the writer meant to sit flush.
+ */
+function foldTypedLists(blocks: RichBlock[]): RichBlock[] {
+  const out: RichBlock[] = [];
+  let run: { block: RichBlock; marker: string }[] = [];
+
+  const flush = (): void => {
+    if (run.length > 1) {
+      out.push(manualList(run.map((r) => r.block.runs ?? []), run.map((r) => r.marker)));
+    } else {
+      for (const item of run) out.push(item.block);
+    }
+    run = [];
+  };
+
+  for (const block of blocks) {
+    const marker = block.type === "paragraph" && !block.lines
+      ? manualMarker(plain(block.runs ?? []))?.marker
+      : undefined;
+    if (marker === undefined) {
+      flush();
+      out.push(block);
+      continue;
+    }
+    // A run holds together only while the marks agree on what kind of list this is.
+    if (run.length > 0 && markerFamily(run[0]!.marker) !== markerFamily(marker)) flush();
+    run.push({ block, marker });
+  }
+  flush();
+  return out;
 }

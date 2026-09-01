@@ -59,7 +59,23 @@ export interface RichRun {
   href?: string;
 }
 
-export type RichBlockType = "paragraph" | "h2" | "h3" | "bulleted" | "numbered" | "table" | "tree";
+/**
+ * Heading levels are carried as written, h1 to h4.
+ *
+ * They used to be folded into two — h1 and h2 both became "h2", everything below became "h3" — which
+ * threw away the writer's hierarchy before any layout could honour it: a document written with h1 for
+ * its parts and h2 for its sections came out with parts and sections indistinguishable. The layouts
+ * decide which level opens a section by looking at what the document actually uses, so the levels
+ * have to survive the parse.
+ */
+export type RichBlockType =
+  | "paragraph" | "h1" | "h2" | "h3" | "h4" | "bulleted" | "numbered" | "table" | "tree";
+
+/** The heading levels, in order, for a layout working out which one opens a section. */
+export const HEADING_TYPES = ["h1", "h2", "h3", "h4"] as const;
+export type HeadingType = (typeof HEADING_TYPES)[number];
+export const isHeading = (type: RichBlockType): type is HeadingType =>
+  (HEADING_TYPES as readonly string[]).includes(type);
 
 export interface RichBlock {
   type: RichBlockType;
