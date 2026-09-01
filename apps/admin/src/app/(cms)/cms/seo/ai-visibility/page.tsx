@@ -153,8 +153,10 @@ export default async function AiVisibilityPage({ searchParams }: { searchParams:
           <h2 className="text-[0.95rem] font-700 text-slate-900">How Google presented your results</h2>
           <p className="mt-1 text-[0.8rem] leading-relaxed text-slate-600">
             From Search Console&apos;s search-appearance breakdown, which is where Google reports rich
-            results and its AI surfaces. This screen used to say the data had no API and could not be
-            shown; the dimension is queryable and had simply never been asked for.
+            results. It does not report AI Overviews or AI Mode: the Search Analytics API has no
+            appearance type for either and refuses the request when asked for one. Their impressions
+            are counted inside the Search Console totals instead. If Google ever adds an AI appearance,
+            it will appear here without anything being changed.
           </p>
           {appearances === null ? (
             <EmptyPanel connected={false} what="" />
@@ -162,9 +164,9 @@ export default async function AiVisibilityPage({ searchParams }: { searchParams:
             <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-dashed border-slate-300 bg-slate-50/70 p-3.5">
               <Sparkles size={15} className="mt-0.5 shrink-0 text-slate-500" />
               <p className="text-[0.8rem] leading-relaxed text-slate-600">
-                Search Console reports no special appearance for this property over {activeRange.label.toLowerCase()},
-                AI surfaces included. Google records an appearance type only when it uses one, so this
-                stays empty until it does. Nothing is being estimated in its place.
+                Search Console reports no special appearance for this property over {activeRange.label.toLowerCase()}.
+                Google records an appearance type only when it uses one, so this stays empty until it
+                does. Nothing is being estimated in its place.
               </p>
             </div>
           ) : (

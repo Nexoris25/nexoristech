@@ -167,21 +167,36 @@ export async function fetchGscTopQueries(days: number, limit = 10): Promise<GscR
 }
 
 /**
- * How the site's results were presented in Search: rich results, and Google's AI surfaces.
+ * How the site's results were presented in Search.
  *
- * The AI Visibility screen used to state that Google exposed no API dimension for AI Overviews. That is
- * not true: `searchAppearance` is a queryable dimension of the Search Analytics API, and Google adds
- * appearance types to it as it ships them. It was never asked. Today the property returns no rows at
- * all, which is a real answer — no rich result or AI surface has been recorded — and the screen now
- * says that rather than asserting the data cannot exist.
+ * `searchAppearance` is a real, queryable dimension, and the list of values it returns is whatever
+ * Google has actually recorded for the property — so a new appearance type shows up here the day
+ * Google starts reporting it, with no change to this file.
+ *
+ * What it does not include, today, is any AI surface. Asked directly, the API rejects every name for
+ * one: filtering on AI_OVERVIEW, AI_MODE, GENERATIVE_AI or SGE returns
+ *
+ *   400 "Expression AI_OVERVIEW is not a valid 'searchAppearance' for type WEB"
+ *
+ * while PRODUCT_SNIPPETS, TRANSLATED_RESULT, REVIEW_SNIPPET, VIDEO, AMP_BLUE_LINK, MATH_SOLVERS,
+ * JOB_LISTING, RECIPE_FEATURE and SUBSCRIBED_CONTENT are all accepted. That was established against
+ * the live property rather than read off a blog post, and it is why the screens say the AI figures sit
+ * inside the totals rather than pretending to break them out. Google's own position is that
+ * impressions and clicks from AI Overviews and AI Mode are counted in the Performance report totals
+ * and are not separated; nothing in this API contradicts that.
  *
  * Returns null when Search Console is unreachable, and an empty array when it answers with nothing.
  */
-export async function fetchGscSearchAppearance(days: number): Promise<GscRow[] | null> {
-  return fetchGscByDimension("searchAppearance", days, 50);
+export async function fetchGscSearchAppearance(days: number, filter?: GscFilter): Promise<GscRow[] | null> {
+  return fetchGscByDimension("searchAppearance", days, 50, filter);
 }
 
-/** Whether an appearance type is one of Google's AI surfaces, by its own naming. */
+/**
+ * Whether an appearance type is one of Google's AI surfaces, by its own naming.
+ *
+ * Nothing matches this today; it is here so that the day Google adds an AI appearance type, whatever
+ * it calls it, the screens mark it as one instead of listing it among the rich results.
+ */
 export function isAiAppearance(key: string): boolean {
   return /\bai[_\s-]?(overview|mode)\b|generative|\bsge\b/i.test(key);
 }

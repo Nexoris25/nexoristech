@@ -7,10 +7,12 @@
  * which it is showing. CMS access only. Responsive to 360px.
  */
 import type { ReactNode } from "react";
-import { MousePointerClick, Eye, Percent, TrendingUp, Search as SearchIcon } from "lucide-react";
+import { MousePointerClick, Eye, Percent, TrendingUp, Search as SearchIcon, Sparkles, EyeOff } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
-import { fetchGscLatestDays, fetchGscByDimension } from "../../../../../lib/google/gsc.js";
+import {
+  fetchGscLatestDays, fetchGscByDimension, fetchGscSearchAppearance, isAiAppearance, appearanceLabel,
+} from "../../../../../lib/google/gsc.js";
 import { GscScopeFilter } from "../../../../../components/cms/GscScopeFilter.js";
 import { GSC_RANGES, GSC_COLORS, resolveRange } from "../../../../../lib/google/gsc-constants.js";
 import { RangeFilter } from "../../../../../components/cms/RangeFilter.js";
@@ -70,12 +72,13 @@ export default async function SearchConsolePage({ searchParams }: { searchParams
   //
   // The country list for the picker is deliberately unscoped: it has to keep offering every country the
   // property has traffic for, or selecting one would leave the picker with only that one country in it.
-  const [live, queries, devices, countries, allCountries] = await Promise.all([
+  const [live, queries, devices, countries, allCountries, appearances] = await Promise.all([
     fetchGscLatestDays(days * 2, scope),
     fetchGscByDimension("query", days, 10, scope),
     fetchGscByDimension("device", days, 5, scope),
     fetchGscByDimension("country", days, 6, scope),
     fetchGscByDimension("country", days, 25),
+    fetchGscSearchAppearance(days, scope),
   ]);
 
   let series: GscDay[] = [];
@@ -95,6 +98,19 @@ export default async function SearchConsolePage({ searchParams }: { searchParams
   const curCtr = curImpr > 0 ? (curClicks / curImpr) * 100 : 0;
   const prvCtr = prvImpr > 0 ? (prvClicks / prvImpr) * 100 : 0;
   const curPos = avg(cur, "position"), prvPos = avg(prev, "position");
+
+  /*
+   * Impressions that ended without a click.
+   *
+   * This is the closest thing Search Console will give to a figure for AI Overviews and AI Mode. Those
+   * are answered on the results page, so they show as an impression and no click, and Google counts
+   * them inside the totals above without breaking them out — there is no appearance type for either,
+   * as the API says when asked. So the number is presented as what it measurably is, every result that
+   * was seen and not clicked, rather than being labelled as something the data does not say.
+   */
+  const curZero = Math.max(0, curImpr - curClicks);
+  const prvZero = Math.max(0, prvImpr - prvClicks);
+  const zeroShare = curImpr > 0 ? (curZero / curImpr) * 100 : 0;
 
   const kpis = [
     { icon: MousePointerClick, label: "Total Clicks", value: fmt(curClicks), color: GSC_COLORS.clicks },
@@ -169,6 +185,71 @@ export default async function SearchConsolePage({ searchParams }: { searchParams
             compareLabel={activeRange.label.toLowerCase()}
           />
         </div>
+      </section>
+
+      {/* How Google presented the results, and what share of them were never clicked. */}
+      <section className="mt-4 rounded-2xl border border-slate-200 bg-white shadow-subtle">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-3.5">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-slate-500" />
+            <h2 className="text-[0.95rem] font-700 text-slate-900">Search appearance</h2>
+          </div>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.72rem] font-600 text-slate-600">
+            {appearances === null ? "Not connected" : `${appearances.length} recorded`}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-start gap-3 border-b border-slate-100 px-5 py-4">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#EEEBFC] text-[#543CDA]"><EyeOff size={17} /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[1.5rem] font-700 leading-none text-slate-900">{fmt(curZero)}</p>
+            <p className="mt-1 text-[0.78rem] text-slate-500">
+              Impressions with no click — {zeroShare.toFixed(1)}% of all impressions, against {fmt(prvZero)} in the previous {activeRange.label.toLowerCase()}.
+            </p>
+          </div>
+        </div>
+
+        {appearances && appearances.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-left">
+              <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Appearance</th><th className="px-5 py-3 text-right font-600">Impressions</th><th className="px-5 py-3 text-right font-600">Clicks</th><th className="px-5 py-3 text-right font-600">CTR</th><th className="px-5 py-3 text-right font-600">Position</th></tr></thead>
+              <tbody>
+                {appearances.map((a) => (
+                  <tr key={a.key} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50">
+                    <td className="px-5 py-3">
+                      <span className="flex items-center gap-2">
+                        <span className="text-[0.85rem] font-600 text-slate-800">{appearanceLabel(a.key)}</span>
+                        {isAiAppearance(a.key) ? (
+                          <span className="rounded-full bg-[#EEEBFC] px-2 py-0.5 text-[0.64rem] font-700 text-[#543CDA]">AI surface</span>
+                        ) : null}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right font-mono text-[0.82rem] font-600 tabular-nums" style={{ color: GSC_COLORS.impressions }}>{Math.round(a.impressions).toLocaleString("en-NG")}</td>
+                    <td className="px-5 py-3 text-right font-mono text-[0.82rem] tabular-nums text-slate-600">{Math.round(a.clicks).toLocaleString("en-NG")}</td>
+                    <td className="px-5 py-3 text-right font-mono text-[0.82rem] tabular-nums text-slate-600">{a.ctr.toFixed(2)}%</td>
+                    <td className="px-5 py-3 text-right font-mono text-[0.82rem] tabular-nums text-slate-600">{a.position.toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="px-5 py-4 text-[0.84rem] text-slate-500">
+            {appearances === null
+              ? "Connect Google to read the appearance breakdown."
+              : `Search Console records no special appearance for this property over ${activeRange.label.toLowerCase()}. It logs an appearance type only when it uses one, so this stays empty until it does.`}
+          </p>
+        )}
+
+        {/* Said plainly, because the alternative is a screen that implies a number it does not have. */}
+        <p className="border-t border-slate-100 px-5 py-3.5 text-[0.78rem] leading-relaxed text-slate-500">
+          <b className="font-600 text-slate-700">On AI Overviews and AI Mode.</b> Google counts their
+          impressions and clicks inside the totals on this screen and does not break them out: the
+          Search Analytics API has no appearance type for either, and rejects the request when asked
+          for one. The zero-click figure above is the measurable part — an AI answer is an impression
+          that ends without a click — and this table will list an AI surface by name on the day Google
+          starts reporting one. For assistant traffic that did arrive, see AI Visibility.
+        </p>
       </section>
 
       {/* Top queries */}
