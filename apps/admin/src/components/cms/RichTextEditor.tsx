@@ -52,8 +52,13 @@ export interface RichTextApi {
  * because an Insights article's images belong in the media library where they can be given alt text
  * and served at a sensible size; a proposal's diagram has nowhere else to live and travels inside the
  * document itself.
+ *
+ * `keepHeadingLevels` keeps a paste's heading levels exactly as they came. Off by default, because an
+ * article is published inside a page that already has an H1 and its headings are shifted down to sit
+ * under it. A document has no page around it: its H1 is its title and its H2s are its sections, and
+ * shifting them turned every section into a sub-heading.
  */
-export function RichTextEditor({ name, initialHtml, onChange, registerApi, allowImages = false }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void; allowImages?: boolean }): ReactNode {
+export function RichTextEditor({ name, initialHtml, onChange, registerApi, allowImages = false, keepHeadingLevels = false }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void; allowImages?: boolean; keepHeadingLevels?: boolean }): ReactNode {
   const ref = useRef<HTMLDivElement>(null);
   const cellRef = useRef<HTMLTableCellElement | null>(null);
   const [html, setHtml] = useState(initialHtml ?? "");
@@ -172,7 +177,9 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
 
     e.preventDefault();
     // Paste brings the words, not the source page's links. See NormaliseOptions.stripLinks.
-    const clean = html ? normaliseHtml(html, { stripLinks: true, stripImages: !allowImages }) : normalisePlainText(text);
+    const clean = html
+      ? normaliseHtml(html, { stripLinks: true, stripImages: !allowImages, keepHeadingLevels })
+      : normalisePlainText(text);
     if (!clean) return;
 
     // Parsed here rather than handed to execCommand('insertHTML'), which rewrites block markup and

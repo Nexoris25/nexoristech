@@ -13,7 +13,8 @@
  *     a paragraph. A pasted 11pt Calibri paragraph is a paragraph.
  *   * Headings never skip a level, and there is never more than one H1. The page title is the H1, so a
  *     pasted document's own H1 is demoted and everything under it moves with it — otherwise a single
- *     article ends up with three H1s and a gap from H2 to H4.
+ *     article ends up with three H1s and a gap from H2 to H4. Callers whose content is a document in
+ *     itself rather than a body inside a page pass `keepHeadingLevels` and are left alone.
  *   * Tables get a real header row of `<th scope="col">`, and a first column of headings becomes
  *     `<th scope="row">`. A table whose headers are only bold text is unreadable to a screen reader and
  *     invisible to a search engine.
@@ -165,11 +166,17 @@ function render(tokens: Token[]): string {
 }
 
 /**
- * Re-level headings so the document starts at H2 and never skips.
+ * Re-level headings so the content starts at H2 and never skips.
  *
- * The page's own title is the H1, so a pasted document's H1 becomes an H2 and its H2 an H3, and so on.
- * Levels are mapped by the order they appear rather than by arithmetic, so a document that jumps from
- * its top level straight to what it called H4 comes out as a clean H2 then H3.
+ * This is for content that will be published inside a page. The page's own title is the H1, so a
+ * pasted article's H1 becomes an H2 and its H2 an H3, and so on. Levels are mapped by the order they
+ * appear rather than by arithmetic, so a document that jumps from its top level straight to what it
+ * called H4 comes out as a clean H2 then H3.
+ *
+ * It is exactly wrong for a standalone document. There the pasted hierarchy is the document's own —
+ * the H1 is its title, the H2s are its sections, the H3s sit under them — and demoting all of it
+ * turned every section into a sub-heading and left the numbering with nothing to count. Those callers
+ * pass `keepHeadingLevels`.
  */
 function relevelHeadings(html: string): string {
   const found = [...html.matchAll(/<h([1-6])\b/gi)].map((m) => Number(m[1]));
@@ -307,6 +314,15 @@ export interface NormaliseOptions {
    * content.
    */
   stripImages?: boolean;
+  /**
+   * Keep the pasted heading levels exactly as they are.
+   *
+   * For content that is a document in itself rather than a body inside a page: a proposal or a scope
+   * of work, where H1 is the title and H2 is a numbered section. Without it the levels are shifted
+   * down one to sit under a page's own H1, which is right for an article and destroys the structure
+   * of a document.
+   */
+  keepHeadingLevels?: boolean;
 }
 
 export function normaliseHtml(input: string, options: NormaliseOptions = {}): string {
@@ -359,7 +375,7 @@ export function normaliseHtml(input: string, options: NormaliseOptions = {}): st
     // A <br> immediately before the end of a block is a stray line break, not a line.
     .replace(/(<br\s*\/?>\s*)+<\/(p|li|h[1-6]|td|th)>/gi, "</$2>");
 
-  html = relevelHeadings(html);
+  if (!options.keepHeadingLevels) html = relevelHeadings(html);
 
   html = html.replace(PRE_RX, (_all, i: string) => pres[Number(i)] ?? "");
   return html.trim();

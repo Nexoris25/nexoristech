@@ -77,6 +77,35 @@ describe("heading hierarchy", () => {
     const out = normaliseHtml("<h1>1</h1><h2>2</h2><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6>");
     expect(out).toBe("<h2>1</h2><h3>2</h3><h4>3</h4><h5>4</h5><h6>5</h6><h6>6</h6>");
   });
+
+  /*
+   * The demotion above is right for an article, which is published inside a page that already has an
+   * H1. It is wrong for a document that is a page in its own right: a proposal's H1 is its title and
+   * its H2s are its numbered sections, and shifting everything down one turned every section into a
+   * sub-heading and left the numbering with nothing to count.
+   */
+  describe("keepHeadingLevels, for content that is a document in itself", () => {
+    const keep = { keepHeadingLevels: true } as const;
+
+    it("leaves a pasted H1 as an H1", () => {
+      expect(normaliseHtml("<h1>Title</h1><p>Body</p>", keep)).toBe("<h1>Title</h1><p>Body</p>");
+    });
+
+    it("keeps sections at the level they were written", () => {
+      expect(normaliseHtml("<h1>Title</h1><h2>Section</h2><h3>Under it</h3>", keep))
+        .toBe("<h1>Title</h1><h2>Section</h2><h3>Under it</h3>");
+    });
+
+    it("leaves a document that starts at H2 exactly where it starts", () => {
+      expect(normaliseHtml("<h2>One</h2><h3>Under</h3><h2>Two</h2>", keep))
+        .toBe("<h2>One</h2><h3>Under</h3><h2>Two</h2>");
+    });
+
+    it("still strips presentation and dangerous markup", () => {
+      expect(normaliseHtml('<h2 style="color:red" class="x">Section</h2><script>alert(1)</script>', keep))
+        .toBe("<h2>Section</h2>");
+    });
+  });
 });
 
 describe("tables", () => {
