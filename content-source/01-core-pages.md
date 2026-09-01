@@ -456,6 +456,23 @@ business@nexoristech.com. LinkedIn: Nexoris Technologies.
 Address card: No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos [Map]
 
 Our office, if you would like to visit us: No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos.
+SECTION: office
+Heading: Where our office is.
+Body: Our office address: Nexoris Technologies Ltd, No. 5, Mojisola Dokpesi Street, Ajah,
+Lekki, Lagos, Nigeria.
+You are welcome to come to our office and meet us in person. Arrange a time with us first,
+by phone on +234 913 813 3224 or by email at hello@nexoristech.com, so that whoever you need
+to see is expecting you. We are open on weekdays during business hours, Lagos time, and we
+are happy to receive visitors at the address above.
+
+[Added after the original handoff, not part of it. The address was already on this page, in a
+single sentence inside the contact-channels block. The knowledge base packs a page into chunks
+of about 250 tokens, and that sentence landed in a chunk running from WhatsApp and email
+through "what happens after you send this" to two FAQ answers, where the word "office" appeared
+once in two hundred words. A visitor asking the assistant "where is your office" retrieved
+nothing about it, and the assistant answered with an address on a street that appears nowhere
+in anything we have written. A section of its own is a chunk of its own. The address is
+unchanged.]
 SECTION: next
 Heading: What happens after you send this.
 1. We read it properly. A real person, not an autoresponder, and you hear back within

@@ -63,12 +63,28 @@ export const contact: MarketingPage = {
       heading: "Other ways to reach us.",
       body: [
         "WhatsApp: message us directly, we reply during business hours. Phone: +234 913 813 3224. General questions: hello@nexoristech.com. New business: business@nexoristech.com. LinkedIn: Nexoris Technologies.",
-        // Labelled, not bare. The address used to sit here as a line on its own, with no word
-        // anywhere near it connecting it to an office or a visit, so a visitor asking Oge "how do I
-        // visit your office" got nothing: the words that question is made of appeared on service
-        // pages talking about back-office work, and this page ranked nowhere. The address is
-        // unchanged; only the sentence around it is new.
-        "Our office, if you would like to visit us: No. 5, Mojisola Dokpesi Street, Ajah, Lekki Lagos.",
+      ],
+    },
+    {
+      /*
+       * The office has a section of its own, and it needs one.
+       *
+       * Labelling the address inside the contact-channels block was not enough. The knowledge base
+       * packs a page into chunks of about 250 tokens, and this address landed in a chunk that ran
+       * from WhatsApp and email through "what happens after you send this" to two FAQ answers. In
+       * two hundred words about process, the word "office" appeared once, so a visitor asking "where
+       * is your office" retrieved nothing about it — and the assistant, given no address, invented
+       * one on a street that does not exist in anything we have written.
+       *
+       * A section of its own is a chunk of its own, titled and dense with the words the question is
+       * actually made of: office, address, located, visit. The address itself is unchanged.
+       */
+      kind: "rich",
+      id: "office",
+      heading: "Where our office is.",
+      body: [
+        "Our office address: Nexoris Technologies Ltd, No. 5, Mojisola Dokpesi Street, Ajah, Lekki, Lagos, Nigeria.",
+        "You are welcome to come to our office and meet us in person. Arrange a time with us first, by phone on +234 913 813 3224 or by email at hello@nexoristech.com, so that whoever you need to see is expecting you. We are open on weekdays during business hours, Lagos time, and we are happy to receive visitors at the address above.",
       ],
     },
     {

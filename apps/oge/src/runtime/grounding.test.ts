@@ -13,6 +13,7 @@ import {
   SentenceStream,
   stripDecoration,
   unsupportedFigures,
+  unsupportedAddresses,
 } from "./grounding.js";
 
 /** An extract of the maintenance page, cut before the section that lists the plan levels. */
@@ -20,6 +21,37 @@ const MAINTENANCE =
   "Round-the-clock monitoring. We watch uptime, performance, and errors continuously, and usually " +
   "know about problems before your users do. Support when something breaks. A real route to a real " +
   "person, with response times that match your plan.";
+
+/*
+ * The address this pins down is the one the assistant actually gave a visitor: asked "where is your
+ * office", against a knowledge base that holds the real address, it answered with a street in Ikeja
+ * that appears nowhere in anything we have written. A wrong price costs a conversation. A wrong
+ * address sends someone across Lagos to the wrong building.
+ */
+const CONTACT =
+  "Where our office is. Our office address: Nexoris Technologies Ltd, No. 5, Mojisola Dokpesi " +
+  "Street, Ajah, Lekki, Lagos, Nigeria. You are welcome to come to our office and meet us in person.";
+
+describe("unsupportedAddresses", () => {
+  it("catches a street the content has never mentioned", () => {
+    const answer = "Our office is located at 12, Oladipo Bateye Street, Ikeja GRA, Lagos.";
+    expect(unsupportedAddresses(answer, CONTACT)).toEqual(["12, Oladipo Bateye Street"]);
+  });
+
+  it("passes the real address, however the house number is written", () => {
+    expect(unsupportedAddresses("We are at No. 5, Mojisola Dokpesi Street, Ajah.", CONTACT)).toEqual([]);
+    expect(unsupportedAddresses("Come to 5 Mojisola Dokpesi Street, Lekki.", CONTACT)).toEqual([]);
+  });
+
+  it("says nothing about an answer that carries no address", () => {
+    expect(unsupportedAddresses("You are welcome to visit us; arrange a time first.", CONTACT)).toEqual([]);
+  });
+
+  it("does not mistake ordinary prose for an address", () => {
+    const answer = "We ran 3 discovery sessions and delivered 2 releases the following week.";
+    expect(unsupportedAddresses(answer, CONTACT)).toEqual([]);
+  });
+});
 
 describe("unsupportedFigures", () => {
   it("catches uptime targets that the retrieved context does not contain", () => {

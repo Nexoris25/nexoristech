@@ -24,6 +24,7 @@ import {
   SentenceStream,
   stripDecoration,
   unsupportedFigures,
+  unsupportedAddresses,
 } from "./grounding.js";
 import { WEBSITE_BOT_MODELS, type Env } from "../config/models.js";
 import type { Source } from "../db.js";
@@ -250,10 +251,12 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
           yield { type: "token", text };
           return;
         }
-        const invented = unsupportedFigures(text, context);
+        // Figures and addresses both: a street we have never named is as invented as a price we
+        // have never quoted, and a visitor can act on the address.
+        const invented = [...unsupportedFigures(text, context), ...unsupportedAddresses(text, context)];
         if (invented.length > 0) {
           console.warn(
-            `[oge] dropped a sentence citing figures absent from the retrieved context: ${invented.join(", ")}`,
+            `[oge] dropped a sentence citing details absent from the retrieved context: ${invented.join(", ")}`,
           );
           connect = true;
           return;

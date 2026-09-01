@@ -89,6 +89,60 @@ export function unsupportedFigures(text: string, context: string): string[] {
   return unsupported;
 }
 
+/*
+ * Street addresses, checked the same way figures are.
+ *
+ * Asked "where is your office", against a knowledge base that does hold the answer, the assistant
+ * replied "Our office is located at 12, Oladipo Bateye Street, Ikeja GRA, Lagos." No part of that
+ * address appears anywhere in our content. It is the same failure as the invented refund policy —
+ * answering from what sounds reasonable — but worse, because a plausible wrong address is one a
+ * visitor can act on, and someone will stand outside the wrong building.
+ *
+ * The figure check could not catch it: a street number is one or two digits, and small numbers are
+ * deliberately out of its scope so that "three questions" and "two weeks" are not flagged.
+ *
+ * An address is decidable on the same terms as a price. It is rare in prose, it is unmistakable when
+ * present, and if we state one it has to come from our own pages. What is compared is the street
+ * name rather than the whole string, because the same address is written many ways — "No. 5,
+ * Mojisola Dokpesi Street, Ajah" and "5 Mojisola Dokpesi Street, Lekki" are the same place — and the
+ * name is the part that cannot be got right by accident.
+ */
+const STREET = new RegExp(
+  // An optional number, then one to four capitalised words, then the kind of thoroughfare.
+  String.raw`(?:\bno\.?\s*)?\d{1,4}[,\s]+((?:[A-Z][A-Za-z'-]+\s+){1,4})` +
+    String.raw`(street|road|avenue|close|crescent|drive|lane|way|boulevard|estate|court|terrace)\b`,
+  "gi",
+);
+
+/** The distinctive part of each street address in a text: the name, lowercased and squeezed. */
+export function streetNamesIn(text: string): { written: string; name: string }[] {
+  const found = new Map<string, { written: string; name: string }>();
+  for (const match of text.matchAll(STREET)) {
+    const name = (match[1] ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+    if (name.length === 0) continue;
+    if (!found.has(name)) found.set(name, { written: match[0].trim(), name });
+  }
+  return [...found.values()];
+}
+
+/**
+ * The street addresses in `text` whose street name does not appear in `context`.
+ *
+ * Matching on the name alone is deliberate: it is what makes the check survive an address written
+ * with a different house-number style or a different suburb, while still refusing a street we have
+ * never mentioned.
+ */
+export function unsupportedAddresses(text: string, context: string): string[] {
+  const haystack = context.toLowerCase().replace(/\s+/g, " ");
+  const unsupported: string[] = [];
+  for (const address of streetNamesIn(text)) {
+    if (!haystack.includes(address.name) && !unsupported.includes(address.written)) {
+      unsupported.push(address.written);
+    }
+  }
+  return unsupported;
+}
+
 /**
  * The marker a reply ends with when the context could not answer the question.
  *
