@@ -60,6 +60,7 @@ async function loadCompany(): Promise<CompanyInfo> {
   try {
     const { rows } = await db().query<{
       legal_name: string;
+      rc_number: string | null;
       tin: string | null;
       address: string;
       email: string;
@@ -68,13 +69,14 @@ async function loadCompany(): Promise<CompanyInfo> {
       vat_rate: string;
       nrs_enabled: boolean;
     }>(
-      `SELECT legal_name, tin, address, email, phone, website, vat_rate::text, nrs_enabled
+      `SELECT legal_name, rc_number, tin, address, email, phone, website, vat_rate::text, nrs_enabled
          FROM company_settings WHERE id = true`,
     );
     const row = rows[0];
     if (!row) return fallback;
     return {
       legalName: row.legal_name,
+      rcNumber: row.rc_number,
       tin: row.tin,
       address: row.address,
       email: row.email,

@@ -177,6 +177,8 @@ export interface InvoiceInfo {
 /** Company details injected server-side from settings; the salesperson never types these. */
 export interface CompanyInfo {
   legalName: string;
+  /** The registration the company trades under, from company settings. Printed when it is set. */
+  rcNumber?: string | null;
   tin: string | null;
   address: string;
   email: string;

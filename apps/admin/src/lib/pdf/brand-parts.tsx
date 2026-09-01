@@ -50,17 +50,36 @@ const s = StyleSheet.create({
     fontFamily: FONT.bold, fontSize: 19, color: C.white, letterSpacing: 10, textAlign: "center",
   },
   coverLogo: { position: "absolute", right: mm(18), top: mm(14), height: mm(16), objectFit: "contain" },
-  /* The eyebrow sits at the top of the cover, above everything, as it does in the reference. */
+  /*
+   * The confidentiality mark below the logo: a rounded pill, filled and outlined.
+   *
+   * The reference draws it as a rounded rectangle rather than a plain one, which is why it did not
+   * show up among that page's rectangles the first time I went looking and the mark came back as bare
+   * text. Its measurements are the reference's: 52mm by 8mm, right edge on the content margin, filled
+   * #3b2ab0 with a #6450e0 hairline, the text white and centred.
+   *
+   * The height is a minimum rather than a fixed value, so an unusually long date grows the pill
+   * instead of being clipped by it.
+   */
   eyebrow: {
-    position: "absolute", right: mm(18), top: mm(34), width: COVER_W,
-    textAlign: "right", fontFamily: FONT.medium, fontSize: 7.3, color: C.coverLabel, letterSpacing: 1.2,
+    position: "absolute", right: mm(18), top: mm(32), width: mm(52), minHeight: mm(8),
+    backgroundColor: C.purpleDark, borderWidth: 0.8, borderColor: C.coverSpineRule, borderRadius: mm(4),
+    justifyContent: "center", alignItems: "center", paddingVertical: 2, paddingHorizontal: 4,
+  },
+  /* No added tracking: the reference sets this at its natural width, and spacing it out wrapped the
+     line and stretched the pill to twice its height. */
+  eyebrowText: {
+    textAlign: "center", fontFamily: FONT.medium, fontSize: 7.3, color: C.white,
   },
   preparedForLabel: { fontFamily: FONT.medium, fontSize: 9, color: C.coverLabel, letterSpacing: 0.6, marginTop: mm(9) },
   client: { fontFamily: FONT.bold, fontSize: 15, color: C.white, marginTop: mm(1.2) },
   clientLine: { fontFamily: FONT.regular, fontSize: 9, color: C.coverSubtitle, marginTop: mm(1.2), lineHeight: 1.5 },
   title: { fontFamily: FONT.bold, fontSize: 21, color: C.white, lineHeight: 1.25 },
   titleRule: { height: 2, backgroundColor: C.purple, width: mm(24), marginTop: mm(6) },
-  meta: { fontFamily: FONT.regular, fontSize: 9.2, color: C.coverSubtitle, marginTop: mm(3.6), lineHeight: 1.6 },
+  /* The dates are their own group, set apart from the client's block rather than trailing it: run
+     together at the same spacing, the date read like another line of the address. */
+  metaBlock: { marginTop: mm(7) },
+  meta: { fontFamily: FONT.regular, fontSize: 9.2, color: C.coverSubtitle, marginTop: mm(2), lineHeight: 1.6 },
   metaLabel: { fontFamily: FONT.medium, color: C.coverMeta },
   /*
    * The foot of the cover, as one block anchored to the bottom edge.
@@ -223,7 +242,9 @@ export function BrandCover({
         <Text style={s.spineWordmarkText}>NEXORIS TECHNOLOGIES</Text>
       </View>
       {logoWhite ? <Image src={logoWhite} style={s.coverLogo} /> : null}
-      <Text style={s.eyebrow}>{`CONFIDENTIAL  ·  ${proposalDate.toUpperCase()}`}</Text>
+      <View style={s.eyebrow}>
+        <Text style={s.eyebrowText}>{`CONFIDENTIAL  ·  ${proposalDate.toUpperCase()}`}</Text>
+      </View>
 
       <View style={{ position: "absolute", left: COVER_X, top: mm(70), width: COVER_W }}>
         <Text style={s.title}>{title}</Text>
@@ -233,16 +254,18 @@ export function BrandCover({
         {clientLines.map((entry) => (
           <Text key={entry} style={s.clientLine}>{entry}</Text>
         ))}
-        <Text style={s.meta}>
-          <Text style={s.metaLabel}>Proposal Date: </Text>
-          {proposalDate}
-        </Text>
-        {validity ? (
+        <View style={s.metaBlock}>
           <Text style={s.meta}>
-            <Text style={s.metaLabel}>Validity: </Text>
-            {validity}
+            <Text style={s.metaLabel}>Proposal Date: </Text>
+            {proposalDate}
           </Text>
-        ) : null}
+          {validity ? (
+            <Text style={s.meta}>
+              <Text style={s.metaLabel}>Validity: </Text>
+              {validity}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       <View style={s.foot}>

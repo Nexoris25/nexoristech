@@ -378,14 +378,23 @@ function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichB
 /**
  * The lines under PREPARED BY on the cover, from the company record rather than hardcoded.
  *
- * The legal name and the registration it trades under, which is what the reference names a party by.
- * The street address and the web address are not here: one is correspondence detail that belongs in
- * the letterhead, and the other already runs up the spine.
+ * The legal name, then how the company is registered, then how to reach it. The registration numbers
+ * share a line the way they do on the reference — "RC 8363812 | TIN 33003615-0001" — because they are
+ * one fact about the company rather than two, and a cover with a line per number reads like a form.
+ *
+ * Each is included only when the company record holds it: an empty "RC" on a document going to a
+ * client is worse than no RC at all. They are set in Settings, Company, and nothing here invents them.
+ * The web address is not repeated, since it already runs up the spine.
  */
 function preparedBy(company: CompanyInfo, address?: string): string[] {
+  const registration = [
+    ...(company.rcNumber ? [`RC ${company.rcNumber}`] : []),
+    ...(company.tin ? [`TIN ${company.tin}`] : []),
+  ].join("  |  ");
   return [
     company.legalName,
-    ...(company.tin ? [`TIN ${company.tin}`] : []),
+    ...(registration ? [registration] : []),
+    ...(company.email ? [company.email] : []),
     ...(address ? [address] : []),
   ];
 }
