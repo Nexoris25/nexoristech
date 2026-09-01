@@ -90,7 +90,7 @@ export function SiteFooter(): ReactNode {
         <div className="foot-top">
           <div className="foot-brand">
             <Link className="brand" href="/">
-              <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies" />{" "}
+              <img className="logo" src="/logo-mark-white.png" alt="" />{" "}
               <span className="wm">
                 Nexoris <span>Technologies</span>
               </span>

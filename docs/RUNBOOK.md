@@ -15,20 +15,53 @@ steps in order. Every secret lives in environment variables, never in the reposi
 
 ## 2. Environment
 
-Set these in the deploy environment (see `.env.example` for the full list). They are the
-single source of truth; nothing is hardcoded.
+Set these in the deploy environment (see `.env.example` for the full list and where each file
+goes). They are the single source of truth; nothing is hardcoded.
 
-- `SITE_URL`, `NODE_ENV=production`.
-- Databases: `DATABASE_URL_CMS`, `DATABASE_URL_OGE`, `DATABASE_URL_ADMIN`.
+This list is the set the code actually reads, checked against it rather than remembered. A
+variable not named here is not looked up by anything, and a missing one below fails quietly
+rather than loudly, which is why each says what breaks without it.
+
+**Origins.** The two most commonly missed, because nothing errors when they are absent:
+
+- `APP_URL` — this admin's own public origin, e.g. `https://admin.nexoristech.com`.
+  Invitation and password-reset links are built from it. Unset, the app falls back to the
+  request host, which is right behind a proxy that sets `x-forwarded-host` and wrong
+  everywhere else: the recipient gets a link they cannot open.
+- `WEB_ORIGIN` — the public website, e.g. `https://nexoristech.com`. Publishing in the CMS
+  calls its revalidation route. Unset, it falls back to the canonical site origin compiled
+  into `packages/seo`, so publishing appears to work and revalidates the wrong host if the
+  site is served from anywhere else.
+- `OGE_GATEWAY_URL` — where the gateway listens, e.g. `http://127.0.0.1:4000`. Loopback is
+  correct when the website and the gateway share a host, which is the intended deployment;
+  the browser never calls the gateway directly, so it needs no public port. Unset, every
+  caller falls back to `http://localhost:4000`, which is the same thing until the day the
+  gateway moves.
+
+The System tab under Settings shows all three as the running process sees them, and marks a
+loopback address in production so a development value left behind is visible.
+
+**The rest:**
+
+- `NODE_ENV=production`.
+- Databases: `DATABASE_URL_ADMIN`, `DATABASE_URL_CMS`, `DATABASE_URL_OGE`.
+- Admin auth and secrets: `ADMIN_SESSION_SECRET` (signs the session cookie),
+  `ADMIN_SETTINGS_KEY` (64 hex characters; seals the secrets held in settings — losing it
+  makes every sealed value unreadable).
+- Shared secrets, generated strong: `REVALIDATION_SECRET`, `OGE_REINGEST_SHARED_SECRET`.
 - AI providers (apps/oge only): `GEMINI_API_KEY_PROJECT_A`, `GEMINI_API_KEY_PROJECT_B`,
   `MISTRAL_API_KEY`, `GROQ_API_KEY`.
-- Meilisearch: `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY` (admin, for indexing),
-  `MEILISEARCH_SEARCH_KEY` (browser).
-- Media: `VPS_MEDIA_PATH`, `VPS_MEDIA_BASE_URL`.
-- Shared secrets (generate strong values): `REVALIDATION_SECRET`,
-  `OGE_REINGEST_SHARED_SECRET`, `CRM_INTAKE_SHARED_SECRET`.
-- Admin auth: `ADMIN_SESSION_SECRET` (and `ADMIN_JWT_SECRET`).
-- Origins: `OGE_GATEWAY_URL`, `CMS_CONTENT_API_URL`, and for apps/cms the `WEB_URL`.
+- Search: `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY`.
+- Media: `CMS_MEDIA_BASE` — where uploaded media is served from in production.
+- Google, for the SEO screens: `GSC_PROPERTY` (e.g. `sc-domain:nexoristech.com`),
+  `GA4_PROPERTY_ID` (the numeric id), and Application Default Credentials on the host. No
+  JSON key is downloaded or committed.
+- Search engines: `INDEXNOW_KEY`.
+- Gateway: `OGE_PORT`.
+- Seeding the first administrator, once: `ADMIN_SEED_EMAIL`, `ADMIN_SEED_NAME`,
+  `ADMIN_SEED_PASSWORD`.
+- e-Invoicing, only when the NRS integration is switched on: `NRS_SIAPP_ENDPOINT`,
+  `NRS_SIAPP_BUSINESS_ID`, `NRS_SIAPP_SERVICE_ID`, `NRS_SIAPP_CRYPTO_KEY`.
 
 ## 3. Build
 

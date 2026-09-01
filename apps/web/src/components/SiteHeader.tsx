@@ -59,7 +59,8 @@ export function SiteHeader(): ReactNode {
       <header>
         <div className="wrap nav">
         <Link className="brand" href="/" aria-label="Nexoris Technologies home">
-          <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies" />
+          {/* Decorative: the link around it is already labelled "Nexoris Technologies home". */}
+          <img className="logo" src="/logo-mark-white.png" alt="" />
           <span className="wm">
             Nexoris <span>Technologies</span>
           </span>
@@ -78,7 +79,7 @@ export function SiteHeader(): ReactNode {
             >
               Services <span className="cv" />
             </button>
-            <div className="flyout mega mega-services" role="menu">
+            <div className="flyout mega mega-services">
               <div className="mcol">
                 <p className="mh">Most asked for</p>
                 {servicesColumnOne.map((s) => (
@@ -125,7 +126,7 @@ export function SiteHeader(): ReactNode {
             >
               Industries <span className="cv" />
             </button>
-            <div className="flyout mega mega-industries" role="menu">
+            <div className="flyout mega mega-industries">
               {industryGroups.map((group) => (
                 <div key={group.heading} className="mcol">
                   <p className="mh">{group.heading}</p>
@@ -167,7 +168,7 @@ export function SiteHeader(): ReactNode {
             >
               Company <span className="cv" />
             </button>
-            <div className="flyout dropdown" role="menu">
+            <div className="flyout dropdown">
               {companyLinks.map((c) => (
                 <Link key={c.href} href={c.href}>
                   {c.label}

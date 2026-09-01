@@ -9,10 +9,9 @@ import { SkipLink } from "@nexoris/ui";
 import { SITE_ORIGIN } from "@nexoris/seo";
 import { SiteHeader } from "../components/SiteHeader.js";
 import { SiteFooter } from "../components/SiteFooter.js";
-import { OgeWidget } from "../components/OgeWidget.js";
+
 import { WhatsAppButton } from "../components/WhatsAppButton.js";
-import { CookieConsent } from "../components/CookieConsent.js";
-import { Analytics } from "../components/Analytics.js";
+import { DeferredChrome } from "../components/DeferredChrome.js";
 /*
  * Only the stylesheets every route genuinely uses belong here. This block once imported all 29,
  * so a service page downloaded the article, author, job, legal and case-study CSS it never renders,
@@ -72,9 +71,8 @@ export default function RootLayout({
         <main id="main-content">{children}</main>
         <SiteFooter />
         <WhatsAppButton />
-        <OgeWidget />
-        <CookieConsent />
-        <Analytics />
+        {/* Loaded after the page is interactive; see DeferredChrome. */}
+        <DeferredChrome />
       </body>
     </html>
   );

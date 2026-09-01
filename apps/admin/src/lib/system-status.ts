@@ -137,6 +137,23 @@ async function checkKnowledgeBase(): Promise<ServiceCheck> {
   }
 }
 
+/**
+ * How an origin reads on the System tab, and whether it is one that will work where this is running.
+ *
+ * A deployment that keeps a development value is the failure this catches. An admin still pointing at
+ * localhost in production emails invitation links nobody outside the server can open, and a website
+ * origin left unset means publishing never revalidates the live site. Neither announces itself: both
+ * simply do nothing, quietly, until somebody notices weeks later. So the tab says which it is.
+ */
+function describeOrigin(value: string | undefined): string {
+  if (!value) return "Not set";
+  const local = /localhost|127\.0\.0\.1|\[::1\]/i.test(value);
+  if (!local) return value;
+  // Loopback is right in development, and right in production for a service on the same host as its
+  // caller — but it is worth saying out loud rather than reading as configured.
+  return process.env.NODE_ENV === "production" ? `${value} (loopback — correct only on the same host)` : value;
+}
+
 export async function systemStatus(): Promise<{ services: ServiceCheck[]; info: SystemInfo[] }> {
   const [adminDb, contentDb, oge, queue, kb] = await Promise.all([
     checkPostgres(db, "Admin database"),
@@ -152,7 +169,9 @@ export async function systemStatus(): Promise<{ services: ServiceCheck[]; info: 
     { key: "Node", value: process.version },
     { key: "Admin database", value: adminDb.detail },
     { key: "Content database", value: contentDb.detail },
-    { key: "Website origin", value: process.env.WEB_ORIGIN ?? "not set" },
+    { key: "Website origin", value: describeOrigin(process.env.WEB_ORIGIN) },
+    { key: "This admin's origin", value: describeOrigin(process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL) },
+    { key: "Oge gateway", value: describeOrigin(process.env.OGE_GATEWAY_URL) },
     { key: "Website revalidation", value: process.env.REVALIDATION_SECRET ? "Configured" : "Not configured" },
   ];
   return { services, info };

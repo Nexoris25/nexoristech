@@ -506,3 +506,26 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .foot-brand .addr .wa-link{display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,.6)}
 .foot-brand .addr .wa-link:hover{color:#25D366}
 .foot-brand .addr .wa-link svg{width:15px;height:15px;fill:currentColor;flex:none}
+
+/*
+ * The decorative glows are turned off on small screens.
+ *
+ * Each one is a large radial gradient under a 22 to 50 pixel blur, and a blur is rasterised over the
+ * whole area it covers. On a desktop that costs nothing worth measuring. On a phone, with several of
+ * them stacked down a long page, style and layout was taking 1.7 seconds — more than every script on
+ * the page put together — and that time is the difference between a page that responds to a tap and
+ * one that does not.
+ *
+ * They are decoration and nothing else: no text sits on them, no control depends on them, and the
+ * sections they light are readable without them. The desktop keeps all of it.
+ */
+@media (max-width: 860px) {
+  .hero .glow,
+  .finder .fglow,
+  .ai-band .glow,
+  .cta .glow,
+  .mfeat::before,
+  .oge-chat-glow {
+    display: none;
+  }
+}
