@@ -15,8 +15,8 @@
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import {
-  BrandCover, BrandTable, KeyValues, Outline, RunningFurniture, SectionHeading, TableOfContents,
-  brandStyles, type RowEmphasis,
+  BrandCover, BrandTable, Callout, KeyValues, Outline, RunningFurniture, SectionHeading,
+  TableOfContents, brandStyles, type RowEmphasis,
 } from "./brand-parts.js";
 import { BULLET_INDENT, C, CONTENT_WIDTH, FONT, PAGE, TYPE, mm, sectionNumber, splitLeadingNumber } from "./brand.js";
 import { drawWidth } from "./image-size.js";
@@ -368,16 +368,12 @@ function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichB
 /**
  * The lines under PREPARED BY on the cover, from the company record rather than hardcoded.
  *
- * Only what the record actually holds. An empty line for a field nobody has filled in reads as a
- * mistake on a document going to a client, so each is included only when it has a value.
+ * The legal name and the registration it trades under, which is what the reference names a party by.
+ * The street address and the web address are not here: one is correspondence detail that belongs in
+ * the letterhead, and the other already runs up the spine.
  */
 function preparedBy(company: CompanyInfo): string[] {
-  return [
-    company.legalName,
-    ...(company.tin ? [`TIN ${company.tin}`] : []),
-    ...(company.address ? [company.address] : []),
-    ...(company.website ? [company.website] : []),
-  ];
+  return [company.legalName, ...(company.tin ? [`TIN ${company.tin}`] : [])];
 }
 
 /** Amounts as the rest of the engine writes them. */
@@ -504,7 +500,6 @@ export function BrandedTemplate({
           preparedByLines={byLines}
           proposalDate={data.date}
           {...(data.validity ? { validity: data.validity } : {})}
-          {...(data.confidentiality ? { confidentiality: data.confidentiality } : {})}
           {...(logoWhite ? { logoWhite } : {})}
         />
       </Page>
@@ -523,6 +518,15 @@ export function BrandedTemplate({
             <View style={{ marginBottom: mm(10) }} />
           </View>
         ) : null}
+
+        {/*
+          * The confidentiality notice, in the document rather than across the foot of the cover.
+          *
+          * A paragraph of terms under the front page is a legal page pretending to be a cover. Here it
+          * is what it is: the first thing the reader meets inside, set apart from the copy so it is
+          * plainly a notice and not an opening remark.
+          */}
+        {data.confidentiality ? <Callout>{data.confidentiality}</Callout> : null}
 
         {data.intro ? <Text style={s.lead}>{data.intro}</Text> : null}
         {data.meta && data.meta.length > 0 ? (

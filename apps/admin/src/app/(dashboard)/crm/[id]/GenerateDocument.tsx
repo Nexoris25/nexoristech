@@ -90,9 +90,9 @@ export function GenerateDocument({
    * The cover page's six fields.
    *
    * "Prepared for" is seeded from the deal but stays editable, because the name on a cover is the
-   * client's registered name and the CRM holds whatever the salesperson typed. The notice has a
-   * default because every document needs one and nobody should have to write it each time; it is
-   * still a field, because a document sent under an NDA says something different.
+   * client's registered name and the CRM holds whatever the salesperson typed. The confidentiality
+   * notice is not one of them: it is printed inside the document, where a paragraph of terms belongs,
+   * rather than across the foot of the front page.
    */
   const [preparedFor, setPreparedFor] = useState(defaultCompany || defaultName || "");
   const [preparedByName, setPreparedByName] = useState("");
@@ -172,7 +172,7 @@ export function GenerateDocument({
             date,
             ...(recipientName ? { recipientName } : {}),
             ...(recipientCompany ? { recipientCompany } : {}),
-            // The cover's own fields, sent only for the kinds that have a cover.
+            // The cover's fields, and the notice that opens the body, for the kinds that have a cover.
             ...(isLegal ? {} : {
               ...(preparedFor.trim() ? { preparedFor: preparedFor.trim() } : {}),
               ...(preparedByName.trim() ? { preparedBy: preparedByName.trim() } : {}),
@@ -412,15 +412,6 @@ export function GenerateDocument({
                     <span className={LABEL}>Validity</span>
                     <input value={validity} onChange={(e) => setValidity(e.target.value)} placeholder="30 days from the date above" className={FIELD} />
                   </label>
-                  <label className="flex flex-col gap-1.5 sm:col-span-2">
-                    <span className={LABEL}>Confidentiality notice</span>
-                    <textarea
-                      value={confidentiality}
-                      onChange={(e) => setConfidentiality(e.target.value)}
-                      rows={2}
-                      className={FIELD}
-                    />
-                  </label>
                 </div>
               </div>
 
@@ -429,6 +420,18 @@ export function GenerateDocument({
                 <label className="flex flex-col gap-1.5">
                   <span className={LABEL}>Project / service</span>
                   <input value={project} onChange={(e) => setProject(e.target.value)} placeholder="Service line" className={FIELD} />
+                </label>
+                <label className="flex flex-col gap-1.5 sm:col-span-2">
+                  <span className={LABEL}>Confidentiality notice</span>
+                  <textarea
+                    value={confidentiality}
+                    onChange={(e) => setConfidentiality(e.target.value)}
+                    rows={2}
+                    className={FIELD}
+                  />
+                  <span className="text-[0.72rem] text-neutral-600">
+                    Printed inside the document, above the first section — not on the cover.
+                  </span>
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className={LABEL}>Opening paragraph (optional)</span>

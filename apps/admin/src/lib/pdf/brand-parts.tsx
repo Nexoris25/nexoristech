@@ -64,19 +64,18 @@ const s = StyleSheet.create({
    * The foot of the cover, as one block anchored to the bottom edge.
    *
    * Each piece used to be positioned absolutely at its own distance from the bottom, which meant a
-   * notice of more than two lines grew upward into the party names and printed on top of them. As one
-   * column the group grows as a whole instead: a longer notice pushes the divider and the parties up,
-   * and nothing can ever overlap anything else.
+   * party name of more than one line grew upward into the rule above it. As one column the group
+   * grows as a whole instead, and nothing can overlap anything else.
    */
-  foot: { position: "absolute", left: COVER_X, bottom: mm(16), width: COVER_W },
+  /* Anchored where the reference sets its party block: the label lands at about y 695. */
+  foot: { position: "absolute", left: COVER_X, bottom: mm(36.2), width: COVER_W },
   preparedByRule: { height: 0.8, backgroundColor: C.coverDivider, marginBottom: mm(6) },
   /* The two parties side by side, as the reference sets them. */
-  parties: { flexDirection: "row", marginBottom: mm(7) },
+  parties: { flexDirection: "row" },
   party: { flex: 1, paddingRight: mm(6) },
-  preparedByLabel: { fontFamily: FONT.medium, fontSize: 8, color: C.coverLabel, letterSpacing: 0.6, marginBottom: mm(3) },
+  preparedByLabel: { fontFamily: FONT.medium, fontSize: 8, color: C.coverLabel, letterSpacing: 0.6, marginBottom: mm(1) },
   partyName: { fontFamily: FONT.bold, fontSize: 10.5, color: C.white },
   preparedByLine: { fontFamily: FONT.regular, fontSize: 8.6, color: C.coverPreparedBy, lineHeight: 1.55, marginTop: mm(1.4) },
-  notice: { fontFamily: FONT.regular, fontSize: 8.3, color: C.coverMeta, lineHeight: 1.5 },
 
   header: {
     position: "absolute", top: mm(11), left: PAGE.left, right: PAGE.right,
@@ -116,11 +115,12 @@ const s = StyleSheet.create({
   /* The reference draws this under every section heading, and under the contents title, at 1.1pt. */
   sectionRule: { height: 1.1, backgroundColor: C.purple, marginTop: 10 },
 
+  /* A tinted block across the column, padded, with no border: the reference's notice, exactly. */
   callout: {
-    flexDirection: "row", backgroundColor: C.rowTint, borderLeftWidth: 2.4, borderLeftColor: C.purple,
-    paddingVertical: 8, paddingHorizontal: 10, marginBottom: 8,
+    backgroundColor: C.rowTint,
+    paddingVertical: 10, paddingHorizontal: 10, marginTop: 4, marginBottom: 12,
   },
-  calloutText: { ...TYPE.note, flex: 1 },
+  calloutText: { ...TYPE.note, marginBottom: 0 },
 
   tableHeadRow: { flexDirection: "row", backgroundColor: C.purple },
   tableHeadCell: { ...TYPE.cellHead, paddingVertical: 6.5, paddingHorizontal: 6 },
@@ -178,30 +178,30 @@ export interface CoverProps {
   title: string;
   /** Who it is for. Set large, because it is the first thing the reader looks for. */
   preparedFor: string;
-  /** Who wrote it: the legal name on the first line, anything else beneath it. */
+  /** Who wrote it: the legal name, and the registration it trades under. */
   preparedByLines: string[];
   /** The date the document is put forward. */
   proposalDate: string;
   /** How long it stands. */
   validity?: string;
-  /** The notice at the foot, which governs how the document may be read and passed on. */
-  confidentiality?: string;
   logoWhite?: Buffer;
 }
 
 /**
  * The navy and purple cover page.
  *
- * Six things and no more: what this is, who it is for, who wrote it, when, how long it stands, and on
- * what terms it may be read. Everything else that used to sit here — a strapline, an address, a
- * service line — competed with those six and belonged inside the document anyway.
+ * What this is, who it is for, who wrote it, when, and how long it stands. Nothing else: the
+ * confidentiality notice used to sit at the foot in full, and a paragraph of terms across the bottom
+ * of a cover is a legal page pretending to be a front page. It belongs in the document, which is
+ * where the reference puts it and where it now goes.
+ *
+ * The parties are named the way the reference names them, with the standing each takes in the
+ * document underneath: the recipient as the Client, Nexoris as the Developer.
  */
 export function BrandCover({
-  title, preparedFor, preparedByLines, proposalDate, validity, confidentiality, logoWhite,
+  title, preparedFor, preparedByLines, proposalDate, validity, logoWhite,
 }: CoverProps): React.ReactElement {
   const client = preparedFor || "The client";
-  /* Blank lines are dropped: they are how a paragraph was typed, not something a cover should print. */
-  const noticeLines = (confidentiality ?? "").split(/\r\n?|\n/).map((l) => l.trim()).filter((l) => l !== "");
   return (
     <View style={{ position: "absolute", top: 0, left: 0, width: PAGE.width, height: PAGE.height, backgroundColor: C.navy }}>
       <View style={s.spine} />
@@ -236,6 +236,7 @@ export function BrandCover({
           <View style={s.party}>
             <Text style={s.preparedByLabel}>PREPARED FOR</Text>
             <Text style={s.partyName}>{client}</Text>
+            <Text style={s.preparedByLine}>(&quot;Client&quot;)</Text>
           </View>
           <View style={s.party}>
             <Text style={s.preparedByLabel}>PREPARED BY</Text>
@@ -243,13 +244,9 @@ export function BrandCover({
             {preparedByLines.slice(1).map((entry) => (
               <Text key={entry} style={s.preparedByLine}>{entry}</Text>
             ))}
+            <Text style={s.preparedByLine}>(&quot;Developer&quot;)</Text>
           </View>
         </View>
-        {/* Line by line: the notice is the one cover field somebody can press Enter in, and a
-            newline inside a single Text does not wrap, it ends the render. */}
-        {noticeLines.map((entry, i) => (
-          <Text key={i} style={s.notice}>{entry}</Text>
-        ))}
       </View>
     </View>
   );
@@ -330,11 +327,19 @@ export function Outline({
   );
 }
 
-/** A highlighted, left-bordered note. */
+/**
+ * A tinted note set apart from the copy.
+ *
+ * Rendered a line at a time, because the text can be typed into a textarea and a newline inside a
+ * single Text does not wrap — it ends the render.
+ */
 export function Callout({ children }: { children: string }): React.ReactElement {
+  const lines = children.split(/\r\n?|\n/).map((l) => l.trim()).filter((l) => l !== "");
   return (
-    <View style={s.callout} wrap={false}>
-      <Text style={s.calloutText}>{children}</Text>
+    <View style={s.callout} minPresenceAhead={mm(16)}>
+      {(lines.length > 0 ? lines : [" "]).map((entry, i) => (
+        <Text key={i} style={s.calloutText}>{entry}</Text>
+      ))}
     </View>
   );
 }
