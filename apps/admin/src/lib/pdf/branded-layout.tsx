@@ -378,9 +378,11 @@ function toSections(blocks: RichBlock[]): { sections: Section[]; preamble: RichB
 /**
  * The lines under PREPARED BY on the cover, from the company record rather than hardcoded.
  *
- * The legal name, then how the company is registered, then how to reach it. The registration numbers
- * share a line the way they do on the reference — "RC 8363812 | TIN 33003615-0001" — because they are
- * one fact about the company rather than two, and a cover with a line per number reads like a form.
+ * In the order a company is identified: the legal name, then how it is registered, then where it is,
+ * then how to reach it. The registration numbers share one bracketed line, because they are one fact
+ * about the company rather than two and a cover with a line per number reads like a form; the contact
+ * lines are labelled, because an address, an email and a number stacked unlabelled are just a block of
+ * small type.
  *
  * Each is included only when the company record holds it: an empty "RC" on a document going to a
  * client is worse than no RC at all. They are set in Settings, Company, and nothing here invents them.
@@ -393,11 +395,14 @@ function preparedBy(company: CompanyInfo, address?: string): string[] {
   ].join("  |  ");
   return [
     company.legalName,
-    ...(registration ? [registration] : []),
-    ...(company.email ? [company.email] : []),
+    ...(registration ? [`(${registration})`] : []),
     ...(address ? [address] : []),
+    ...(company.email ? [`Email: ${company.email}`] : []),
+    ...(company.phone ? [`Tel: ${company.phone}`] : []),
   ];
 }
+
+
 
 /** Amounts as the rest of the engine writes them. */
 function naira(amount: number): string {

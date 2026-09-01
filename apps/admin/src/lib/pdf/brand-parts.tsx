@@ -95,7 +95,8 @@ const s = StyleSheet.create({
   parties: { flexDirection: "row" },
   party: { flex: 1, paddingRight: mm(6) },
   preparedByLabel: { fontFamily: FONT.medium, fontSize: 8, color: C.coverLabel, letterSpacing: 0.6, marginBottom: mm(1) },
-  partyName: { fontFamily: FONT.bold, fontSize: 10.5, color: C.white },
+  /* The same size as the client's name above: the two parties to the document, set as equals. */
+  partyName: { fontFamily: FONT.bold, fontSize: 15, color: C.white },
   preparedByLine: { fontFamily: FONT.regular, fontSize: 8.6, color: C.coverPreparedBy, lineHeight: 1.55, marginTop: mm(1.4) },
 
   header: {
