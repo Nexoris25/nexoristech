@@ -65,6 +65,8 @@ const FOLD: [RegExp, string][] = [
   [/…/g, "..."],
   [/⁄/g, "/"],
   [/[«»]/g, '"'],
+  // A currency the built-in PDF fonts cannot draw at all.
+  [/₦/g, "NGN "],
   [/™/g, "(TM)"],
   [/®/g, "(R)"],
 ];
@@ -96,16 +98,26 @@ const CONTROL = new RegExp("[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]", "g"
  */
 const HARD_SPACES = new RegExp("[\u00a0\u2007\u202f]", "g");
 
-let coverage: Set<number> | null = null;
+/**
+ * Coverage per set of fonts, not one set for the whole engine.
+ *
+ * A document is only safe against the fonts it is actually set in. The proposal is set in Poppins and
+ * the agreements in Arimo, and a character Poppins has and Arimo has not — checked against the union
+ * — reaches Arimo as an unresolved run and takes the render down. Keyed on the files, so each family
+ * is measured once and the answer is the right one for the page being laid out.
+ */
+const coverageByFonts = new Map<string, Set<number>>();
 
 /**
- * The set of code points at least one embedded font can draw.
+ * The set of code points these fonts can draw.
  *
- * Built once and cached. A font that fails to open is reported and skipped rather than throwing: the
- * filter degrades to the folding rules above, which is better than refusing to render at all.
+ * A font that fails to open is reported and skipped rather than throwing: the filter degrades to the
+ * folding rules above, which is better than refusing to render at all.
  */
 function supportedCodePoints(fontFiles: string[]): Set<number> {
-  if (coverage) return coverage;
+  const key = fontFiles.join("|");
+  const cached = coverageByFonts.get(key);
+  if (cached) return cached;
   const set = new Set<number>();
   for (const file of fontFiles) {
     try {
@@ -122,13 +134,13 @@ function supportedCodePoints(fontFiles: string[]): Set<number> {
     // here looked like a working guard for one round of testing.
     console.warn("[pdf] no glyph coverage could be read; unsupported characters will not be filtered");
   }
-  coverage = set;
+  coverageByFonts.set(key, set);
   return set;
 }
 
 /** Reset the cached coverage. For the test that proves the coverage is real. */
 export function resetGlyphCoverage(): void {
-  coverage = null;
+  coverageByFonts.clear();
 }
 
 /**
@@ -140,6 +152,7 @@ export function resetGlyphCoverage(): void {
  */
 export function toRenderableText(text: string, fontFiles: string[]): string {
   let out = text.normalize("NFC").replace(INVISIBLE, "").replace(CONTROL, "").replace(HARD_SPACES, " ");
+  // Against the fonts this document is set in, which is not the same as every font the engine has.
   const supported = supportedCodePoints(fontFiles);
 
   /*

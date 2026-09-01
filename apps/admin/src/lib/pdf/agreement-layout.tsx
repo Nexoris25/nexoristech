@@ -13,7 +13,7 @@
 import React from "react";
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CompanyInfo, DocumentData } from "./types.js";
-import { C as BRAND, FONT } from "./brand.js";
+import { C as BRAND } from "./brand.js";
 
 /*
  * The branding kit's palette, used with restraint.
@@ -32,26 +32,41 @@ const C = {
   accent: BRAND.purple,
 };
 
-const M = 56; // wider gutter than the proposal: agreements are read line by line and often annotated
+const M = 72; // an inch, as the executed Master Software Development Agreement is set
 
 /*
- * Set in the brand typeface, at the leading a legal document is normally set at.
+ * Set the way the executed agreement is set: Arial, 11 point, an inch of margin, everything flush.
  *
- * This was a serif at 10.5 point on 1.8 leading, which is a page-and-a-half of air for every page of
- * terms: it pushed clauses apart, and it was a second typeface in a house that has one. Poppins at
- * 9.8 on 1.5, the same face the rest of the document family uses, is the standard setting and reads
- * as one body of work.
+ * The reference here is the Master Software Development Agreement itself, not the branding kit. A
+ * proposal is a Nexoris document and wears the house face; an agreement is an instrument the parties
+ * print, mark up and file, and it is set in the face that instrument was drafted in. Measured off it:
+ * Arial 11 on 14.6 leading, a 72 point margin, clause headings at 14 point bold, sub-clause numbers
+ * run into the line in bold, and no indentation anywhere.
  *
- * Poppins is registered as a family per weight rather than one family with weights, so bold is
- * selected by name. `fontWeight: 700` would silently resolve back to the regular cut.
+ * Arimo rather than Arial itself. Arimo is Arial's metric-compatible twin — the same widths, so the
+ * same words fall on the same lines — and it is Apache licensed, which means it can live in the
+ * repository. Arial cannot: it is licensed software. The built-in Helvetica was the obvious answer
+ * and is not usable at all here, because this renderer cannot resolve metrics for the standard PDF
+ * fonts; every attempt ends in the same crash a missing font does.
  */
+export const SANS = "Arimo";
+export const SANS_BOLD = "ArimoBold";
+export const SANS_ITALIC = "ArimoItalic";
 export const a = StyleSheet.create({
   /**
    * The top and bottom padding must sit on the Page, not on the content wrapper. A wrapper's padding
    * applies once, to the first page; every page after it would start at y=0 and run underneath the
    * fixed letterhead. This reserves the band on each page the body flows onto.
    */
-  page: { paddingTop: 74, paddingBottom: 62, fontFamily: FONT.regular, fontSize: 9.8, color: C.ink },
+  /*
+   * Leading is set once, on the Page, and nowhere else.
+   *
+   * A lineHeight on a Text is not the multiple of the font size it looks like: this renderer applies
+   * it to the font's em box, which for Arimo is about 1.6em, so 1.33 came out as 23.9 points of
+   * leading on 11 point text instead of 14.6. Measured both ways against the executed agreement, the
+   * Page-level value is the one that matches it exactly.
+   */
+  page: { paddingTop: 84, paddingBottom: 66, fontFamily: SANS, fontSize: 11, lineHeight: 1.33, color: C.ink },
 
   // Letterhead, not a cover. Rule and type only, no colour field.
   head: {
@@ -63,8 +78,8 @@ export const a = StyleSheet.create({
   headBrand: { flexDirection: "row", alignItems: "center" },
   /** 195x218 source, so 15pt wide lands at ~17pt tall: the mark's own proportions, never stretched. */
   headMark: { width: 15, height: 17, objectFit: "contain", marginRight: 7 },
-  headName: { fontFamily: FONT.bold, fontSize: 9, letterSpacing: 0.6 },
-  headMeta: { fontFamily: FONT.regular, fontSize: 7, color: C.faint, textAlign: "right", lineHeight: 1.5 },
+  headName: { fontFamily: SANS_BOLD, fontSize: 9, letterSpacing: 0.6 },
+  headMeta: { fontFamily: SANS, fontSize: 7.5, color: C.faint, textAlign: "right" },
 
   foot: {
     position: "absolute", bottom: 0, left: 0, right: 0,
@@ -72,44 +87,36 @@ export const a = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: C.line,
     flexDirection: "row", justifyContent: "space-between",
   },
-  footText: { fontFamily: FONT.regular, fontSize: 7.5, color: C.faint },
+  footText: { fontFamily: SANS, fontSize: 8, color: C.faint },
 
   body: { paddingHorizontal: M },
 
-  docType: { fontFamily: FONT.bold, fontSize: 7.5, letterSpacing: 2, color: C.faint, textAlign: "center" },
-  title: { fontFamily: FONT.bold, fontSize: 15, textAlign: "center", marginTop: 8, lineHeight: 1.3 },
+  docType: { fontFamily: SANS_BOLD, fontSize: 7.5, letterSpacing: 2, color: C.faint, textAlign: "center" },
+  title: { fontFamily: SANS_BOLD, fontSize: 15, textAlign: "center", marginTop: 8, lineHeight: 1.3 },
   titleRule: { height: 1, backgroundColor: C.rule, marginTop: 14, marginBottom: 18 },
 
   // Who is bound, stated before anything else.
   parties: { marginBottom: 18 },
-  partiesLabel: { fontFamily: FONT.bold, fontSize: 7, letterSpacing: 1.4, color: C.faint, marginBottom: 8 },
+  partiesLabel: { fontFamily: SANS_BOLD, fontSize: 7, letterSpacing: 1.4, color: C.faint, marginBottom: 8 },
   partyRow: { flexDirection: "row", marginBottom: 6 },
-  partyTag: { fontFamily: FONT.bold, width: 58, fontSize: 8.5 },
-  partyBody: { flex: 1, fontSize: 9.8, lineHeight: 1.5 },
-  dateLine: { fontSize: 9.8, marginTop: 9, lineHeight: 1.5 },
+  partyTag: { fontFamily: SANS_BOLD, width: 58, fontSize: 8.5 },
+  partyBody: { flex: 1, fontSize: 11 },
+  dateLine: { fontSize: 11, marginTop: 9 },
 
-  intro: { fontSize: 9.8, color: C.ink, lineHeight: 1.5, marginBottom: 15 },
+  intro: { fontSize: 11, color: C.ink, marginBottom: 15 },
 
   /*
-   * Numbered clauses. The number hangs in the margin so the text block stays flush.
+   * A clause is a block of text at the margin, nothing more.
    *
-   * The hanging column was 26 and 30 points wide against a 10.5 point face, which left a channel of
-   * white between every number and its clause. It is now just wide enough for the numbers actually
-   * used, which is what puts the text where the eye expects it.
+   * There is no number column and no indent. Both existed to hold numbering this template generated,
+   * and generating numbering for an instrument that carries its own was the mistake underneath them.
    */
-  clause: { flexDirection: "row", marginBottom: 10 },
-  clauseNum: { fontFamily: FONT.bold, width: 21, fontSize: 10, color: C.accent },
-  /* Sub-clauses are indented under their parent and numbered 1.1, 1.2, so they can be cited. */
-  subClause: { flexDirection: "row", marginTop: 5, marginBottom: 2 },
-  subClauseNum: { fontFamily: FONT.bold, width: 25, fontSize: 9.5, color: C.grey },
-  subClauseBody: { flex: 1 },
-  subClauseHeading: { fontFamily: FONT.bold, fontSize: 9.3, marginBottom: 3 },
-  clauseBody: { flex: 1 },
-  clauseHeading: { fontFamily: FONT.bold, fontSize: 10.5, marginBottom: 5, letterSpacing: 0.2 },
-  clauseText: { fontSize: 9.8, lineHeight: 1.5, color: C.ink },
+  clause: { marginBottom: 12 },
+  clauseHeading: { fontFamily: SANS_BOLD, fontSize: 14, marginBottom: 8 },
+  clauseText: { fontSize: 11, color: C.ink },
 
   // Signing page
-  signIntro: { fontSize: 9.8, lineHeight: 1.5, marginTop: 8, marginBottom: 22 },
+  signIntro: { fontSize: 11, marginTop: 8, marginBottom: 22 },
   signRow: { flexDirection: "row", marginTop: 6 },
   signCol: { flex: 1 },
   /** A real gutter between the two blocks, rather than padding inside each that a long name eats. */
@@ -121,12 +128,12 @@ export const a = StyleSheet.create({
    * leave the two sets of labels stepping past each other.
    */
   signParty: {
-    fontFamily: FONT.bold, fontSize: 7.5, letterSpacing: 1.2, marginBottom: 16, color: C.faint,
-    height: 22, lineHeight: 1.35,
+    fontFamily: SANS_BOLD, fontSize: 8, letterSpacing: 1.2, marginBottom: 16, color: C.faint,
+    height: 24, lineHeight: 1.35,
   },
   signField: { marginBottom: 16 },
-  signLabel: { fontFamily: FONT.medium, fontSize: 7, color: C.faint, letterSpacing: 1.1, marginBottom: 4 },
-  signValue: { fontFamily: FONT.bold, fontSize: 9.8 },
+  signLabel: { fontFamily: SANS_BOLD, fontSize: 7.5, color: C.faint, letterSpacing: 1.1, marginBottom: 4 },
+  signValue: { fontFamily: SANS_BOLD, fontSize: 11 },
   /** Height reserved either way, so inserting a signature never moves the rule or the other column. */
   signSlot: { height: 46, justifyContent: "flex-end" },
   /** Aspect and orientation preserved; nothing painted behind it. */
@@ -184,31 +191,6 @@ function Furniture({ data, company, client, mark }: { data: DocumentData; compan
  * is the worst failure available to a document somebody is going to sign. Small units that should
  * never be orphaned, a table row, a bullet, the execution block, still keep it.
  */
-export function SubClause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
-  return (
-    <View style={a.subClause}>
-      <Text style={a.subClauseNum}>{n}</Text>
-      <View style={a.subClauseBody}>
-        {heading ? <Text style={a.subClauseHeading}>{heading}</Text> : null}
-        {children}
-      </View>
-    </View>
-  );
-}
-
-export function Clause({ n, heading, children }: { n: string; heading?: string; children?: React.ReactNode }): React.ReactElement {
-  return (
-    <View style={a.clause}>
-      {/* Never an empty string: textkit has no run to measure and throws on unitsPerEm. */}
-      <Text style={a.clauseNum}>{n || " "}</Text>
-      <View style={a.clauseBody}>
-        {heading ? <Text style={a.clauseHeading}>{heading}</Text> : null}
-        {children}
-      </View>
-    </View>
-  );
-}
-
 export function AgreementSigning({
   data, company, client, stamp, signature,
 }: {

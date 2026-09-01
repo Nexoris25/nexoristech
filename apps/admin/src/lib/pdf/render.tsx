@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { renderToBuffer, Font } from "@react-pdf/renderer";
 import { NexorisDocument } from "./document.js";
 import { sanitiseForFonts } from "./glyphs.js";
-import type { DocumentData } from "./types.js";
+import { AGREEMENT_KINDS, type DocumentData } from "./types.js";
 
 // Register a real TTF so font metrics resolve in the server runtime (the bundled standard fonts
 // do not). Plus Jakarta Sans is the brand display font (PRD 14.1).
@@ -34,6 +34,22 @@ function registerFonts(): void {
   Font.register({ family: "PoppinsMedium", fonts: [{ src: join(dir, "poppins-500.ttf") }] });
   Font.register({ family: "PoppinsBold", fonts: [{ src: join(dir, "poppins-700.ttf") }] });
   Font.register({ family: "PoppinsLight", fonts: [{ src: join(dir, "poppins-300.ttf") }] });
+
+  /*
+   * Arimo, for the agreements.
+   *
+   * The executed Master Software Development Agreement is set in Arial, and Arimo is Arial's
+   * metric-compatible twin — same widths, same line breaks, and licensed under Apache 2.0 so it can
+   * live in the repository, which Arial cannot. The built-in Helvetica would have been closer still
+   * on paper and is not usable: this renderer cannot resolve metrics for the standard fonts at all,
+   * which is the reason the note at the top of this file exists.
+   *
+   * Registered per weight, like the others, because a family with weights resolves to the regular cut
+   * and bold quietly stops being bold.
+   */
+  Font.register({ family: "Arimo", fonts: [{ src: join(dir, "arimo-400.ttf") }] });
+  Font.register({ family: "ArimoBold", fonts: [{ src: join(dir, "arimo-700.ttf") }] });
+  Font.register({ family: "ArimoItalic", fonts: [{ src: join(dir, "arimo-italic.ttf") }] });
 
   /*
    * No hyphenation.
@@ -89,13 +105,23 @@ function dataUrlToBuffer(value: string | undefined): Buffer | undefined {
   }
 }
 
-/** The TTFs actually embedded, which is what decides whether a character can be drawn. */
-function embeddedFontFiles(): string[] {
+/**
+ * The TTFs a document of this kind is set in, which is what decides whether a character can be drawn.
+ *
+ * Split by kind rather than pooled. An agreement is set in Arimo and nothing else, so measuring it
+ * against the union of every font the engine has would pass a character Arimo cannot draw — and an
+ * unresolved run does not degrade, it ends the render.
+ */
+function fontFilesFor(kind: DocumentData["kind"]): string[] {
   const dir = join(process.cwd(), "public");
-  return [
-    "poppins-300.ttf", "poppins-400.ttf", "poppins-500.ttf", "poppins-700.ttf", "poppins-italic.ttf",
-    "jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf",
-  ].map((f) => join(dir, f));
+  const legal = AGREEMENT_KINDS.includes(kind) && kind !== "Scope of Work";
+  const files = legal
+    ? ["arimo-400.ttf", "arimo-700.ttf", "arimo-italic.ttf"]
+    : [
+        "poppins-300.ttf", "poppins-400.ttf", "poppins-500.ttf", "poppins-700.ttf", "poppins-italic.ttf",
+        "jakarta-400.ttf", "jakarta-700.ttf", "lora-400.ttf", "lora-700.ttf", "lora-italic.ttf",
+      ];
+  return files.map((f) => join(dir, f));
 }
 
 export async function renderDocument(input: DocumentData): Promise<Buffer> {
@@ -108,7 +134,9 @@ export async function renderDocument(input: DocumentData): Promise<Buffer> {
    * twenty pages of pasted copy. Cleaning the payload once here covers every render path at the only
    * point that all of them share.
    */
-  const data = sanitiseForFonts(input, embeddedFontFiles());
+  // Filtered against the fonts this kind is actually set in: Arimo for the agreements, the brand
+  // faces for everything else. The union of both would pass a character one of them cannot draw.
+  const data = sanitiseForFonts(input, fontFilesFor(input.kind));
   // The full-resolution marks: white for the purple cover band, purple for the plain letterheads.
   const logo = asset("logo-mark-white.png");
   const brandLogoWhite = asset("brand-logo-white.png");
