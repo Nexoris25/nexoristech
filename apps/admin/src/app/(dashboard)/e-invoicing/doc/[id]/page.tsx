@@ -18,6 +18,7 @@ import {
   PAYMENT_STYLE, BILLING_LABEL, docNumber, naira, paymentStatus, type DocType,
 } from "../../../../../lib/einvoice.js";
 import { RecordPayment } from "./RecordPayment.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,7 @@ function Row({ k, v }: { k: string; v: ReactNode }): ReactNode {
 export default async function DocDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string; sent?: string; err?: string }> }): Promise<ReactNode> {
   await requireFiscal("INVOICE_VIEW");
   const { id } = await params;
+  requireUuid(id);
   const { paid, sent, err } = await searchParams;
   const providerConfigured = fiscalAdapter().configured;
   const pool = db();

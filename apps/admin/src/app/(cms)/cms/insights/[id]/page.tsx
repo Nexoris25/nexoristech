@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { InsightEditor } from "../InsightEditor.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; title: string; short_title: string | null; slug: str
 export default async function EditInsightPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const pool = cmsDb();
   const [{ rows }, { rows: categories }, { rows: authors }, { rows: pageRows }] = await Promise.all([
     pool.query<Row>(

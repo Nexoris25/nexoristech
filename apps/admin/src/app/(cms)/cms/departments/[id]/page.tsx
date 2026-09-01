@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { DepartmentForm } from "../DepartmentForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; name: string; slug: string | null; description: stri
 export default async function EditDepartmentPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>("SELECT id, name, slug, description, display_order, active FROM cms_department WHERE id=$1", [id]);
   const d = rows[0];
   if (!d) notFound();

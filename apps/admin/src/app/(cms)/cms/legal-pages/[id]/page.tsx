@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { LegalPageForm } from "../LegalPageForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; title: string; slug: string | null; version: string 
 export default async function EditLegalPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, title, slug, version, effective_date::text, body, status, visible_in_footer, require_acceptance,
             meta_title, meta_description FROM cms_content WHERE id=$1 AND kind='legal_page'`, [id]);

@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
+import { requireUuid } from "../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,7 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
 export default async function EmployeeRecordPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCapability("hr.read");
   const { id } = await params;
+  requireUuid(id);
   const [{ rows }, { rows: guarantors }] = await Promise.all([
     db().query<Emp>(
       `SELECT e.*, d.name AS department, m.full_name AS manager

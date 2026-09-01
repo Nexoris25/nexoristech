@@ -11,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 import { RepProfileForm } from "./RepProfileForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function RepProfilePage({
 }): Promise<ReactNode> {
   await requireCapability("crm.assign");
   const { id } = await params;
+  requireUuid(id);
   const pool = db();
 
   const [{ rows }, { rows: targetRows }] = await Promise.all([

@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../../lib/cms-db.js";
 import { AuthorForm } from "../../AuthorForm.js";
+import { requireUuid } from "../../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; name: string; email: string | null; role: string; jo
 export default async function EditAuthorPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, name, email, role, job_title, department, location, years_experience, expertise, bio,
             headshot_url, headshot_alt, show_on_website, featured, active,

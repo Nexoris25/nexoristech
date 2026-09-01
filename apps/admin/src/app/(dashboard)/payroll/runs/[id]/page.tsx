@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
 import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ interface Line {
 export default async function RunDetailsPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCapability("payroll.prepare");
   const { id } = await params;
+  requireUuid(id);
   const [{ rows: runs }, { rows: lines }] = await Promise.all([
     db().query<{ period: string; run_type: string; status: string; employee_count: number; gross: string; deductions: string; net: string; employer_cost: string; created_at: string }>(
       "SELECT period, run_type, status, employee_count, gross::text, deductions::text, net::text, employer_cost::text, created_at FROM pay_run WHERE id=$1", [id]),

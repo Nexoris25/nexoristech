@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { JobForm } from "../JobForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; title: string; slug: string | null; department: stri
 export default async function EditJobPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const pool = cmsDb();
   const [{ rows }, { rows: departments }] = await Promise.all([
     pool.query<Row>(

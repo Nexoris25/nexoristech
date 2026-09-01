@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { GeneratedPageForm } from "../GeneratedPageForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; title: string; slug: string | null; service_industry
 export default async function EditGeneratedPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const pool = cmsDb();
   // Internal-link candidates: what is actually published and therefore safe to link to.
   const { rows: linkRows } = await pool.query<{ title: string; slug: string; kind: string }>(

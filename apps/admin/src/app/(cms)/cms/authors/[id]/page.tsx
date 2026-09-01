@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil, MapPin, Briefcase, Star, Eye, FileText, Clock, Tag, ExternalLink } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
 export default async function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const pool = cmsDb();
   const [{ rows: aRows }, { rows: sRows }, { rows: articles }] = await Promise.all([
     pool.query<Author>(

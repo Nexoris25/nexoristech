@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
 import { naira } from "../../../../../lib/finance.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ interface Exp {
 export default async function ExpensePage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCapability("finance.read");
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await db().query<Exp>(
     `SELECT e.seq::text, e.expense_date::text, e.vendor, e.description, c.name category, e.amount::text, e.vat::text,
             e.status, e.source, e.reference, m.name method_name

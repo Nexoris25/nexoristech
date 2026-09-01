@@ -12,6 +12,7 @@ import { db } from "../../../../../../lib/db.js";
 import { shareOrigin, inviteLink } from "../../../../../../lib/invite.js";
 import { CopyLink } from "../../../../../(dashboard)/settings/access/CopyLink.js";
 import { UserForm } from "../UserForm.js";
+import { requireUuid } from "../../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await db().query<Row>(
     `SELECT s.id, s.name, s.email, s.role, ma.role AS cms_role, s.cms_department, s.account_status, s.last_login::text, s.mfa_enabled,
             s.invite_token, (s.invite_expires IS NOT NULL AND s.invite_expires < now()) AS invite_expired

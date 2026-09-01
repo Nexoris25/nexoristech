@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Briefcase, Sparkles, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ function Gauge({ value }: { value: number }): ReactNode {
 export default async function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, title, applicant_email, applied_job, ai_fit_score, ai_confidence, verification_status,
             application_stage, body, created_at::text FROM cms_content WHERE id=$1 AND kind='application'`, [id]);

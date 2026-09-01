@@ -14,6 +14,7 @@ import { ArrowLeft, Sparkles, TrendingUp, Clock, Gauge, Layers } from "lucide-re
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { fetchGscDaily } from "../../../../../lib/google/gsc.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ interface Row { id: string; keyword: string; industry: string | null; search_vol
 export default async function ProposalReviewPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>(
     "SELECT id, keyword, industry, search_volume, difficulty, priority, status, cpc::text, rationale, confidence FROM cms_proposal WHERE id=$1", [id]);
   const p = rows[0];

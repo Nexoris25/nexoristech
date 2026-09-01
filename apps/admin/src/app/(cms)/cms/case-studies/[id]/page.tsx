@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { CaseStudyForm } from "../CaseStudyForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Row { id: string; title: string; slug: string | null; service_industry
 export default async function EditCaseStudyPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, title, slug, service_industry, excerpt, body, highlights, technologies, featured_image,
             featured_image_alt, status, featured, display_order, meta_title, meta_description,

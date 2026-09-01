@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Download } from "lucide-react";
 import { requireCapability } from "../../../../../lib/auth.js";
 import { db } from "../../../../../lib/db.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ function naira(v: string): string { return `₦${Number(v).toLocaleString("en-NG
 export default async function PayslipPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCapability("payroll.read");
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await db().query<Slip>(
     `SELECT l.employee_name, l.regime, r.period, r.disbursed_at,
             l.gross::text, l.paye::text, l.pension_employee::text, l.nhf::text, l.wht::text,

@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { TemplateForm } from "../TemplateForm.js";
+import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ interface Row { id: string; name: string; type: string; description: string | nu
 export default async function EditTemplatePage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
   const { id } = await params;
+  requireUuid(id);
   const { rows } = await cmsDb().query<Row>("SELECT id, name, type, description, sections, variables, active, in_proposals FROM cms_template WHERE id=$1", [id]);
   const t = rows[0];
   if (!t) notFound();

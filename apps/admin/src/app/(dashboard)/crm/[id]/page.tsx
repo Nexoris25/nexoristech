@@ -30,6 +30,7 @@ import { CopyEmail } from "./CopyEmail.js";
 import { StageControl } from "./StageControl.js";
 import { FollowUpPanel } from "./FollowUpPanel.js";
 import { SOURCE_LABEL } from "../../../../lib/lead-ui.js";
+import { requireUuid } from "../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,7 @@ function finderRows(finder: Record<string, unknown> | null): { label: string; va
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   const { id } = await params;
+  requireUuid(id);
   const staff = await getCurrentStaff();
   const pool = db();
 
