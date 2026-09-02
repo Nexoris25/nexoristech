@@ -48,6 +48,8 @@ export interface EinvoicePdfData {
   company: {
     legalName: string; rcNumber: string | null; tin: string | null; address: string;
     phone: string; email: string; website: string | null; paymentInstructions: string | null;
+    /** Where to send the money. Printed on every invoice: an invoice without it needs a reply. */
+    bankAccounts?: { accountName: string; accountNumber: string; bank: string }[];
   };
 }
 
@@ -148,6 +150,13 @@ const s = StyleSheet.create({
 
   payBox: { marginTop: 22, backgroundColor: TINT, borderRadius: 6, borderLeftWidth: 3, borderLeftColor: BRAND, paddingVertical: 12, paddingHorizontal: 14 },
   payText: { fontSize: 8, color: MUTE, marginTop: 3, lineHeight: 1.5 },
+  /* Account details are read off the page by somebody keying them into a banking app, so they are
+     laid out in aligned columns and set in the monospace face the rest of the figures use. */
+  bankRow: { flexDirection: "row", marginTop: 6 },
+  bankCell: { flex: 1, paddingRight: 12 },
+  bankLabel: { fontSize: 6.5, color: FAINT, letterSpacing: 0.6 },
+  bankValue: { fontSize: 9, fontWeight: 700, color: INK, marginTop: 1.5 },
+  bankName: { fontSize: 8, color: MUTE, marginTop: 1 },
 
   footer: { position: "absolute", bottom: 26, left: 44, right: 44, borderTopWidth: 1, borderTopColor: LINE, paddingTop: 8 },
   footText: { fontSize: 6.5, color: FAINT, textAlign: "center", lineHeight: 1.5 },
@@ -277,12 +286,30 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
             </View>
           </View>
 
-          {/* Payment instructions */}
-          {c.paymentInstructions || data.paymentTerms ? (
-            <View style={s.payBox}>
+          {/* Payment instructions, and where to send the money */}
+          {c.paymentInstructions || data.paymentTerms || (c.bankAccounts?.length ?? 0) > 0 ? (
+            <View style={s.payBox} wrap={false}>
               <Text style={s.label}>PAYMENT INSTRUCTIONS</Text>
               {data.paymentTerms ? <Text style={s.payText}>Terms: {data.paymentTerms}</Text> : null}
               {c.paymentInstructions ? <Text style={s.payText}>{c.paymentInstructions}</Text> : null}
+              {(c.bankAccounts ?? []).length > 0 ? (
+                <>
+                  {/* Headings once, then a row per account. Repeating them above every account made
+                      two accounts read as two separate tables. */}
+                  <View style={[s.bankRow, { marginTop: 9 }]}>
+                    <View style={s.bankCell}><Text style={s.bankLabel}>ACCOUNT NAME</Text></View>
+                    <View style={s.bankCell}><Text style={s.bankLabel}>ACCOUNT NUMBER</Text></View>
+                    <View style={s.bankCell}><Text style={s.bankLabel}>BANK</Text></View>
+                  </View>
+                  {(c.bankAccounts ?? []).map((a) => (
+                    <View style={[s.bankRow, { marginTop: 3 }]} key={`${a.bank}-${a.accountNumber}`}>
+                      <View style={s.bankCell}><Text style={s.bankName}>{a.accountName}</Text></View>
+                      <View style={s.bankCell}><Text style={s.bankValue}>{a.accountNumber}</Text></View>
+                      <View style={s.bankCell}><Text style={s.bankName}>{a.bank}</Text></View>
+                    </View>
+                  ))}
+                </>
+              ) : null}
             </View>
           ) : null}
         </View>

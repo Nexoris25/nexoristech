@@ -31,6 +31,7 @@ import { DOC_META, seriesFor, VAT_EXEMPT_REASONS } from "../../../lib/einvoice.j
 import type { DocType, VatExemptReason } from "../../../lib/einvoice.js";
 import { isPercentageProblem, percentageBilling } from "../../../lib/projects.js";
 import { nextSeriesNumber, percentAlreadyBilled } from "../../../lib/projects-server.js";
+import { businessDayDeadline } from "../../../lib/business-days.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -149,7 +150,8 @@ export async function POST(request: NextRequest): Promise<Response> {
     if (lines.length === 0) return bail("lines");
   }
 
-  const cfg = (await pool.query<{ nrs_environment: string }>("SELECT nrs_environment FROM company_settings WHERE id=true")).rows[0]!;
+  const cfg = (await pool.query<{ nrs_environment: string; default_payment_days: number }>(
+    "SELECT nrs_environment, default_payment_days FROM company_settings WHERE id=true")).rows[0]!;
 
   // The rate is resolved from the versioned rules using this document's own issue date, and the rule id
   // is stored with the document, so a total stays explainable after a rate change.
@@ -158,6 +160,22 @@ export async function POST(request: NextRequest): Promise<Response> {
   // A document that charges VAT needs a rate to charge. One that does not is priceable without one.
   if (!vatRule && chargeVat) return bail("norate");
   const t = calculateTax(lines, vatRule, whtRule, { chargeVat });
+
+  /*
+   * The due date is computed from business days, never taken from the form.
+   *
+   * A number of working days is the term that was actually agreed; a calendar date is that term
+   * already resolved, by hand, against a weekend somebody had to remember. Computing it here means
+   * every invoice resolves it the same way, and the number itself is stored so the document can
+   * explain its own due date instead of leaving a reader to reverse-engineer it.
+   */
+  const daysRaw = Number.parseInt(String(f.get("payment_days") ?? ""), 10);
+  const paymentDays =
+    Number.isFinite(daysRaw) && daysRaw >= 0 && daysRaw <= 365 ? daysRaw : cfg.default_payment_days;
+  const dueDate =
+    docType === "Invoice" && paymentDays > 0
+      ? businessDayDeadline(new Date(`${issueDate}T00:00:00Z`), paymentDays).toISOString().slice(0, 10)
+      : null;
 
   const relatedId = String(f.get("related_id") ?? "").trim() || null;
   const num = (k: string): string | null => {
@@ -183,9 +201,9 @@ export async function POST(request: NextRequest): Promise<Response> {
             issue_date, due_date, payment_terms, payment_method, subtotal, vat, total, environment, vat_rule_id,
             billing_type, project_name, project_value, milestone_name, milestone_amount,
             invoice_percentage, percentage_previously_billed, billing_period, next_billing_date, contract_reference,
-            project_id, milestone_id, client_id, fiscal_required, vat_charged, vat_exempt_reason, vat_exempt_note, series, series_no, created_by)
+            project_id, milestone_id, client_id, fiscal_required, vat_charged, vat_exempt_reason, vat_exempt_note, series, series_no, payment_days, created_by)
          VALUES ($1,$2,$3,$4,$5,$6,$7, COALESCE($8::date, current_date), $9,$10,$11,$12,$13,$14,$15,$16,
-            $17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36) RETURNING id`,
+            $17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37) RETURNING id`,
         [
           docType,
           docType === "Invoice" ? null : relatedId,
@@ -195,7 +213,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           String(f.get("customer_email") ?? "").trim() || project?.customer_email || null,
           String(f.get("customer_address") ?? "").trim() || project?.customer_address || null,
           issueDate,
-          String(f.get("due_date") ?? "") || null,
+          dueDate,
           String(f.get("payment_terms") ?? "").trim() || null,
           String(f.get("payment_method") ?? "").trim() || null,
           t.subtotal, t.vat, t.total, cfg.nrs_environment, t.vatRuleId,
@@ -220,6 +238,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           vatExemptNote,
           series,
           seriesNo,
+          docType === "Invoice" ? paymentDays : null,
           staff.id,
         ],
       )

@@ -66,8 +66,9 @@ const company = (
   await pool.query<{
     legal_name: string; rc_number: string | null; tin: string | null; address: string;
     phone: string; email: string; website: string | null; payment_instructions: string | null;
+    bank_accounts: { accountName: string; accountNumber: string; bank: string }[] | null;
   }>(
-    "SELECT legal_name, rc_number, tin, address, phone, email, website, payment_instructions FROM company_settings WHERE id=true",
+    "SELECT legal_name, rc_number, tin, address, phone, email, website, payment_instructions, bank_accounts FROM company_settings WHERE id=true",
   )
 ).rows[0]!;
 
@@ -113,6 +114,7 @@ const pdf = await renderEinvoicePdf({
   company: {
     legalName: company.legal_name, rcNumber: company.rc_number, tin: company.tin, address: company.address,
     phone: company.phone, email: company.email, website: company.website, paymentInstructions: company.payment_instructions,
+    bankAccounts: Array.isArray(company.bank_accounts) ? company.bank_accounts : [],
   },
 });
 

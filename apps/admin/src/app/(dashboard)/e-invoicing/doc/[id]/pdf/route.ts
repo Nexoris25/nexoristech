@@ -52,8 +52,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return new Response("Finalize this invoice before producing its PDF.", { status: 403 });
   }
 
-  const company = (await pool.query<{ legal_name: string; rc_number: string | null; tin: string | null; address: string; phone: string; email: string; website: string | null; payment_instructions: string | null }>(
-    "SELECT legal_name, rc_number, tin, address, phone, email, website, payment_instructions FROM company_settings WHERE id=true")).rows[0]!;
+  const company = (await pool.query<{ legal_name: string; rc_number: string | null; tin: string | null; address: string; phone: string; email: string; website: string | null; payment_instructions: string | null; bank_accounts: { accountName: string; accountNumber: string; bank: string }[] | null }>(
+    "SELECT legal_name, rc_number, tin, address, phone, email, website, payment_instructions, bank_accounts FROM company_settings WHERE id=true")).rows[0]!;
   const lines = (await pool.query<{ description: string; quantity: string; unit_price: string; line_total: string; vat_applicable: boolean }>(
     "SELECT description, quantity::text, unit_price::text, line_total::text, vat_applicable FROM einvoice_line WHERE einvoice_id=$1 ORDER BY sort", [id])).rows;
 
@@ -104,7 +104,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     lines: lines.map((l) => ({ description: l.description, quantity: Number(l.quantity), unitPrice: Number(l.unit_price), lineTotal: Number(l.line_total), vatApplicable: l.vat_applicable })),
     subtotal: Number(doc.subtotal), vat: Number(doc.vat), total, amountPaid: paid, outstanding: Math.max(0, total - paid),
     paymentTerms: doc.payment_terms,
-    company: { legalName: company.legal_name, rcNumber: company.rc_number, tin: company.tin, address: company.address, phone: company.phone, email: company.email, website: company.website, paymentInstructions: company.payment_instructions },
+    company: { legalName: company.legal_name, rcNumber: company.rc_number, tin: company.tin, address: company.address, phone: company.phone, email: company.email, website: company.website, paymentInstructions: company.payment_instructions,
+      bankAccounts: Array.isArray(company.bank_accounts) ? company.bank_accounts : [] },
   });
 
   await pool.query("INSERT INTO einvoice_delivery (einvoice_id, channel, created_by) VALUES ($1,'Download',$2)", [id, staff.id]).catch(() => undefined);

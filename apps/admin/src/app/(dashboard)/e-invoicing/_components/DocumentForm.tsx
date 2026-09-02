@@ -52,6 +52,7 @@ export function DocumentForm({
   projects = [],
   milestones = [],
   initialProjectId = "",
+  defaultPaymentDays = 14,
 }: {
   docType: DocType;
   vatRate: number;
@@ -60,6 +61,7 @@ export function DocumentForm({
   projects?: FormProject[];
   milestones?: FormMilestone[];
   initialProjectId?: string;
+  defaultPaymentDays?: number;
 }): React.ReactNode {
   const [lines, setLines] = useState<Line[]>([{ ...BLANK }]);
   const [billingType, setBillingType] = useState(initialProjectId ? "Percentage" : "OneOff");
@@ -70,7 +72,26 @@ export function DocumentForm({
   const [fiscal, setFiscal] = useState(false);
   const [vatReason, setVatReason] = useState<string>("");
   const today = new Date().toISOString().slice(0, 10);
-  const due = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+  const [paymentDays, setPaymentDays] = useState(String(defaultPaymentDays));
+  /*
+   * The due date is worked out from business days, not counted off a calendar.
+   *
+   * "Net 30" and "due on 2 October" are the same promise written two ways, and only one of them can
+   * land on a Saturday by accident. Somebody entering a date has to count weekends in their head;
+   * entering a number of working days is the term that was actually agreed. The server computes the
+   * same date the same way, so this is a preview and not the stored value.
+   */
+  const due = ((): string => {
+    const n = Number(paymentDays);
+    const d = new Date(`${today}T00:00:00`);
+    if (!Number.isFinite(n) || n <= 0) return today;
+    let added = 0;
+    while (added < n) {
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() !== 0 && d.getDay() !== 6) added += 1;
+    }
+    return d.toISOString().slice(0, 10);
+  })();
   const isNote = docType !== "Invoice";
   const meta = DOC_META[docType];
 
@@ -176,7 +197,11 @@ export function DocumentForm({
           <label className="flex flex-col gap-1.5"><span className={lbl}>Email</span><input name="customer_email" type="email" className={field} /></label>
           <label className="flex flex-col gap-1.5"><span className={lbl}>Address</span><input name="customer_address" className={field} /></label>
           <label className="flex flex-col gap-1.5"><span className={lbl}>Issue date</span><input name="issue_date" type="date" defaultValue={today} className={field} /></label>
-          <label className="flex flex-col gap-1.5"><span className={lbl}>Due date</span><input name="due_date" type="date" defaultValue={due} className={field} /></label>
+          <label className="flex flex-col gap-1.5">
+            <span className={lbl}>Payment due in (business days)</span>
+            <input name="payment_days" value={paymentDays} onChange={(e) => setPaymentDays(e.target.value)} inputMode="numeric" className={field} />
+            <span className="text-[0.74rem] text-slate-500">Due {new Date(`${due}T00:00:00`).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}. Weekends are not counted.</span>
+          </label>
           <label className="flex flex-col gap-1.5"><span className={lbl}>Payment terms</span><input name="payment_terms" placeholder="e.g. Net 30" className={field} /></label>
           <label className="flex flex-col gap-1.5"><span className={lbl}>Payment method</span><input name="payment_method" placeholder="e.g. Bank transfer" className={field} /></label>
         </div>

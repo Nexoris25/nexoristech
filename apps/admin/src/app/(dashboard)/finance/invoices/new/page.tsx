@@ -33,7 +33,7 @@ export default async function RaiseInvoicePage({
   const { project: projectParam } = await searchParams;
   const pool = db();
 
-  const [rules, projects, milestones] = await Promise.all([
+  const [rules, projects, milestones, settings] = await Promise.all([
     rulesForDate(today),
     pool.query<FormProject>(
       `SELECT p.id, p.code, p.name, c.name client_name, p.contract_value::text,
@@ -49,6 +49,9 @@ export default async function RaiseInvoicePage({
     ),
     pool.query<FormMilestone>(
       "SELECT id, label, amount::text, project_id FROM project_milestone ORDER BY sort",
+    ),
+    pool.query<{ default_payment_days: number }>(
+      "SELECT default_payment_days FROM company_settings WHERE id=true",
     ),
   ]);
 
@@ -70,6 +73,7 @@ export default async function RaiseInvoicePage({
         projects={projects.rows}
         milestones={milestones.rows}
         initialProjectId={initialProjectId}
+        defaultPaymentDays={settings.rows[0]?.default_payment_days ?? 14}
       />
     </div>
   );
