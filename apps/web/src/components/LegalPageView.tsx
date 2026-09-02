@@ -73,10 +73,6 @@ export async function LegalPageView({
                 This policy is being finalised. For any questions in the meantime, contact{" "}
                 <a href="mailto:business@nexoristech.com">business@nexoristech.com</a>.
               </p>
-              <div className="review-note">
-                This policy is a working draft prepared for review by qualified legal counsel before
-                publication. It is not legal advice.
-              </div>
             </div>
           ) : (
             <div className="legal-layout">
@@ -117,10 +113,6 @@ export async function LegalPageView({
                     <div dangerouslySetInnerHTML={{ __html: resolveDateTokens(s.body) }} />
                   </section>
                 ))}
-                <div className="review-note">
-                  This policy is a working draft prepared for review by qualified legal counsel
-                  before publication. It is not legal advice.
-                </div>
               </div>
             </div>
           )}

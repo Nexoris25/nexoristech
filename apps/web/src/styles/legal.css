@@ -29,7 +29,17 @@
   position: relative;
   z-index: 2;
   max-width: 780px;
-  margin-top: 24px;
+  margin: 24px auto 0;
+  /* The title block is centred, eyebrow included. A policy has no author and no byline to anchor a
+     left edge to, and centring it reads as the formal document it is. */
+  text-align: center;
+}
+.legal-page .legal-head p {
+  margin-left: auto;
+  margin-right: auto;
+}
+.legal-page .legal-meta {
+  justify-content: center;
 }
 .legal-page .legal-head h1 {
   font-family: "Roboto", sans-serif;
@@ -162,11 +172,6 @@
   padding: 22px 26px;
   margin-bottom: 32px;
 }
-.legal-page .legal-intro p {
-  color: var(--ink-950, #0d0a1c);
-  font-size: 1rem;
-  line-height: 1.65;
-}
 .legal-page .legal-sec {
   padding-top: 14px;
   margin-bottom: 34px;
@@ -174,7 +179,7 @@
 }
 .legal-page .legal-sec h2 {
   font-family: "Roboto", sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--ink-950, #0d0a1c);
@@ -196,24 +201,50 @@
   border-radius: 12px;
   padding: 14px 18px;
   margin-top: 16px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--ink-950, #0d0a1c);
 }
 .legal-page .legal-short b {
   font-weight: 700;
 }
+/* h3 and h4 are the only levels a policy uses below a section, and they have to be told apart from
+   each other and from bold body text, so each drops a clear step. */
 .legal-page .legal-sec h3 {
-  font-size: 1.08rem;
+  font-family: "Roboto", sans-serif;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
-  margin: 22px 0 8px;
+  line-height: 1.3;
+  margin: 26px 0 8px;
   letter-spacing: -0.01em;
 }
-.legal-page .legal-sec p {
-  color: var(--ink-2, #3a3550);
+.legal-page .legal-sec h4 {
   font-size: 1.02rem;
-  line-height: 1.72;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+  line-height: 1.4;
+  margin: 20px 0 6px;
+}
+/*
+ * One type scale for the whole document.
+ *
+ * Body copy was set in four different sizes and four different line heights depending on which
+ * block it happened to sit in - 1.02rem/1.72 in a section, 1rem/1.65 in the intro, 0.95rem/1.6 in a
+ * summary - and in two different colours, so the same sentence changed weight and shade depending
+ * on where it appeared. A policy is one document and reads as one. Everything below is 1rem on a
+ * 1.65 line, in the same ink, and the only things that vary are the headings.
+ */
+.legal-page .legal-sec p,
+.legal-page .legal-intro p,
+.legal-page .legal-preamble p,
+.legal-page .legal-interim,
+.legal-page .legal-sec li,
+.legal-page .legal-short {
+  color: var(--ink-950, #0d0a1c);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.legal-page .legal-sec p,
+.legal-page .legal-preamble p + p,
+.legal-page .legal-intro p + p {
   margin-top: 14px;
 }
 .legal-page .legal-sec p:first-of-type {
@@ -229,22 +260,41 @@
   padding-left: 0;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 8px;
 }
 .legal-page .legal-sec ul li {
   position: relative;
-  padding-left: 26px;
-  color: var(--ink-2, #3a3550);
-  font-size: 1.02rem;
-  line-height: 1.6;
+  padding-left: 24px;
+}
+/*
+ * The marker sat above the words it belonged to.
+ *
+ * A CMS list item arrives with its text inside a <p>, and that paragraph brought the section's own
+ * 14px top margin with it. The text moved down; the square, positioned against the list item rather
+ * than the text, stayed where it was. The gap grew with every item.
+ *
+ * Two fixes, both needed: a block inside a list item carries no margin of its own, and the marker is
+ * positioned from the same line box the first line of text occupies - half a line height down, less
+ * half the marker - so it centres on that line at any font size.
+ */
+.legal-page .legal-sec li > p,
+.legal-page .legal-sec li > p:first-of-type,
+.legal-page .legal-sec li > ul,
+.legal-page .legal-sec li > ol {
+  /* :first-of-type on the section rule carries more specificity than a plain child selector, so the
+     16px it sets survived and was exactly the distance the marker sat above its own text. */
+  margin-top: 0;
+}
+.legal-page .legal-sec li > p + p {
+  margin-top: 10px;
 }
 .legal-page .legal-sec ul li::before {
   content: "";
   position: absolute;
   left: 4px;
-  top: 0.6em;
-  width: 8px;
-  height: 8px;
+  top: calc(0.825em - 4px);
+  width: 7px;
+  height: 7px;
   border-radius: 2px;
   background: var(--purple-500, #6a55f2);
 }
@@ -258,35 +308,7 @@
   padding-left: 22px;
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  color: var(--ink-2, #3a3550);
-  font-size: 1.02rem;
-  line-height: 1.6;
-}
-.legal-page .review-note {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  color: var(--ink-3, #6a6580);
-  display: flex;
-  align-items: center;
   gap: 8px;
-  margin-top: 8px;
-  border-top: 1px solid var(--line, #e9e7f0);
-  padding-top: 22px;
-  line-height: 1.5;
-}
-.legal-page .review-note::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1.5px solid var(--purple-500, #6a55f2);
-  flex: none;
-}
-.legal-page .legal-interim {
-  color: var(--ink-2, #3a3550);
-  font-size: 1.02rem;
-  line-height: 1.72;
 }
 
 @media (max-width: 1024px) {
