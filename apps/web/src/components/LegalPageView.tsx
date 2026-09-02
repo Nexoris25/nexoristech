@@ -102,9 +102,13 @@ export async function LegalPageView({
                 ))}
                 {anchors.map((s, i) => (
                   <section className="legal-sec" id={s.id} key={s.id}>
-                    <h2>
-                      <span className="sn">{String(i + 1).padStart(2, "0")}</span> {s.heading}
-                    </h2>
+                    {/* The heading as written. It used to be prefixed with a generated 01, 02, ...
+                        which numbered every section whether or not the document numbered itself -
+                        so a policy whose author had already numbered their clauses carried two
+                        numbering schemes at once. The contents list still numbers its entries,
+                        which is where a number helps: it tells you how far down the page you are.
+                        In the document, the only number shown is one somebody wrote. */}
+                    <h2>{s.heading}</h2>
                     {s.plainSummary ? (
                       <div className="legal-short">
                         <b>In short:</b> {s.plainSummary}

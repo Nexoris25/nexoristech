@@ -183,17 +183,7 @@
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--ink-950, #0d0a1c);
-  line-height: 1.2;
-  display: flex;
-  gap: 13px;
-  align-items: baseline;
-}
-.legal-page .legal-sec h2 .sn {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.9rem;
-  color: var(--purple-500, #6a55f2);
-  font-weight: 700;
-  flex: none;
+  line-height: 1.25;
 }
 .legal-page .legal-short {
   background: var(--purple-100, #eeebfc);
