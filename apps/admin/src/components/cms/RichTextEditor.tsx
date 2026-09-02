@@ -13,7 +13,7 @@ import type { ClipboardEvent, ReactNode } from "react";
 import {
   Bold, Italic, Underline, List, ListOrdered, Quote, Indent, Outdent, Link2,
   Image as ImageIcon, Table as TableIcon, Eraser, AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Rows3, Columns3, Trash2, PanelTop, PanelLeft, MoreHorizontal,
+  Rows3, Columns3, Trash2, PanelTop, PanelLeft, MoreHorizontal, Loader2,
 } from "lucide-react";
 import { normaliseHtml, normalisePlainText } from "../../lib/normalise-html.js";
 import { applyInlineLink } from "../../lib/inline-links.js";
@@ -58,11 +58,12 @@ export interface RichTextApi {
  * under it. A document has no page around it: its H1 is its title and its H2s are its sections, and
  * shifting them turned every section into a sub-heading.
  */
-export function RichTextEditor({ name, initialHtml, onChange, registerApi, allowImages = false, keepHeadingLevels = false }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void; allowImages?: boolean; keepHeadingLevels?: boolean }): ReactNode {
+export function RichTextEditor({ name, initialHtml, onChange, registerApi, allowImages = false, uploadImages = false, keepHeadingLevels = false }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void; allowImages?: boolean; uploadImages?: boolean; keepHeadingLevels?: boolean }): ReactNode {
   const ref = useRef<HTMLDivElement>(null);
   const cellRef = useRef<HTMLTableCellElement | null>(null);
   const [html, setHtml] = useState(initialHtml ?? "");
   const [inTable, setInTable] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   // The block tag under the caret, so the style dropdown always shows what you are actually editing.
   const [blockTag, setBlockTag] = useState("P");
@@ -203,33 +204,80 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
    * lives at a URL is one the server would have to go and fetch, from wherever the address points.
    * Reading the file here means the picture travels with the document and nothing is fetched at all.
    */
+  /*
+   * A picture in the body, uploaded the same way every other image on the platform is.
+   *
+   * This used to read the file into a data: URL and paste the whole thing into the document. That
+   * is why images could not be used: the article body is stored in a database column and rendered
+   * into a page, and a single photograph carried inline is a megabyte of base64 in both. It also
+   * meant nothing was converted, nothing was resized, and the alt text was the filename.
+   *
+   * It now posts to the same endpoint the cover-image field uses, which converts to WebP with
+   * sharp, caps the width, records the file in the media library and asks Oge for alt text. What
+   * lands in the document is a URL and a described image.
+   *
+   * `allowImages` still gates it, because an agreement PDF genuinely does want the picture carried
+   * inside the document rather than fetched from a URL the recipient may not be able to reach.
+   */
   const insertImage = (): void => {
-    if (!allowImages) { const url = window.prompt("Image URL", "https://"); if (url) { cmd("insertImage", url); afterEdit(); } return; }
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = "image/png,image/jpeg,image/gif,image/webp";
+    input.accept = "image/png,image/jpeg,image/gif,image/webp,image/avif";
     input.onchange = (): void => {
       const file = input.files?.[0];
       if (!file) return;
+      if (uploadImages) {
+        void uploadAndInsert(file);
+        return;
+      }
+      // Carried inside the document: the PDF path, where there is no server to fetch a URL from.
       if (file.size > 3_000_000) { window.alert("That image is larger than 3 MB. Export it smaller and try again."); return; }
       const reader = new FileReader();
       reader.onload = (): void => {
         const src = typeof reader.result === "string" ? reader.result : "";
         if (!src.startsWith("data:image/")) return;
-        const figure = document.createElement("figure");
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = file.name.replace(/\.[a-z0-9]+$/i, "");
-        const caption = document.createElement("figcaption");
-        caption.textContent = "Caption";
-        figure.append(img, caption);
-        const after = document.createElement("p");
-        after.appendChild(document.createElement("br"));
-        insertAtCaret(figure, after);
+        insertFigure(src, file.name.replace(/\.[a-z0-9]+$/i, ""));
       };
       reader.readAsDataURL(file);
     };
     input.click();
+  };
+
+  /** Put the picture in the document, with its alt text and a caption slot. */
+  const insertFigure = (src: string, alt: string): void => {
+    const figure = document.createElement("figure");
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = alt;
+    const caption = document.createElement("figcaption");
+    caption.textContent = "Caption";
+    figure.append(img, caption);
+    const after = document.createElement("p");
+    after.appendChild(document.createElement("br"));
+    insertAtCaret(figure, after);
+  };
+
+  const uploadAndInsert = async (file: File): Promise<void> => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "Article images");
+      const res = await fetch("/api/cms/upload", { method: "POST", body: fd });
+      if (!res.ok) {
+        const problem = (await res.json().catch(() => null)) as { error?: string } | null;
+        window.alert(problem?.error ? `That image could not be uploaded: ${problem.error}.` : "That image could not be uploaded.");
+        return;
+      }
+      const done = (await res.json()) as { url: string; altText?: string };
+      // The alt text comes back written by Oge and stays editable: it is on the image in the
+      // document, so selecting the picture and retyping it is the edit.
+      insertFigure(done.url, done.altText ?? "");
+    } catch {
+      window.alert("That image could not be uploaded. Check your connection and try again.");
+    } finally {
+      setUploading(false);
+    }
   };
   const insertSymbol = (g: string): void => { insertAtCaret(document.createTextNode(g)); };
 
@@ -309,7 +357,11 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     { title: "Justify", icon: AlignJustify, onClick: () => align("justifyFull") },
     { title: "Insert link", icon: Link2, onClick: insertLink },
     { title: "Quote", icon: Quote, onClick: () => setBlock("BLOCKQUOTE") },
-    { title: "Insert image", icon: ImageIcon, onClick: insertImage },
+    {
+      title: uploading ? "Uploading image…" : "Insert image",
+      icon: uploading ? Loader2 : ImageIcon,
+      onClick: () => { if (!uploading) insertImage(); },
+    },
   ];
   const secondary: { title: string; icon: typeof Quote; onClick: () => void }[] = [
     { title: "Insert table", icon: TableIcon, onClick: insertTable },

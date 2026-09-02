@@ -128,3 +128,31 @@ describe("applyInlineLink", () => {
     expect(r.html).toBe('<ul><li>Ask about <a href="/cloud">cloud services</a> today.</li></ul>');
   });
 });
+
+describe("internal link suggestions", () => {
+  it("suggests a phrase that is actually in the article", async () => {
+    const { editorialFallback } = await import("./oge-content.js");
+    const body =
+      "<p>Most teams come to us for custom software development after a spreadsheet stops coping.</p>" +
+      "<p>We also work on healthcare technology for clinics in Lagos.</p>";
+    const links = editorialFallback({ kind: "internal-links", title: "What software costs", body }) as
+      { anchor: string; target: string }[];
+    // Every suggestion has to be placeable, which means its anchor has to exist in the body.
+    const placeable = links.filter((l) => body.toLowerCase().includes(l.anchor.toLowerCase()));
+    expect(placeable.length).toBeGreaterThan(0);
+  });
+
+  it("targets a path, never the production origin", async () => {
+    const { editorialFallback } = await import("./oge-content.js");
+    const links = editorialFallback({
+      kind: "internal-links",
+      title: "Custom software",
+      body: "<p>We build custom software for logistics teams.</p>",
+    }) as { anchor: string; target: string }[];
+    expect(links.length).toBeGreaterThan(0);
+    for (const l of links) {
+      expect(l.target.startsWith("/")).toBe(true);
+      expect(l.target).not.toContain("nexoristech.com");
+    }
+  });
+});

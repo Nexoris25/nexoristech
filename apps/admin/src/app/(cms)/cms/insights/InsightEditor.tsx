@@ -164,7 +164,7 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-subtle sm:p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="text-[0.95rem] font-700 text-slate-900">Content</h2><span className="text-[0.76rem] text-slate-500">{words} words · {readTime} min read</span></div>
-            <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} {...(initial?.body ? { initialHtml: initial.body } : {})} />
+            <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} allowImages uploadImages {...(initial?.body ? { initialHtml: initial.body } : {})} />
             <label className="mt-4 flex flex-col gap-1.5">
               <span className="flex items-center justify-between"><span className={label}>Excerpt</span><span className="text-[0.72rem] text-slate-500">{excerpt.length}/200</span></span>
               <textarea name="excerpt" value={excerpt} maxLength={200} onChange={(e) => setExcerpt(e.target.value)} rows={2} placeholder="A short summary used in cards and search results..." className={field} />

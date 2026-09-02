@@ -77,7 +77,7 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
             <h2 className="mb-3 text-[0.95rem] font-700 text-slate-900">Project Overview</h2>
-            <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} {...(initial?.body ? { initialHtml: initial.body } : {})} />
+            <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} allowImages uploadImages {...(initial?.body ? { initialHtml: initial.body } : {})} />
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">

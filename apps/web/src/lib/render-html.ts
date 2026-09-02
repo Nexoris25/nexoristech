@@ -43,6 +43,13 @@ const VOID = new Set(["br", "img", "hr"]);
 const slugify = (s: string): string =>
   s.toLowerCase().trim().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
+/** Same-site absolute URLs become paths; everything else is left exactly as written. */
+function internalise(name: string, value: string): string {
+  if (name !== "href") return value;
+  const m = /^https?:\/\/(?:www\.)?nexoristech\.com(\/[^"']*)?$/i.exec(value.trim());
+  return m ? (m[1] ?? "/") : value;
+}
+
 function cleanAttributes(tag: string, raw: string): string {
   const keep = KEEP[tag];
   if (!keep) return "";
@@ -53,7 +60,15 @@ function cleanAttributes(tag: string, raw: string): string {
     const value = (m[3] ?? m[4] ?? m[5] ?? "").trim();
     // A javascript: or data: URL is a script wearing a link's clothes.
     if ((name === "href" || name === "src") && /^\s*(javascript|vbscript|data):/i.test(value)) continue;
-    out.push(`${name}="${value.replace(/"/g, "&quot;")}"`);
+    /*
+     * A link to our own site, written absolutely, is reduced to its path.
+     *
+     * Editor tools have written internal links as https://nexoristech.com/... . On this site that
+     * is the same page, but the browser treats it as leaving: a full navigation instead of a
+     * client-side one, and from any environment that is not production it goes somewhere else
+     * entirely. The path is what an internal link means.
+     */
+    out.push(`${name}="${internalise(name, value).replace(/"/g, "&quot;")}"`);
   }
   // A link opening a new tab without rel hands the destination a handle on this page.
   if (tag === "a" && out.some((a) => a.startsWith('target="_blank"')) && !out.some((a) => a.startsWith("rel="))) {

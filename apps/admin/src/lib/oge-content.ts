@@ -6,7 +6,7 @@
  */
 import { deriveMetaTitle, fitMetaDescription } from "@nexoris/seo";
 import { cmsDb } from "./cms-db.js";
-import { SITE_ORIGIN, CORE_PAGES, SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
+import { CORE_PAGES, SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
 
 const GATEWAY = process.env.OGE_GATEWAY_URL ?? "http://localhost:4000";
 
@@ -17,11 +17,62 @@ function titleFromPath(path: string): string {
   return seg.split("-").map((w) => (w.length <= 3 && w === w.toLowerCase() && /^(ai|seo|geo|hr)$/.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1))).join(" ");
 }
 /** The real internal-link candidates: the marketing site's core, service, and industry pages. */
+/*
+ * Candidate pages to link to, as site-relative paths.
+ *
+ * These used to be absolute, built onto the production origin. A link inside our own article to
+ * https://nexoristech.com/... is a link off the current site: from staging or a local run it leaves
+ * the environment you are in, and even in production it costs a full navigation instead of a
+ * client-side one. An internal link is a path.
+ */
 function siteLinkCandidates(): { title: string; url: string }[] {
-  return [...CORE_PAGES, ...SERVICE_PAGES, ...INDUSTRY_PAGES].map((p) => ({ title: titleFromPath(p), url: `${SITE_ORIGIN}${p}` }));
+  return [...CORE_PAGES, ...SERVICE_PAGES, ...INDUSTRY_PAGES].map((p) => ({ title: titleFromPath(p), url: p }));
 }
-/** A natural anchor phrase for a page name (industries read better as "healthcare technology"). */
-function anchorFor(title: string): string {
+
+/** A path, whatever form the candidate arrived in. Absolute same-site URLs are reduced to their path. */
+function toPath(url: string): string {
+  if (url.startsWith("/")) return url;
+  try {
+    return new URL(url).pathname || "/";
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Words too common to make a link out of on their own.
+ *
+ * "Services" appears in half the sentences on a page about services, and linking the first one is
+ * how an article ends up with a link on a word that tells the reader nothing about where it goes.
+ */
+const WEAK_ANCHOR = new Set([
+  "services", "service", "solutions", "solution", "technology", "technologies", "company",
+  "business", "businesses", "software", "systems", "about", "contact", "insights", "work",
+]);
+
+/**
+ * An anchor phrase that is actually in the article.
+ *
+ * The suggestion used to be the destination page's own title, which is almost never a phrase the
+ * writer used: an article about pricing does not contain the words "Case Studies". The Place button
+ * checks the phrase against the body before it will do anything, so every suggestion arrived
+ * disabled and nothing could be linked at all.
+ *
+ * The longest run of words from the page title that appears in the body wins, because a longer
+ * phrase is a more specific and more useful link than a single word. Single words are taken only
+ * when they carry meaning on their own.
+ */
+function anchorFor(title: string, body: string): string {
+  const hay = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").toLowerCase();
+  const words = title.split(/\s+/).filter(Boolean);
+  for (let size = words.length; size >= 1; size--) {
+    for (let start = 0; start + size <= words.length; start++) {
+      const phrase = words.slice(start, start + size).join(" ");
+      if (size === 1 && WEAK_ANCHOR.has(phrase.toLowerCase())) continue;
+      if (phrase.length < 4) continue;
+      if (hay.includes(phrase.toLowerCase())) return phrase;
+    }
+  }
   return title;
 }
 
@@ -280,7 +331,7 @@ async function callGateway(input: EditorialInput): Promise<EditorialResult | nul
 
 export async function generateEditorial(input: EditorialInput): Promise<{ result: EditorialResult; source: "oge" | "fallback" }> {
   const ai = await callGateway(input);
-  const result = ai != null ? ai : deterministic(input);
+  const result = ai != null ? ai : editorialFallback(input);
   const source: "oge" | "fallback" = ai != null ? "oge" : "fallback";
 
   // A page body under the floor does not leave here. A model asked for a long page will sometimes
@@ -310,7 +361,12 @@ export function stripTldrBlock(html: string): string {
     .replace(/\bTL;?DR\b:?/gi, " ");
 }
 
-function deterministic(input: EditorialInput): EditorialResult {
+/**
+ * The offline answer for each editorial kind, used when the gateway cannot be reached and as the
+ * shape every generated result is checked against. Exported so the link suggestions can be tested
+ * without a model in the loop: whether an anchor exists in the article is arithmetic, not judgement.
+ */
+export function editorialFallback(input: EditorialInput): EditorialResult {
   const body = plain(input.body ?? "");
   const title = (input.title ?? "").trim();
   const sents = sentences(body);
@@ -382,8 +438,8 @@ function deterministic(input: EditorialInput): EditorialResult {
         return { p, score: hits.length, hit: hits[0] };
       }).sort((a, b) => b.score - a.score);
       const links: InternalLink[] = scored.slice(0, 5).map(({ p, score, hit }) => ({
-        anchor: anchorFor(p.title),
-        target: p.url,
+        anchor: anchorFor(p.title, body),
+        target: toPath(p.url),
         rationale: score > 0 && hit
           ? `Your content mentions ${hit}, which this page covers in depth.`
           : `A strong related Nexoris Technologies page to link from this topic.`,

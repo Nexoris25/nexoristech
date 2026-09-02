@@ -148,7 +148,7 @@ export function AuthorForm({ initial }: { initial?: Initial }): ReactNode {
             </p>
             <div className="mt-3">
               <RichTextEditor name="profile_html" initialHtml={initial?.profileHtml ?? ""}
-                onChange={setProfile} registerApi={(api) => { rte.current = api; }} />
+                onChange={setProfile} registerApi={(api) => { rte.current = api; }} allowImages uploadImages />
             </div>
           </section>
         </div>

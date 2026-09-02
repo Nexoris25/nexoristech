@@ -178,7 +178,7 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
                 </button>
               </div>
             </div>
-            <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} {...(initial?.body ? { initialHtml: initial.body } : {})} />
+            <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} allowImages uploadImages {...(initial?.body ? { initialHtml: initial.body } : {})} />
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-subtle sm:p-5">
