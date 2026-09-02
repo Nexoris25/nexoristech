@@ -196,6 +196,13 @@ function relevelHeadings(html: string): string {
  * A first row of bold text is how most pasted tables mark their headings, which is a visual convention
  * and nothing more. The first row becomes `<th scope="col">` inside a `<thead>`; where every row then
  * begins with a heading cell, those become `<th scope="row">`.
+ *
+ * Cells are rebuilt rather than edited, so anything that says how a cell is shaped has to be carried
+ * across deliberately. `colspan` and `rowspan` were not, and a merged heading silently became a
+ * single-column one: the table kept its data and lost its shape, which on a schedule or a price
+ * table is the part that carries the meaning. A cell wrapped in nothing but a paragraph is unwrapped
+ * too - a pasted table arrives with one <p> per cell, and the padding of a block inside a cell is
+ * what makes those tables sit so oddly.
  */
 function fixTables(html: string): string {
   return html.replace(/<table\b[^>]*>([\s\S]*?)<\/table>/gi, (_all, inner: string) => {
@@ -208,8 +215,25 @@ function fixTables(html: string): string {
 
     const stripBold = (s: string): string => s.replace(/<\/?(strong|em|u)>/gi, "").trim();
 
+    /** A single wrapping paragraph around a whole cell is presentational; the cell is the block. */
+    const unwrap = (s: string): string => {
+      const body = s.trim();
+      const m = /^<p>([\s\S]*)<\/p>$/i.exec(body);
+      return m && !/<p[\s>]/i.test(m[1] ?? "") ? (m[1] ?? "").trim() : body;
+    };
+
+    /** Keep only what describes the cell's shape. Everything else was styling we already dropped. */
+    const span = (attrs: string): string => {
+      const out: string[] = [];
+      const col = /\bcolspan\s*=\s*["']?(\d{1,3})/i.exec(attrs);
+      const row = /\browspan\s*=\s*["']?(\d{1,3})/i.exec(attrs);
+      if (col && Number(col[1]) > 1) out.push(`colspan="${Number(col[1])}"`);
+      if (row && Number(row[1]) > 1) out.push(`rowspan="${Number(row[1])}"`);
+      return out.length > 0 ? ` ${out.join(" ")}` : "";
+    };
+
     const head = cellsOf(rows[0]!);
-    const headHtml = `<thead><tr>${head.map((c) => `<th scope="col">${stripBold(c.body)}</th>`).join("")}</tr></thead>`;
+    const headHtml = `<thead><tr>${head.map((c) => `<th scope="col"${span(c.attrs)}>${unwrap(stripBold(c.body))}</th>`).join("")}</tr></thead>`;
 
     const bodyRows = rows.slice(1).map(cellsOf).filter((cs) => cs.length > 0);
     // Only treat the first column as headings when every row marks it as one; otherwise it is data.
@@ -218,13 +242,37 @@ function fixTables(html: string): string {
     const bodyHtml = bodyRows.map((cs) => {
       const tds = cs.map((c, i) =>
         i === 0 && firstColIsHeader
-          ? `<th scope="row">${stripBold(c.body)}</th>`
-          : `<td>${c.body.trim()}</td>`);
+          ? `<th scope="row"${span(c.attrs)}>${unwrap(stripBold(c.body))}</th>`
+          : `<td${span(c.attrs)}>${unwrap(c.body)}</td>`);
       return `<tr>${tds.join("")}</tr>`;
     }).join("");
 
     return `<table>${headHtml}${bodyHtml ? `<tbody>${bodyHtml}</tbody>` : ""}</table>`;
   });
+}
+
+/**
+ * Lift a block element out of the paragraph that ended up wrapping it.
+ *
+ * Google Docs puts its table inside a `<div>`, and a `<div>` becomes a `<p>` here because that is
+ * what a stray div almost always means. A table inside a paragraph is invalid, and the browser does
+ * not keep it: the parser closes the `<p>` before the `<table>` and leaves an empty paragraph and an
+ * orphaned `</p>` behind, which is why a table pasted from Docs arrived broken while the same table
+ * from Word arrived intact.
+ *
+ * Unwrapping is safe because the paragraph was never meaningful — it was a container we renamed.
+ */
+function unwrapBlocksInParagraphs(html: string): string {
+  const BLOCK = /<(table|ul|ol|blockquote|pre|figure|h[1-6])\b/i;
+  let out = html;
+  for (let pass = 0; pass < 3; pass++) {
+    const next = out.replace(/<p>([\s\S]*?)<\/p>/gi, (all, inner: string) =>
+      BLOCK.test(inner) ? inner : all,
+    );
+    if (next === out) break;
+    out = next;
+  }
+  return out;
 }
 
 /** Turn a paragraph that is really a list item into one, and merge runs of them into a list. */
@@ -361,6 +409,7 @@ export function normaliseHtml(input: string, options: NormaliseOptions = {}): st
     .replace(/[\t\r\n]+/g, " ").replace(/ {2,}/g, " ");
 
   html = fixTables(html);
+  html = unwrapBlocksInParagraphs(html);
   html = paragraphsToLists(html);
 
   // Bare text between blocks — common when a paste arrives as plain lines — becomes paragraphs.

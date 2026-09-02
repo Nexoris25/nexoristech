@@ -186,6 +186,12 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     // would undo the structure that was just established.
     const template = document.createElement("template");
     template.innerHTML = clean;
+    // A pasted table is the same object as an inserted one and gets the same class, so it picks up
+    // the editor's table styling and reads the same way. The row and column tools already work on
+    // it either way: they find the cell under the caret rather than looking for a marked table.
+    for (const table of Array.from(template.content.querySelectorAll("table"))) {
+      table.classList.add("cms-table");
+    }
     insertAtCaret(...Array.from(template.content.childNodes));
   };
 

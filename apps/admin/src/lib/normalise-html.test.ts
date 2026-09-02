@@ -320,3 +320,45 @@ describe("normaliseHtml unwraps an inline element around block content", () => {
     expect(normaliseHtml(input)).not.toContain("<strong>");
   });
 });
+
+describe("pasted tables", () => {
+  it("keeps a Word table, dropping its mso styling", () => {
+    const word = `<table class=MsoTableGrid border=1 style='border-collapse:collapse'>
+      <tr><td style='width:150.0pt'><p class=MsoNormal><b><span style='font-size:11.0pt'>Phase</span></b></p></td>
+      <td><p class=MsoNormal><b>Duration</b></p></td></tr>
+      <tr><td><p class=MsoNormal>Discovery</p></td><td><p class=MsoNormal>2 weeks</p></td></tr></table>`;
+    expect(normaliseHtml(word)).toBe(
+      '<table><thead><tr><th scope="col">Phase</th><th scope="col">Duration</th></tr></thead>' +
+        "<tbody><tr><td>Discovery</td><td>2 weeks</td></tr></tbody></table>",
+    );
+  });
+
+  it("lifts a Google Docs table out of the paragraph its div became", () => {
+    // Docs wraps the table in a <div>, which becomes a <p> here. A table inside a paragraph is
+    // invalid and the browser tears it apart, which is why this paste used to arrive broken.
+    const docs = `<div><table style="border-collapse:collapse"><colgroup><col width="311"/></colgroup><tbody>
+      <tr><td style="border:1pt solid #000"><p dir="ltr"><span style="font-weight:700">Phase</span></p></td></tr>
+      <tr><td><p dir="ltr"><span>Discovery</span></p></td></tr></tbody></table></div>`;
+    const out = normaliseHtml(docs);
+    expect(out.startsWith("<table>")).toBe(true);
+    expect(out).not.toContain("<p><table");
+  });
+
+  it("preserves merged cells, which carry the shape of a schedule or a price table", () => {
+    expect(
+      normaliseHtml('<table><tbody><tr><th colspan="2">Schedule</th></tr><tr><td>a</td><td>b</td></tr></tbody></table>'),
+    ).toContain('<th scope="col" colspan="2">Schedule</th>');
+    expect(
+      normaliseHtml('<table><tbody><tr><td rowspan="2">a</td><td>b</td></tr><tr><td>c</td></tr></tbody></table>'),
+    ).toContain('rowspan="2"');
+  });
+
+  it("unwraps the single paragraph a pasted cell arrives wrapped in", () => {
+    // Two rows, because the first row of a pasted table is read as its header.
+    const out = normaliseHtml(
+      "<table><tbody><tr><td><p>Phase</p></td></tr><tr><td><p>Discovery</p></td></tr></tbody></table>",
+    );
+    expect(out).toContain("<td>Discovery</td>");
+    expect(out).toContain('<th scope="col">Phase</th>');
+  });
+});
