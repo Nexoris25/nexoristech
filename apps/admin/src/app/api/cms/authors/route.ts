@@ -50,38 +50,62 @@ export async function POST(request: NextRequest): Promise<Response> {
   // link to nowhere. Anything else entered is dropped rather than saved and shown.
   const linkedin = httpUrl(f.get("linkedin_url"));
   const xUrl = httpUrl(f.get("x_url"));
-  const showOnWebsite = f.get("show_on_website") != null;
   const featured = f.get("featured") != null;
-  // "Save as Draft" and "Unpublish" both mean the same thing for a author: not live. The
-  // intent decides it, so an editor does not have to know which checkbox controls visibility.
+
+  // Publishing an author means one thing: they have a public page. It is deliberately separate from
+  // `active`, which is whether they can be assigned to content at all. Unpublishing used to set
+  // active=false, which quietly retired a person whose byline is on published articles - the page
+  // went away and so did their ability to be credited. Now Unpublish takes the page down and leaves
+  // the person alone.
   const intent = String(f.get("intent") ?? "save").trim();
-  const active = intent === "draft" || intent === "unpublish" ? false : f.get("active") != null;
+  const showOnWebsite =
+    intent === "publish" ? true : intent === "unpublish" ? false : f.get("show_on_website") != null;
+  const active = intent === "publish" ? true : f.get("active") != null;
+
+  // Generated FAQs arrive as JSON from a hidden field. Anything unparseable is dropped rather than
+  // stored: a half-read FAQ set on a public page is worse than none.
+  const faqs = ((): { question: string; answer: string }[] => {
+    try {
+      const parsed: unknown = JSON.parse(String(f.get("faqs") ?? "[]"));
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((x) => x as Record<string, unknown>)
+        .filter((x) => typeof x.question === "string" && typeof x.answer === "string")
+        .map((x) => ({ question: String(x.question).trim(), answer: String(x.answer).trim() }))
+        .filter((x) => x.question.length > 0 && x.answer.length > 0);
+    } catch {
+      return [];
+    }
+  })();
   const pool = cmsDb();
   // The website derives an author's URL from their display name; there is no stored slug.
   const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   // An author's name, title and bio are rendered onto every article they wrote, so a change here has to
   // reach the website. Saving one used to change nothing there until the next timed rebuild.
   const announce = (): Promise<unknown> =>
-    notifyPublished({ path: `/authors/${slug}`, kind: "author", published: active && showOnWebsite });
+    // Authors live at the site root now, so that is the path the website revalidates.
+    notifyPublished({ path: `/${slug}`, kind: "author", published: active && showOnWebsite });
 
   if (id) {
     await pool.query(
       `UPDATE cms_author SET name=$1, email=$2, role=$3, job_title=$4, department=$5, location=$6,
               years_experience=$7, expertise=$8, bio=$9, headshot_url=$10, show_on_website=$11,
               featured=$12, active=$13, display_name=$1, headshot_alt=$15, profile_html=$16,
-              meta_title=$17, meta_description=$18, linkedin_url=$19, x_url=$20 WHERE id=$14`,
+              meta_title=$17, meta_description=$18, linkedin_url=$19, x_url=$20, faqs=$21::jsonb WHERE id=$14`,
       [name, email, role, jobTitle, department, location, years, expertise, bio, headshot, showOnWebsite,
-       featured, active, id, headshotAlt, profileHtml, metaTitle, metaDescription, linkedin, xUrl]);
+       featured, active, id, headshotAlt, profileHtml, metaTitle, metaDescription, linkedin, xUrl,
+       JSON.stringify(faqs)]);
     await announce();
     return NextResponse.redirect(new URL(`/cms/authors/${id}`, request.url), { status: 303 });
   }
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO cms_author (name, display_name, email, role, job_title, department, location, years_experience,
             expertise, bio, headshot_url, show_on_website, featured, active, headshot_alt,
-            profile_html, meta_title, meta_description, linkedin_url, x_url, last_active_at)
-     VALUES ($1,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, now()) RETURNING id`,
+            profile_html, meta_title, meta_description, linkedin_url, x_url, faqs, last_active_at)
+     VALUES ($1,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb, now()) RETURNING id`,
     [name, email, role, jobTitle, department, location, years, expertise, bio, headshot, showOnWebsite,
-     featured, active, headshotAlt, profileHtml, metaTitle, metaDescription, linkedin, xUrl]);
+     featured, active, headshotAlt, profileHtml, metaTitle, metaDescription, linkedin, xUrl,
+     JSON.stringify(faqs)]);
   await announce();
   return NextResponse.redirect(new URL(`/cms/authors/${rows[0]?.id ?? ""}`, request.url), { status: 303 });
 }

@@ -110,7 +110,7 @@ export function CaseStudyForm({ initial }: { initial?: Initial }): ReactNode {
             <label className="mt-4 flex cursor-pointer items-center justify-between gap-3">
               <span><span className="block text-[0.85rem] font-600 text-slate-800">Featured</span><span className="block text-[0.76rem] text-slate-500">Show this case study first.</span></span>
               <input type="checkbox" name="featured" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="peer sr-only" />
-              <span onClick={() => setFeatured((v) => !v)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${featured ? "bg-[#543CDA]" : "bg-slate-300"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${featured ? "left-[1.4rem]" : "left-0.5"}`} /></span>
+              <span aria-hidden="true" className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${featured ? "bg-[#543CDA]" : "bg-slate-300"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${featured ? "left-[1.4rem]" : "left-0.5"}`} /></span>
             </label>
           </section>
 

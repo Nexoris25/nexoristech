@@ -25,6 +25,7 @@ import { headingsOf, withHeadingIds, stepsOf } from "../../../lib/render-html.js
 import { FloatingToc } from "../../../components/FloatingToc.js";
 import { TocSpy } from "../../../components/TocSpy.js";
 import "../../../styles/article.css";
+import { authorPath } from "../../../lib/routes.js";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -274,7 +275,7 @@ export default async function ArticlePage({
               </div>
               {person.bio ? <p>{person.bio}</p> : person.role ? <p>{person.role}</p> : null}
               {person.slug ? (
-                <Link className="pmore" href={`/authors/${person.slug}`}>
+                <Link className="pmore" href={authorPath(person.slug)}>
                   Read full profile &rarr;
                 </Link>
               ) : null}

@@ -417,6 +417,8 @@ export interface AuthorProfile extends Author {
   photoUrl?: string; photoAlt?: string; profileHtml?: string;
   metaTitle?: string; metaDescription?: string; x?: string;
   expertise: string[]; location?: string; yearsExperience?: number;
+  /** Generated in the CMS and rendered with FAQPage schema, the same as an article's. */
+  faq: FaqItem[];
 }
 export interface JobCard { title: string; slug: string; location?: string; department?: string; employmentType?: string; remote?: boolean; summary?: string }
 export interface Job extends JobCard { description: string; applyEmail?: string; applyUrl?: string; publishedAt?: string }
@@ -433,7 +435,7 @@ export async function getAuthorSlugs(): Promise<string[]> {
 export async function getAuthor(slug: string): Promise<AuthorProfile | null> {
   const rows = await query(
     `SELECT name, job_title AS role, bio, headshot_url, headshot_alt, profile_html, meta_title,
-            meta_description, linkedin_url, x_url, expertise, location, years_experience
+            meta_description, linkedin_url, x_url, expertise, location, years_experience, faqs
        FROM cms_author WHERE active AND show_on_website AND name IS NOT NULL`);
   const r = rows.find((x) => nameSlug(str(x.name) ?? "") === slug);
   const author = r ? toAuthor(r) : undefined;
@@ -442,6 +444,7 @@ export async function getAuthor(slug: string): Promise<AuthorProfile | null> {
   return {
     ...author,
     expertise: Array.isArray(r.expertise) ? r.expertise.map(String).filter(Boolean) : [],
+    faq: faqsOf(r.faqs),
     ...opt("photoUrl", mediaUrl(r.headshot_url)),
     ...opt("photoAlt", str(r.headshot_alt)),
     ...opt("profileHtml", str(r.profile_html)),

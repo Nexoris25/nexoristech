@@ -14,6 +14,7 @@ import {
   getJobSlugs,
   getPseoSlugs,
 } from "../lib/cms.js";
+import { authorPath } from "../lib/routes.js";
 
 const LEGAL = ["/privacy-policy", "/terms-of-service", "/cookie-policy"];
 
@@ -53,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       0.6,
     ),
     ...entries(
-      authors.map((s) => `/authors/${s}`),
+      authors.map((s) => authorPath(s)),
       "monthly",
       0.4,
     ),

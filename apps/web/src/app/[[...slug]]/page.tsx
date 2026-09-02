@@ -2,7 +2,14 @@
  * The hardcoded marketing pages. One optional catch-all route statically generates all 36
  * pages (5 core, 11 services, 20 industries) from their content modules, each with its
  * metadata and a single JSON-LD @graph (PRD 6, 9, 12). More specific routes added later
- * (Insights, careers, authors, legal, programmatic) take precedence over this catch-all.
+ * (Insights, careers, legal) take precedence over this catch-all.
+ *
+ * Author profiles resolve here too. They live at the site root now - `/chinedu-nwogu` rather than
+ * `/authors/chinedu-nwogu` - because a person's page is a top-level thing on this site and the
+ * shorter URL is the one people share. Next allows only one dynamic route per segment, so the root
+ * catch-all is where a one-segment author slug has to be answered. Order matters: a hardcoded page
+ * and a programmatic page are both checked first, so an author can never shadow `/about` or a
+ * service page however they are named.
  */
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -21,7 +28,9 @@ import { CaseStudiesView } from "../../components/company/CaseStudiesView.js";
 import { IndustryView } from "../../components/company/IndustryView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 import { PseoPageView } from "../../components/PseoPageView.js";
-import { getPseoPage, getPseoSlugs, getLatestInsights, getTestimonials, getCaseStudiesForService, getAllCaseStudies } from "../../lib/cms.js";
+import { getPseoPage, getPseoSlugs, getLatestInsights, getTestimonials, getCaseStudiesForService, getAllCaseStudies, getAuthor, getAuthorSlugs } from "../../lib/cms.js";
+import { AuthorProfileView } from "../../components/author/AuthorProfileView.js";
+import { authorMetadata } from "../../seo/author-seo.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
 
 interface RouteParams {
@@ -48,7 +57,8 @@ export async function generateStaticParams(): Promise<RouteParams[]> {
   const pseo: RouteParams[] = (await getPseoSlugs()).map((s) => ({
     slug: [s],
   }));
-  return [...hardcoded, ...pseo];
+  const authors: RouteParams[] = (await getAuthorSlugs()).map((s) => ({ slug: [s] }));
+  return [...hardcoded, ...pseo, ...authors];
 }
 
 export async function generateMetadata({
@@ -78,6 +88,11 @@ export async function generateMetadata({
       noindex: pseo.noIndex,
     }) as Metadata;
   }
+  const authorSlug = slug?.length === 1 ? slug[0]! : null;
+  if (authorSlug) {
+    const author = await getAuthor(authorSlug);
+    if (author) return authorMetadata(authorSlug, author) as Metadata;
+  }
   return {};
 }
 
@@ -93,6 +108,11 @@ export default async function MarketingRoute({
     // Not a hardcoded page: try a published programmatic page before giving up.
     const pseo = await getPseoPage(key.replace(/^\//, ""));
     if (pseo) return <PseoPageView page={pseo} />;
+    // A single segment may be an author. Checked last, so it cannot shadow anything above it.
+    if (slug?.length === 1) {
+      const author = await getAuthor(slug[0]!);
+      if (author) return <AuthorProfileView slug={slug[0]!} author={author} />;
+    }
     notFound();
   }
   // The home page now renders the fully ported design-handoff homepage (its own section set),

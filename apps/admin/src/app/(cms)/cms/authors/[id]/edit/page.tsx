@@ -9,7 +9,7 @@ import { requireUuid } from "../../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
-interface Row { id: string; name: string; email: string | null; role: string; job_title: string | null; department: string | null; location: string | null; years_experience: number | null; expertise: string[]; bio: string | null; headshot_url: string | null; headshot_alt: string | null; show_on_website: boolean; featured: boolean; active: boolean; profile_html: string | null; meta_title: string | null; meta_description: string | null; linkedin_url: string | null; x_url: string | null }
+interface Row { id: string; name: string; email: string | null; role: string; job_title: string | null; department: string | null; location: string | null; years_experience: number | null; expertise: string[]; bio: string | null; headshot_url: string | null; headshot_alt: string | null; show_on_website: boolean; featured: boolean; active: boolean; profile_html: string | null; meta_title: string | null; meta_description: string | null; linkedin_url: string | null; x_url: string | null; faqs: { question: string; answer: string }[] | null }
 
 export default async function EditAuthorPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
@@ -18,7 +18,7 @@ export default async function EditAuthorPage({ params }: { params: Promise<{ id:
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, name, email, role, job_title, department, location, years_experience, expertise, bio,
             headshot_url, headshot_alt, show_on_website, featured, active,
-            profile_html, meta_title, meta_description, linkedin_url, x_url
+            profile_html, meta_title, meta_description, linkedin_url, x_url, faqs
        FROM cms_author WHERE id=$1`, [id]);
   const a = rows[0];
   if (!a) notFound();
@@ -36,6 +36,7 @@ export default async function EditAuthorPage({ params }: { params: Promise<{ id:
           showOnWebsite: a.show_on_website, featured: a.featured, active: a.active,
           profileHtml: a.profile_html ?? "", metaTitle: a.meta_title ?? "", metaDescription: a.meta_description ?? "",
           linkedinUrl: a.linkedin_url ?? "", xUrl: a.x_url ?? "",
+          faqs: Array.isArray(a.faqs) ? a.faqs : [],
         }} />
       </div>
     </div>

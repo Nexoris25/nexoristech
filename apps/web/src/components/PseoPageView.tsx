@@ -28,6 +28,7 @@ import { Markdown } from "./Markdown.js";
 import { FloatingToc } from "./FloatingToc.js";
 import { withHeadingIds, headingsOf } from "../lib/render-html.js";
 import { resolveDateTokens } from "../lib/date.js";
+import { authorPath } from "../lib/routes.js";
 
 export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
   const path = `/${page.slug}`;
@@ -217,7 +218,7 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
               Written by{" "}
               {page.author.slug ? (
                 <Link
-                  href={`/authors/${page.author.slug}`}
+                  href={authorPath(page.author.slug)}
                   className="cursor-pointer text-purple-700 hover:text-purple-600"
                 >
                   {page.author.name}

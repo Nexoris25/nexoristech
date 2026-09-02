@@ -57,7 +57,7 @@ export function CategoryForm({ initial, parents }: { initial?: Initial; parents:
             <label className="mt-3 flex cursor-pointer items-center justify-between gap-3">
               <span><span className="block text-[0.85rem] font-600 text-slate-800">Status</span><span className="block text-[0.78rem] text-slate-500">Choose whether this category is active and available for content.</span></span>
               <input type="checkbox" name="active" checked={active} onChange={(e) => setActive(e.target.checked)} className="peer sr-only" />
-              <span onClick={() => setActive((v) => !v)} className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors ${active ? "bg-[#543CDA]" : "bg-slate-300"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${active ? "left-[1.4rem]" : "left-0.5"}`} /></span>
+              <span aria-hidden="true" className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors ${active ? "bg-[#543CDA]" : "bg-slate-300"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${active ? "left-[1.4rem]" : "left-0.5"}`} /></span>
             </label>
           </section>
 

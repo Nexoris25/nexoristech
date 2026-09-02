@@ -23,6 +23,7 @@ interface Initial {
   id?: string; name?: string; email?: string; role?: string; jobTitle?: string; department?: string;
   location?: string; yearsExperience?: number; expertise?: string; bio?: string; headshotUrl?: string; headshotAlt?: string;
   showOnWebsite?: boolean; featured?: boolean; active?: boolean;
+  faqs?: { question: string; answer: string }[];
   profileHtml?: string; metaTitle?: string; metaDescription?: string; linkedinUrl?: string; xUrl?: string;
 }
 const field = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-[0.86rem] text-slate-900 placeholder:text-slate-400 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15 resize-none";
@@ -52,6 +53,10 @@ export function AuthorForm({ initial }: { initial?: Initial }): ReactNode {
   const [showOnWebsite, setShow] = useState(initial?.showOnWebsite ?? true);
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [active, setActive] = useState(initial?.active ?? true);
+  // Generated FAQs were shown and then dropped: nothing passed storeFaqs, so they never reached
+  // the form and never reached the database. They ride along in a hidden field now, saved by the
+  // same submit as everything else rather than needing their own action.
+  const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>(initial?.faqs ?? []);
   const [bioBusy, setBioBusy] = useState(false);
   const [profile, setProfile] = useState(initial?.profileHtml ?? "");
   const [metaTitle, setMetaTitle] = useState(initial?.metaTitle ?? "");
@@ -186,6 +191,7 @@ export function AuthorForm({ initial }: { initial?: Initial }): ReactNode {
               seo: (r) => { setMetaTitle(r.metaTitle); setMetaDesc(r.metaDescription); },
               insertBottom: (html: string) => rte.current?.appendHtml(html),
               getBody: () => profile,
+              storeFaqs: (items) => setFaqs(items),
             }}
           />
 
@@ -201,21 +207,26 @@ export function AuthorForm({ initial }: { initial?: Initial }): ReactNode {
           {/* An author has no draft state either; "active" is what decides whether they can be
               assigned and shown. Unpublishing hides the profile without deleting a person who has
               bylines on published articles. */}
+          <input type="hidden" name="faqs" value={JSON.stringify(faqs)} />
+
+          {/* Publishing an author is one button rather than a pair of toggles somebody has to know
+              the meaning of. It is deliberately not the same thing as "active": an unpublished
+              author keeps their byline on articles they wrote and can still be assigned, they just
+              have no public page of their own. Unpublishing a person is not retiring them. */}
           <div className="flex flex-wrap items-center justify-end gap-2">
             <a href="/cms/authors" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-600 hover:bg-slate-50">Cancel</a>
-            {edit && initial?.active !== false ? (
+            {edit && initial?.showOnWebsite ? (
               <button type="submit" name="intent" value="unpublish"
                 className="rounded-lg border border-[#DC2626]/30 px-5 py-2.5 text-[0.85rem] font-600 text-[#DC2626] hover:bg-red-50">
                 Unpublish
               </button>
             ) : null}
-            {!edit ? (
-              <button type="submit" name="intent" value="draft"
-                className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
-                Save as Draft
-              </button>
-            ) : null}
-            <button type="submit" name="intent" value="save" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Save Changes" : "Create Author"}</button>
+            <button type="submit" name="intent" value="save" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
+              {edit ? "Save Changes" : "Save"}
+            </button>
+            <button type="submit" name="intent" value="publish" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">
+              {edit && initial?.showOnWebsite ? "Update Published Page" : "Publish"}
+            </button>
           </div>
         </div>
       </div>
@@ -228,7 +239,7 @@ function Toggle({ name, checked, set, title, sub }: { name: string; checked: boo
     <label className="flex cursor-pointer items-center justify-between gap-3">
       <span><span className="block text-[0.85rem] font-600 text-slate-800">{title}</span><span className="block text-[0.76rem] text-slate-500">{sub}</span></span>
       <input type="checkbox" name={name} checked={checked} onChange={(e) => set(e.target.checked)} className="peer sr-only" />
-      <span onClick={() => set(!checked)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-[#543CDA]" : "bg-slate-300"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`} /></span>
+      <span aria-hidden="true" className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-[#543CDA]" : "bg-slate-300"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${checked ? "left-[1.4rem]" : "left-0.5"}`} /></span>
     </label>
   );
 }
