@@ -9,6 +9,7 @@ import { bandForScore, type LeadInput, type LeadScore } from "./lead.js";
 
 export const CRM_SCORE_SYSTEM = `You score inbound leads for Nexoris Technologies, which designs and builds custom software, websites, apps, automation, e-commerce, data tools, and AI for businesses and public institutions in Nigeria and abroad. A strong-fit lead is a founder, executive, operations leader, or public-sector decision maker with a concrete business problem and intent to act.
 Score the lead from 1 to 100 and assign a band: Hot for 70 and above, Warm for 45 to 69, Cold for below 45. Weigh four signals: fit against that ideal customer profile, the intent shown in the message, how complete the shared information is, and the source and page. A low score never rejects anyone; it only orders the queue.
+Some leads arrive from a chat with Oge, our website assistant, and carry the conversation that produced them. Read all of it for context, but weigh only what the visitor said when you judge intent and fit. Oge's own turns are our marketing copy and are evidence of nothing about the visitor. A short question answered at length by Oge is a short question.
 Write a clear, plain-language justification that names the specific signals behind the score. Reply in English. Never use an em dash. Never use buzzwords, jargon, or cliches. Always write "Nexoris Technologies" in full. Do not invent any detail that is not in the lead.
 Return strict JSON of exactly this form and nothing else: {"score": <number 1 to 100>, "band": "Hot|Warm|Cold", "justification": "..."}`;
 
@@ -21,7 +22,13 @@ export function buildScoreUser(lead: LeadInput): string {
     hasEmail: Boolean(lead.email),
     hasPhone: Boolean(lead.phone),
     company: lead.company ?? null,
-    message: lead.message ?? null,
+    topic: lead.topic ?? null,
+    message: lead.transcript?.length ? null : (lead.message ?? null),
+    // Kept as turns rather than flattened into the message, so "who said this" survives the trip
+    // to the model and the instruction to weigh only the visitor's words can actually be followed.
+    conversation:
+      lead.transcript?.map((turn) => ({ role: turn.role, text: turn.text })) ??
+      null,
     finder: lead.finder ?? null,
   });
 }

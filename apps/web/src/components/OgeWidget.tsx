@@ -269,20 +269,26 @@ export function OgeWidget(): ReactNode {
   async function submitLead(): Promise<void> {
     if (!lead) return;
     setLead({ ...lead, stage: "sending" });
+    // One field asks for "email or phone", so which one it is has to be worked out here. The intake
+    // stores the two separately and a lead with neither cannot be replied to, so a value that is
+    // not recognisably either is sent as a phone number rather than dropped: a salesperson can read
+    // a malformed entry and work it out, but only if it arrives.
+    const contact = lead.contact.trim();
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
     const transcript = messagesRef.current
-      .filter((m) => m.text.length > 0)
-      .map((m) => `${m.role === "visitor" ? "You" : "Oge"}: ${m.text}`)
-      .join("\n");
+      .filter((m) => m.text.trim().length > 0)
+      .map((m) => ({ role: m.role === "visitor" ? "visitor" : "oge", text: m.text }));
     try {
       const res = await fetch("/api/contact/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: lead.name,
-          contact: lead.contact,
+          email: isEmail ? contact : undefined,
+          phone: isEmail ? undefined : contact,
           topic: lead.topic,
           source: "oge-chat",
-          message: `Lead captured by Oge. Topic: ${lead.topic}.`,
+          page: window.location.pathname,
           transcript,
         }),
       });

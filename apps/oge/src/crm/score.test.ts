@@ -91,3 +91,62 @@ describe("parseScore", () => {
     expect(parseScore('{"justification": "missing score"}')).toBeNull();
   });
 });
+
+describe("scoring a conversation", () => {
+  const oge =
+    "Nexoris Technologies builds custom software, websites, apps, automation and AI for businesses and public institutions. We work with founders, executives and operations leaders, and every project starts with a proper conversation about the problem you are solving rather than the technology you might use.";
+
+  it("scores the visitor's words, not Oge's", () => {
+    const chatty = rulesBaselineScore({
+      source: "oge-chat",
+      name: "Ada",
+      email: "ada@example.com",
+      transcript: [
+        { role: "visitor", text: "hi" },
+        { role: "oge", text: oge },
+        { role: "visitor", text: "ok" },
+        { role: "oge", text: oge },
+      ],
+    });
+    const bare = rulesBaselineScore({
+      source: "oge-chat",
+      name: "Ada",
+      email: "ada@example.com",
+      message: "hi\nok",
+    });
+    // Two words from the visitor is two words, however much Oge said back.
+    expect(chatty.score).toBe(bare.score);
+    expect(chatty.justification).not.toContain("at length");
+  });
+
+  it("credits a visitor who actually explained the need", () => {
+    const result = rulesBaselineScore({
+      source: "oge-chat",
+      name: "Ada",
+      email: "ada@example.com",
+      company: "Trivaron",
+      transcript: [
+        {
+          role: "visitor",
+          text: "I am the operations director at a logistics company and we need to replace the spreadsheet we use to track deliveries with something our drivers can use on their phones.",
+        },
+        { role: "oge", text: oge },
+      ],
+    });
+    expect(result.justification).toContain("explained the need at length");
+    expect(result.justification).toContain("a senior decision maker");
+  });
+
+  it("does not read a role from Oge's own description of who we work with", () => {
+    const result = rulesBaselineScore({
+      source: "oge-chat",
+      name: "Ada",
+      email: "ada@example.com",
+      transcript: [
+        { role: "visitor", text: "how much does a website cost" },
+        { role: "oge", text: oge },
+      ],
+    });
+    expect(result.justification).not.toContain("a senior decision maker");
+  });
+});

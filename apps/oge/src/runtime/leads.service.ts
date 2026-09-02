@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import pg from "pg";
 import { scoreLead } from "../crm/score-lead.js";
+import { composeLeadMessage, normaliseTranscript } from "../crm/lead.js";
 import type { LeadInput, LeadSource } from "../crm/lead.js";
 import type { Env } from "../config/models.js";
 
@@ -64,16 +65,25 @@ export class LeadsService implements OnModuleInit, OnModuleDestroy {
     ) {
       throw new BadRequestException("Unknown or missing lead source.");
     }
+    const transcript = normaliseTranscript(lead.transcript);
     const hasContact =
       typeof lead.email === "string" || typeof lead.phone === "string";
     const hasMessage =
       typeof lead.message === "string" && lead.message.trim().length > 0;
-    if (!hasContact && !hasMessage) {
+    if (!hasContact && !hasMessage && !transcript) {
       throw new BadRequestException(
-        "A lead needs a contact detail or a message.",
+        "A lead needs a contact detail, a message, or a conversation.",
       );
     }
-    return lead as unknown as LeadInput;
+
+    const message = composeLeadMessage({
+      transcript,
+      message: typeof lead.message === "string" ? lead.message : undefined,
+      topic: typeof lead.topic === "string" ? lead.topic : undefined,
+      name: typeof lead.name === "string" ? lead.name : undefined,
+    });
+
+    return { ...lead, transcript, message } as unknown as LeadInput;
   }
 
   async recordLead(input: unknown): Promise<LeadAck> {

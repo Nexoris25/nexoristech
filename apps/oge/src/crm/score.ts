@@ -6,7 +6,12 @@
  * fabricated rubric: each maps to a factor the PRD names. The result is clamped to 1 to 100.
  */
 import { isIndustrySlug } from "@nexoris/recommend";
-import { bandForScore, type LeadInput, type LeadScore } from "./lead.js";
+import {
+  bandForScore,
+  visitorWords,
+  type LeadInput,
+  type LeadScore,
+} from "./lead.js";
 
 const ROLE_WORDS =
   /\b(founder|ceo|cto|coo|director|owner|head of|manager|executive|principal|partner)\b/i;
@@ -22,10 +27,14 @@ export function rulesBaselineScore(lead: LeadInput): LeadScore {
     score += 15;
   }
   if (lead.company) score += 5;
-  const messageLength = lead.message?.trim().length ?? 0;
+  // The visitor's own words, never Oge's: see visitorWords for why the whole chat cannot be used.
+  const said = visitorWords(lead).trim();
+  const messageLength = said.length;
   if (messageLength >= 80) {
     score += 10;
-    reasons.push("a detailed brief");
+    reasons.push(
+      lead.transcript?.length ? "explained the need at length" : "a detailed brief",
+    );
   } else if (messageLength > 0) {
     score += 5;
   }
@@ -66,7 +75,7 @@ export function rulesBaselineScore(lead: LeadInput): LeadScore {
     reasons.push("a strong fit for an industry we serve");
   }
   if (lead.company) score += 5;
-  if (lead.message && ROLE_WORDS.test(lead.message)) {
+  if (said && ROLE_WORDS.test(said)) {
     score += 5;
     reasons.push("a senior decision maker");
   }

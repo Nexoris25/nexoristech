@@ -187,7 +187,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
         <div className="p-5">
           {lead.message ? (
-            <blockquote className="border-l-[3px] border-[#543CDA] bg-[#F8F7FE] px-4 py-3.5 text-[0.92rem] leading-relaxed text-slate-800">
+            // A chat lead's message is the conversation, one turn per line. Without pre-line the
+            // browser folds it into a single paragraph and the two speakers run together.
+            <blockquote className="whitespace-pre-line border-l-[3px] border-[#543CDA] bg-[#F8F7FE] px-4 py-3.5 text-[0.92rem] leading-relaxed text-slate-800">
               {lead.message}
             </blockquote>
           ) : (
