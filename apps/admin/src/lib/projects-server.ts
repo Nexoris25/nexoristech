@@ -102,3 +102,58 @@ export async function nextProjectCode(client: PoolClient): Promise<string> {
   );
   return `PRJ-${String(rows[0]?.n ?? "1").padStart(4, "0")}`;
 }
+
+export interface ProjectPortfolio {
+  /** Projects being delivered right now: planned, active, or on hold. */
+  readonly ongoing: number;
+  readonly completed: number;
+  readonly onHold: number;
+  /**
+   * The share of projects that reached Completed, out of those that have finished one way or the
+   * other. Cancelled projects count as not completed, because they were started and did not finish;
+   * excluding them would let a team improve this number by cancelling.
+   */
+  readonly completionRate: number;
+  /** Mean delivery progress across the ongoing ones. Not a money figure and not derived from one. */
+  readonly averageProgress: number;
+  /** The contract value of everything still being delivered. */
+  readonly ongoingValue: string;
+}
+
+/**
+ * How the project portfolio stands, for the dashboards.
+ *
+ * One query behind all three screens, so the executive view, the CEO view and a person's own view
+ * cannot quietly disagree about how many projects are running. Pass a staff id to narrow it to the
+ * projects that person manages.
+ *
+ * Delivery progress is deliberately kept apart from money. A project can be fully invoiced and half
+ * built, and a dashboard that inferred one from the other would hide exactly the case worth seeing.
+ */
+export async function projectPortfolio(managerId?: string | null): Promise<ProjectPortfolio> {
+  const { rows } = await db().query<{
+    ongoing: string; completed: string; on_hold: string; cancelled: string;
+    avg_progress: string | null; ongoing_value: string;
+  }>(
+    `SELECT count(*) FILTER (WHERE status IN ('Planned','Active','OnHold'))::text            ongoing,
+            count(*) FILTER (WHERE status = 'Completed')::text                                completed,
+            count(*) FILTER (WHERE status = 'OnHold')::text                                   on_hold,
+            count(*) FILTER (WHERE status = 'Cancelled')::text                                cancelled,
+            avg(progress_percent) FILTER (WHERE status IN ('Planned','Active','OnHold'))::text avg_progress,
+            COALESCE(sum(contract_value) FILTER (WHERE status IN ('Planned','Active','OnHold')), 0)::text ongoing_value
+       FROM project
+      WHERE ($1::uuid IS NULL OR manager_id = $1::uuid)`,
+    [managerId ?? null],
+  );
+  const r = rows[0]!;
+  const completed = Number(r.completed);
+  const finished = completed + Number(r.cancelled);
+  return {
+    ongoing: Number(r.ongoing),
+    completed,
+    onHold: Number(r.on_hold),
+    completionRate: finished > 0 ? Math.round((completed / finished) * 100) : 0,
+    averageProgress: r.avg_progress === null ? 0 : Math.round(Number(r.avg_progress)),
+    ongoingValue: r.ongoing_value,
+  };
+}

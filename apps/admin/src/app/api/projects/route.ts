@@ -87,6 +87,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   const statusRaw = String(f.get("status") ?? "Planned");
   const status: ProjectStatus = (STATUSES.has(statusRaw) ? statusRaw : "Planned") as ProjectStatus;
 
+  const managerRaw = String(f.get("manager_id") ?? "").trim();
+  const managerId = isUuid(managerRaw) ? managerRaw : null;
+
   const progress = decimalOrNull(f.get("progress_percent")) ?? null;
   if (progress && (progress.lessThan(0) || progress.greaterThan(100))) {
     return bail("progress", "Progress must be between 0 and 100.");
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       await client.query(
         `UPDATE project SET name=$1, description=$2, contract_value=$3::numeric, status=$4,
               start_date=$5, end_date=$6, progress_percent=$7::numeric, service_line=$8,
-              client_id=COALESCE($9, client_id), updated_at=now()
+              client_id=COALESCE($9, client_id), manager_id=$11, updated_at=now()
          WHERE id=$10`,
         [
           name,
@@ -120,14 +123,15 @@ export async function POST(request: NextRequest): Promise<Response> {
           String(f.get("service_line") ?? "").trim() || null,
           clientId,
           id,
+          managerId,
         ],
       );
     } else {
       const code = String(f.get("code") ?? "").trim() || (await nextProjectCode(client));
       const created = await client.query<{ id: string }>(
         `INSERT INTO project (code, name, client_id, description, contract_value, status,
-              start_date, end_date, progress_percent, service_line, created_by)
-         VALUES ($1,$2,$3,$4,$5::numeric,$6,$7,$8,$9::numeric,$10,$11) RETURNING id`,
+              start_date, end_date, progress_percent, service_line, created_by, manager_id)
+         VALUES ($1,$2,$3,$4,$5::numeric,$6,$7,$8,$9::numeric,$10,$11,$12) RETURNING id`,
         [
           code,
           name,
@@ -140,6 +144,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           (progress ?? decimalOrNull("0"))!.toFixed(2),
           String(f.get("service_line") ?? "").trim() || null,
           staff.id,
+          managerId,
         ],
       );
       projectId = created.rows[0]!.id;

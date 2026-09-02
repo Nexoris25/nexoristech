@@ -35,9 +35,11 @@ export default async function NewProjectPage({
 }): Promise<ReactNode> {
   await requireCapability("finance.invoice.raise");
   const { error, msg } = await searchParams;
-  const { rows: clients } = await db().query<{ id: string; name: string }>(
-    "SELECT id, name FROM client WHERE active ORDER BY name LIMIT 500",
-  );
+  const pool = db();
+  const [{ rows: clients }, { rows: managers }] = await Promise.all([
+    pool.query<{ id: string; name: string }>("SELECT id, name FROM client WHERE active ORDER BY name LIMIT 500"),
+    pool.query<{ id: string; name: string }>("SELECT id, name FROM staff WHERE active ORDER BY name LIMIT 200"),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -81,6 +83,13 @@ export default async function NewProjectPage({
                 {PROJECT_STATUSES.map((s) => (
                   <option key={s} value={s}>{PROJECT_STATUS_LABEL[s]}</option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className={label} htmlFor="manager_id">Project manager</label>
+              <select id="manager_id" name="manager_id" defaultValue="" className={`mt-1 cursor-pointer ${field}`}>
+                <option value="">Unassigned</option>
+                {managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
             <div>

@@ -49,6 +49,7 @@ interface ProjectRow {
   end_date: string | null;
   client_id: string;
   client_name: string;
+  manager_id: string | null;
   client_email: string | null;
 }
 
@@ -106,7 +107,7 @@ export default async function ProjectPage({
     await pool.query<ProjectRow>(
       `SELECT p.id, p.code, p.name, p.description, p.status, p.contract_value::text,
               p.progress_percent::text, p.service_line, p.start_date::text, p.end_date::text,
-              c.id client_id, c.name client_name, c.email client_email
+              p.manager_id, c.id client_id, c.name client_name, c.email client_email
          FROM project p JOIN client c ON c.id = p.client_id
         WHERE p.id = $1`,
       [id],
@@ -114,7 +115,7 @@ export default async function ProjectPage({
   ).rows[0];
   if (!project) notFound();
 
-  const [milestones, invoices, totals] = await Promise.all([
+  const [milestones, invoices, totals, managers] = await Promise.all([
     pool.query<MilestoneRow>(
       "SELECT id, label, percent::text, amount::text, due_date::text, status FROM project_milestone WHERE project_id=$1 ORDER BY sort",
       [id],
@@ -133,6 +134,7 @@ export default async function ProjectPage({
         WHERE project_id=$1 AND doc_type='Invoice' AND cancelled_at IS NULL`,
       [id],
     ),
+    pool.query<{ id: string; name: string }>("SELECT id, name FROM staff WHERE active ORDER BY name LIMIT 200"),
   ]);
 
   const t = totals.rows[0]!;
@@ -383,6 +385,13 @@ export default async function ProjectPage({
               {PROJECT_STATUSES.map((s) => (
                 <option key={s} value={s}>{PROJECT_STATUS_LABEL[s]}</option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label className={lbl} htmlFor="p-manager">Project manager</label>
+            <select id="p-manager" name="manager_id" defaultValue={project.manager_id ?? ""} className={`mt-1 cursor-pointer ${field}`}>
+              <option value="">Unassigned</option>
+              {managers.rows.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </div>
           <div>

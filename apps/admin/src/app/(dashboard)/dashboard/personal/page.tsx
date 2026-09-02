@@ -13,6 +13,7 @@ import { Pencil } from "lucide-react";
 import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
 import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
 import { requireStaff, grantedModules } from "../../../../lib/auth.js";
+import { projectPortfolio } from "../../../../lib/projects-server.js";
 import { db } from "../../../../lib/db.js";
 import { STAGES } from "../../../../lib/crm-constants.js";
 import { MODULES, MODULE_LABEL, type ModuleId } from "../../../../lib/shell-constants.js";
@@ -97,6 +98,9 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
   const overdue = due.filter((d) => new Date(d.followup_due) < new Date()).length;
   const targetPct = targetValue > 0 ? Math.min(100, Math.round((wonValue / targetValue) * 100)) : 0;
   // Targets in sales_target are monthly, so the countdown is to month end.
+  // Narrowed to the projects this person manages, so the card describes their work.
+  const myProjects = await projectPortfolio(staff.id);
+
   const now = new Date();
   const daysLeftInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
 
@@ -113,6 +117,15 @@ export default async function PersonalDashboard({ searchParams }: { searchParams
   // Follow-ups and access describe anyone's day; the sales three only describe a seller's.
   const KPIS = [
     { label: "Follow-ups Due", value: String(due.length), sub: overdue > 0 ? `${overdue} overdue` : "none overdue" },
+    // Only shown to somebody who actually runs projects. A card reading "0 projects" on the screen
+    // of a person who was never going to have any is noise dressed as a metric.
+    ...(myProjects.ongoing > 0 || myProjects.completed > 0
+      ? [{
+          label: "My Projects",
+          value: String(myProjects.ongoing),
+          sub: myProjects.ongoing > 0 ? `${myProjects.averageProgress}% average progress` : `${myProjects.completed} completed`,
+        }]
+      : []),
     ...(hasSalesWork ? SALES_KPIS : [
       { label: "Modules", value: String(modules.length), sub: modules.length === 1 ? "you can open one area" : "areas you can open" },
       { label: "Recent Actions", value: String(acts.length), sub: "logged against your account" },

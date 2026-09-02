@@ -11,12 +11,13 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Wallet, TrendingUp, Users, Landmark, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Wallet, TrendingUp, Users, Landmark, AlertTriangle, CheckCircle2, FolderKanban } from "lucide-react";
 import { RangeFilter } from "../../../../components/cms/RangeFilter.js";
 import { resolvePeriod, PERIODS } from "../../../../lib/period.js";
 import { redirect } from "next/navigation";
 import { isExecutive } from "../../../../lib/crm-constants.js";
 import { requireStaff } from "../../../../lib/auth.js";
+import { projectPortfolio } from "../../../../lib/projects-server.js";
 import { db } from "../../../../lib/db.js";
 import { AreaChart, Bar } from "../../../../components/charts.js";
 import { ChartHover, type HoverPoint } from "../../../../components/ChartHover.js";
@@ -67,12 +68,21 @@ export default async function CeoDashboard({ searchParams }: { searchParams: Pro
       w),
   ]);
 
+  const portfolio = await projectPortfolio();
   const f = fin[0]!;
   const revenue = Number(f.revenue);
   const expenses = Number(f.expenses);
   const KPIS = [
     { label: "Revenue Collected", value: nairaShort(revenue), icon: <Wallet size={16} strokeWidth={2} /> },
     { label: "Cash Surplus", value: nairaShort(revenue - expenses), icon: <TrendingUp size={16} strokeWidth={2} /> },
+    // The delivery side of the business, which this view did not report at all: what is being
+    // built, how far through it is, and how much of it has ever been finished.
+    { label: "Ongoing Projects", value: String(portfolio.ongoing), icon: <FolderKanban size={16} strokeWidth={2} /> },
+    {
+      label: "Completion Rate",
+      value: portfolio.completed + portfolio.ongoing > 0 ? `${portfolio.completionRate}%` : "—",
+      icon: <CheckCircle2 size={16} strokeWidth={2} />,
+    },
     { label: "Clients Invoiced", value: f.clients, icon: <Users size={16} strokeWidth={2} /> },
     { label: "Expenses", value: nairaShort(expenses), icon: <Landmark size={16} strokeWidth={2} /> },
   ];

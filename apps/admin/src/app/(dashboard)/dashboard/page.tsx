@@ -6,8 +6,9 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { TrendingUp, TrendingDown, FileText, Trophy, UserPlus, Wallet, Contact, ReceiptText, ArrowRight } from "lucide-react";
+import { TrendingUp, TrendingDown, FileText, Trophy, UserPlus, Wallet, Contact, ReceiptText, ArrowRight, FolderKanban } from "lucide-react";
 import { requireStaff } from "../../../lib/auth.js";
+import { projectPortfolio } from "../../../lib/projects-server.js";
 import { db } from "../../../lib/db.js";
 import { STAGES } from "../../../lib/crm-constants.js";
 import { RangeFilter } from "../../../components/cms/RangeFilter.js";
@@ -152,6 +153,7 @@ export default async function ExecutiveDashboard(
   const m = money[0]!;
   const l = leadStats[0]!;
   const revenueDelta = delta(Number(m.collected), Number(m.collected_prev));
+  const portfolio = await projectPortfolio();
   const leadsDelta = delta(Number(l.new_leads), Number(l.new_leads_prev));
   const wonDelta = delta(Number(l.won), Number(l.won_prev));
 
@@ -160,6 +162,16 @@ export default async function ExecutiveDashboard(
     { label: "New Leads", value: l.new_leads, delta: leadsDelta.text, up: leadsDelta.up, href: "/crm", icon: Contact },
     // A trophy, not a target: the target is what you are aiming at, the trophy is what you won.
     { label: "Won Opportunities", value: l.won, delta: wonDelta.text, up: wonDelta.up, href: "/crm/board", icon: Trophy },
+    // Winning work and delivering it are different questions, and this screen only answered the
+    // first. Average progress is the delivery half: what is running, and how far through it is.
+    {
+      label: "Ongoing Projects",
+      value: String(portfolio.ongoing),
+      delta: portfolio.ongoing > 0 ? `${portfolio.averageProgress}% avg progress` : null,
+      up: true,
+      href: "/projects",
+      icon: FolderKanban,
+    },
     { label: "Outstanding Invoices", value: nairaShort(Number(m.outstanding)), delta: null, up: false, href: "/finance/receivables", icon: ReceiptText },
   ];
 
