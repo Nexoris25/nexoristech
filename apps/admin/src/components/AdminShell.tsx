@@ -48,6 +48,7 @@ import {
   Search,
   Send,
   Settings,
+  TriangleAlert,
   ShieldCheck,
   Target,
   UserCog,
@@ -220,6 +221,7 @@ const EINVOICING_NAV: NavEntry[] = [
   { icon: XCircle, label: "Rejected", href: "/e-invoicing/rejected" },
   { icon: FileText, label: "Credit Notes", href: "/e-invoicing/credit-notes" },
   { icon: FilePlus, label: "Debit Notes", href: "/e-invoicing/debit-notes" },
+  { icon: TriangleAlert, label: "VAT to Account For", href: "/e-invoicing/vat-to-account" },
   { icon: BarChart3, label: "Reports", href: "/e-invoicing/reports" },
   { icon: Activity, label: "Integration Monitor", href: "/e-invoicing/monitor" },
 ];

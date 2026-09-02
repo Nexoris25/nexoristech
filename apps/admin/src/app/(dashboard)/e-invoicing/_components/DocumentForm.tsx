@@ -19,7 +19,7 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { invoiceTotals, naira } from "../../../../lib/finance.js";
-import { DOC_META, type DocType } from "../../../../lib/einvoice.js";
+import { DOC_META, VAT_EXEMPT_LABEL, VAT_EXEMPT_REASONS, type DocType } from "../../../../lib/einvoice.js";
 
 interface Original { id: string; label: string }
 export interface FormMilestone { id: string; label: string; amount: string; project_id: string }
@@ -68,6 +68,7 @@ export function DocumentForm({
   const [percent, setPercent] = useState("");
   const [chargeVat, setChargeVat] = useState(true);
   const [fiscal, setFiscal] = useState(false);
+  const [vatReason, setVatReason] = useState<string>("");
   const today = new Date().toISOString().slice(0, 10);
   const due = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
   const isNote = docType !== "Invoice";
@@ -126,7 +127,7 @@ export function DocumentForm({
               <span>
                 <span className="block text-[0.85rem] font-600 text-slate-800">File this with the NRS</span>
                 <span className="block text-[0.78rem] text-slate-500">
-                  Leave this off for an ordinary PDF invoice. It is still issued, sent, paid and reported the same way. You can file it later from the invoice itself, and it takes a number in the fiscal series at that point.
+                  Leave this off for an ordinary PDF invoice. It is still issued, sent, paid and reported the same way, and you can file it later from the invoice itself. Its number never changes either way.
                 </span>
               </span>
             </label>
@@ -135,10 +136,29 @@ export function DocumentForm({
               <span>
                 <span className="block text-[0.85rem] font-600 text-slate-800">Charge VAT on this invoice ({vatRate}%)</span>
                 <span className="block text-[0.78rem] text-slate-500">
-                  Turn this off to invoice without VAT. Whether a given supply may be invoiced without it is a question for your accountant, not something this form decides.
+                  Turn this off to invoice without VAT. You will be asked on what basis.
                 </span>
               </span>
             </label>
+            {!chargeVat ? (
+              <div className="ml-7 rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-4">
+                <p className="text-[0.8rem] font-600 text-[#B45309]">On what basis is no VAT charged?</p>
+                <p className="mt-0.5 text-[0.76rem] text-[#92400E]">
+                  This is a tax position and it is recorded against the invoice and printed on it. A position nobody wrote down is one nobody can defend at an audit.
+                </p>
+                <select name="vat_exempt_reason" value={vatReason} onChange={(e) => setVatReason(e.target.value)} required className={`mt-2.5 w-full cursor-pointer ${field}`}>
+                  <option value="">Choose a reason…</option>
+                  {VAT_EXEMPT_REASONS.map((r) => <option key={r} value={r}>{VAT_EXEMPT_LABEL[r]}</option>)}
+                </select>
+                {vatReason === "Other" || vatReason === "CustomerExempt" ? (
+                  <input name="vat_exempt_note" required={vatReason === "Other"} placeholder={vatReason === "CustomerExempt" ? "Exemption certificate reference" : "Explain the basis"} className={`mt-2 w-full ${field}`} />
+                ) : null}
+              </div>
+            ) : !fiscal ? (
+              <p className="ml-7 rounded-lg bg-slate-50 px-3 py-2 text-[0.76rem] text-slate-600">
+                VAT is being charged on an invoice that is not being filed. That is allowed, and it leaves tax collected that still has to be accounted for. It will appear under “VAT to account for” until it is filed.
+              </p>
+            ) : null}
           </div>
         </section>
       ) : null}

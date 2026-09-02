@@ -96,10 +96,23 @@ describe("decimal arithmetic", () => {
 });
 
 describe("withholding tax", () => {
-  it("is computed on the taxable base, not the full subtotal", () => {
-    // Only the 1000 standard + 2000 zero-rated are in the base; the 4000 exempt line is not.
+  it("is computed on the subtotal, whatever each line's VAT treatment is", () => {
+    // Withholding tax asks what the service was worth, not what kind of supply it was for VAT. The
+    // exempt line is still work the customer pays for and still work they withhold on, so all
+    // 7000 counts. This deliberately replaces an earlier rule that used the VAT taxable base and
+    // therefore reported no withholding at all on an exempt supply.
     const r = calculateTax([line(1000), line(2000, "ZeroRated"), line(4000, "Exempt")], VAT, WHT);
-    expect(r.whtExpected).toBe("150.00"); // 5% of 3000
+    expect(r.whtExpected).toBe("350.00"); // 5% of 7000
+  });
+
+  it("still applies when the document charges no VAT", () => {
+    // The case that made the old rule untenable: chargeVat false empties the VAT base, which would
+    // have zeroed the withholding on every unfiled or exempt invoice and left us expecting money
+    // the customer was never told to deduct.
+    const r = calculateTax([line(1_000_000)], VAT, WHT, { chargeVat: false });
+    expect(r.vat).toBe("0.00");
+    expect(r.total).toBe("1000000.00");
+    expect(r.whtExpected).toBe("50000.00");
   });
 
   it("never changes what the customer is billed", () => {

@@ -30,6 +30,14 @@ export interface EinvoicePdfData {
   /** Whether VAT was charged. When it was not, the invoice says so rather than showing a silent 0. */
   vatCharged?: boolean;
   cancelled?: boolean;
+  /** Printed when no VAT was charged, so the customer sees the basis rather than a silent zero. */
+  vatNotice?: string | null;
+  /**
+   * What the customer is expected to withhold and remit themselves. Shown for information and never
+   * added to or deducted from what is billed: it was being calculated and then shown to nobody,
+   * which left the client to work out their own deduction and us with no stated expectation of it.
+   */
+  whtExpected?: number | null;
   projectName?: string | null;
   invoicePercentage?: string | null;
   environment: string;
@@ -238,10 +246,12 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
                     This is not a tax invoice. It has not been filed with the Nigeria Revenue Service
                     and carries no IRN.
                   </Text>
-                  {data.vatCharged === false ? (
-                    <Text style={s.notTax}>No VAT has been charged on this invoice.</Text>
-                  ) : null}
                 </>
+              ) : null}
+              {/* The basis for charging no VAT belongs on any invoice that charges none, filed or
+                  not. A zero VAT line with no explanation reads as an arithmetic slip. */}
+              {data.vatCharged === false ? (
+                <Text style={s.notTax}>{data.vatNotice ?? "No VAT has been charged on this invoice."}</Text>
               ) : null}
               {data.irn ? (
                 <>
@@ -256,6 +266,12 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
               <View style={s.tRow}><Text style={s.tLabel}>Subtotal</Text><Text style={s.tValue}>{ngn(data.subtotal)}</Text></View>
               <View style={s.tRow}><Text style={s.tLabel}>VAT</Text><Text style={s.tValue}>{ngn(data.vat)}</Text></View>
               <View style={s.grandBand}><Text style={s.grandLabel}>TOTAL</Text><Text style={s.grandValue}>{ngn(data.total)}</Text></View>
+              {data.whtExpected && data.whtExpected > 0 ? (
+                <View style={s.tRow}><Text style={s.tLabel}>WHT to deduct</Text><Text style={s.tValue}>{ngn(data.whtExpected)}</Text></View>
+              ) : null}
+              {data.whtExpected && data.whtExpected > 0 ? (
+                <View style={s.tRow}><Text style={s.tLabel}>Net payable</Text><Text style={s.tValue}>{ngn(data.total - data.whtExpected)}</Text></View>
+              ) : null}
               {data.amountPaid > 0 ? <View style={s.tRow}><Text style={s.tLabel}>Amount paid</Text><Text style={s.tValue}>{ngn(data.amountPaid)}</Text></View> : null}
               {data.amountPaid > 0 ? <View style={s.balRow}><Text style={s.balLabel}>Balance due</Text><Text style={s.balValue}>{ngn(data.outstanding)}</Text></View> : null}
             </View>

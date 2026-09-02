@@ -84,8 +84,13 @@ export function resolveRule(rules: TaxRule[], onDate: string): TaxRule | null {
  * a correct total. Exempt lines are excluded from the taxable base entirely; zero-rated lines stay in it
  * at 0%, because they belong in the VAT return even though they carry no tax.
  *
- * WHT is computed on the taxable base rather than the full subtotal. It is informational: the customer
- * deducts it and remits it themselves, so it never changes what we bill.
+ * WHT is computed on the subtotal, not on the VAT taxable base. They are different taxes answering
+ * different questions: VAT asks what kind of supply this is, withholding tax asks what the service was
+ * worth. Basing WHT on the VAT base made an exempt or zero-rated supply report no withholding at all,
+ * and made a document that charges no VAT report none either once `chargeVat` could be false - which
+ * understates what the customer is obliged to deduct and leaves us expecting money that will not
+ * arrive. It stays informational: the customer deducts it and remits it themselves, so it never
+ * changes what we bill.
  */
 export function calculateTax(
   lines: TaxLineInput[],
@@ -135,7 +140,7 @@ export function calculateTax(
     taxableBase: money(taxableBase),
     vat: money(vatTotal),
     total: money(subtotal.plus(vatTotal)),
-    whtExpected: money(taxableBase.times(whtRate)),
+    whtExpected: money(subtotal.times(whtRate)),
     // No rule priced this document when no VAT was charged, and recording one would imply otherwise.
     vatRuleId: chargeVat ? (vatRule?.id ?? null) : null,
     whtRuleId: whtRule?.id ?? null,

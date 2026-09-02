@@ -15,7 +15,8 @@ import { db } from "../../../../../lib/db.js";
 import { fiscalAdapter } from "../../../../../lib/fiscal/provider.js";
 import {
   DOC_META, NRS_LABEL, NRS_STYLE, LIFECYCLE_LABEL, LIFECYCLE_STYLE,
-  PAYMENT_STYLE, BILLING_LABEL, docNumber, naira, paymentStatus, type DocType,
+  PAYMENT_STYLE, BILLING_LABEL, docNumber, naira, paymentStatus, VAT_EXEMPT_LABEL,
+  type DocType, type VatExemptReason,
 } from "../../../../../lib/einvoice.js";
 import { RecordPayment } from "./RecordPayment.js";
 import { requireUuid } from "../../../../../lib/route-params.js";
@@ -34,6 +35,7 @@ interface Doc {
   invoice_percentage: string | null; percentage_previously_billed: string; billing_period: string | null; next_billing_date: string | null; contract_reference: string | null;
   series: string | null; series_no: string | null; fiscal_required: boolean; vat_charged: boolean;
   cancelled_at: string | null; cancel_reason: string | null;
+  vat_exempt_reason: VatExemptReason | null; vat_exempt_note: string | null;
   project_id: string | null; project_display_name: string | null; project_code: string | null;
 }
 
@@ -52,6 +54,7 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
     pool.query<Doc>(
       `SELECT d.doc_type, d.seq::text, d.reason, r.seq::text related_seq,
               d.series, d.series_no::text, d.fiscal_required, d.vat_charged, d.cancelled_at, d.cancel_reason,
+              d.vat_exempt_reason, d.vat_exempt_note,
               d.project_id, d.invoice_percentage::text, pr.name project_display_name, pr.code project_code,
               d.customer_name, d.customer_tin, d.customer_email, d.customer_address,
               d.issue_date::text, d.due_date::text, d.currency, d.payment_terms, d.payment_method,
@@ -139,7 +142,20 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
       {err && msg ? <div className="mt-4 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] px-4 py-2.5 text-[0.84rem] text-[#B91C1C]">{msg}</div> : null}
       {err === "notfiscal" ? <div className="mt-4 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2.5 text-[0.84rem] text-[#B45309]">This is a PDF invoice, not one marked for the NRS. Use “File with the NRS” first if it should be filed.</div> : null}
       {cancelled ? <div className="mt-4 rounded-lg border border-slate-300 bg-slate-100 px-4 py-2.5 text-[0.84rem] text-slate-700">Invoice cancelled.</div> : null}
-      {fiscalised ? <div className="mt-4 rounded-lg border border-[#DDD6FE] bg-[#F8F7FE] px-4 py-2.5 text-[0.84rem] text-[#543CDA]">Marked for NRS submission and renumbered in the fiscal series. If the customer already has the old number, re-issue the invoice or raise a credit note against it.</div> : null}
+      {fiscalised ? <div className="mt-4 rounded-lg border border-[#DDD6FE] bg-[#F8F7FE] px-4 py-2.5 text-[0.84rem] text-[#543CDA]">Marked for NRS submission. The invoice number is unchanged, so nothing needs re-issuing.</div> : null}
+      {!d.vat_charged && d.doc_type === "Invoice" ? (
+        <div className="mt-4 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2.5 text-[0.84rem] text-[#B45309]">
+          <b>No VAT charged.</b>{" "}
+          {d.vat_exempt_reason ? VAT_EXEMPT_LABEL[d.vat_exempt_reason] : "No basis was recorded."}
+          {d.vat_exempt_note ? ` — ${d.vat_exempt_note}` : ""}
+        </div>
+      ) : null}
+      {d.vat_charged && !d.fiscal_required && d.doc_type === "Invoice" && !isCancelled ? (
+        <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-[0.82rem] text-slate-600">
+          VAT was charged on this invoice and it has not been filed. The tax still has to be accounted for; it is listed under{" "}
+          <a href="/e-invoicing/vat-to-account" className="font-600 text-[#543CDA] hover:underline">VAT to account for</a>.
+        </div>
+      ) : null}
       {paid ? <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-[0.84rem] text-green-700">Payment recorded.</div> : null}
       {sent ? <div className="mt-4 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-4 py-2.5 text-[0.84rem] text-[#1D4ED8]">Logged delivery: {sent}.</div> : null}
 

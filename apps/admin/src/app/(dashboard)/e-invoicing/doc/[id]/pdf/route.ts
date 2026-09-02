@@ -14,7 +14,9 @@
 import type { NextRequest } from "next/server";
 import { db } from "../../../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../../../lib/fiscal/permissions.js";
-import { DOC_META, docNumber, type DocType } from "../../../../../../lib/einvoice.js";
+import { DOC_META, docNumber, VAT_EXEMPT_NOTICE, type DocType, type VatExemptReason } from "../../../../../../lib/einvoice.js";
+import { rulesForDate } from "../../../../../../lib/fiscal/rules.js";
+import { calculateTax } from "../../../../../../lib/fiscal/tax-engine.js";
 import { renderEinvoicePdf } from "../../../../../../lib/pdf/einvoice-pdf.js";
 
 export const runtime = "nodejs";
@@ -23,6 +25,7 @@ export const dynamic = "force-dynamic";
 interface Doc {
   doc_type: DocType; seq: string; nrs_status: string; issue_date: string; due_date: string | null;
   series: string | null; series_no: string | null; fiscal_required: boolean; vat_charged: boolean;
+  vat_exempt_reason: VatExemptReason | null; vat_exempt_note: string | null;
   lifecycle_status: string; cancelled_at: string | null;
   project_name: string | null; invoice_percentage: string | null;
   customer_name: string; customer_tin: string | null; customer_email: string | null; customer_address: string | null;
@@ -39,7 +42,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const doc = (await pool.query<Doc>(
     `SELECT doc_type, seq::text, nrs_status, issue_date::text, due_date::text, customer_name, customer_tin, customer_email,
             customer_address, subtotal::text, vat::text, total::text, amount_paid::text, payment_terms, irn, qr_data, environment,
-            series, series_no::text, fiscal_required, vat_charged, lifecycle_status, cancelled_at,
+            series, series_no::text, fiscal_required, vat_charged, vat_exempt_reason, vat_exempt_note,
+            lifecycle_status, cancelled_at,
             project_name, invoice_percentage::text
        FROM einvoice WHERE id=$1`, [id])).rows[0];
   if (!doc) return new Response("Not found", { status: 404 });
@@ -54,6 +58,27 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     "SELECT description, quantity::text, unit_price::text, line_total::text, vat_applicable FROM einvoice_line WHERE einvoice_id=$1 ORDER BY sort", [id])).rows;
 
   const total = Number(doc.total), paid = Number(doc.amount_paid);
+
+  // Withholding tax is what the customer deducts and remits themselves. It never changes what we
+  // bill, but it changes what lands in the bank, so it is stated rather than left for them to work
+  // out. Recomputed from the same dated rules that priced the document.
+  const { vat: vatRule, wht: whtRule } = await rulesForDate(doc.issue_date);
+  const wht = whtRule
+    ? Number(
+        calculateTax(
+          lines.map((l) => ({
+            description: l.description,
+            quantity: l.quantity,
+            unitPrice: l.unit_price,
+            treatment: l.vat_applicable ? ("Standard" as const) : ("Exempt" as const),
+          })),
+          vatRule,
+          whtRule,
+          { chargeVat: doc.vat_charged },
+        ).whtExpected,
+      )
+    : 0;
+
   const pdf = await renderEinvoicePdf({
     // "Tax Invoice" is reserved for a document the NRS has actually accepted.
     docLabel:
@@ -68,6 +93,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     cancelled: Boolean(doc.cancelled_at),
     projectName: doc.project_name,
     invoicePercentage: doc.invoice_percentage,
+    vatNotice: doc.vat_charged
+      ? null
+      : [doc.vat_exempt_reason ? VAT_EXEMPT_NOTICE[doc.vat_exempt_reason] : "No VAT has been charged on this invoice.",
+         doc.vat_exempt_note].filter(Boolean).join(" "),
+    whtExpected: wht,
     issueDate: doc.issue_date, dueDate: doc.due_date,
     irn: doc.irn, qrData: doc.qr_data, environment: doc.environment,
     customer: { name: doc.customer_name, tin: doc.customer_tin, email: doc.customer_email, address: doc.customer_address },

@@ -21,7 +21,6 @@ import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
 import { isPositive, subtractMoney } from "../../../../lib/projects.js";
-import { nextSeriesNumber } from "../../../../lib/projects-server.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -153,19 +152,17 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.redirect(new URL(`${back.pathname}?paid=1`, request.url), { status: 303 });
   }
 
-  // Turn an ordinary PDF invoice into one destined for the NRS.
+  // Mark an invoice as one to be filed with the NRS.
   //
-  // It takes a number in the fiscal series at this point rather than at creation, which is what
-  // keeps that series gapless: invoices that are never filed never consume a fiscal number. The
-  // consequence is that the document's number changes, and the customer may already be holding the
-  // old one. That is why this is a deliberate action with a warning on it rather than a checkbox
-  // somebody flips: whether a re-numbered invoice needs re-issuing, or a credit note against the
-  // first, is an accounting decision and not one this code should make quietly.
+  // It does not renumber. An earlier version moved the document into a separate fiscal series at
+  // this point, which changed the number on a document the customer was already holding and turned
+  // one debt into two references for it. Invoices share one series assigned at creation; filing
+  // adds an IRN and renames nothing, so there is no re-issue and no credit note to consider.
   if (action === "fiscalise") {
     if (doc.cancelled_at) return fail("cancelled", "A cancelled invoice cannot be filed.");
     const current = (
-      await pool.query<{ fiscal_required: boolean; series: string | null; series_no: string | null }>(
-        "SELECT fiscal_required, series, series_no::text FROM einvoice WHERE id=$1",
+      await pool.query<{ fiscal_required: boolean }>(
+        "SELECT fiscal_required FROM einvoice WHERE id=$1",
         [id],
       )
     ).rows[0]!;
@@ -173,32 +170,14 @@ export async function POST(request: NextRequest): Promise<Response> {
       return fail("already", "This invoice is already marked for NRS submission.");
     }
 
-    const client = await pool.connect();
-    let newNo: string;
-    try {
-      await client.query("BEGIN");
-      newNo = await nextSeriesNumber(client, "INV");
-      await client.query(
-        "UPDATE einvoice SET fiscal_required=true, series='INV', series_no=$1::bigint, updated_at=now() WHERE id=$2",
-        [newNo, id],
-      );
-      await client.query("COMMIT");
-    } catch (error) {
-      await client.query("ROLLBACK").catch(() => undefined);
-      throw error;
-    } finally {
-      client.release();
-    }
-
+    await pool.query(
+      "UPDATE einvoice SET fiscal_required=true, updated_at=now() WHERE id=$1",
+      [id],
+    );
     await pool
       .query(
         "INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'einvoice-fiscalise','einvoice',$2,$3::jsonb,$4::jsonb)",
-        [
-          staff.id,
-          id,
-          JSON.stringify({ fiscal_required: false, series: current.series, series_no: current.series_no }),
-          JSON.stringify({ fiscal_required: true, series: "INV", series_no: newNo }),
-        ],
+        [staff.id, id, JSON.stringify({ fiscal_required: false }), JSON.stringify({ fiscal_required: true })],
       )
       .catch(() => undefined);
     return NextResponse.redirect(new URL(`${back.pathname}?fiscalised=1`, request.url), {

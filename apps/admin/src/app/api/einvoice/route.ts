@@ -8,12 +8,12 @@
  *
  * **Whether the document is ever meant for the NRS.** `fiscal_required` is the flag; an invoice
  * without it is an ordinary PDF invoice that is issued, sent, paid and reported like any other and
- * never appears in a submission queue. It also picks the display series, so the fiscal numbering
- * and the ordinary numbering count separately and neither leaves gaps in the other.
+ * never appears in a submission queue. It does not affect the number: every invoice takes the next
+ * one in a single series at creation and keeps it, so filing later adds an IRN and renames nothing.
  *
  * **Whether VAT is charged at all.** Separate from the per-line treatment, which says what kind of
  * supply a line is. A missing rate still refuses to price a VAT-charging document; choosing not to
- * charge is recorded on the document instead of being disguised as a missing rule.
+ * charge is recorded on the document, with the reason, instead of being disguised as a missing rule.
  *
  * **What a percentage of a project comes to.** When an invoice bills a percentage of a project, the
  * amount is computed here from the project's contract value and never read from the form, and the
@@ -27,8 +27,8 @@ import { getFiscalStaff } from "../../../lib/fiscal/permissions.js";
 import Decimal from "decimal.js";
 import { calculateTax, type TaxLineInput } from "../../../lib/fiscal/tax-engine.js";
 import { rulesForDate } from "../../../lib/fiscal/rules.js";
-import { DOC_META, seriesFor } from "../../../lib/einvoice.js";
-import type { DocType } from "../../../lib/einvoice.js";
+import { DOC_META, seriesFor, VAT_EXEMPT_REASONS } from "../../../lib/einvoice.js";
+import type { DocType, VatExemptReason } from "../../../lib/einvoice.js";
 import { isPercentageProblem, percentageBilling } from "../../../lib/projects.js";
 import { nextSeriesNumber, percentAlreadyBilled } from "../../../lib/projects-server.js";
 
@@ -70,6 +70,15 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Fiscalisation and VAT are both opt-in decisions recorded on the document.
   const fiscalRequired = docType !== "Invoice" || String(f.get("fiscal_required") ?? "") === "on";
   const chargeVat = String(f.get("vat_charged") ?? "") === "on";
+  // Not charging VAT is a tax position, and one nobody wrote down is one nobody can defend later.
+  // The reason is a category rather than free text so it can be totalled and reviewed; the note is
+  // where the particulars go.
+  const reasonRaw = String(f.get("vat_exempt_reason") ?? "").trim();
+  const vatExemptReason: VatExemptReason | null =
+    !chargeVat && (VAT_EXEMPT_REASONS as readonly string[]).includes(reasonRaw)
+      ? (reasonRaw as VatExemptReason)
+      : null;
+  const vatExemptNote = String(f.get("vat_exempt_note") ?? "").trim() || null;
 
   // A project, when one is attached, supplies the customer details and the contract value.
   let project: ProjectRow | null = null;
@@ -88,6 +97,13 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const customerName = String(f.get("customer_name") ?? "").trim() || project?.customer_name || "";
   if (!customerName) return bail("customer");
+
+  if (docType === "Invoice" && !chargeVat && !vatExemptReason) {
+    return bail("vatreason", "Say why no VAT is being charged on this invoice.");
+  }
+  if (vatExemptReason === "Other" && !vatExemptNote) {
+    return bail("vatreason", "Explain the basis for not charging VAT.");
+  }
 
   // Percentage billing prices itself from the project; every other basis prices from typed lines.
   const percentageMode = billingType === "Percentage" && project !== null;
@@ -155,7 +171,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
   };
 
-  const series = seriesFor(docType, fiscalRequired);
+  const series = seriesFor(docType);
   const client = await pool.connect();
   let docId: string;
   try {
@@ -167,9 +183,9 @@ export async function POST(request: NextRequest): Promise<Response> {
             issue_date, due_date, payment_terms, payment_method, subtotal, vat, total, environment, vat_rule_id,
             billing_type, project_name, project_value, milestone_name, milestone_amount,
             invoice_percentage, percentage_previously_billed, billing_period, next_billing_date, contract_reference,
-            project_id, milestone_id, client_id, fiscal_required, vat_charged, series, series_no, created_by)
+            project_id, milestone_id, client_id, fiscal_required, vat_charged, vat_exempt_reason, vat_exempt_note, series, series_no, created_by)
          VALUES ($1,$2,$3,$4,$5,$6,$7, COALESCE($8::date, current_date), $9,$10,$11,$12,$13,$14,$15,$16,
-            $17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34) RETURNING id`,
+            $17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36) RETURNING id`,
         [
           docType,
           docType === "Invoice" ? null : relatedId,
@@ -200,6 +216,8 @@ export async function POST(request: NextRequest): Promise<Response> {
           project?.client_id ?? null,
           fiscalRequired,
           chargeVat,
+          vatExemptReason,
+          vatExemptNote,
           series,
           seriesNo,
           staff.id,
@@ -238,7 +256,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   await pool.query(
     "INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'einvoice-created','einvoice',$2,NULL,$3::jsonb)",
-    [staff.id, docId, JSON.stringify({ docType, total: t.total, series, fiscalRequired, chargeVat, projectId })]).catch(() => undefined);
+    [staff.id, docId, JSON.stringify({ docType, total: t.total, series, fiscalRequired, chargeVat, vatExemptReason, projectId })]).catch(() => undefined);
 
   return NextResponse.redirect(new URL(`/e-invoicing/doc/${docId}`, request.url), { status: 303 });
 }

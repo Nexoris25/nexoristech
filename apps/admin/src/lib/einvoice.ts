@@ -96,15 +96,46 @@ export function docNumber(
 /**
  * Which display series a document belongs to.
  *
- * An invoice that is meant for the NRS takes the fiscal series; one that is not takes its own. The
- * two are separate counts so that neither leaves gaps in the other, which matters for a fiscal
- * series and is merely tidy for the rest.
+ * Invoices share one series whether or not they are filed with the NRS. An earlier design gave
+ * unfiled invoices their own series and moved them across when they were filed, which meant a
+ * document the customer was already holding changed its number. A number is the handle everyone
+ * uses to refer to a transaction, so it is assigned once and never reassigned; filing adds an IRN
+ * and renames nothing.
+ *
+ * Credit and debit notes count separately. They are different instruments, not invoices.
  */
-export function seriesFor(docType: DocType, fiscalRequired: boolean): string {
+export function seriesFor(docType: DocType): string {
   if (docType === "CreditNote") return "CRN";
   if (docType === "DebitNote") return "DBN";
-  return fiscalRequired ? "INV" : "NX";
+  return "INV";
 }
+
+/** Why VAT was not charged. A tax position nobody wrote down is one nobody can defend. */
+export const VAT_EXEMPT_REASONS = [
+  "ZeroRatedExport",
+  "ExemptSupply",
+  "NotRegistered",
+  "CustomerExempt",
+  "Other",
+] as const;
+export type VatExemptReason = (typeof VAT_EXEMPT_REASONS)[number];
+
+export const VAT_EXEMPT_LABEL: Record<VatExemptReason, string> = {
+  ZeroRatedExport: "Zero-rated: supplied to a customer outside Nigeria",
+  ExemptSupply: "Exempt supply",
+  NotRegistered: "Not VAT-registered for this supply",
+  CustomerExempt: "Customer holds an exemption",
+  Other: "Other (explained below)",
+};
+
+/** The short form printed on the invoice itself, addressed to the customer. */
+export const VAT_EXEMPT_NOTICE: Record<VatExemptReason, string> = {
+  ZeroRatedExport: "No VAT charged: this supply is zero-rated as an export of services.",
+  ExemptSupply: "No VAT charged: this supply is exempt from VAT.",
+  NotRegistered: "No VAT charged: the supplier is not VAT-registered for this supply.",
+  CustomerExempt: "No VAT charged: the customer holds a VAT exemption.",
+  Other: "No VAT charged on this invoice.",
+};
 
 export function naira(v: string | number, decimals = 2): string {
   return `₦${Number(v).toLocaleString("en-NG", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
