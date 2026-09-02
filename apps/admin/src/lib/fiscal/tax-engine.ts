@@ -91,8 +91,15 @@ export function calculateTax(
   lines: TaxLineInput[],
   vatRule: TaxRule | null,
   whtRule: TaxRule | null,
+  options: { chargeVat?: boolean } = {},
 ): TaxCalculation {
-  const vatRate = vatRule ? new Decimal(vatRule.rate).div(100) : new Decimal(0);
+  // `chargeVat: false` is the issuer deciding this document charges no VAT. It is not the same as a
+  // missing rule, which means we could not resolve a rate and must refuse to price. Passing a null
+  // rule to mean "no VAT" would collapse those two into one silent zero, so the decision is explicit
+  // and the per-line treatment is left alone: the line still records what kind of supply it is.
+  const chargeVat = options.chargeVat !== false;
+  const vatRate =
+    chargeVat && vatRule ? new Decimal(vatRule.rate).div(100) : new Decimal(0);
   const whtRate = whtRule ? new Decimal(whtRule.rate).div(100) : new Decimal(0);
 
   let subtotal = new Decimal(0);
@@ -105,8 +112,9 @@ export function calculateTax(
       const lineTotal = new Decimal(l.quantity || 0).times(l.unitPrice || 0);
       subtotal = subtotal.plus(lineTotal);
 
-      // Exempt supplies are outside the VAT system, so they never enter the base.
-      const inBase = l.treatment !== "Exempt";
+      // Exempt supplies are outside the VAT system, so they never enter the base. A document that
+      // charges no VAT contributes nothing to the base either, so it stays out of the VAT return.
+      const inBase = chargeVat && l.treatment !== "Exempt";
       if (inBase) taxableBase = taxableBase.plus(lineTotal);
 
       // Zero-rated is taxable at 0%: in the base, no tax charged.
@@ -128,7 +136,8 @@ export function calculateTax(
     vat: money(vatTotal),
     total: money(subtotal.plus(vatTotal)),
     whtExpected: money(taxableBase.times(whtRate)),
-    vatRuleId: vatRule?.id ?? null,
+    // No rule priced this document when no VAT was charged, and recording one would imply otherwise.
+    vatRuleId: chargeVat ? (vatRule?.id ?? null) : null,
     whtRuleId: whtRule?.id ?? null,
   };
 }

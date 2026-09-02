@@ -2,10 +2,17 @@
  * The official NRS tax-invoice PDF (self-contained, so the CRM Document Engine stays untouched). Runs
  * server-side in the Node runtime. Premium monospace layout set in JetBrains Mono - which aligns
  * figures beautifully in tabular columns - with the full legal letterhead (logo, legal name, RC, TIN,
- * registered address, phone, email, website), the NRS IRN and QR, a spacious items table, the tax
- * breakdown, and payment instructions. Only ever generated for an NRS-accepted document. Uses "NGN "
- * (the embedded font has no naira glyph) and never a literal newline inside a single Text, per the
- * engine's known @react-pdf constraints.
+ * registered address, phone, email, website), a spacious items table, the tax breakdown, and payment
+ * instructions.
+ *
+ * It serves two documents, and the difference between them is stated on the page rather than left to
+ * be inferred. A document the NRS has accepted is headed "Tax Invoice" and prints its IRN and
+ * verification reference. One that has not is headed "Invoice" and says in as many words that it is
+ * not a tax invoice, so the two can never be mistaken for one another. An invoice that charges no
+ * VAT says that too, rather than showing a silent zero that reads like an arithmetic slip.
+ *
+ * Uses "NGN " (the embedded font has no naira glyph) and never a literal newline inside a single
+ * Text, per the engine's known @react-pdf constraints.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,6 +25,13 @@ export interface EinvoicePdfData {
   dueDate: string | null;
   irn: string | null;
   qrData: string | null;
+  /** Whether the NRS has accepted this document. Only then may it call itself a tax invoice. */
+  isTaxInvoice?: boolean;
+  /** Whether VAT was charged. When it was not, the invoice says so rather than showing a silent 0. */
+  vatCharged?: boolean;
+  cancelled?: boolean;
+  projectName?: string | null;
+  invoicePercentage?: string | null;
   environment: string;
   customer: { name: string; tin: string | null; email: string | null; address: string | null };
   lines: { description: string; quantity: number; unitPrice: number; lineTotal: number; vatApplicable: boolean }[];
@@ -103,6 +117,15 @@ const s = StyleSheet.create({
   irnBox: { width: 232 },
   irnValue: { fontSize: 8.5, fontWeight: 700, color: INK, marginTop: 2 },
   qrCaption: { fontSize: 6.5, color: FAINT, marginTop: 6, lineHeight: 1.4 },
+  // A plain statement of what this document is not, so it can never be taken for a filed tax
+  // invoice. Small, but present on every page it belongs on.
+  notTax: { fontSize: 7, color: FAINT, marginTop: 5, lineHeight: 1.4 },
+  voided: {
+    marginTop: 10, borderWidth: 1, borderColor: "#B91C1C", borderRadius: 4,
+    paddingVertical: 6, paddingHorizontal: 10,
+  },
+  voidedText: { fontSize: 9, fontWeight: 700, color: "#B91C1C", letterSpacing: 1 },
+  projMeta: { fontSize: 7.5, color: FAINT, marginTop: 4, lineHeight: 1.4 },
 
   totals: { width: 210 },
   tRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3.5 },
@@ -128,7 +151,7 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
     c.rcNumber ? `RC ${c.rcNumber}` : null,
     c.tin ? `TIN ${c.tin}` : null,
   ].filter(Boolean).join("   ");
-  const contact = [c.phone, c.email, c.website].filter(Boolean).join("   ·   ");
+  const contact = [c.phone, c.email, c.website].filter(Boolean).join("   |   ");
   return (
     <Document>
       <Page size="A4" style={s.page}>
@@ -151,10 +174,23 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
               <Text style={s.numStrong}>{data.number}</Text>
               <Text style={s.numMeta}>Issued  {fmtDate(data.issueDate)}</Text>
               {data.dueDate ? <Text style={s.numMeta}>Due     {fmtDate(data.dueDate)}</Text> : null}
+              {data.projectName ? (
+                <Text style={s.projMeta}>
+                  {data.invoicePercentage
+                    ? `${Number(data.invoicePercentage).toFixed(2)}% of ${data.projectName}`
+                    : data.projectName}
+                </Text>
+              ) : null}
             </View>
           </View>
 
           <View style={s.divider} />
+
+          {data.cancelled ? (
+            <View style={s.voided}>
+              <Text style={s.voidedText}>CANCELLED — THIS INVOICE IS NOT PAYABLE</Text>
+            </View>
+          ) : null}
 
           {/* Bill to */}
           <View style={s.billRow}>
@@ -165,10 +201,15 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
               {data.customer.address ? <Text style={s.billLine}>{data.customer.address}</Text> : null}
               {data.customer.email ? <Text style={s.billLine}>{data.customer.email}</Text> : null}
             </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={s.label}>ENVIRONMENT</Text>
-              <Text style={s.envPill}>{data.environment === "production" ? "PRODUCTION" : "SANDBOX"}</Text>
-            </View>
+            {/* Which NRS environment a document was filed against is a fact about filing, and it
+                means nothing on an invoice that was never filed. Printing SANDBOX on a document a
+                client is asked to pay reads as a test that escaped. */}
+            {data.isTaxInvoice ? (
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={s.label}>ENVIRONMENT</Text>
+                <Text style={s.envPill}>{data.environment === "production" ? "PRODUCTION" : "SANDBOX"}</Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Items */}
@@ -190,6 +231,18 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
           {/* IRN/QR + totals */}
           <View style={s.lower}>
             <View style={s.irnBox}>
+              {!data.isTaxInvoice ? (
+                <>
+                  <Text style={s.label}>DOCUMENT TYPE</Text>
+                  <Text style={s.notTax}>
+                    This is not a tax invoice. It has not been filed with the Nigeria Revenue Service
+                    and carries no IRN.
+                  </Text>
+                  {data.vatCharged === false ? (
+                    <Text style={s.notTax}>No VAT has been charged on this invoice.</Text>
+                  ) : null}
+                </>
+              ) : null}
               {data.irn ? (
                 <>
                   <Text style={s.label}>NRS IRN</Text>
@@ -220,8 +273,15 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
 
         {/* Footer */}
         <View style={s.footer} fixed>
-          <Text style={s.footText}>{c.legalName}{c.rcNumber ? `   ·   RC ${c.rcNumber}` : ""}{c.tin ? `   ·   TIN ${c.tin}` : ""}</Text>
-          <Text style={s.footText}>Official tax invoice generated under the Nigeria Revenue Service e-Invoicing framework.</Text>
+          <Text style={s.footText}>{c.legalName}{c.rcNumber ? `   |   RC ${c.rcNumber}` : ""}{c.tin ? `   |   TIN ${c.tin}` : ""}</Text>
+          {/* The footer has to agree with the document. It used to claim every invoice was an
+              official tax invoice, which on an unfiled one contradicted the notice a few lines
+              above it and was the more prominent of the two. */}
+          <Text style={s.footText}>
+            {data.isTaxInvoice
+              ? "Official tax invoice generated under the Nigeria Revenue Service e-Invoicing framework."
+              : "This document is an invoice for payment. It is not a tax invoice and has not been filed with the Nigeria Revenue Service."}
+          </Text>
         </View>
       </Page>
     </Document>

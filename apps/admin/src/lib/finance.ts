@@ -91,3 +91,26 @@ export function isOverdue(status: string, dueDate: string | null, amountPaid: nu
   if (amountPaid >= total) return false;
   return new Date(dueDate) < new Date(new Date().toDateString());
 }
+
+/**
+ * What counts as money a customer owes us.
+ *
+ * One definition, shared by every screen that reports a receivable, because three copies of a
+ * slightly different WHERE clause is how a dashboard and a report end up disagreeing about the same
+ * number.
+ *
+ * It deliberately says nothing about `nrs_status`. Whether a document reached the tax authority is a
+ * compliance question; whether the customer owes us money is not. Filtering receivables on
+ * `nrs_status='Accepted'`, as these screens used to, meant an ordinary PDF invoice was never a debt
+ * and the figure understated what was owed by however much had not been fiscalised.
+ *
+ * What it does require: an invoice (not a credit or debit note), issued to the customer rather than
+ * still a draft, not cancelled, and not yet settled.
+ */
+export const RECEIVABLE_SQL = `doc_type = 'Invoice'
+  AND cancelled_at IS NULL
+  AND lifecycle_status IN ('ReadyToSend', 'SentToCustomer', 'Viewed', 'Closed')
+  AND amount_paid < total`;
+
+/** Revenue recognised: money actually received, on documents that still stand. */
+export const RECOGNISED_REVENUE_SQL = `e.doc_type = 'Invoice' AND e.cancelled_at IS NULL`;

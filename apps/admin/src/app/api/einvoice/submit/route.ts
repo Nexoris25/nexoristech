@@ -26,7 +26,7 @@ import { enqueueSubmission } from "../../../../lib/fiscal/queue.js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface DocRow { id: string; doc_type: string; nrs_status: string; lifecycle_status: string }
+interface DocRow { id: string; doc_type: string; nrs_status: string; lifecycle_status: string; fiscal_required: boolean; cancelled_at: string | null }
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getFiscalStaff("INVOICE_SUBMIT");
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const pool = db();
   const doc = (await pool.query<DocRow>(
-    "SELECT id, doc_type, nrs_status, lifecycle_status FROM einvoice WHERE id=$1", [id])).rows[0];
+    "SELECT id, doc_type, nrs_status, lifecycle_status, fiscal_required, cancelled_at FROM einvoice WHERE id=$1", [id])).rows[0];
   if (!doc) return NextResponse.redirect(back, { status: 303 });
 
   // Cancel is a commercial (lifecycle) action - it closes the document and never touches NRS status.
@@ -46,6 +46,16 @@ export async function POST(request: NextRequest): Promise<Response> {
     await pool.query("UPDATE einvoice SET lifecycle_status='Closed', updated_at=now() WHERE id=$1", [id]);
     await pool.query("INSERT INTO einvoice_event (einvoice_id, kind, summary, ok) VALUES ($1,'cancel','Document closed',true)", [id]);
     return NextResponse.redirect(back, { status: 303 });
+  }
+
+  // Submitting is opt-in. An invoice raised as an ordinary PDF invoice is not a document anybody
+  // asked to file, and sending one to the tax authority because a button was available would be a
+  // filing nobody decided to make. Converting it is a deliberate, separate action.
+  if (!doc.fiscal_required) {
+    return NextResponse.redirect(new URL(`${back.pathname}?err=notfiscal`, request.url), { status: 303 });
+  }
+  if (doc.cancelled_at) {
+    return NextResponse.redirect(new URL(`${back.pathname}?err=cancelled`, request.url), { status: 303 });
   }
 
   // Submit or retry: only from a non-final NRS state, and only NRS status is ever changed here.

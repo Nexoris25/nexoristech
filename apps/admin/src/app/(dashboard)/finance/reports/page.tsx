@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 import { requireCapability } from "../../../../lib/auth.js";
 import { db } from "../../../../lib/db.js";
-import { naira } from "../../../../lib/finance.js";
+import { naira, RECEIVABLE_SQL } from "../../../../lib/finance.js";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function ReportsPage(): Promise<ReactNode> {
   await requireCapability("finance.report");
   const year = new Date().getFullYear();
   const pool = db();
-  const [{ rows: income }, { rows: expense }, { rows: months }, { rows: pos }] = await Promise.all([
+  const [{ rows: income }, { rows: expense }, { rows: months }, { rows: pos }, { rows: byProject }] = await Promise.all([
     pool.query<Cat>(
       `SELECT COALESCE(e.billing_type,'OneOff') label, sum(p.amount)::text total
          FROM einvoice_payment p JOIN einvoice e ON e.id=p.einvoice_id
@@ -48,9 +48,19 @@ export default async function ReportsPage(): Promise<ReactNode> {
               COALESCE((SELECT sum(amount) FROM expense e WHERE extract(year FROM e.expense_date)=$1 AND extract(month FROM e.expense_date)=m.n),0)::text expense
          FROM m ORDER BY m.n`, [year]),
     pool.query<{ receivables: string; overdue_recv: string; payables: string }>(
-      `SELECT (SELECT COALESCE(sum(total-amount_paid),0) FROM einvoice WHERE doc_type='Invoice' AND nrs_status='Accepted' AND amount_paid < total AND lifecycle_status <> 'Closed')::text receivables,
-              (SELECT COALESCE(sum(total-amount_paid),0) FROM einvoice WHERE doc_type='Invoice' AND nrs_status='Accepted' AND amount_paid < total AND lifecycle_status <> 'Closed' AND due_date IS NOT NULL AND due_date < current_date)::text overdue_recv,
+      `SELECT (SELECT COALESCE(sum(total-amount_paid),0) FROM einvoice WHERE ${RECEIVABLE_SQL})::text receivables,
+              (SELECT COALESCE(sum(total-amount_paid),0) FROM einvoice WHERE ${RECEIVABLE_SQL} AND due_date IS NOT NULL AND due_date < current_date)::text overdue_recv,
               (SELECT COALESCE(sum(amount),0) FROM expense WHERE status='Unpaid')::text payables`),
+    // Revenue by project: payments received, joined through the invoices that point at a project.
+    // Cancelled invoices are excluded, and NRS status is not consulted — a payment is a payment
+    // whether or not the document behind it was ever filed.
+    pool.query<Cat>(
+      `SELECT pr.name label, sum(pay.amount)::text total
+         FROM einvoice_payment pay
+         JOIN einvoice e ON e.id = pay.einvoice_id
+         JOIN project pr ON pr.id = e.project_id
+        WHERE extract(year FROM pay.payment_date)=$1 AND e.cancelled_at IS NULL
+        GROUP BY pr.name ORDER BY sum(pay.amount) DESC LIMIT 12`, [year]),
   ]);
   const p = pos[0]!;
   const totalIncome = income.reduce((t, r) => t + Number(r.total), 0);
@@ -69,6 +79,11 @@ export default async function ReportsPage(): Promise<ReactNode> {
           <div className="flex items-center justify-between"><h2 className="text-[0.95rem] font-700 text-slate-900">Income Report</h2><span className="font-mono text-[0.85rem] font-700 text-[#15803D]">{naira(totalIncome)}</span></div>
           <p className="text-[0.76rem] text-slate-500">By engagement type · Recurring and Project kept separate</p>
           {income.length ? <Bars rows={income} color="#16A34A" /> : <p className="mt-3 text-[0.82rem] text-slate-500">No income recorded this year.</p>}
+        </section>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
+          <div className="flex items-center justify-between"><h2 className="text-[0.95rem] font-700 text-slate-900">Revenue by Project</h2><span className="font-mono text-[0.85rem] font-700 text-[#543CDA]">{naira(byProject.reduce((t, r) => t + Number(r.total), 0))}</span></div>
+          <p className="text-[0.76rem] text-slate-500">Payments received against each project this year</p>
+          {byProject.length ? <Bars rows={byProject} color="#543CDA" /> : <p className="mt-3 text-[0.82rem] text-slate-500">No project payments recorded this year.</p>}
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
           <div className="flex items-center justify-between"><h2 className="text-[0.95rem] font-700 text-slate-900">Expense Report</h2><span className="font-mono text-[0.85rem] font-700 text-[#B91C1C]">{naira(totalExpense)}</span></div>

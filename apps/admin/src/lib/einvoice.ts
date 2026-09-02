@@ -45,6 +45,7 @@ export const NRS_STYLE: Record<string, string> = {
 export const PAYMENT_STYLE: Record<string, string> = {
   Unpaid: "bg-slate-100 text-slate-600", "Partially Paid": "bg-[#FEF3C7] text-[#B45309]",
   Paid: "bg-[#DCFCE7] text-[#15803D]", Overdue: "bg-[#FEE2E2] text-[#B91C1C]",
+  Cancelled: "bg-slate-200 text-slate-500 line-through",
 };
 export const PAYMENT_METHODS = ["Bank Transfer", "Cash", "POS", "Card", "Cheque", "Other"] as const;
 
@@ -53,16 +54,56 @@ export const BILLING_LABEL: Record<string, string> = {
   Retainer: "Monthly Retainer", CustomSchedule: "Custom Payment Schedule",
 };
 
-/** Payment status, derived from what has been paid against the total and the due date. Never stored. */
-export function paymentStatus(total: number, paid: number, dueDate: string | null): string {
+/**
+ * Payment status, derived from what has been paid against the total and the due date. Never stored.
+ *
+ * Cancelled comes first and outranks everything: a cancelled invoice is not overdue, not unpaid and
+ * not a debt, and showing it as any of those would put money in the receivables that nobody owes.
+ */
+export function paymentStatus(
+  total: number,
+  paid: number,
+  dueDate: string | null,
+  cancelled = false,
+): string {
+  if (cancelled) return "Cancelled";
   if (paid >= total && total > 0) return "Paid";
   if (paid > 0) return "Partially Paid";
   if (dueDate && new Date(dueDate) < new Date(new Date().toDateString())) return "Overdue";
   return "Unpaid";
 }
 
-export function docNumber(docType: DocType, seq: string | number): string {
+/**
+ * The number a customer reads.
+ *
+ * `series`/`series_no` are the display numbering and each series counts on its own, so a fiscal
+ * invoice series can run gapless while ordinary PDF invoices run on theirs. `seq` remains the one
+ * internal identity across every document and is the fallback for anything raised before the
+ * series columns existed.
+ */
+export function docNumber(
+  docType: DocType,
+  seq: string | number,
+  series?: string | null,
+  seriesNo?: string | number | null,
+): string {
+  if (series && seriesNo !== null && seriesNo !== undefined && String(seriesNo).length > 0) {
+    return `${series}-${String(seriesNo).padStart(5, "0")}`;
+  }
   return `${DOC_META[docType].prefix}-${String(seq).padStart(5, "0")}`;
+}
+
+/**
+ * Which display series a document belongs to.
+ *
+ * An invoice that is meant for the NRS takes the fiscal series; one that is not takes its own. The
+ * two are separate counts so that neither leaves gaps in the other, which matters for a fiscal
+ * series and is merely tidy for the rest.
+ */
+export function seriesFor(docType: DocType, fiscalRequired: boolean): string {
+  if (docType === "CreditNote") return "CRN";
+  if (docType === "DebitNote") return "DBN";
+  return fiscalRequired ? "INV" : "NX";
 }
 
 export function naira(v: string | number, decimals = 2): string {

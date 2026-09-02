@@ -15,7 +15,12 @@ import { docNumber, naira, paymentStatus, PAYMENT_STYLE } from "../../../../lib/
 
 type Bucket = "ready" | "submitted" | "accepted" | "rejected";
 const BUCKET_WHERE: Record<Bucket, string> = {
-  ready: "nrs_status='NotSubmitted' AND lifecycle_status NOT IN ('Draft','Closed')",
+  // Only documents actually meant for the NRS queue for submission. An ordinary PDF invoice also
+  // sits at nrs_status='NotSubmitted' forever, and without `fiscal_required` this list would read
+  // as a backlog of overdue compliance work made entirely of invoices nobody intended to file.
+  // Cancelled documents are not owed to anyone either.
+  ready:
+    "fiscal_required AND cancelled_at IS NULL AND nrs_status='NotSubmitted' AND lifecycle_status NOT IN ('Draft','Closed')",
   submitted: "nrs_status='Submitting'",
   accepted: "nrs_status='Accepted'",
   rejected: "nrs_status='Rejected'",

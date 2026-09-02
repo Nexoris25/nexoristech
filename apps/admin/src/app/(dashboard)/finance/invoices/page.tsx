@@ -13,14 +13,16 @@ import { LIFECYCLE_LABEL, LIFECYCLE_STYLE, NRS_LABEL, NRS_STYLE, PAYMENT_STYLE, 
 
 export const dynamic = "force-dynamic";
 
-interface Row { id: string; seq: string; customer_name: string; issue_date: string; due_date: string | null; total: string; amount_paid: string; lifecycle_status: string; nrs_status: string }
+interface Row { id: string; seq: string; customer_name: string; issue_date: string; due_date: string | null; total: string; amount_paid: string; lifecycle_status: string; nrs_status: string; series: string | null; series_no: string | null; fiscal_required: boolean; cancelled_at: string | null; project_name: string | null }
 
 const PAY_TABS = [["All", ""], ["Paid", "paid"], ["Unpaid", "unpaid"], ["Overdue", "overdue"], ["Cancelled", "cancelled"]] as const;
+// Cancelled is its own state now. It used to be read off lifecycle_status='Closed', which is also
+// where a fully paid and finished invoice ends up, so the Cancelled tab listed settled invoices.
 const PAY_SQL: Record<string, string> = {
-  paid: "amount_paid >= total AND total > 0",
-  unpaid: "amount_paid <= 0 AND lifecycle_status <> 'Closed' AND (due_date IS NULL OR due_date >= current_date)",
-  overdue: "amount_paid < total AND due_date IS NOT NULL AND due_date < current_date AND lifecycle_status <> 'Closed'",
-  cancelled: "lifecycle_status = 'Closed'",
+  paid: "cancelled_at IS NULL AND amount_paid >= total AND total > 0",
+  unpaid: "cancelled_at IS NULL AND amount_paid <= 0 AND (due_date IS NULL OR due_date >= current_date)",
+  overdue: "cancelled_at IS NULL AND amount_paid < total AND due_date IS NOT NULL AND due_date < current_date",
+  cancelled: "cancelled_at IS NOT NULL",
 };
 
 export default async function FinanceInvoicesPage({ searchParams }: { searchParams: Promise<{ pay?: string }> }): Promise<ReactNode> {
@@ -29,7 +31,8 @@ export default async function FinanceInvoicesPage({ searchParams }: { searchPara
   const payFilter = pay && PAY_SQL[pay] ? pay : "";
 
   const { rows } = await db().query<Row>(
-    `SELECT id, seq::text, customer_name, issue_date::text, due_date::text, total::text, amount_paid::text, lifecycle_status, nrs_status
+    `SELECT id, seq::text, customer_name, issue_date::text, due_date::text, total::text, amount_paid::text, lifecycle_status, nrs_status,
+            series, series_no::text, fiscal_required, cancelled_at, project_name
        FROM einvoice WHERE doc_type='Invoice'${payFilter ? ` AND ${PAY_SQL[payFilter]}` : ""} ORDER BY created_at DESC LIMIT 200`);
 
   return (
@@ -58,12 +61,14 @@ export default async function FinanceInvoicesPage({ searchParams }: { searchPara
               <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.7rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Invoice</th><th className="px-5 py-3 font-600">Customer</th><th className="px-5 py-3 text-right font-600">Total</th><th className="px-5 py-3 text-right font-600">Outstanding</th><th className="px-5 py-3 font-600">Lifecycle</th><th className="px-5 py-3 font-600">NRS</th><th className="px-5 py-3 font-600">Payment</th></tr></thead>
               <tbody>
                 {rows.map((r) => {
-                  const cancelled = r.lifecycle_status === "Closed";
-                  const pst = cancelled ? "Cancelled" : paymentStatus(Number(r.total), Number(r.amount_paid), r.due_date);
+                  const cancelled = Boolean(r.cancelled_at);
+                  const pst = paymentStatus(Number(r.total), Number(r.amount_paid), r.due_date, cancelled);
                   const outstanding = Math.max(0, Number(r.total) - Number(r.amount_paid));
                   return (
                     <tr key={r.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60">
-                      <td className="px-5 py-3"><Link href={`/e-invoicing/doc/${r.id}`} className="font-mono text-[0.82rem] font-600 text-[#543CDA] hover:text-[#4330B8]">{docNumber("Invoice", r.seq)}</Link></td>
+                      <td className="px-5 py-3"><Link href={`/e-invoicing/doc/${r.id}`} className="font-mono text-[0.82rem] font-600 text-[#543CDA] hover:text-[#4330B8]">{docNumber("Invoice", r.seq, r.series, r.series_no)}</Link>
+                        <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[0.62rem] font-600 ${r.fiscal_required ? "bg-[#EEEBFC] text-[#543CDA]" : "bg-slate-100 text-slate-500"}`}>{r.fiscal_required ? "NRS" : "PDF"}</span>
+                        {r.project_name ? <span className="block text-[0.7rem] text-slate-400">{r.project_name}</span> : null}</td>
                       <td className="px-5 py-3 text-[0.85rem] font-600 text-slate-900">{r.customer_name}<span className="ml-1.5 text-[0.72rem] font-400 text-slate-500">{new Date(r.issue_date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}</span></td>
                       <td className="px-5 py-3 text-right font-mono text-[0.82rem] text-slate-700">{naira(r.total, 0)}</td>
                       <td className="px-5 py-3 text-right font-mono text-[0.82rem] font-600 text-slate-900">{outstanding > 0 && !cancelled ? naira(outstanding, 0) : "—"}</td>

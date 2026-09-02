@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ArrowDownLeft, ArrowUpRight, TriangleAlert, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { requireCapability } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
-import { naira } from "../../../lib/finance.js";
+import { naira, RECEIVABLE_SQL } from "../../../lib/finance.js";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export default async function FinanceDashboard(): Promise<ReactNode> {
          (SELECT COALESCE(sum(amount),0) FROM einvoice_payment)::text income,
          (SELECT COALESCE(sum(amount),0) FROM expense)::text expenses,
          (SELECT COALESCE(sum(total - amount_paid),0) FROM einvoice
-            WHERE doc_type='Invoice' AND nrs_status='Accepted' AND amount_paid < total AND lifecycle_status <> 'Closed')::text receivables,
+            WHERE ${RECEIVABLE_SQL})::text receivables,
          (SELECT COALESCE(sum(amount),0) FROM expense WHERE status='Unpaid')::text payables`),
     pool.query<Txn>(
       `SELECT * FROM (
@@ -39,7 +39,7 @@ export default async function FinanceDashboard(): Promise<ReactNode> {
     pool.query<Alert>(
       `SELECT id, customer_name AS client_name, due_date::text, (total - amount_paid)::text outstanding,
               (due_date < current_date) overdue
-         FROM einvoice WHERE doc_type='Invoice' AND nrs_status='Accepted' AND amount_paid < total AND lifecycle_status <> 'Closed'
+         FROM einvoice WHERE ${RECEIVABLE_SQL}
            AND due_date IS NOT NULL AND due_date <= current_date + 3
         ORDER BY due_date ASC LIMIT 6`),
   ]);

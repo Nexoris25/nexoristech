@@ -32,22 +32,27 @@ interface Doc {
   si_app_response: string | null; validation_messages: string[]; attempts: number; environment: string; public_token: string;
   billing_type: string; project_name: string | null; project_value: string | null; milestone_name: string | null; milestone_amount: string | null;
   invoice_percentage: string | null; percentage_previously_billed: string; billing_period: string | null; next_billing_date: string | null; contract_reference: string | null;
+  series: string | null; series_no: string | null; fiscal_required: boolean; vat_charged: boolean;
+  cancelled_at: string | null; cancel_reason: string | null;
+  project_id: string | null; project_display_name: string | null; project_code: string | null;
 }
 
 function Row({ k, v }: { k: string; v: ReactNode }): ReactNode {
   return <div className="flex justify-between gap-3 text-[0.82rem]"><dt className="shrink-0 text-slate-500">{k}</dt><dd className="truncate text-right font-600 text-slate-800">{v}</dd></div>;
 }
 
-export default async function DocDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string; sent?: string; err?: string }> }): Promise<ReactNode> {
+export default async function DocDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string; sent?: string; err?: string; msg?: string; cancelled?: string; fiscalised?: string }> }): Promise<ReactNode> {
   await requireFiscal("INVOICE_VIEW");
   const { id } = await params;
   requireUuid(id);
-  const { paid, sent, err } = await searchParams;
+  const { paid, sent, err, msg, cancelled, fiscalised } = await searchParams;
   const providerConfigured = fiscalAdapter().configured;
   const pool = db();
   const [{ rows }, { rows: lines }, { rows: events }, { rows: payments }, { rows: deliveries }, { rows: installments }] = await Promise.all([
     pool.query<Doc>(
       `SELECT d.doc_type, d.seq::text, d.reason, r.seq::text related_seq,
+              d.series, d.series_no::text, d.fiscal_required, d.vat_charged, d.cancelled_at, d.cancel_reason,
+              d.project_id, d.invoice_percentage::text, pr.name project_display_name, pr.code project_code,
               d.customer_name, d.customer_tin, d.customer_email, d.customer_address,
               d.issue_date::text, d.due_date::text, d.currency, d.payment_terms, d.payment_method,
               d.subtotal::text, d.vat::text, d.total::text, d.amount_paid::text,
@@ -55,7 +60,7 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
               d.validation_messages, d.attempts, d.environment, d.public_token,
               d.billing_type, d.project_name, d.project_value::text, d.milestone_name, d.milestone_amount::text,
               d.invoice_percentage::text, d.percentage_previously_billed::text, d.billing_period, d.next_billing_date::text, d.contract_reference
-         FROM einvoice d LEFT JOIN einvoice r ON r.id = d.related_id WHERE d.id=$1`, [id]),
+         FROM einvoice d LEFT JOIN einvoice r ON r.id = d.related_id LEFT JOIN project pr ON pr.id = d.project_id WHERE d.id=$1`, [id]),
     pool.query<{ description: string; quantity: string; unit_price: string; vat_applicable: boolean; line_total: string }>(
       "SELECT description, quantity::text, unit_price::text, vat_applicable, line_total::text FROM einvoice_line WHERE einvoice_id=$1 ORDER BY sort", [id]),
     pool.query<{ id: string; kind: string; summary: string; ok: boolean; created_at: string }>(
@@ -72,11 +77,18 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
   const meta = DOC_META[d.doc_type];
   const total = Number(d.total), amountPaid = Number(d.amount_paid);
   const outstanding = Math.max(0, total - amountPaid);
-  const payStatus = paymentStatus(total, amountPaid, d.due_date);
+  const isCancelled = Boolean(d.cancelled_at);
+  const payStatus = paymentStatus(total, amountPaid, d.due_date, isCancelled);
   const isDraft = d.lifecycle_status === "Draft";
-  const canSubmit = d.nrs_status === "NotSubmitted";
-  const canRetry = d.nrs_status === "Rejected";
+  // Submitting is only offered for a document somebody marked for the NRS. An ordinary PDF invoice
+  // gets the "File with the NRS" action instead, which is the deliberate step that converts it.
+  const canSubmit = d.fiscal_required && d.nrs_status === "NotSubmitted" && !isCancelled;
+  const canRetry = d.fiscal_required && d.nrs_status === "Rejected" && !isCancelled;
   const canCancel = d.lifecycle_status !== "Closed";
+  const issued = ["ReadyToSend", "SentToCustomer", "Viewed", "Closed"].includes(d.lifecycle_status);
+  const canMarkPaid = d.doc_type === "Invoice" && issued && !isCancelled && outstanding > 0;
+  const canVoid = d.doc_type === "Invoice" && !isCancelled && d.nrs_status !== "Accepted" && amountPaid <= 0;
+  const canFiscalise = d.doc_type === "Invoice" && !d.fiscal_required && !isCancelled;
   const accepted = d.nrs_status === "Accepted";
   const backHref = d.doc_type === "Invoice" ? "/finance/invoices" : `/e-invoicing/${meta.path}`;
   const backLabel = d.doc_type === "Invoice" ? "Invoices" : `${meta.label}s`;
@@ -88,7 +100,7 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
       {/* Header with the three independent statuses */}
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-mono text-[1.25rem] font-700 text-slate-900">{docNumber(d.doc_type, d.seq)}</h1>
+          <h1 className="font-mono text-[1.25rem] font-700 text-slate-900">{docNumber(d.doc_type, d.seq, d.series, d.series_no)}</h1>
           {d.related_seq ? <p className="mt-0.5 text-[0.8rem] text-slate-500">Adjusts {docNumber("Invoice", d.related_seq)}{d.reason ? ` · ${d.reason}` : ""}</p> : null}
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[0.72rem]">
             <span className="flex items-center gap-1.5"><span className="uppercase tracking-wide text-slate-500">Lifecycle</span><span className={`rounded-full px-2.5 py-0.5 font-600 ${LIFECYCLE_STYLE[d.lifecycle_status]}`}>{LIFECYCLE_LABEL[d.lifecycle_status]}</span></span>
@@ -100,10 +112,34 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
           {isDraft ? <form action="/api/einvoice/lifecycle" method="post"><input type="hidden" name="id" value={id} /><input type="hidden" name="action" value="finalize" /><button className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-[0.8rem] font-600 text-slate-700 hover:bg-slate-50">Finalize <ChevronRight size={14} /></button></form> : null}
           {canSubmit && !isDraft ? <form action="/api/einvoice/submit" method="post"><input type="hidden" name="id" value={id} /><input type="hidden" name="action" value="submit" /><button className="inline-flex items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2 text-[0.8rem] font-600 text-white hover:bg-[#4330B8]"><Send size={14} /> Submit to NRS</button></form> : null}
           {canRetry ? <form action="/api/einvoice/submit" method="post"><input type="hidden" name="id" value={id} /><input type="hidden" name="action" value="retry" /><button className="inline-flex items-center gap-1.5 rounded-lg bg-[#B45309] px-4 py-2 text-[0.8rem] font-600 text-white hover:bg-[#92400e]"><RefreshCw size={14} /> Retry</button></form> : null}
-          {canCancel ? <form action="/api/einvoice/submit" method="post"><input type="hidden" name="id" value={id} /><input type="hidden" name="action" value="cancel" /><button className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-[0.8rem] font-600 text-slate-600 hover:bg-red-50 hover:text-[#B91C1C]"><Ban size={14} /> Close</button></form> : null}
+          {canFiscalise ? (
+            <form action="/api/einvoice/status" method="post">
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="action" value="fiscalise" />
+              <button className="inline-flex items-center gap-1.5 rounded-lg border border-[#543CDA] px-3 py-2 text-[0.8rem] font-600 text-[#543CDA] hover:bg-[#F8F7FE]"><Send size={14} /> File with the NRS</button>
+            </form>
+          ) : null}
+          {canMarkPaid ? (
+            <form action="/api/einvoice/status" method="post">
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="action" value="paid" />
+              <button className="inline-flex items-center gap-1.5 rounded-lg bg-[#15803D] px-4 py-2 text-[0.8rem] font-600 text-white hover:bg-[#126b34]"><CheckCircle2 size={14} /> Mark paid</button>
+            </form>
+          ) : null}
+          {canCancel ? <form action="/api/einvoice/submit" method="post"><input type="hidden" name="id" value={id} /><input type="hidden" name="action" value="cancel" /><button className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-[0.8rem] font-600 text-slate-600 hover:bg-slate-50"><ChevronRight size={14} /> Close</button></form> : null}
         </div>
       </div>
 
+      {isCancelled ? (
+        <div className="mt-4 rounded-lg border border-slate-300 bg-slate-100 px-4 py-3 text-[0.84rem] text-slate-700">
+          <b>This invoice is cancelled.</b> It no longer counts as revenue or as money owed.
+          {d.cancel_reason ? <span className="block mt-0.5 text-slate-600">Reason: {d.cancel_reason}</span> : null}
+        </div>
+      ) : null}
+      {err && msg ? <div className="mt-4 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] px-4 py-2.5 text-[0.84rem] text-[#B91C1C]">{msg}</div> : null}
+      {err === "notfiscal" ? <div className="mt-4 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2.5 text-[0.84rem] text-[#B45309]">This is a PDF invoice, not one marked for the NRS. Use “File with the NRS” first if it should be filed.</div> : null}
+      {cancelled ? <div className="mt-4 rounded-lg border border-slate-300 bg-slate-100 px-4 py-2.5 text-[0.84rem] text-slate-700">Invoice cancelled.</div> : null}
+      {fiscalised ? <div className="mt-4 rounded-lg border border-[#DDD6FE] bg-[#F8F7FE] px-4 py-2.5 text-[0.84rem] text-[#543CDA]">Marked for NRS submission and renumbered in the fiscal series. If the customer already has the old number, re-issue the invoice or raise a credit note against it.</div> : null}
       {paid ? <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-[0.84rem] text-green-700">Payment recorded.</div> : null}
       {sent ? <div className="mt-4 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-4 py-2.5 text-[0.84rem] text-[#1D4ED8]">Logged delivery: {sent}.</div> : null}
 
@@ -191,12 +227,19 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-subtle">
             <h2 className="text-[0.9rem] font-700 text-slate-900">Delivery</h2>
             <div className="mt-3">
-              {accepted ? (
-                <a href={`/e-invoicing/doc/${id}/pdf`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2 text-[0.83rem] font-600 text-white hover:bg-[#4330B8]"><Download size={15} /> Download Invoice PDF</a>
+              {/* The PDF used to be withheld until the NRS accepted the document, which meant an
+                  ordinary invoice could not be sent to the customer at all. What the fiscal status
+                  changes is what the PDF calls itself, not whether it exists. */}
+              {isDraft ? (
+                <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-2.5 text-[0.8rem] text-slate-500"><Ban size={14} /> Finalize this invoice to produce its PDF.</div>
               ) : (
-                <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-2.5 text-[0.8rem] text-slate-500"><Ban size={14} /> The official invoice PDF is available only after this document is accepted by the NRS.</div>
+                <a href={`/e-invoicing/doc/${id}/pdf`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2 text-[0.83rem] font-600 text-white hover:bg-[#4330B8]"><Download size={15} /> Download {accepted ? "Tax Invoice" : "Invoice"} PDF</a>
               )}
-              <p className="mt-2 text-[0.74rem] text-slate-500">Share the invoice by sending the downloaded PDF. Only NRS-accepted documents can be issued.</p>
+              <p className="mt-2 text-[0.74rem] text-slate-500">
+                {accepted
+                  ? "The NRS has accepted this document, so its PDF is headed Tax Invoice and carries the IRN."
+                  : "This PDF is headed Invoice and states that it is not a tax invoice. File it with the NRS if it needs to be one."}
+              </p>
             </div>
             {deliveries.length > 0 ? (
               <div className="mt-4 border-t border-slate-100 pt-3">
@@ -259,11 +302,36 @@ export default async function DocDetailPage({ params, searchParams }: { params: 
               <div className="flex justify-between border-t border-slate-100 pt-1.5 font-700 text-slate-900"><span>Outstanding</span><span className="font-mono text-[#543CDA]">{naira(outstanding, 2)}</span></div>
               <div className="flex items-center justify-between pt-1"><span className="text-slate-600">Status</span><span className={`rounded-full px-2.5 py-0.5 text-[0.72rem] font-600 ${PAYMENT_STYLE[payStatus]}`}>{payStatus}</span></div>
             </div>
-            {accepted ? (
-              <RecordPayment id={id} outstanding={outstanding} />
+            {/* A payment is a commercial fact, not a compliance one. This used to require NRS
+                acceptance, which meant an ordinary PDF invoice could never be paid. */}
+            {isCancelled ? (
+              <p className="mt-3 flex items-center gap-1.5 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-[0.76rem] text-slate-500"><Ban size={13} /> This invoice is cancelled, so it cannot take a payment.</p>
+            ) : !issued ? (
+              <p className="mt-3 flex items-center gap-1.5 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-[0.76rem] text-slate-500"><Ban size={13} /> Finalize and send this invoice before recording a payment against it.</p>
+            ) : outstanding <= 0 ? (
+              <p className="mt-3 flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-[0.76rem] text-green-700">Paid in full.</p>
             ) : (
-              <p className="mt-3 flex items-center gap-1.5 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-[0.76rem] text-slate-500"><Ban size={13} /> Payments can be recorded only after NRS acceptance.</p>
+              <RecordPayment id={id} outstanding={outstanding} />
             )}
+
+            {canVoid ? (
+              <details className="mt-4 border-t border-slate-100 pt-3">
+                <summary className="cursor-pointer text-[0.78rem] font-600 text-slate-500 hover:text-[#B91C1C]">Cancel this invoice</summary>
+                <form action="/api/einvoice/status" method="post" className="mt-2 flex flex-col gap-2">
+                  <input type="hidden" name="id" value={id} />
+                  <input type="hidden" name="action" value="cancel" />
+                  <input name="reason" required placeholder="Why it is being cancelled" className="rounded-lg border border-slate-200 px-3 py-2 text-[0.82rem] focus:border-[#543CDA] focus:outline-none" />
+                  <button className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#FCA5A5] px-3 py-2 text-[0.8rem] font-600 text-[#B91C1C] hover:bg-red-50"><Ban size={14} /> Cancel invoice</button>
+                  <p className="text-[0.72rem] text-slate-500">It stays readable and stops counting as revenue or as money owed.</p>
+                </form>
+              </details>
+            ) : d.doc_type === "Invoice" && !isCancelled ? (
+              <p className="mt-4 border-t border-slate-100 pt-3 text-[0.74rem] text-slate-500">
+                {d.nrs_status === "Accepted"
+                  ? "The NRS has accepted this invoice, so it cannot be cancelled here. Raise a credit note against it instead."
+                  : "This invoice has payments recorded against it, so it cannot be cancelled. Refund or credit those first."}
+              </p>
+            ) : null}
             {payments.length > 0 ? (
               <div className="mt-4 border-t border-slate-100 pt-3">
                 <p className="text-[0.72rem] uppercase tracking-wide text-slate-500">Payment history</p>

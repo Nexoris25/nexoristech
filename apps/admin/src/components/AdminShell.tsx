@@ -54,6 +54,7 @@ import {
   UserPlus,
   UsersRound,
   Wallet,
+  FolderKanban,
   Landmark,
   Scale as ScaleIcon,
   X,
@@ -136,6 +137,15 @@ const PAYROLL_NAV: NavEntry[] = [
  * Receivable (invoices and their payments, §6.4), Accounts Payable (expenses grouped by vendor, §6.5;
  * there is no separate Bill/Vendor sub-ledger in the PRD), Reports (§6.8), and Settings (§6.2, §6.7).
  */
+/**
+ * Projects module navigation. A project is the engagement invoices are raised against, so it sits
+ * beside Finance and reads from the same invoice table rather than keeping figures of its own.
+ */
+const PROJECTS_NAV: NavEntry[] = [
+  { icon: FolderKanban, label: "All Projects", href: "/projects" },
+  { icon: Plus, label: "New Project", href: "/projects/new" },
+];
+
 const FINANCE_NAV: NavEntry[] = [
   { icon: LayoutDashboard, label: "Overview", href: "/finance" },
   { icon: ReceiptText, label: "Invoices", href: "/finance/invoices" },
@@ -256,6 +266,7 @@ interface ModuleEntry { id: string; icon: Icon; label: string; href: string; acc
 const MODULES: ModuleEntry[] = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { id: "crm", icon: Contact, label: "CRM", href: "/crm", access: "crm", hasChildren: true },
+  { id: "projects", icon: FolderKanban, label: "Projects", href: "/projects", access: "finance", hasChildren: true },
   { id: "finance", icon: Landmark, label: "Finance", href: "/finance", access: "finance", hasChildren: true },
   { id: "einvoicing", icon: ReceiptText, label: "NRS e-Invoicing", href: "/e-invoicing", access: "einvoicing", hasChildren: true },
   { id: "hr", icon: UsersRound, label: "HR", href: "/people", access: "hr", hasChildren: true },
@@ -288,6 +299,7 @@ function activeModuleId(path: string): string {
 function childrenForModule(id: string, path: string): NavEntry[] {
   switch (id) {
     case "crm": return CRM_NAV;
+    case "projects": return PROJECTS_NAV;
     case "finance": return FINANCE_NAV;
     case "einvoicing": return EINVOICING_NAV;
     case "hr": return HR_NAV;

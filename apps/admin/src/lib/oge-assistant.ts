@@ -7,6 +7,7 @@
  * permission boundary; the same shape can later call the Oge gateway when a chat endpoint exists.
  */
 import { db } from "./db.js";
+import { RECEIVABLE_SQL } from "./finance.js";
 import type { CurrentStaff } from "./auth.js";
 
 export interface OgeContext {
@@ -71,7 +72,7 @@ export async function askOge(question: string, ctx: OgeContext): Promise<OgeAnsw
       `SELECT COALESCE(sum(total-amount_paid),0)::text outstanding,
               COALESCE(sum(total-amount_paid) FILTER (WHERE due_date < current_date),0)::text overdue,
               count(*) FILTER (WHERE total-amount_paid > 0)::text count
-         FROM einvoice WHERE doc_type='Invoice' AND nrs_status='Accepted' AND amount_paid < total AND lifecycle_status <> 'Closed'`)).rows[0]!;
+         FROM einvoice WHERE ${RECEIVABLE_SQL}`)).rows[0]!;
     return { text: `Customers owe you ${naira(r.outstanding)} across ${r.count} open invoice${r.count === "1" ? "" : "s"}. Of that, ${naira(r.overdue)} is overdue. You can work these in Finance under Invoices, filtered by Overdue.` };
   }
 

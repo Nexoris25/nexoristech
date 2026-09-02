@@ -128,3 +128,43 @@ describe("edge cases", () => {
     expect(r.whtRuleId).toBe("wht-2026");
   });
 });
+
+describe("charging no VAT on a document", () => {
+  it("charges nothing and keeps the total at the subtotal", () => {
+    const r = calculateTax([line(1000), line(500)], VAT, WHT, { chargeVat: false });
+    expect(r.subtotal).toBe("1500.00");
+    expect(r.vat).toBe("0.00");
+    expect(r.total).toBe("1500.00");
+  });
+
+  it("keeps the document out of the VAT return entirely", () => {
+    const r = calculateTax([line(1000)], VAT, WHT, { chargeVat: false });
+    expect(r.taxableBase).toBe("0.00");
+    // No rule priced it, so recording one would imply a rate had been applied.
+    expect(r.vatRuleId).toBeNull();
+  });
+
+  it("leaves each line's own treatment alone", () => {
+    const r = calculateTax([line(1000, "Standard"), line(500, "ZeroRated")], VAT, WHT, {
+      chargeVat: false,
+    });
+    expect(r.lines.map((l) => l.treatment)).toEqual(["Standard", "ZeroRated"]);
+    expect(r.lines.every((l) => l.vat === "0.00")).toBe(true);
+  });
+
+  it("charges VAT by default and when asked explicitly", () => {
+    expect(calculateTax([line(1000)], VAT, WHT).vat).toBe("75.00");
+    expect(calculateTax([line(1000)], VAT, WHT, { chargeVat: true }).vat).toBe("75.00");
+  });
+
+  it("is not the same as having no rule, which still refuses to price", () => {
+    // A missing rule yields no rate and no rule id; the caller is expected to refuse. Choosing not
+    // to charge is a decision the document records. The two must not be one silent zero.
+    const noRule = calculateTax([line(1000)], null, WHT);
+    const noCharge = calculateTax([line(1000)], VAT, WHT, { chargeVat: false });
+    expect(noRule.vat).toBe("0.00");
+    expect(noCharge.vat).toBe("0.00");
+    expect(noRule.taxableBase).toBe("1000.00");
+    expect(noCharge.taxableBase).toBe("0.00");
+  });
+});
