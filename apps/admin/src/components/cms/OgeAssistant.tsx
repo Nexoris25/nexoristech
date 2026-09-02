@@ -12,6 +12,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { Sparkles, Loader2, Check, Copy, CornerDownLeft, Search, ListTree, AlignLeft, HelpCircle, User, Link2, LayoutList, ChevronDown } from "lucide-react";
 import { findAnchor, alreadyLinks } from "../../lib/inline-links.js";
+import type { MetaFinding } from "../../lib/meta-quality.js";
 
 export type OgeTab = "seo" | "tldr" | "excerpt" | "author-bio" | "faqs" | "internal-links" | "more";
 interface SeoResult { metaTitle: string; metaDescription: string }
@@ -40,6 +41,8 @@ export interface OgeApply {
 }
 export interface OgeSeo {
   score: number;
+  /** The checks behind the score, so the panel can say what is missing rather than only how much. */
+  findings?: MetaFinding[];
   metaTitle: string; setMetaTitle: (v: string) => void;
   metaDesc: string; setMetaDesc: (v: string) => void;
 }
@@ -237,6 +240,30 @@ function SeoTab({ busy, source, seo, onGenerate, onGenerateField }: { busy: stri
         <span className="text-[0.8rem] font-700 text-slate-800">SEO Score</span><Badge source={source} />
       </div>
       <ScoreGauge value={seo.score} />
+
+      {/* What the missing points are.
+          The gauge on its own was a number an editor could read and not act on: 57 out of 100, with
+          no way to find out what the other 43 was. Each failing check says what to change. */}
+      {(seo.findings ?? []).some((f) => !f.pass) ? (
+        <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-3">
+          <p className="text-[0.74rem] font-700 uppercase tracking-wide text-[#B45309]">To raise this score</p>
+          <ul className="mt-2 flex flex-col gap-2">
+            {(seo.findings ?? []).filter((f) => !f.pass).map((f) => (
+              <li key={f.id} className="flex gap-2">
+                <span className="mt-[3px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#B45309]" aria-hidden="true" />
+                <span>
+                  <span className="block text-[0.78rem] font-600 text-slate-800">{f.label}</span>
+                  <span className="block text-[0.76rem] leading-snug text-slate-600">{f.fix}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (seo.findings ?? []).length > 0 ? (
+        <p className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-[0.78rem] text-green-700">
+          Every check passes. Nothing here is holding the score down.
+        </p>
+      ) : null}
 
       {/* Field rows are divs, not labels: a click inside a label is forwarded to its control, so a
           Generate button placed in one also grabbed focus for the input beneath it. */}

@@ -9,7 +9,7 @@ import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor, type RichTextApi } from "../../../../components/cms/RichTextEditor.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
-import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
+import { metaChecks, metaFindings, metaScore } from "../../../../lib/meta-quality.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 
 interface Dept { id: string; name: string }
@@ -39,6 +39,7 @@ export function JobForm({ initial, departments }: { initial?: Initial; departmen
   const rte = useRef<RichTextApi | null>(null);
   const shownSlug = slugEdited ? slug : slugify(title);
   const words = useMemo(() => wordsOf(body), [body]);
+  const findings = metaFindings({ title, metaTitle, metaDesc, body, words, minWords: 120, requireStructure: true });
   const checks = metaChecks({ title, metaTitle, metaDesc, body, words, minWords: 120, requireStructure: true });
   const score = metaScore(checks);
 
@@ -105,7 +106,7 @@ export function JobForm({ initial, departments }: { initial?: Initial; departmen
           <OgeAssistant
             tabs={["seo", "excerpt", "faqs", "more"]}
             getContext={() => ({ title, body })}
-            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
+            seo={{ score, findings, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
             apply={{
               seo: (r) => { setMetaTitle(r.metaTitle); setMetaDesc(r.metaDescription); },
               excerpt: (r) => setExcerpt(r),

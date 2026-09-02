@@ -17,7 +17,7 @@ import { Sparkles, Star, Loader2 } from "lucide-react";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 import { RichTextEditor, type RichTextApi } from "../../../../components/cms/RichTextEditor.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
-import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
+import { metaChecks, metaFindings, metaScore } from "../../../../lib/meta-quality.js";
 
 interface Initial {
   id?: string; name?: string; email?: string; role?: string; jobTitle?: string; department?: string;
@@ -89,6 +89,7 @@ export function AuthorForm({ initial }: { initial?: Initial }): ReactNode {
     /<h[23]/i.test(profile),
     profileText.toLowerCase().includes(name.trim().toLowerCase()) && Boolean(name.trim()),
   ];
+  const findings = metaFindings({ title: name, metaTitle, metaDesc });
   const seoScore = metaScore(checks);
 
   const initials = useMemo(() => name.trim().split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "NA", [name]);
@@ -182,7 +183,7 @@ export function AuthorForm({ initial }: { initial?: Initial }): ReactNode {
               title: name, body: profile, authorName: name, authorRole: jobTitle || role,
               expertise: expertise.split(",").map((x) => x.trim()).filter(Boolean),
             })}
-            seo={{ score: seoScore, metaTitle, setMetaTitle, metaDesc, setMetaDesc}}
+            seo={{ score: seoScore, findings, metaTitle, setMetaTitle, metaDesc, setMetaDesc}}
             bios={{
               authorName: name, authorBio: bio, factCheckerBio: "",
               setAuthorBio: setBio, setFactCheckerBio: () => undefined,

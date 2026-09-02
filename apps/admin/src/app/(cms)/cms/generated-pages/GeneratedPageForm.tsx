@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { RichTextEditor, type RichTextApi } from "../../../../components/cms/RichTextEditor.js";
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
-import { metaChecks, metaScore } from "../../../../lib/meta-quality.js";
+import { metaChecks, metaFindings, metaScore } from "../../../../lib/meta-quality.js";
 import type { FaqItem, PageRef } from "../../../../components/cms/OgeAssistant.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 // The publish gate's own floor, so the editor and the gate can never disagree about the number.
@@ -96,6 +96,10 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
     } finally { setGenerating(false); }
   }
   const words = useMemo(() => wordsOf(body), [body]);
+  const findings = metaFindings({
+    title, metaTitle, metaDesc, body, words,
+    minWords: MIN_BODY_WORDS, requireStructure: true, requireLinks: true,
+  });
   const checks = metaChecks({
     title, metaTitle, metaDesc, body, words,
     minWords: MIN_BODY_WORDS, requireStructure: true, requireLinks: true,
@@ -203,7 +207,7 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
           <OgeAssistant
             tabs={["seo", "tldr", "excerpt", "author-bio", "faqs", "internal-links", "more"]}
             getContext={() => ({ title, body, focusKeyword: keyword, authorName: nameOf(authorId) ?? "Nexoris Technologies", expertise: service ? [service] : [], pages })}
-            seo={{ score, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
+            seo={{ score, findings, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
             bios={{
               ...(nameOf(authorId) ? { authorName: nameOf(authorId) } : {}),
               ...(nameOf(factCheckerId) ? { factCheckerName: nameOf(factCheckerId) } : {}),
