@@ -150,13 +150,26 @@ const s = StyleSheet.create({
 
   payBox: { marginTop: 22, backgroundColor: TINT, borderRadius: 6, borderLeftWidth: 3, borderLeftColor: BRAND, paddingVertical: 12, paddingHorizontal: 14 },
   payText: { fontSize: 8, color: MUTE, marginTop: 3, lineHeight: 1.5 },
-  /* Account details are read off the page by somebody keying them into a banking app, so they are
-     laid out in aligned columns and set in the monospace face the rest of the figures use. */
-  bankRow: { flexDirection: "row", marginTop: 6 },
-  bankCell: { flex: 1, paddingRight: 12 },
-  bankLabel: { fontSize: 6.5, color: FAINT, letterSpacing: 0.6 },
-  bankValue: { fontSize: 9, fontWeight: 700, color: INK, marginTop: 1.5 },
-  bankName: { fontSize: 8, color: MUTE, marginTop: 1 },
+  /*
+   * Account details, laid out as separate accounts rather than as a table.
+   *
+   * Three aligned columns with the same account name on every row read as a spreadsheet, and the one
+   * thing that tells the two accounts apart - the bank - was the last column, in the smallest type.
+   * Each account is now its own bordered block headed by the bank, so the choice between them is
+   * obvious at a glance. The number is the largest thing in the block because it is the thing being
+   * copied into a banking app, and it is set in the monospace face so digits align and cannot be
+   * misread. The account name sits under it as the confirmation somebody checks before sending.
+   */
+  bankLead: { fontSize: 7.5, color: MUTE, marginTop: 8, marginBottom: 5 },
+  bankRow: { flexDirection: "row", gap: 10 },
+  bankCard: {
+    flex: 1, borderWidth: 0.75, borderColor: BRAND, borderRadius: 5,
+    backgroundColor: "#FFFFFF", paddingVertical: 8, paddingHorizontal: 10,
+  },
+  bankBank: { fontSize: 8.5, fontWeight: 700, color: BRAND, letterSpacing: 0.3 },
+  bankNumber: { fontSize: 13, fontWeight: 700, color: INK, marginTop: 4, letterSpacing: 0.8 },
+  bankLabel: { fontSize: 6, color: FAINT, letterSpacing: 0.6, marginTop: 5 },
+  bankHolder: { fontSize: 8, color: INK, marginTop: 1.5 },
 
   footer: { position: "absolute", bottom: 26, left: 44, right: 44, borderTopWidth: 1, borderTopColor: LINE, paddingTop: 8 },
   footText: { fontSize: 6.5, color: FAINT, textAlign: "center", lineHeight: 1.5 },
@@ -294,20 +307,21 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
               {c.paymentInstructions ? <Text style={s.payText}>{c.paymentInstructions}</Text> : null}
               {(c.bankAccounts ?? []).length > 0 ? (
                 <>
-                  {/* Headings once, then a row per account. Repeating them above every account made
-                      two accounts read as two separate tables. */}
-                  <View style={[s.bankRow, { marginTop: 9 }]}>
-                    <View style={s.bankCell}><Text style={s.bankLabel}>ACCOUNT NAME</Text></View>
-                    <View style={s.bankCell}><Text style={s.bankLabel}>ACCOUNT NUMBER</Text></View>
-                    <View style={s.bankCell}><Text style={s.bankLabel}>BANK</Text></View>
+                  <Text style={s.bankLead}>
+                    {(c.bankAccounts ?? []).length > 1
+                      ? "Pay into either of these accounts."
+                      : "Pay into this account."}
+                  </Text>
+                  <View style={s.bankRow}>
+                    {(c.bankAccounts ?? []).map((a) => (
+                      <View style={s.bankCard} key={`${a.bank}-${a.accountNumber}`}>
+                        <Text style={s.bankBank}>{a.bank.toUpperCase()}</Text>
+                        <Text style={s.bankNumber}>{a.accountNumber}</Text>
+                        <Text style={s.bankLabel}>ACCOUNT NAME</Text>
+                        <Text style={s.bankHolder}>{a.accountName}</Text>
+                      </View>
+                    ))}
                   </View>
-                  {(c.bankAccounts ?? []).map((a) => (
-                    <View style={[s.bankRow, { marginTop: 3 }]} key={`${a.bank}-${a.accountNumber}`}>
-                      <View style={s.bankCell}><Text style={s.bankName}>{a.accountName}</Text></View>
-                      <View style={s.bankCell}><Text style={s.bankValue}>{a.accountNumber}</Text></View>
-                      <View style={s.bankCell}><Text style={s.bankName}>{a.bank}</Text></View>
-                    </View>
-                  ))}
                 </>
               ) : null}
             </View>

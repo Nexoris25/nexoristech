@@ -66,9 +66,16 @@ export default async function AuthorProfilePage({ params }: { params: Promise<{ 
       <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-subtle">
         <div className="h-24 bg-gradient-to-r from-[#543CDA] to-[#6A55F2]" />
         <div className="px-6 pb-6">
-          <div className="-mt-10 flex flex-wrap items-end gap-4">
+          {/* Only the headshot overlaps the banner.
+              The whole row used to be pulled up by -mt-10, which put the name, the status pill and
+              the job title on top of the purple gradient. They are dark text meant for a white card,
+              so on that band they were close to unreadable. The picture is the one thing designed to
+              straddle the edge; everything else starts below it. */}
+          <div className="-mt-10">
             {a.headshot_url ? <img src={a.headshot_url} alt="" className="h-20 w-20 rounded-2xl border-4 border-white object-cover shadow" /> : <span className="grid h-20 w-20 place-items-center rounded-2xl border-4 border-white bg-gradient-to-br from-[#543CDA] to-[#6A55F2] font-mono text-[1.1rem] font-700 text-white shadow">{initials}</span>}
-            <div className="flex-1 pb-1">
+          </div>
+          <div className="mt-3 flex flex-wrap items-end gap-4">
+            <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-[1.3rem] font-700 text-slate-900">{a.name}</h1>
                 {a.featured ? <span className="inline-flex items-center gap-1 rounded-full bg-[#FEF3C7] px-2.5 py-1 text-[0.72rem] font-600 text-[#B45309]"><Star size={12} /> Featured</span> : null}

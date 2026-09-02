@@ -144,7 +144,9 @@
   transition: background 0.15s, color 0.15s;
 }
 .legal-page .toc a::before {
-  content: counter(t, decimal-leading-zero);
+  /* Plain numerals, matching the body. A contents list reading 05 beside a section reading 5. makes
+     the reader do a small translation on every line. */
+  content: counter(t) ".";
   font-family: "JetBrains Mono", monospace;
   font-size: 0.74rem;
   color: var(--purple-500, #6a55f2);
@@ -177,6 +179,24 @@
   margin-bottom: 34px;
   scroll-margin-top: 90px;
 }
+/*
+ * Section numbering, set as part of the heading rather than beside it.
+ *
+ * These documents number their own clauses: an h3 reads "5.1 Information You Provide". Dropping the
+ * section number left those sub-numbers orphaned - a 5.1 with no 5 anywhere above it - and the
+ * number that had been there was a small purple monospace chip at half the heading's size, which
+ * read as a label attached to the heading rather than part of it.
+ *
+ * A counter rather than a rendered span, so the number cannot drift from the section it sits on, and
+ * "5." rather than "05." so it matches the pattern the document's own sub-numbering already uses.
+ * It inherits the heading's size, weight, family and colour, because it is heading text.
+ */
+.legal-page .legal-body {
+  counter-reset: sec;
+}
+.legal-page .legal-sec {
+  counter-increment: sec;
+}
 .legal-page .legal-sec h2 {
   font-family: "Roboto", sans-serif;
   font-size: 1.5rem;
@@ -184,6 +204,12 @@
   letter-spacing: -0.015em;
   color: var(--ink-950, #0d0a1c);
   line-height: 1.25;
+}
+.legal-page .legal-sec h2::before {
+  content: counter(sec) ". ";
+  /* Everything about the number is the heading's, so the two read as one line of text. */
+  font: inherit;
+  color: inherit;
 }
 .legal-page .legal-short {
   background: var(--purple-100, #eeebfc);

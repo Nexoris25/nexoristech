@@ -100,7 +100,7 @@ export async function LegalPageView({
                     dangerouslySetInnerHTML={{ __html: resolveDateTokens(s.body) }}
                   />
                 ))}
-                {anchors.map((s, i) => (
+                {anchors.map((s) => (
                   <section className="legal-sec" id={s.id} key={s.id}>
                     {/* The heading as written. It used to be prefixed with a generated 01, 02, ...
                         which numbered every section whether or not the document numbered itself -
