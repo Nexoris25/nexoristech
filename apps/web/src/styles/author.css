@@ -87,34 +87,23 @@
   padding: 6px 10px;
 }
 
-/* The written profile reads as an article, so it is set like one. The .prose rules elsewhere are
-   scoped to the article and case study pages, so they do not reach here on their own. */
-.author-page .prof-body {
-  max-width: 72ch;
-  font-family: "Lora", Georgia, serif;
-  font-size: 1.13rem;
-  line-height: 1.7;
-  color: #241f33;
+/*
+ * The written profile is an article and is set like one.
+ *
+ * These rules used to restate the article's own typography - its own paragraph spacing, heading
+ * sizes, list indents - which is how the two pages drifted apart: a change to article.css never
+ * reached the author page. The page now carries the article-page class and inherits all of it, so
+ * there is one definition of what an article body looks like on this site.
+ */
+.author-page .prof-body { max-width: 100%; }
+/* .prose sets the article's reading size; the author page's own base was one step smaller, so the
+   same paragraph read differently on the two pages. */
+.author-page .prof-body p,
+.author-page .prof-body li {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--ink-2, #3a3550);
 }
-.author-page .prof-body p { margin-bottom: 22px; }
-.author-page .prof-body h2 {
-  font-family: "Roboto", sans-serif;
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: var(--ink-950, #0d0a1c);
-  margin: 30px 0 12px;
-  scroll-margin-top: 88px;
-}
-.author-page .prof-body h3 {
-  font-family: "Roboto", sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--ink-950, #0d0a1c);
-  margin: 24px 0 10px;
-}
-.author-page .prof-body ul,
-.author-page .prof-body ol { margin: 0 0 22px; padding-left: 22px; }
-.author-page .prof-body li { margin-bottom: 8px; }
 .author-page .prof-body a { color: var(--purple-600, #543cda); text-decoration: underline; }
 
 .author-page .prof-links {

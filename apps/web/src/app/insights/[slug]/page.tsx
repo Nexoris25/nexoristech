@@ -21,7 +21,7 @@ import { isArticleType } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { formatLagosDate } from "../../../lib/date.js";
 import { getInsight, getInsightSlugs, type Author } from "../../../lib/cms.js";
-import { headingsOf, withHeadingIds, stepsOf } from "../../../lib/render-html.js";
+import { headingsOf, withHeadingIds, wrapTables, stepsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
 import { TocSpy } from "../../../components/TocSpy.js";
 import "../../../styles/article.css";
@@ -242,7 +242,7 @@ export default async function ArticlePage({
           right because the content that had been through here was unformatted prose. Sanitised on the
           way out as well as in the editor, so a row written before the editor normalised anything
           cannot put a script on a public page. */}
-      <div className="prose" dangerouslySetInnerHTML={{ __html: withHeadingIds(readableBody) }} />
+      <div className="prose" dangerouslySetInnerHTML={{ __html: wrapTables(withHeadingIds(readableBody)) }} />
 
       {article.faq.length > 0 ? (
         <section className="faq-block" aria-labelledby="faq-heading">

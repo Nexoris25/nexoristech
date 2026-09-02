@@ -13,8 +13,13 @@ import type { ProfileInput } from "@nexoris/seo";
 import { JsonLd } from "../JsonLd.js";
 import { getArticlesByAuthor, type AuthorProfile } from "../../lib/cms.js";
 import { formatLagosDate } from "../../lib/date.js";
-import { withHeadingIds, headingsOf } from "../../lib/render-html.js";
+import { withHeadingIds, wrapTables, headingsOf } from "../../lib/render-html.js";
 import { FloatingToc } from "../FloatingToc.js";
+// article.css before author.css: the profile body is set by the article's own rules and author.css
+// only adds what is particular to this page. Without the first import the page carried the
+// article-page class and none of the styles behind it, so every heading fell back to the reset and
+// rendered smaller than the paragraphs under it.
+import "../../styles/article.css";
 import "../../styles/author.css";
 
 /**
@@ -42,7 +47,7 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
 
   // The written profile, with anchors, so a long one is navigable on a phone like every other long
   // page on the site.
-  const profileHtml = author.profileHtml ? withHeadingIds(author.profileHtml) : "";
+  const profileHtml = author.profileHtml ? wrapTables(withHeadingIds(author.profileHtml)) : "";
   const toc = author.profileHtml ? headingsOf(author.profileHtml) : [];
 
   const av = author.name
@@ -53,7 +58,14 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
     .join("");
 
   return (
-    <div className="svc-page insights-page author-page">
+    /*
+     * article-page is on the wrapper so the profile body gets the article's own typography: the same
+     * bullets, spacing, heading sizes, line heights, tables and quotes an Insights piece has. The
+     * author page used to restate all of that under .prof-body, which is how the two drifted apart.
+     * Every .article-page rule is scoped to a child class this page does not use, apart from .prose,
+     * the contents list and the FAQ block, which are exactly what should be shared.
+     */
+    <div className="svc-page insights-page article-page author-page">
       <JsonLd
         graph={buildGraph([
           profilePageNode(profileInput),
@@ -143,22 +155,37 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
             </div>
           ) : (
             <div className="ins-grid">
+              {/* The same card as the Insights listing, so an article looks the same wherever it is
+                  listed: cover, category, title, excerpt, byline and date. */}
               {articles.map((article) => (
                 <article className="card" key={article.slug}>
-                  <span className="thumb">
+                  <Link className="thumb" href={`/insights/${article.slug}`} aria-hidden="true" tabIndex={-1}>
+                    {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
                     {article.coverUrl ? (
-                      // Remote CMS cover; host isn't configured for next/image, so a plain img.
-                      <img src={article.coverUrl} alt={`Cover image for the article ${article.title}`} loading="lazy" />
+                      <img src={article.coverUrl} alt={article.coverAlt ?? ""} loading="lazy" />
                     ) : null}
-                  </span>
+                    {article.category ? <span className="card-cat">{article.category}</span> : null}
+                  </Link>
                   <div className="card-body">
                     <h3>
                       <Link href={`/insights/${article.slug}`}>{article.title}</Link>
                     </h3>
                     {article.excerpt ? <p className="card-ex">{article.excerpt}</p> : null}
-                    {article.publishedAt ? (
-                      <span className="card-cta">{formatLagosDate(article.publishedAt)}</span>
-                    ) : null}
+                    <div className="card-foot">
+                      <span className="card-by">
+                        {author.photoUrl ? (
+                          <img className="card-av" src={author.photoUrl} alt="" loading="lazy" />
+                        ) : (
+                          <span className="card-av card-av-fb" aria-hidden="true">
+                            {author.name.trim().charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <span className="card-byname">{author.name}</span>
+                      </span>
+                      {article.publishedAt ? (
+                        <span className="card-date">{formatLagosDate(article.publishedAt)}</span>
+                      ) : null}
+                    </div>
                   </div>
                 </article>
               ))}

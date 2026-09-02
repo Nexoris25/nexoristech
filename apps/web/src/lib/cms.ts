@@ -24,7 +24,24 @@ export interface CaseStudy {
   servicePaths: string[]; publishedAt?: string; updatedAt?: string;
   metaTitle?: string; metaDescription?: string;
 }
-export interface InsightCard { title: string; slug: string; excerpt?: string; publishedAt?: string; coverUrl?: string; coverAlt?: string; author?: string; readMinutes?: number }
+/**
+ * A card in a listing.
+ *
+ * It carried a cover, a title and an author's name. The design has always had a category chip and
+ * the author's face on these cards, and both were left out with a note saying the type did not
+ * carry them - so the note described the gap rather than closing it. A card with no category cannot
+ * be scanned by subject, and a byline with no face is the weakest form an author credit takes.
+ */
+export interface InsightCard {
+  title: string; slug: string; excerpt?: string; publishedAt?: string;
+  coverUrl?: string; coverAlt?: string; readMinutes?: number;
+  author?: string;
+  /** The author's headshot and their page, so a byline on a card is a face and a link. */
+  authorPhotoUrl?: string;
+  authorSlug?: string;
+  category?: string;
+  categorySlug?: string;
+}
 export interface Author { name: string; slug?: string; role?: string; linkedin?: string; bio?: string }
 export interface FaqItem { question: string; answer: string }
 export interface Insight {
@@ -323,12 +340,18 @@ function toInsightCard(r: Row): InsightCard {
     ...opt("coverUrl", mediaUrl(r.featured_image)),
     ...opt("coverAlt", str(r.featured_image_alt)),
     ...opt("author", str(r.author_name)),
+    ...opt("authorPhotoUrl", mediaUrl(r.author_photo)),
+    ...opt("authorSlug", str(r.author_name) ? nameSlug(str(r.author_name)!) : undefined),
+    ...opt("category", str(r.category_name)),
+    ...opt("categorySlug", str(r.category_slug)),
     ...(typeof r.read_time_min === "number" ? { readMinutes: r.read_time_min } : {}),
   };
 }
 const INSIGHT_CARD_COLS = `c.title, c.short_title, c.slug, c.excerpt, c.published_at::text AS published_at,
-  c.featured_image, c.featured_image_alt, c.read_time_min, a.name AS author_name`;
-const INSIGHT_CARD_FROM = "FROM cms_content c LEFT JOIN cms_author a ON a.id = c.author_id";
+  c.featured_image, c.featured_image_alt, c.read_time_min, a.name AS author_name,
+  a.headshot_url AS author_photo, cat.name AS category_name, cat.slug AS category_slug`;
+const INSIGHT_CARD_FROM =
+  "FROM cms_content c LEFT JOIN cms_author a ON a.id = c.author_id LEFT JOIN cms_category cat ON cat.id = c.category_id";
 
 export async function getLatestInsights(limit = 3): Promise<InsightCard[]> {
   const rows = await query(
@@ -460,9 +483,9 @@ export async function getAuthor(slug: string): Promise<AuthorProfile | null> {
 
 export async function getArticlesByAuthor(slug: string): Promise<InsightCard[]> {
   const rows = await query(
-    `SELECT c.title, c.short_title, c.slug, c.excerpt, c.published_at::text AS published_at,
-            c.featured_image, c.featured_image_alt, a.name AS a_name
-       FROM cms_content c JOIN cms_author a ON a.id = c.author_id
+    // The same columns a card gets anywhere else, so an article listed on an author's page carries
+    // its category and cover exactly as it does on the Insights hub.
+    `SELECT ${INSIGHT_CARD_COLS}, a.name AS a_name ${INSIGHT_CARD_FROM}
       WHERE c.kind='insight' AND c.status='published'
       ORDER BY c.published_at DESC NULLS LAST LIMIT 200`);
   return rows

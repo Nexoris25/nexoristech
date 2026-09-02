@@ -12,11 +12,33 @@ const isDev = process.env.NODE_ENV !== "production";
  * without 'unsafe-eval' silently stops React from hydrating: the HTML renders but nothing on the page is
  * interactive. Those two allowances are therefore development-only; production keeps the strict policy.
  */
+/**
+ * Where CMS media is served from, as a CSP source.
+ *
+ * Uploads live on the admin origin, so every article cover, author headshot and in-body picture is
+ * loaded cross-origin. `img-src https:` covered that in production by accident - any https host at
+ * all - and blocked it outright in development, where the admin runs on http://localhost:3001. The
+ * result was every CMS image on the site rendering as a broken icon with its alt text showing, with
+ * nothing in the server log to say why, because a CSP refusal happens in the browser.
+ *
+ * Naming the configured origin fixes development and narrows production at the same time: the site
+ * is no longer declaring that any image from anywhere on the web may be loaded into its pages.
+ */
+const mediaOrigin = ((): string => {
+  const base = process.env.CMS_MEDIA_BASE?.trim();
+  if (!base) return "";
+  try {
+    return new URL(base).origin;
+  } catch {
+    return "";
+  }
+})();
+
 const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
+  `img-src 'self' data: https:${mediaOrigin ? ` ${mediaOrigin}` : ""}`,
   "font-src 'self'",
   `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
   "frame-ancestors 'none'",

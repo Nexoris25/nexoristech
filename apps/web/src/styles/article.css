@@ -349,43 +349,118 @@
   gap: 12px;
   line-height: 1.6;
 }
+/*
+ * A pull quote reads at the size of the article, not above it.
+ *
+ * It was set at 1.45rem against a 1.05rem body: nearly a heading, on a serif face the rest of the
+ * page never uses, so a quoted sentence outweighed the argument it was supporting and broke the
+ * measure on a phone. It keeps the serif and the italic, which is what marks it as quoted, and
+ * drops to the body's own size with a little more room around it.
+ */
 .article-page .prose blockquote {
   font-family: "Lora", Georgia, serif;
   font-style: italic;
-  font-size: 1.45rem;
-  line-height: 1.4;
+  font-size: 1.08rem;
+  line-height: 1.65;
   color: var(--ink-950, #0d0a1c);
   border-left: 3px solid var(--purple-500, #6a55f2);
-  padding: 4px 0 4px 24px;
-  margin: 32px 0;
+  padding: 2px 0 2px 20px;
+  margin: 26px 0;
+}
+.article-page .prose blockquote p {
+  font-size: inherit;
+  line-height: inherit;
+  margin-top: 10px;
+}
+.article-page .prose blockquote p:first-child {
+  margin-top: 0;
+}
+/*
+ * Tables.
+ *
+ * `border-radius` with `overflow: hidden` on the table itself does not clip cell backgrounds in
+ * every engine, and `border-collapse: collapse` drops the cell borders it is meant to merge, so the
+ * grid a reader needs to follow a row across was missing: the only lines were between rows. The
+ * table is wrapped in a rounded, clipping frame and the cells keep their own borders, so every cell
+ * is bounded on all four sides.
+ *
+ * A wide table scrolls inside that frame rather than forcing the whole page sideways, which is what
+ * a pricing table on a phone otherwise does.
+ *
+ * The header is the brand purple rather than near-black. A solid black band across an article is
+ * heavier than anything else on the page and belongs to no part of the palette.
+ */
+.article-page .prose .table-wrap,
+.article-page .prose table {
+  margin: 10px 0 28px;
+}
+.article-page .prose .table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 12px;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+.article-page .prose .table-wrap table {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  min-width: 34rem;
 }
 .article-page .prose table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-family: "Inter", sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.94rem;
   border: 1px solid var(--line, #e9e7f0);
   border-radius: 12px;
   overflow: hidden;
-  margin: 8px 0 26px;
 }
 .article-page .prose thead th {
-  background: var(--ink-950, #0d0a1c);
+  background: var(--purple-600, #543cda);
   color: #fff;
   text-align: left;
-  padding: 13px 16px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  vertical-align: middle;
 }
-.article-page .prose td {
-  padding: 13px 16px;
+.article-page .prose thead th:last-child {
+  border-right: 0;
+}
+.article-page .prose th[scope="row"] {
+  background: var(--purple-100, #eeebfc);
+  color: var(--ink-950, #0d0a1c);
+  font-weight: 700;
+  text-align: left;
+}
+.article-page .prose td,
+.article-page .prose th[scope="row"] {
+  padding: 12px 16px;
   border-top: 1px solid var(--line, #e9e7f0);
-  color: var(--ink-2, #3a3550);
+  border-right: 1px solid var(--line, #e9e7f0);
+  color: var(--ink-950, #0d0a1c);
   vertical-align: top;
-  line-height: 1.5;
+  line-height: 1.6;
 }
-.article-page .prose tbody tr:nth-child(even) {
+.article-page .prose td:last-child,
+.article-page .prose th[scope="row"]:last-child {
+  border-right: 0;
+}
+.article-page .prose tbody tr:nth-child(even) td {
   background: var(--bg, #faf9fe);
+}
+/* A cell's paragraph is the cell: its own margins are what pushed the rows apart. */
+.article-page .prose td > p,
+.article-page .prose th > p {
+  margin: 0;
+}
+.article-page .prose td > p + p {
+  margin-top: 8px;
 }
 
 /* faq */

@@ -3,8 +3,8 @@
  * Insights hub, ported from the approved handoff (Insights.html) and adapted to the available data.
  * Articles come from Strapi (getAllInsightCards, passed in as cards); the hero search filters them
  * client-side, the newest is featured, and the rest form the card grid. An honest empty state shows
- * until the first article is published. The category bar and per-card author avatars in the handoff
- * are omitted because InsightCard carries no category or author. The newsletter signup records
+ * until the first article is published. Each card carries its category and the author's face, which
+ * the handoff always had and the card type now supplies. The newsletter signup records
  * interest through the existing lead intake so an email is never silently dropped. Cover images are
  * remote CMS URLs, so they use a plain img (next/image can't optimize an unconfigured host).
  */
@@ -18,19 +18,34 @@ import { formatLagosDate } from "../../lib/date.js";
 function ArticleCard({ a }: { a: InsightCard }): ReactNode {
   return (
     <article className="card">
-      <span className="thumb">
+      <Link className="thumb" href={`/insights/${a.slug}`} aria-hidden="true" tabIndex={-1}>
         {a.coverUrl ? (
-          <img src={a.coverUrl} alt={`Cover image for the article ${a.title}`} loading="lazy" />
+          <img src={a.coverUrl} alt={a.coverAlt ?? ""} loading="lazy" />
         ) : null}
-      </span>
+        {a.category ? <span className="card-cat">{a.category}</span> : null}
+      </Link>
       <div className="card-body">
         <h3>
           <Link href={`/insights/${a.slug}`}>{a.title}</Link>
         </h3>
         {a.excerpt ? <p className="card-ex">{a.excerpt}</p> : null}
-        <span className="card-cta">
-          Read article <span className="arr">&rarr;</span>
-        </span>
+        <div className="card-foot">
+          {a.author ? (
+            <span className="card-by">
+              {a.authorPhotoUrl ? (
+                <img className="card-av" src={a.authorPhotoUrl} alt="" loading="lazy" />
+              ) : (
+                <span className="card-av card-av-fb" aria-hidden="true">
+                  {a.author.trim().charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="card-byname">{a.author}</span>
+            </span>
+          ) : <span />}
+          {a.publishedAt ? (
+            <span className="card-date">{formatLagosDate(a.publishedAt)}</span>
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -191,8 +206,9 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
                 <div className="feat reveal">
                   <Link className="feat-thumb" href={`/insights/${featured.slug}`} aria-label={featured.title}>
                     {featured.coverUrl ? (
-                      <img src={featured.coverUrl} alt={`Cover image for the article ${featured.title}`} />
+                      <img src={featured.coverUrl} alt={featured.coverAlt ?? ""} />
                     ) : null}
+                    {featured.category ? <span className="card-cat">{featured.category}</span> : null}
                   </Link>
                   <div className="feat-body">
                     <span className="ed-pick">
@@ -205,9 +221,25 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
                       <Link href={`/insights/${featured.slug}`}>{featured.title}</Link>
                     </h2>
                     {featured.excerpt ? <p>{featured.excerpt}</p> : null}
-                    {featured.publishedAt ? (
-                      <div className="feat-date">{formatLagosDate(featured.publishedAt)}</div>
-                    ) : null}
+                    {/* Byline and date together: the same pair a card carries, so the featured
+                        article is not the one place on the page with no author on it. */}
+                    <div className="feat-meta">
+                      {featured.author ? (
+                        <span className="card-by">
+                          {featured.authorPhotoUrl ? (
+                            <img className="card-av" src={featured.authorPhotoUrl} alt="" />
+                          ) : (
+                            <span className="card-av card-av-fb" aria-hidden="true">
+                              {featured.author.trim().charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                          <span className="card-byname">{featured.author}</span>
+                        </span>
+                      ) : null}
+                      {featured.publishedAt ? (
+                        <span className="feat-date">{formatLagosDate(featured.publishedAt)}</span>
+                      ) : null}
+                    </div>
                     <Link className="btn btn-primary feat-go" href={`/insights/${featured.slug}`}>
                       Read article <span className="arr">&rarr;</span>
                     </Link>
