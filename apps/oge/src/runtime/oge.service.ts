@@ -119,7 +119,7 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
     const exact = await this.exactCache.get(trimmed, kbVersion);
     if (exact) {
       yield { type: "meta", retrieval: "exact-cache" };
-      yield { type: "sources", sources: exact.sources };
+      yield { type: "sources", sources: this.canonicalSources(exact.sources) };
       yield* this.streamText(exact.answer);
       // A cached decline is still a decline. Without this the first visitor to ask an unanswerable
       // question was offered the team and everyone after them was not.
@@ -163,7 +163,7 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
       );
       if (semantic) {
         yield { type: "meta", retrieval: "semantic-cache" };
-        yield { type: "sources", sources: semantic.sources };
+        yield { type: "sources", sources: this.canonicalSources(semantic.sources) };
         yield* this.streamText(semantic.answer);
         if (this.isDecline(semantic.answer)) yield this.handoff();
         yield { type: "done", cached: "semantic" };
@@ -331,10 +331,43 @@ export class OgeService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * The canonical form of a page URL: with the trailing slash the site actually serves.
+   *
+   * Chunks are stored with whatever URL the ingest saw, and some carry no trailing slash — so a
+   * citation pointed at `/insights/website-cost-in-nigeria`, which the site answers with a 308 to
+   * the slashed form. Every link Oge shows a visitor took an extra round trip, and two sources that
+   * were the same page counted as two because the strings differed.
+   *
+   * A URL with a file extension or a query is left alone: those are not pages and do not take one.
+   */
+  private canonicalSourceUrl(raw: string): string {
+    try {
+      const u = new URL(raw);
+      if (u.search || u.hash || /\.[a-z0-9]+$/i.test(u.pathname)) return raw;
+      if (!u.pathname.endsWith("/")) u.pathname = `${u.pathname}/`;
+      return u.toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  /**
+   * Canonicalise a stored list of sources.
+   *
+   * Both caches keep the sources that were saved with the answer, so a cached hit never reaches
+   * dedupeSources. Fixing only that path left every cached answer — which is most of them — still
+   * citing the unslashed URL.
+   */
+  private canonicalSources(sources: readonly Source[]): Source[] {
+    return sources.map((s) => ({ ...s, url: this.canonicalSourceUrl(s.url) }));
+  }
+
   private dedupeSources(chunks: readonly RetrievedChunk[]): Source[] {
     const seen = new Map<string, Source>();
     for (const c of chunks) {
-      if (!seen.has(c.url)) seen.set(c.url, { url: c.url, title: c.title });
+      const url = this.canonicalSourceUrl(c.url);
+      if (!seen.has(url)) seen.set(url, { url, title: c.title });
     }
     return [...seen.values()];
   }
