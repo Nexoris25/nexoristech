@@ -13,6 +13,7 @@ import { DatabaseDown } from "../../components/DatabaseDown.js";
 import { isDatabaseUnreachable, DB_UNREACHABLE_MARKER } from "../../lib/db-errors.js";
 import { buildActionCenter, type ActionItem } from "../../lib/action-center.js";
 import { readItemIds } from "../../lib/notification-read.js";
+import { FormBusy } from "../../components/FormBusy.js";
 
 export default async function DashboardLayout({
   children,
@@ -66,6 +67,7 @@ export default async function DashboardLayout({
       }))}
       access={access}
     >
+      <FormBusy />
       {children}
     </AdminShell>
   );

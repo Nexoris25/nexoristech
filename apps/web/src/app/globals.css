@@ -23,6 +23,17 @@
     text-rendering: optimizeLegibility;
   }
 
+  /*
+   * Jumping to a heading from the contents list glides rather than teleports.
+   *
+   * Every long page here has a contents list, and an instant jump gives no sense of how far you
+   * moved or where you came from — you arrive somewhere and have to reorient. The reduced-motion
+   * block below already forces this back to auto, which is the one case where the jump is correct.
+   */
+  html {
+    scroll-behavior: smooth;
+  }
+
   /* A single, consistent focus ring on every interactive element (PRD 15). */
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
     outline: 2px solid #6a55f2; /* purple-500 */

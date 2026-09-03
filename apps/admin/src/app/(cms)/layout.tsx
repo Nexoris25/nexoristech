@@ -9,6 +9,7 @@ import { cmsDb } from "../../lib/cms-db.js";
 import { CmsShell } from "../../components/cms/CmsShell.js";
 import { DatabaseDown } from "../../components/DatabaseDown.js";
 import { isDatabaseUnreachable, DB_UNREACHABLE_MARKER } from "../../lib/db-errors.js";
+import { FormBusy } from "../../components/FormBusy.js";
 
 const REVIEW_LABEL: Record<string, string> = { pending_review: "Pending review", editorial_review: "In editorial review", legal_review: "In legal review" };
 function ago(iso: string): string { const s = (Date.now() - new Date(iso).getTime()) / 1000; if (s < 60) return "just now"; if (s < 3600) return `${Math.floor(s / 60)}m ago`; if (s < 86400) return `${Math.floor(s / 3600)}h ago`; return `${Math.floor(s / 86400)}d ago`; }
@@ -42,6 +43,7 @@ export default async function CmsLayout({ children }: { children: ReactNode }): 
 
   return (
     <CmsShell staff={{ name: staff.name, role: staff.role }} notifications={notifications} notificationItems={items}>
+      <FormBusy />
       {children}
     </CmsShell>
   );

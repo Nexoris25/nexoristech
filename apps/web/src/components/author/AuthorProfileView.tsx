@@ -8,7 +8,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { buildGraph, profilePageNode, faqPageNode } from "@nexoris/seo";
+import { buildPageGraph, profilePageNode, faqPageNode } from "@nexoris/seo";
 import type { ProfileInput } from "@nexoris/seo";
 import { JsonLd } from "../JsonLd.js";
 import { getArticlesByAuthor, type AuthorProfile } from "../../lib/cms.js";
@@ -21,6 +21,7 @@ import { FloatingToc } from "../FloatingToc.js";
 // rendered smaller than the paragraphs under it.
 import "../../styles/article.css";
 import "../../styles/author.css";
+import { authorPath } from "../../lib/routes.js";
 
 /**
  * The author profile, rendered wherever the route happens to live.
@@ -47,6 +48,7 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
 
   // The written profile, with anchors, so a long one is navigable on a phone like every other long
   // page on the site.
+  const path = authorPath(slug);
   const profileHtml = author.profileHtml ? wrapTables(withHeadingIds(author.profileHtml)) : "";
   const toc = author.profileHtml ? headingsOf(author.profileHtml) : [];
 
@@ -66,13 +68,32 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
      * the contents list and the FAQ block, which are exactly what should be shared.
      */
     <div className="svc-page insights-page article-page author-page">
+      {/*
+        Through buildPageGraph so the page carries the site-wide nodes as well as its own:
+        Organization, ProfessionalService, WebSite, the WebPage and the breadcrumb trail. Assembling
+        the graph from bare nodes meant every author profile shipped without any of them - the same
+        fault the articles and case studies each had, and for the same reason: the SEO gate could
+        not see these routes, so nothing said so. It can see them again now.
+      */}
       <JsonLd
-        graph={buildGraph([
-          profilePageNode(profileInput),
-          // faqPageNode returns undefined for an empty set, so the filter is what keeps a stray
-          // undefined out of the graph rather than the length check alone.
-          ...[faqPageNode(author.faq)].filter((n) => n !== undefined),
-        ])}
+        graph={buildPageGraph({
+          page: {
+            routeClass: "author",
+            path,
+            name: author.name,
+            description: author.metaDescription ?? author.bio ?? `${author.name} writes for Nexoris Technologies.`,
+            breadcrumbs: [
+              { name: "Insights", path: "/insights" },
+              { name: author.name, path },
+            ],
+          },
+          extraNodes: [
+            profilePageNode(profileInput),
+            // faqPageNode returns undefined for an empty set, so the filter is what keeps a stray
+            // undefined out of the graph rather than the length check alone.
+            ...[faqPageNode(author.faq)].filter((n) => n !== undefined),
+          ],
+        })}
       />
 
       <section className="hero" aria-label={`${author.name}, author profile`}>

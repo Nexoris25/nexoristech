@@ -153,3 +153,42 @@ aside.bg-\[\#14112e\] {
 .cms-rte ol ol ol { list-style: lower-roman; }
 .cms-rte th[scope="row"] { background: #faf9fd; font-weight: 600; text-align: left; }
 .cms-rte h2 + h3, .cms-rte h3 + h4, .cms-rte h4 + h5, .cms-rte h5 + h6 { margin-top: 0.3rem; }
+
+/* ---- submitting ------------------------------------------------------------------------------
+ * The button that was pressed says so until the page changes.
+ *
+ * A spinner drawn in CSS on the button's own ::after, so no form needed a new element and no server
+ * component had to become a client one to show it. Pointer events go rather than the disabled
+ * attribute: a disabled control is not submitted, and several of these buttons carry the intent -
+ * publish against save against unpublish - in the submitter itself.
+ */
+[data-busy="1"] {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.82;
+}
+button[data-busy="1"]::after,
+a[data-busy="1"]::after {
+  content: "";
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.55em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: busy-spin 0.6s linear infinite;
+}
+@keyframes busy-spin {
+  to { transform: rotate(360deg); }
+}
+/* A form in flight dims a touch so the whole panel reads as waiting, not just the button. */
+form[data-busy="1"] {
+  opacity: 0.92;
+  transition: opacity 0.15s;
+}
+@media (prefers-reduced-motion: reduce) {
+  button[data-busy="1"]::after,
+  a[data-busy="1"]::after { animation: none; }
+}

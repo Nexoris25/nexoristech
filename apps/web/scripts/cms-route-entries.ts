@@ -49,7 +49,6 @@ export interface CmsManifestEntry {
 /** Directory under .next/server/app, and the route class its pages belong to. */
 const CLASSES: { dir: string; routeClass: RouteClass }[] = [
   { dir: "insights", routeClass: "insight" },
-  { dir: "authors", routeClass: "author" },
   // Case studies are deliberately absent. They are portfolio evidence reached from the listing, not
   // pages written to rank, so they carry no meta title or meta description and the gate has nothing
   // to check. Including them meant every build reported a missing description for content that is
@@ -162,6 +161,28 @@ export function cmsRouteEntries(appDir: string): CmsManifestEntry[] {
   const sitemap = existsSync(sitemapPath) ? readFileSync(sitemapPath, "utf8") : "";
 
   const entries: CmsManifestEntry[] = [];
+
+  /*
+   * Author profiles are at the root, so they cannot be found by looking in a directory.
+   *
+   * They used to live under /authors and this scanner listed that folder. When they moved to
+   * /<slug> the folder stopped existing, `existsSync` returned false, and the loop skipped it
+   * silently — so every author page dropped out of the SEO gate without a single line of output
+   * saying so. A scanner that reports nothing when it finds nothing is indistinguishable from one
+   * that has nothing to find.
+   *
+   * A root-level page is an author profile when it says so in its own structured data. That is the
+   * page describing itself rather than this script guessing from a path, which is what makes it
+   * survive the next time a URL moves.
+   */
+  for (const file of readdirSync(appDir)) {
+    if (!file.endsWith(".html")) continue;
+    const html = readFileSync(join(appDir, file), "utf8");
+    if (!/"@type"\s*:\s*"ProfilePage"/.test(html)) continue;
+    const slug = file.replace(/\.html$/, "");
+    entries.push(entryFor(html, `/${slug}`, "author", sitemap));
+  }
+
   for (const { dir, routeClass } of CLASSES) {
     const full = join(appDir, dir);
     if (!existsSync(full)) continue;
