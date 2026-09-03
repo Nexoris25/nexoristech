@@ -13,7 +13,7 @@ import type { ProfileInput } from "@nexoris/seo";
 import { JsonLd } from "../JsonLd.js";
 import { getArticlesByAuthor, type AuthorProfile } from "../../lib/cms.js";
 import { formatLagosDate } from "../../lib/date.js";
-import { withHeadingIds, wrapTables, headingsOf, tocLabel } from "../../lib/render-html.js";
+import { withHeadingIds, wrapTables, headingsOf } from "../../lib/render-html.js";
 import { FloatingToc } from "../FloatingToc.js";
 // article.css before author.css: the profile body is set by the article's own rules and author.css
 // only adds what is particular to this page. Without the first import the page carried the
@@ -148,8 +148,8 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
                   <ol>
                     {toc.map((h) => (
                       <li key={h.id}>
-                        <a href={`#${h.id}`} title={h.text} aria-label={h.text}>
-                          {tocLabel(h.text)}
+                        <a href={`#${h.id}`} title={h.text}>
+                          <span className="toc-text">{h.text}</span>
                         </a>
                       </li>
                     ))}
