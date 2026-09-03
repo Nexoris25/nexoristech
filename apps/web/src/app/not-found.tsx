@@ -21,7 +21,15 @@ export const metadata: Metadata = buildMetadata({
   description:
     "The page you were looking for has moved or never existed. Here is where to find what you need on the Nexoris Technologies site.",
   path: "/404",
-  // A 404 is never a page to index, whatever it links to.
+  /*
+   * A 404 is never a page to index, whatever it links to.
+   *
+   * Next emits its own `noindex` on the not-found boundary, so this page carries two robots tags
+   * where every other page carries one. That is deliberate: both say noindex, so a crawler reads
+   * the same instruction either way, and dropping this one would leave the directive resting on
+   * framework behaviour we do not control. An untidy duplicate on the 404 is a smaller price than a
+   * 404 that could quietly become indexable.
+   */
   noindex: true,
 });
 
