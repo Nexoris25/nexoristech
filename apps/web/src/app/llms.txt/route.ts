@@ -5,8 +5,8 @@
  * old static public/llms.txt. Served as text/plain with light ISR caching.
  */
 import { buildLlmsTxt, absoluteUrl, type CatalogueEntry } from "@nexoris/seo";
-import { servicePages, industryPages } from "../../content/index.js";
-import { getAllInsightCards } from "../../lib/cms.js";
+import { servicePages, industryPages, about, howWeWork, caseStudies as caseStudiesPage } from "../../content/index.js";
+import { getAllInsightCards, getAllCaseStudies } from "../../lib/cms.js";
 import type { MarketingPage } from "../../content/types.js";
 
 export const revalidate = 300;
@@ -19,7 +19,28 @@ const toEntry = (p: MarketingPage): CatalogueEntry => ({ name: cleanName(p.meta.
 export async function GET(): Promise<Response> {
   const services = servicePages.map(toEntry);
   const industries = industryPages.map(toEntry);
-  let text = buildLlmsTxt({ summary: SUMMARY, services, industries });
+
+  /*
+   * Who the company is, and the proof behind what it sells.
+   *
+   * The file listed services and industries and nothing else, so an assistant asked "who are Nexoris
+   * Technologies" had no page to cite for the answer, and every claim in the services list arrived
+   * with no evidence to point at. These are the two things an answer engine weighs most.
+   */
+  const company = [about, howWeWork, caseStudiesPage].map(toEntry);
+  const studies = (await getAllCaseStudies()).map((c) => ({
+    name: c.title,
+    path: `/case-studies/${c.slug}`,
+    ...(c.summary ? { summary: c.summary } : {}),
+  }));
+
+  let text = buildLlmsTxt({
+    summary: SUMMARY,
+    services,
+    industries,
+    company,
+    ...(studies.length > 0 ? { caseStudies: studies } : {}),
+  });
 
   const insights = await getAllInsightCards(40);
   if (insights.length > 0) {

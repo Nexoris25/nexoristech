@@ -58,3 +58,24 @@ export function resolveUrl(value: string): string {
   }
   return absoluteUrl(value);
 }
+
+/**
+ * An author's profile page.
+ *
+ * Authors sit at the site root — `/chinedu-nwogu`, not `/authors/chinedu-nwogu`. The schema builders
+ * kept the old shape long after the pages moved, so every article's byline identified its author by
+ * a URL that answers with a 308, and the Person on an article and the Person on that author's own
+ * profile carried two different `@id`s. To anything reading the graph they were two people, which is
+ * the opposite of what an author byline is for: one identity, cited consistently, is what lets a
+ * search engine or an assistant attribute an article to a person it can look up.
+ *
+ * Defined here rather than in the site so the schema builders and the pages cannot disagree again.
+ */
+export function authorPath(slug: string): string {
+  return `/${slug}`;
+}
+
+/** The retired path. Kept only for the permanent redirect that keeps published links working. */
+export function legacyAuthorPath(slug: string): string {
+  return `/authors/${slug}`;
+}

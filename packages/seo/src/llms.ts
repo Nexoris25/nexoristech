@@ -23,6 +23,22 @@ export interface LlmsTxtInput {
   summary: string;
   services: CatalogueEntry[];
   industries: CatalogueEntry[];
+  /**
+   * The pages that say who the company is, rather than what it sells.
+   *
+   * An assistant asked "who are Nexoris Technologies" was given a list of services and no page that
+   * answers the question. About, how we work and the contact page are the ones a citation for a
+   * claim about the company should point at, and none of them were listed.
+   */
+  company?: CatalogueEntry[];
+  /**
+   * Published client work.
+   *
+   * Case studies are the evidence behind every claim in the services list. Leaving them out meant
+   * the file offered assertions with nothing to cite for them, which is the part an answer engine
+   * weighs most and the part most likely to be repeated.
+   */
+  caseStudies?: CatalogueEntry[];
 }
 
 function listEntries(entries: CatalogueEntry[]): string {
@@ -34,6 +50,12 @@ function listEntries(entries: CatalogueEntry[]): string {
         : `- [${entry.name}](${url})`;
     })
     .join("\n");
+}
+
+/** A section, omitted entirely when there is nothing real to put in it. */
+function section(heading: string, entries?: CatalogueEntry[]): string[] {
+  if (!entries || entries.length === 0) return [];
+  return [`## ${heading}`, "", listEntries(entries), ""];
 }
 
 /** Build the llms.txt content. */
@@ -51,6 +73,8 @@ export function buildLlmsTxt(input: LlmsTxtInput): string {
     "",
     listEntries(input.industries),
     "",
+    ...section("Company", input.company),
+    ...section("Case Studies", input.caseStudies),
     "## Contact",
     "",
     `- Website: ${SITE_ORIGIN}/`,

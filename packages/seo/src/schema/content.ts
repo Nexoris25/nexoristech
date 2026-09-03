@@ -8,7 +8,7 @@
  * LinkedIn profile, a direct EEAT signal.
  */
 import { COUNTRY_CODE, LOCALE } from "../constants.js";
-import { absoluteUrl } from "../url.js";
+import { absoluteUrl, authorPath } from "../url.js";
 import { SITE_NODE_IDS } from "./site.js";
 import type { ImageInput } from "./page.js";
 import { imageObjectNode } from "./page.js";
@@ -25,7 +25,7 @@ export interface PersonRef {
 }
 
 function personNode(person: PersonRef): JsonLdNode {
-  const url = person.slug ? absoluteUrl(`/authors/${person.slug}`) : undefined;
+  const url = person.slug ? absoluteUrl(authorPath(person.slug)) : undefined;
   return {
     "@type": "Person",
     "@id": url ? `${url}#person` : undefined,
@@ -104,7 +104,7 @@ export interface ProfileInput {
 
 /** The ProfilePage node with a Person mainEntity (PRD 9.2, Part Two Section 5). */
 export function profilePageNode(input: ProfileInput): JsonLdNode {
-  const url = absoluteUrl(`/authors/${input.slug}`);
+  const url = absoluteUrl(authorPath(input.slug));
   const sameAs = [
     ...(input.linkedinUrl ? [input.linkedinUrl] : []),
     ...(input.otherSameAs ?? []),

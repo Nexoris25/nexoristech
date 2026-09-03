@@ -14,11 +14,7 @@
  * that gets shared and cited. The old path still resolves: it redirects here permanently, so links
  * already published elsewhere keep working and search engines are told where the page went.
  */
-export function authorPath(slug: string): string {
-  return `/${slug}`;
-}
+export { authorPath } from "@nexoris/seo";
 
 /** The retired path, kept for the redirect and for tests that assert it still points somewhere. */
-export function legacyAuthorPath(slug: string): string {
-  return `/authors/${slug}`;
-}
+export { legacyAuthorPath } from "@nexoris/seo";

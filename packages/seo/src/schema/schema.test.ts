@@ -3,7 +3,7 @@ import { prune, buildGraph } from "./jsonld.js";
 import { professionalServiceNode, siteNodes } from "./site.js";
 import { breadcrumbNode } from "./page.js";
 import { faqPageNode } from "./service.js";
-import { articleNode } from "./content.js";
+import { articleNode, profilePageNode } from "./content.js";
 import { buildPageGraph } from "./graph.js";
 import type { JsonLdNode } from "./jsonld.js";
 
@@ -167,5 +167,41 @@ describe("buildPageGraph", () => {
       },
     });
     expect(findType(graph, "AboutPage")).toBeDefined();
+  });
+});
+
+/**
+ * One author, one identity.
+ *
+ * Author profiles moved to the site root — `/chinedu-nwogu`, not `/authors/chinedu-nwogu` — and the
+ * schema builders kept the old shape. So an article's byline identified its author by a URL that
+ * answers with a 308, and the Person on an article carried a different `@id` from the Person on that
+ * author's own profile page. To anything reading the graph those were two different people, which
+ * breaks exactly the chain an assistant or a search engine follows to attribute an article to a
+ * person it can look up and weigh.
+ */
+describe("author identity across the graph", () => {
+  const slug = "chinedu-nwogu";
+
+  it("identifies the byline author by their real page", () => {
+    const article = articleNode({
+      headline: "A title",
+      description: "A short description of the article.",
+      path: "/insights/a-title",
+      author: { name: "Chinedu Nwogu", slug },
+      datePublished: "2026-01-01T00:00:00.000Z",
+    }) as Record<string, { "@id"?: string; url?: string }>;
+    const author = article.author!;
+    expect(author["@id"]).toBe("https://nexoristech.com/chinedu-nwogu/#person");
+    expect(author.url).toBe("https://nexoristech.com/chinedu-nwogu/");
+    expect(JSON.stringify(article)).not.toContain("/authors/");
+  });
+
+  it("gives the profile page's Person the same id the byline uses", () => {
+    const profile = profilePageNode({ slug, name: "Chinedu Nwogu" }) as Record<string, unknown>;
+    const person = profile["mainEntity"] as { "@id": string };
+    expect(person["@id"]).toBe("https://nexoristech.com/chinedu-nwogu/#person");
+    expect(profile["@id"]).toBe("https://nexoristech.com/chinedu-nwogu/#profilepage");
+    expect(profile["url"]).toBe("https://nexoristech.com/chinedu-nwogu/");
   });
 });

@@ -29,8 +29,22 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
 
 interface Gap { file: string; line: number; max: number; missing: number[]; preview: string }
 
-function gapsIn(file: string): Gap[] {
-  const src = readFileSync(file, "utf8");
+/**
+ * Every source file, read once.
+ *
+ * Both tests used to walk the tree and read all of it themselves, so the suite read several hundred
+ * files twice. Alone that took half a second; inside the full monorepo run, with every other package
+ * testing in parallel, it took ten to twelve and tripped vitest's five-second limit. The failure
+ * surfaced as "has no gaps in any parameter sequence" or the vacuity guard, which reads as a real SQL
+ * defect and is not one: the suite went red at random with nothing wrong in the code it checks.
+ *
+ * Reading once, at module scope, halves the work and takes it out of the timed body of a test.
+ */
+const SOURCES: readonly (readonly [string, string])[] = sourceFiles(SRC).map(
+  (f) => [f, readFileSync(f, "utf8")] as const,
+);
+
+function gapsIn(file: string, src: string): Gap[] {
   const found: Gap[] = [];
   // SQL in this codebase always lives in a template literal.
   for (const m of src.matchAll(/`([^`]*)`/g)) {
@@ -56,15 +70,16 @@ function gapsIn(file: string): Gap[] {
 }
 
 describe("SQL parameter numbering", () => {
-  const files = sourceFiles(SRC);
-
   it("finds statements to check, so it cannot pass vacuously", () => {
-    const withSql = files.filter((f) => /\$\d/.test(readFileSync(f, "utf8")));
-    expect(withSql.length).toBeGreaterThan(10);
+    const withSql = SOURCES.filter(([, src]) => /\$\d/.test(src));
+    expect(
+      withSql.length,
+      `scanned ${SOURCES.length} files under ${SRC} and found ${withSql.length} with parameters`,
+    ).toBeGreaterThan(10);
   });
 
   it("has no gaps in any parameter sequence", () => {
-    const gaps = files.flatMap(gapsIn);
+    const gaps = SOURCES.flatMap(([file, src]) => gapsIn(file, src));
     const report = gaps
       .map((g) => `${g.file}:${g.line} uses up to $${g.max} but never $${g.missing.join(", $")}\n    ${g.preview}`)
       .join("\n");
