@@ -21,7 +21,7 @@ import { isArticleType } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { formatLagosDate } from "../../../lib/date.js";
 import { getInsight, getInsightSlugs, type Author } from "../../../lib/cms.js";
-import { headingsOf, withHeadingIds, wrapTables, stepsOf } from "../../../lib/render-html.js";
+import { headingsOf, withHeadingIds, wrapTables, stepsOf, tocLabel } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
 import { TocSpy } from "../../../components/TocSpy.js";
 import "../../../styles/article.css";
@@ -386,9 +386,13 @@ export default async function ArticlePage({
             <aside className="toc-aside" data-toc aria-label="On this page">
               <p className="toc-title">On this page</p>
               <ol>
+                {/* The short label is what is shown; the full heading stays as the accessible
+                    name and the tooltip, so nothing is lost to somebody who needs it. */}
                 {toc.map((h) => (
                   <li key={h.id}>
-                    <a href={`#${h.id}`}>{h.text}</a>
+                    <a href={`#${h.id}`} title={h.text} aria-label={h.text}>
+                      {tocLabel(h.text)}
+                    </a>
                   </li>
                 ))}
               </ol>

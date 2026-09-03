@@ -473,3 +473,93 @@
   flex: none;
 }
 .insights-page .card-dot { opacity: 0.55; }
+
+/*
+ * The card's call to action.
+ *
+ * The whole card is already a link — the title's ::after stretches over it — so this is not the only
+ * way in and is taken out of the tab order to avoid a second stop on the same destination. It is
+ * here because a card with no visible action reads as a panel rather than something to open, and
+ * because the eye needs somewhere to land after the byline.
+ */
+.insights-page .card-go {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--purple-200, #dcd6f9);
+  background: var(--purple-100, #eeebfc);
+  color: var(--purple-600, #543cda);
+  font-size: 0.84rem;
+  font-weight: 700;
+  transition: background 0.16s, border-color 0.16s, color 0.16s;
+}
+.insights-page .card-go .arr { transition: transform 0.16s; }
+.insights-page .card:hover .card-go {
+  background: var(--purple-600, #543cda);
+  border-color: var(--purple-600, #543cda);
+  color: #fff;
+}
+.insights-page .card:hover .card-go .arr { transform: translateX(4px); }
+
+/* ---- category filter ------------------------------------------------------------------------ */
+/*
+ * The tabs wrap; they do not scroll.
+ *
+ * A horizontal strip on a phone hides its own last option behind an edge, with nothing to say the
+ * option is there. Wrapping costs a second line and shows every choice at once, which is what a
+ * filter bar is for. It is affordable because the tabs carry each category's short name rather than
+ * its full one - "Software", not "Software & Digital Products".
+ */
+.insights-page .cat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 34px;
+}
+.insights-page .cat-tab {
+  appearance: none;
+  cursor: pointer;
+  border: 1px solid var(--line, #e9e7f0);
+  background: #fff;
+  color: var(--ink-2, #3a3550);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 9px 15px;
+  border-radius: 999px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.insights-page .cat-tab:hover {
+  border-color: var(--purple-300, #c3b8f4);
+  color: var(--ink-950, #0d0a1c);
+}
+/* The selected tab is filled, not merely tinted: at a glance the bar has to answer "what am I
+   looking at" before it answers "what else is there". */
+.insights-page .cat-tab.on {
+  background: var(--purple-600, #543cda);
+  border-color: var(--purple-600, #543cda);
+  color: #fff;
+}
+.insights-page .cat-tab:focus-visible {
+  outline: 2px solid var(--purple-600, #543cda);
+  outline-offset: 2px;
+}
+.insights-page .result-line {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--ink-2, #3a3550);
+}
+.insights-page .ins-empty .btn { margin-top: 18px; }
+
+@media (max-width: 480px) {
+  .insights-page .cat-tab {
+    font-size: 0.8rem;
+    padding: 8px 13px;
+  }
+}

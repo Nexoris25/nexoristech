@@ -12,7 +12,7 @@ import { useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
-import type { InsightCard } from "../../lib/cms.js";
+import type { InsightCard, CategoryTab } from "../../lib/cms.js";
 import { formatLagosDate } from "../../lib/date.js";
 
 function ArticleCard({ a }: { a: InsightCard }): ReactNode {
@@ -50,6 +50,9 @@ function ArticleCard({ a }: { a: InsightCard }): ReactNode {
             {a.readMinutes ? <span>{a.readMinutes} min read</span> : null}
           </span>
         </div>
+          <Link className="card-go" href={`/insights/${a.slug}`} tabIndex={-1}>
+            Read article <span className="arr" aria-hidden="true">&rarr;</span>
+          </Link>
       </div>
     </article>
   );
@@ -133,22 +136,35 @@ function NewsletterSignup(): ReactNode {
   );
 }
 
-export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
+export function InsightsView({ cards, categories = [] }: { cards: InsightCard[]; categories?: CategoryTab[] }): ReactNode {
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const q = query.trim().toLowerCase();
 
+  /*
+   * Search and category narrow the same list, in that order.
+   *
+   * Both are client-side because the whole set is already on the page: a filter that costs a round
+   * trip to remove three cards is a filter people stop using. The featured article steps aside as
+   * soon as either is active - it is "the latest piece", which is not a claim that survives a
+   * filter, and leaving it above a filtered grid shows a result that does not match the filter.
+   */
   const filtered = useMemo(() => {
-    if (!q) return cards;
-    return cards.filter(
-      (c) =>
-        c.title.toLowerCase().includes(q) ||
-        (c.excerpt ?? "").toLowerCase().includes(q),
-    );
-  }, [cards, q]);
+    let out = cards;
+    if (category) out = out.filter((c) => c.categorySlug === category);
+    if (q) {
+      out = out.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          (c.excerpt ?? "").toLowerCase().includes(q),
+      );
+    }
+    return out;
+  }, [cards, q, category]);
 
-  const searching = q.length > 0;
-  const featured = !searching && cards.length > 0 ? cards[0] : null;
-  const gridCards = searching ? filtered : cards.slice(1);
+  const narrowing = q.length > 0 || category.length > 0;
+  const featured = !narrowing && cards.length > 0 ? cards[0] : null;
+  const gridCards = narrowing ? filtered : cards.slice(1);
 
   return (
     <div className="svc-page insights-page">
@@ -251,10 +267,40 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
                 </div>
               ) : null}
 
-              {searching ? (
-                <p className="result-line" role="status" style={{ marginTop: "40px" }}>
-                  <b>{filtered.length}</b> {filtered.length === 1 ? "result" : "results"} for &ldquo;
-                  {query.trim()}&rdquo;
+              {/* Category filter.
+                  Tabs wrap rather than scroll: a horizontal strip on a phone hides its own last
+                  option behind an edge with nothing to say it is there. They carry the category's
+                  short name for the same reason - a row of full names is a paragraph. */}
+              {categories.length > 0 ? (
+                <div className="cat-bar" role="group" aria-label="Filter articles by category">
+                  <button
+                    type="button"
+                    className={`cat-tab${category === "" ? " on" : ""}`}
+                    aria-pressed={category === ""}
+                    onClick={() => setCategory("")}
+                  >
+                    All
+                  </button>
+                  {categories.map((c) => (
+                    <button
+                      key={c.slug}
+                      type="button"
+                      className={`cat-tab${category === c.slug ? " on" : ""}`}
+                      aria-pressed={category === c.slug}
+                      title={c.name}
+                      onClick={() => setCategory(category === c.slug ? "" : c.slug)}
+                    >
+                      {c.shortName}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {narrowing ? (
+                <p className="result-line" role="status">
+                  <b>{filtered.length}</b> {filtered.length === 1 ? "article" : "articles"}
+                  {category ? ` in ${categories.find((c) => c.slug === category)?.name ?? "this category"}` : ""}
+                  {q ? ` matching “${query.trim()}”` : ""}
                 </p>
               ) : null}
 
@@ -264,14 +310,23 @@ export function InsightsView({ cards }: { cards: InsightCard[] }): ReactNode {
                     <ArticleCard a={a} key={a.slug} />
                   ))}
                 </div>
-              ) : searching ? (
+              ) : narrowing ? (
                 <div className="ins-empty">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="11" cy="11" r="7" />
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
-                  <h2>No articles match that search.</h2>
-                  <p>Try a different word, or clear the search to see everything.</p>
+                  <h2>Nothing here yet.</h2>
+                  <p>
+                    {category && q
+                      ? "No article in this category matches that search."
+                      : category
+                        ? "No published article in this category yet."
+                        : "Try a different word, or clear the search to see everything."}
+                  </p>
+                  <button type="button" className="btn btn-ghost" onClick={() => { setCategory(""); setQuery(""); }}>
+                    Show everything
+                  </button>
                 </div>
               ) : null}
             </>

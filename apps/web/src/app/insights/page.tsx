@@ -6,7 +6,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { buildMetadata, buildPageGraph } from "@nexoris/seo";
-import { getAllInsightCards } from "../../lib/cms.js";
+import { getAllInsightCards, getCategoryTabs } from "../../lib/cms.js";
 import { InsightsView } from "../../components/company/InsightsView.js";
 import { JsonLd } from "../../components/JsonLd.js";
 
@@ -44,11 +44,11 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function InsightsHubPage(): Promise<ReactNode> {
-  const articles = await getAllInsightCards();
+  const [articles, categories] = await Promise.all([getAllInsightCards(), getCategoryTabs()]);
   return (
     <>
       <JsonLd graph={graph()} />
-      <InsightsView cards={articles} />
+      <InsightsView cards={articles} categories={categories} />
     </>
   );
 }

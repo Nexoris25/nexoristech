@@ -640,3 +640,33 @@ export async function getPseoPage(slug: string): Promise<PseoPage | null> {
     ...opt("categorySlug", str(r.cat_slug)),
   };
 }
+
+/** A category as the filter bar needs it: the short label it shows and the slug it filters on. */
+export interface CategoryTab { name: string; shortName: string; slug: string }
+
+/**
+ * The categories that actually have something published in them.
+ *
+ * A filter bar offering a tab that returns nothing is worse than one tab fewer: the reader clicks
+ * it, gets an empty page, and learns not to trust the bar. The count is done in SQL rather than by
+ * filtering the cards afterwards, so the bar is right even when the listing is paginated later.
+ */
+export async function getCategoryTabs(): Promise<CategoryTab[]> {
+  const rows = await query(
+    `SELECT cat.name, cat.short_name, cat.slug, count(c.id) AS n
+       FROM cms_category cat
+       JOIN cms_content c
+         ON c.category_id = cat.id AND c.kind = 'insight' AND c.status = 'published'
+      WHERE cat.active
+      GROUP BY cat.id, cat.name, cat.short_name, cat.slug
+      HAVING count(c.id) > 0
+      ORDER BY count(c.id) DESC, cat.name`,
+  );
+  return rows
+    .map((r) => ({
+      name: str(r.name) ?? "",
+      shortName: str(r.short_name) ?? str(r.name) ?? "",
+      slug: str(r.slug) ?? "",
+    }))
+    .filter((c) => c.name && c.slug);
+}

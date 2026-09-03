@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useActiveHeading } from "../lib/use-active-heading.js";
 import "../styles/floating-toc.css";
+import { tocLabel } from "../lib/render-html.js";
 
 export interface TocEntry { id: string; text: string }
 
@@ -84,8 +85,12 @@ export function FloatingToc({ entries, label = "On this page" }: { entries: TocE
                     aria-current={active === e.id ? "location" : undefined}
                     className={active === e.id ? "on" : ""}
                     onClick={() => setOpen(false)}
+                    title={e.text}
+                    aria-label={e.text}
                   >
-                    {e.text}
+                    {/* The short form, matching the sidebar. The sheet is the narrowest place the
+                        contents appear, so it is the one that suffers most from a four-line entry. */}
+                    {tocLabel(e.text)}
                   </a>
                 </li>
               ))}

@@ -22,6 +22,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!name) return NextResponse.redirect(new URL(`${id ? `/cms/categories/${id}` : "/cms/categories/new"}?error=name`, request.url), { status: 303 });
 
   const slug = slugify(String(f.get("slug") ?? "") || name);
+  // Falls back to the head of the full name, which is the right answer often enough to be a useful
+  // default and always editable when it is not.
+  const shortName =
+    String(f.get("short_name") ?? "").trim() || name.split(/[,&]/)[0]!.trim() || name;
   const description = String(f.get("description") ?? "").trim() || null;
   const parent = String(f.get("parent_id") ?? "").trim();
   const parentId = parent && parent !== id ? parent : null;
@@ -33,12 +37,12 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   if (id) {
     await pool.query(
-      "UPDATE cms_category SET name=$1, slug=$2, description=$3, parent_id=$4, active=$5, updated_by=$6, updated_at=now() WHERE id=$7",
-      [name, slug, description, parentId, active, staff.name, id]);
+      "UPDATE cms_category SET name=$1, slug=$2, description=$3, parent_id=$4, active=$5, updated_by=$6, short_name=$8, updated_at=now() WHERE id=$7",
+      [name, slug, description, parentId, active, staff.name, id, shortName]);
   } else {
     await pool.query(
-      "INSERT INTO cms_category (name, slug, description, parent_id, active, created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$6)",
-      [name, slug, description, parentId, active, staff.name]);
+      "INSERT INTO cms_category (name, slug, description, parent_id, active, created_by, updated_by, short_name) VALUES ($1,$2,$3,$4,$5,$6,$6,$7)",
+      [name, slug, description, parentId, active, staff.name, shortName]);
   }
   // A category name appears on the insights index and on every article filed under it. The website has
   // no page per category, so the hub is what gets rebuilt; renaming one used to leave the old name up.

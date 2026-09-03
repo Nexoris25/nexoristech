@@ -401,17 +401,35 @@
   background: #fff;
   -webkit-overflow-scrolling: touch;
   /*
-   * A shadow on the right edge while there is more table to the right of it.
+   * The scrollbar is the affordance, not a gradient over the content.
    *
-   * A table that scrolls with no indication that it scrolls reads as a table with its last column
-   * cut off. The gradient is painted by the scroll container and pinned to its edge, so it fades
-   * out as the reader reaches the end.
+   * There was a shadow painted on the wrapper's right edge to say "there is more this way". Pinned
+   * to the padding box, it sat over the last 22 pixels of the table permanently: at the end of the
+   * scroll it washed out the final column and read as a row cut off before its own border. An
+   * overlay that obscures the thing it is describing is the wrong instrument.
+   *
+   * A visible, branded scrollbar says the same thing without covering anything, and it says it in
+   * the one place a reader already looks for it.
    */
-  background-image: linear-gradient(to right, rgba(13, 10, 28, 0.09), rgba(13, 10, 28, 0));
-  background-position: right center;
-  background-size: 22px 100%;
-  background-repeat: no-repeat;
-  background-attachment: local, scroll;
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple-500, #6a55f2) var(--purple-100, #eeebfc);
+  padding-bottom: 2px;
+}
+.article-page .prose .table-wrap::-webkit-scrollbar {
+  height: 10px;
+}
+.article-page .prose .table-wrap::-webkit-scrollbar-track {
+  background: var(--purple-100, #eeebfc);
+  border-radius: 999px;
+  margin: 0 10px;
+}
+.article-page .prose .table-wrap::-webkit-scrollbar-thumb {
+  background: var(--purple-500, #6a55f2);
+  border-radius: 999px;
+  border: 2px solid var(--purple-100, #eeebfc);
+}
+.article-page .prose .table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--purple-600, #543cda);
 }
 .article-page .prose .table-wrap table {
   margin: 0;
@@ -466,8 +484,10 @@
   vertical-align: top;
   line-height: 1.6;
 }
-.article-page .prose td:last-child,
-.article-page .prose th[scope="row"]:last-child {
+/* The outer edge belongs to the wrapper when the table fits, and to the table when it does not:
+   without this the final column ended in nothing at the end of a horizontal scroll. */
+.article-page .prose .table-wrap td:last-child,
+.article-page .prose .table-wrap th:last-child {
   border-right: 0;
 }
 .article-page .prose tbody tr:nth-child(even) td {

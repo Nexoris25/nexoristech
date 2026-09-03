@@ -9,7 +9,7 @@ import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
-interface Cat { id: string; name: string; slug: string; description: string | null; parent_id: string | null; active: boolean; created_at: string; created_by: string | null; updated_at: string; updated_by: string | null; count: string }
+interface Cat { id: string; name: string; short_name: string | null; slug: string; description: string | null; parent_id: string | null; active: boolean; created_at: string; created_by: string | null; updated_at: string; updated_by: string | null; count: string }
 
 export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
@@ -18,7 +18,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   const pool = cmsDb();
   const [{ rows }, { rows: parents }] = await Promise.all([
     pool.query<Cat>(
-      `SELECT id, name, slug, description, parent_id, active, created_at::text, created_by, updated_at::text, updated_by,
+      `SELECT id, name, short_name, slug, description, parent_id, active, created_at::text, created_by, updated_at::text, updated_by,
               (SELECT count(*) FROM cms_content WHERE category_id=cms_category.id)::text count
          FROM cms_category WHERE id=$1`, [id]),
     pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_category ORDER BY name"),
@@ -36,7 +36,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
         <CategoryForm
           parents={parents}
           initial={{
-            id: c.id, name: c.name, slug: c.slug, description: c.description ?? "", parent_id: c.parent_id ?? "",
+            id: c.id, name: c.name, shortName: c.short_name ?? "", slug: c.slug, description: c.description ?? "", parent_id: c.parent_id ?? "",
             active: c.active, count: Number(c.count),
             created: `${fmt(c.created_at)}${c.created_by ? ` by ${c.created_by}` : ""}`,
             updated: `${fmt(c.updated_at)}${c.updated_by ? ` by ${c.updated_by}` : ""}`,

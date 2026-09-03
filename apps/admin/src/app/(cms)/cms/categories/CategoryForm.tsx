@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { Hash } from "lucide-react";
 
 interface Parent { id: string; name: string }
-interface Initial { id?: string; name?: string; slug?: string; description?: string; parent_id?: string; active?: boolean; count?: number; created?: string; updated?: string }
+interface Initial { id?: string; name?: string; shortName?: string; slug?: string; description?: string; parent_id?: string; active?: boolean; count?: number; created?: string; updated?: string }
 const field = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-[0.86rem] text-slate-900 placeholder:text-slate-400 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15 resize-none";
 const label = "text-[0.8rem] font-600 text-slate-700";
 const slugify = (s: string): string => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -34,6 +34,14 @@ export function CategoryForm({ initial, parents }: { initial?: Initial; parents:
               <label className="flex flex-col gap-1.5">
                 <span className="flex items-center justify-between"><span className={label}>Category Name <span className="text-[#EF4444]">*</span></span><span className="text-[0.72rem] text-slate-500">{name.length}/100</span></span>
                 <input name="name" value={name} maxLength={100} onChange={(e) => setName(e.target.value)} placeholder="Enter category name..." required className={field} />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className={label}>Short name</span>
+                <input name="short_name" defaultValue={initial?.shortName ?? ""} maxLength={24} placeholder="Software" className={field} />
+                <span className="text-[0.74rem] text-slate-500">
+                  What the filter tabs on the Insights page say. A row of full category names either
+                  scrolls off a phone or wraps into a paragraph. Two words at most.
+                </span>
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className={label}>Slug <span className="text-[#EF4444]">*</span></span>
