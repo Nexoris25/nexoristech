@@ -206,6 +206,14 @@ export default async function ArticlePage({
       path,
       name: article.title,
       description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
+      // The cover as a proper ImageObject rather than a bare URL. webPageNode has taken a
+      // primaryImage since it was written and nothing ever passed one, so every page declared its
+      // picture only inside the article node - with no caption, width or height attached to the
+      // page itself. The alt text becomes the caption, which is the one description of the picture
+      // that has already been written and checked.
+      ...(article.coverUrl
+        ? { primaryImage: { url: mediaAbsolute(article.coverUrl), alt: article.coverAlt ?? article.title } }
+        : {}),
       breadcrumbs: [
         { name: "Insights", path: "/insights" },
         { name: article.title, path },

@@ -93,6 +93,10 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
             path,
             name: author.name,
             description: author.metaDescription ?? author.bio ?? `${author.name} writes for Nexoris Technologies.`,
+            // The headshot, described by the alt text the CMS already holds.
+            ...(author.photoUrl
+              ? { primaryImage: { url: author.photoUrl, alt: author.photoAlt ?? author.name } }
+              : {}),
             breadcrumbs: [
               { name: "Insights", path: "/insights" },
               { name: author.name, path },

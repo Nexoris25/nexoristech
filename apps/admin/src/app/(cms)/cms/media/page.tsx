@@ -5,7 +5,7 @@
  * about seeded assets that have no hosted file yet. Admin only. Reads nexoris_cms.
  */
 import type { ReactNode } from "react";
-import { CalendarPlus, HardDrive, Image as ImageIcon, Layers, Upload } from "lucide-react";
+import { CalendarPlus, HardDrive, Image as ImageIcon, Layers } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { ListFilters } from "../../../../components/cms/ListFilters.js";
 import { filterClause } from "../../../../lib/list-filters.js";
@@ -13,6 +13,7 @@ import { Pagination, currentPage, perPageFrom } from "../../../../components/cms
 import { cmsDb } from "../../../../lib/cms-db.js";
 import Link from "next/link";
 import { MediaGrid, type MediaAsset } from "./MediaGrid.js";
+import { MediaUpload } from "./MediaUpload.js";
 import { usageFor, type MediaUse } from "../../../../lib/media-usage.js";
 import { isUuid } from "../../../../lib/route-params.js";
 
@@ -22,8 +23,8 @@ type Asset = MediaAsset;
 interface Stats { total: string; images: string; bytes: string; this_month: string }
 function fmtSize(b: number): string { if (b >= 1e9) return `${(b / 1e9).toFixed(1)} GB`; if (b >= 1e6) return `${(b / 1e6).toFixed(1)} MB`; if (b >= 1e3) return `${(b / 1e3).toFixed(0)} KB`; return `${b} B`; }
 
-export default async function MediaPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; inuse?: string; deleted?: string; saved?: string }> }): Promise<ReactNode> {
-  const { page: pageParam, per, q, inuse, deleted, saved } = await searchParams;
+export default async function MediaPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; inuse?: string; deleted?: string; saved?: string; uploaded?: string }> }): Promise<ReactNode> {
+  const { page: pageParam, per, q, inuse, deleted, saved, uploaded } = await searchParams;
   await requireCmsAccess();
   const pool = cmsDb();
 
@@ -69,6 +70,12 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
         [inUseIds])).rows
     : [];
 
+  /* The folders already in use, so uploads land where related files already are, plus the standard
+     set for a library that is still empty. */
+  const { rows: folderRows } = await pool.query<{ folder: string }>(
+    "SELECT DISTINCT folder FROM cms_media WHERE folder IS NOT NULL AND folder <> '' ORDER BY folder");
+  const folders = [...new Set([...folderRows.map((f) => f.folder), "Uploads", "Insights", "Team", "Article images", "Case studies"])];
+
   const stats = [
     { icon: Layers, label: "Total Assets", value: Number(s?.total ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
     { icon: ImageIcon, label: "Images", value: Number(s?.images ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
@@ -84,10 +91,15 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
           <p className="mt-1 text-[0.86rem] text-slate-500">Images, video, and documents used across your content.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/cms/insights/new" className="inline-flex items-center gap-1.5 rounded-lg bg-[#543CDA] px-4 py-2 text-[0.82rem] font-600 text-white hover:bg-[#4330B8]"><Upload size={15} strokeWidth={2.4} /> Upload</Link>
+          <Link href="/cms/insights/new" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2 text-[0.82rem] font-600 text-slate-700 hover:bg-slate-50">New insight</Link>
         </div>
       </div>
 
+      {uploaded ? (
+        <p className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-[0.84rem] text-green-700">
+          Uploaded {uploaded} file{uploaded === "1" ? "" : "s"}.
+        </p>
+      ) : null}
       {saved ? (
         <p className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-[0.84rem] text-green-700">File updated.</p>
       ) : null}
@@ -156,6 +168,8 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
           </div>
         </section>
       ) : null}
+
+      <div className="mt-5"><MediaUpload folders={folders} /></div>
 
       <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((st) => (

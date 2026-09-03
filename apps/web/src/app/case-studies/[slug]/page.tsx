@@ -66,6 +66,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       path,
       name: study.title,
       description: study.summary ?? "",
+      ...(study.coverUrl
+        ? { primaryImage: { url: resolveUrl(study.coverUrl), alt: study.coverAlt ?? study.title } }
+        : {}),
       breadcrumbs: [
         { name: "Case studies", path: "/case-studies" },
         { name: study.title, path },
