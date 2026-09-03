@@ -48,8 +48,14 @@ const text = (html: string | null | undefined): string =>
 const words = (html: string | null | undefined): number =>
   text(html).split(" ").filter(Boolean).length;
 
-/** "Nigeria" is the national baseline rather than a place, so it asks for no local specifics. */
-const NATIONAL = "nigeria";
+/**
+ * Values that mean "everywhere" rather than a place, so they ask for no local specifics.
+ *
+ * "Nigeria" is the national baseline. "Global" is not in the location catalogue at all, but it is
+ * what the editor has always defaulted to and what older rows carry, and treating it as a place
+ * demanded a page "say something specific to Global" — a requirement nothing can meet.
+ */
+const NOT_A_PLACE = new Set(["nigeria", "global", "worldwide", "all locations"]);
 
 export function computeReadiness(input: ReadinessInput): Readiness {
   const body = input.body ?? "";
@@ -58,7 +64,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
   const meta = describeMetaDescription(input.metaDescription ?? "");
 
   const location = (input.targetLocation ?? "").trim();
-  const isLocationPage = location.length > 0 && location.toLowerCase() !== NATIONAL;
+  const isLocationPage = location.length > 0 && !NOT_A_PLACE.has(location.toLowerCase());
   // A location page has to say something about the place beyond naming it in the title. Two
   // mentions in the body is a low bar, and it is the difference between a real local page and the
   // same page with a city swapped in.

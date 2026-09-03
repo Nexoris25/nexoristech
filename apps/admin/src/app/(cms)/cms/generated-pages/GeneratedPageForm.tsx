@@ -16,7 +16,8 @@ import { metaChecks, metaFindings, metaScore } from "../../../../lib/meta-qualit
 import type { FaqItem, PageRef } from "../../../../components/cms/OgeAssistant.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
 // The publish gate's own floor, so the editor and the gate can never disagree about the number.
-import { MIN_BODY_WORDS } from "../../../../lib/pseo-gate.js";
+import { MIN_BODY_WORDS, MIN_READINESS } from "../../../../lib/pseo-gate.js";
+import { computeReadiness } from "../../../../lib/pseo-readiness.js";
 import { PSEO_LOCATIONS } from "../../../../lib/pseo-constants.js";
 import { SERVICES as CATALOGUE_SERVICES, INDUSTRIES as CATALOGUE_INDUSTRIES } from "@nexoris/recommend";
 
@@ -74,6 +75,9 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
   const [industry, setIndustry] = useState(initial?.industry ?? "");
   const [service, setService] = useState(initial?.primaryService ?? "");
   const [authorId, setAuthorId] = useState(initial?.authorId ?? "");
+  // Controlled, because the readiness checklist below judges local specificity against it and has to
+  // react when it changes rather than only on save.
+  const [targetLocation, setTargetLocation] = useState(initial?.targetLocation ?? "Global");
   const [factCheckerId, setFactCheckerId] = useState(initial?.factCheckerId ?? "");
   const [authorBio, setAuthorBio] = useState(initial?.authorBio ?? "");
   const [factCheckerBio, setFactCheckerBio] = useState(initial?.factCheckerBio ?? "");
@@ -106,6 +110,20 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
   });
   const score = metaScore(checks);
 
+  /*
+   * The publish gate's own verdict, shown while the page is being written.
+   *
+   * The gate holds a failing page at draft and forces noindex, which is the right thing to do and
+   * was invisible: the save came back, the status said Draft, and nothing said why. Someone would
+   * set Published, save, and find it draft again with no explanation to act on.
+   *
+   * This calls the same function the route calls, so the checklist and the gate cannot disagree.
+   */
+  const readiness = useMemo(
+    () => computeReadiness({ body, authorId, metaDescription: metaDesc, targetLocation }),
+    [body, authorId, metaDesc, targetLocation],
+  );
+
   return (
     <form action="/api/cms/generated-pages" method="post">
       {edit ? <input type="hidden" name="id" value={initial!.id} /> : null}
@@ -137,7 +155,12 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
                 <select name="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} className={`cursor-pointer ${field}`}><option value="">Select industry</option>{INDUSTRIES.map((s) => <option key={s}>{s}</option>)}</select>
               </label>
               <label className="flex flex-col gap-1.5"><span className={label}>Target Location</span>
-                <select name="target_location" defaultValue={initial?.targetLocation ?? "Global"} className={`cursor-pointer ${field}`}>{LOCATIONS.map((s) => <option key={s}>{s}</option>)}</select>
+                {/*
+                  * A stored location outside the catalogue stays selectable. The editor has always
+                  * defaulted to "Global", which is not one of the seven the generator scores, so a
+                  * plain catalogue list would silently rewrite an existing page's location on save.
+                  */}
+                <select name="target_location" value={targetLocation} onChange={(e) => setTargetLocation(e.target.value)} className={`cursor-pointer ${field}`}>{(LOCATIONS.includes(targetLocation as (typeof LOCATIONS)[number]) ? LOCATIONS : [targetLocation, ...LOCATIONS]).map((s) => <option key={s}>{s}</option>)}</select>
               </label>
               <label className="flex flex-col gap-1.5"><span className={label}>Search Intent <span className="text-[#EF4444]">*</span></span>
                 <select name="search_intent" defaultValue={initial?.searchIntent ?? "Informational"} className={`cursor-pointer ${field}`}>{INTENTS.map((s) => <option key={s}>{s}</option>)}</select>
@@ -196,6 +219,44 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
                 <span><span className="block text-[0.82rem] font-600 text-slate-700">Hide from search engines (noindex)</span><span className="block text-[0.74rem] text-slate-500">On means this page emits a noindex tag and is left out of the sitemap. Leave off to let it rank normally.</span></span>
               </label>
             </div>
+
+            {/*
+              * What publishing requires, checked as you write.
+              *
+              * A page that does not clear this is held at draft and forced to noindex by the API.
+              * That protection is worth keeping and was silent, so the only signal was a status that
+              * refused to change. Every unmet line here says what to do, not merely what is wrong.
+              */}
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-[0.84rem] font-700 text-slate-800">Publishing requirements</h3>
+                <span
+                  className="text-[0.78rem] font-700"
+                  style={{ color: readiness.score >= MIN_READINESS ? "#15803D" : "#B45309" }}
+                >
+                  {readiness.score}% ready
+                </span>
+              </div>
+              <p className="mt-1 text-[0.74rem] text-slate-500">
+                {readiness.score >= MIN_READINESS
+                  ? "This page meets every requirement and can be published."
+                  : "Until all of these are met, saving as Published keeps the page as a draft and hidden from search engines."}
+              </p>
+              <ul className="mt-3 flex flex-col gap-2">
+                {readiness.conditions.map((c) => (
+                  <li key={c.label} className="flex items-start gap-2 text-[0.78rem]">
+                    <span aria-hidden="true" className={`mt-px shrink-0 font-700 ${c.passed ? "text-[#15803D]" : "text-[#B45309]"}`}>
+                      {c.passed ? "✓" : "•"}
+                    </span>
+                    <span>
+                      <span className={`font-600 ${c.passed ? "text-slate-600" : "text-slate-800"}`}>{c.label}</span>
+                      {c.passed ? null : <span className="block text-[0.74rem] text-slate-500">{c.hint}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <div className="mt-4 flex items-center justify-end gap-2">
               <a href="/cms/generated-pages" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-600 hover:bg-slate-50">Cancel</a>
               <button type="submit" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>

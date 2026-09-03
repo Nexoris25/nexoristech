@@ -129,3 +129,30 @@ describe("applyPseoGate", () => {
     expect(applyPseoGate("draft", false, gate).heldBack).toBe(false);
   });
 });
+
+/**
+ * "Global" is what the generated-page form has always defaulted to, and it is not one of the seven
+ * locations the generator scores. Treated as a place, it asked a page to "say something specific to
+ * Global" — a condition no page can satisfy, which held every default page at draft for a reason
+ * that could not be acted on.
+ */
+describe("locations that are not places", () => {
+  for (const location of ["Global", "global", "Nigeria", "Worldwide"]) {
+    it(`asks for no local detail when the location is "${location}"`, () => {
+      const result = evaluatePseoGate({ ...passing, targetLocation: location });
+      expect(result.passes).toBe(true);
+      expect(result.failures).toEqual([]);
+    });
+  }
+
+  it("still requires local detail for a real place", () => {
+    const result = evaluatePseoGate({ ...passing, targetLocation: "Port Harcourt" });
+    expect(result.passes).toBe(false);
+    expect(result.failures.join(" ")).toContain("Port Harcourt");
+  });
+
+  it("passes a real place once the body speaks about it", () => {
+    const body = `${passing.body}<p>Our Port Harcourt team works across Port Harcourt.</p>`;
+    expect(evaluatePseoGate({ ...passing, body, targetLocation: "Port Harcourt" }).passes).toBe(true);
+  });
+});
