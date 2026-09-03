@@ -42,7 +42,11 @@ export interface InsightCard {
   category?: string;
   categorySlug?: string;
 }
-export interface Author { name: string; slug?: string; role?: string; linkedin?: string; bio?: string }
+/** A credited person. The photo travels with the name so a byline is a face, not two letters. */
+export interface Author {
+  name: string; slug?: string; role?: string; linkedin?: string; bio?: string;
+  photoUrl?: string; photoAlt?: string;
+}
 export interface FaqItem { question: string; answer: string }
 export interface Insight {
   title: string; shortTitle?: string; slug: string; body: string; excerpt?: string;
@@ -183,6 +187,8 @@ function toAuthor(r: Row, prefix = ""): Author | undefined {
     slug: nameSlug(name),
     ...opt("role", str(r[`${prefix}role`])),
     ...opt("bio", str(r[`${prefix}bio`])),
+    ...opt("photoUrl", mediaUrl(r[`${prefix}photo`])),
+    ...opt("photoAlt", str(r[`${prefix}photo_alt`])),
   };
 }
 
@@ -333,7 +339,16 @@ export async function getFeaturedCaseStudies(limit = 2): Promise<CaseStudyCard[]
 
 function toInsightCard(r: Row): InsightCard {
   return {
-    title: str(r.short_title) ?? str(r.title) ?? "",
+    /*
+     * The article's own title, not the short one.
+     *
+     * The short title exists for places where a title has to fit a small fixed space - a breadcrumb,
+     * a related-articles strip - and a card is not one of those: it has two full lines and an
+     * excerpt beneath it. Preferring the short form meant a listing advertised a different headline
+     * from the page it opened, which reads as a mistake and costs the article the words it was
+     * written to be found by.
+     */
+    title: str(r.title) ?? str(r.short_title) ?? "",
     slug: str(r.slug) ?? "",
     ...opt("excerpt", str(r.excerpt)),
     ...opt("publishedAt", isoDate(r.published_at)),
@@ -386,7 +401,9 @@ export async function getInsight(slug: string): Promise<Insight | null> {
             c.published_at::text AS published_at, c.updated_at::text AS updated_at,
             c.featured_image, c.featured_image_alt, cat.name AS category,
             a.name AS a_name, a.job_title AS a_role, COALESCE(c.author_bio, a.bio) AS a_bio,
-            fc.name AS fc_name, fc.job_title AS fc_role, COALESCE(c.fact_checker_bio, fc.bio) AS fc_bio
+            a.headshot_url AS a_photo, a.headshot_alt AS a_photo_alt,
+            fc.name AS fc_name, fc.job_title AS fc_role, COALESCE(c.fact_checker_bio, fc.bio) AS fc_bio,
+            fc.headshot_url AS fc_photo, fc.headshot_alt AS fc_photo_alt
        FROM cms_content c
        LEFT JOIN cms_category cat ON cat.id = c.category_id
        LEFT JOIN cms_author a ON a.id = c.author_id

@@ -461,3 +461,15 @@
   margin-top: 16px;
 }
 .insights-page .feat-meta .feat-date { margin-top: 0; }
+
+/* Date and reading time sit together at the foot of a card. */
+.insights-page .card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--ink-3, #6a6580);
+  white-space: nowrap;
+  flex: none;
+}
+.insights-page .card-dot { opacity: 0.55; }

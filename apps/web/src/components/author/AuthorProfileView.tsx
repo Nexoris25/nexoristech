@@ -136,7 +136,30 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
       {profileHtml ? (
         <section className="band" aria-label={`About ${author.name}`}>
           <div className="wrap">
-            <div className="prose prof-body" dangerouslySetInnerHTML={{ __html: profileHtml }} />
+            {/* The article's own contents column, not a second design.
+                A long profile is as hard to navigate as a long article and had only the floating
+                sheet to navigate it with. data-toc is how TocSpy finds the list; the markup is
+                server-rendered so the contents are in the HTML and work without JavaScript, and
+                only the "you are here" marker needs a browser. */}
+            {toc.length > 0 ? (
+              <div className="art-layout">
+                <aside className="toc-aside" data-toc aria-label="On this page">
+                  <p className="toc-title">On this page</p>
+                  <ol>
+                    {toc.map((h) => (
+                      <li key={h.id}>
+                        <a href={`#${h.id}`}>{h.text}</a>
+                      </li>
+                    ))}
+                  </ol>
+                </aside>
+                <div className="prose prof-body" dangerouslySetInnerHTML={{ __html: profileHtml }} />
+              </div>
+            ) : (
+              <div className="art-layout" style={{ gridTemplateColumns: "1fr", maxWidth: "760px" }}>
+                <div className="prose prof-body" dangerouslySetInnerHTML={{ __html: profileHtml }} />
+              </div>
+            )}
           </div>
         </section>
       ) : null}
@@ -182,9 +205,11 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
                         )}
                         <span className="card-byname">{author.name}</span>
                       </span>
-                      {article.publishedAt ? (
-                        <span className="card-date">{formatLagosDate(article.publishedAt)}</span>
-                      ) : null}
+                      <span className="card-meta">
+                        {article.publishedAt ? <span>{formatLagosDate(article.publishedAt)}</span> : null}
+                        {article.publishedAt && article.readMinutes ? <span className="card-dot" aria-hidden="true">·</span> : null}
+                        {article.readMinutes ? <span>{article.readMinutes} min read</span> : null}
+                      </span>
                     </div>
                   </div>
                 </article>

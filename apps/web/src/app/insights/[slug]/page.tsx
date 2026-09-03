@@ -113,6 +113,25 @@ function personRef(author: Author): PersonRef {
 
 /** Flatten a React node tree to its text, so an h2's slug id matches the TOC entry. */
 
+/**
+ * A credited person's avatar.
+ *
+ * Initials were all these ever showed, even for authors who have a headshot on file: the Author
+ * type did not carry the photo, so the byline on the article that a search engine reads for
+ * authorship signals was two letters in a circle. The initials remain as the fallback for somebody
+ * with no picture yet.
+ */
+function Avatar({ person }: { person: Author }): ReactNode {
+  if (person.photoUrl) {
+    return <img className="avatar" src={person.photoUrl} alt={person.photoAlt ?? person.name} loading="lazy" />;
+  }
+  return (
+    <span className="avatar" aria-hidden="true">
+      {initials(person.name)}
+    </span>
+  );
+}
+
 function initials(name: string): string {
   return name
     .split(/\s+/)
@@ -265,9 +284,7 @@ export default async function ArticlePage({
           {people.map(({ kind, person }) => (
             <div className="pcard" key={kind}>
               <div className="pc-head">
-                <span className="avatar" aria-hidden="true">
-                  {initials(person.name)}
-                </span>
+                <Avatar person={person} />
                 <div className="pc-id">
                   <div className="pk">{kind}</div>
                   <h3>{person.name}</h3>
@@ -310,14 +327,20 @@ export default async function ArticlePage({
 
             {people.length > 0 ? (
               <div className="byline">
+                {/* The name is a link to the profile. It is the obvious thing to click on a byline,
+                    and it was the one place on the page where the author's page was not reachable. */}
                 {people.map(({ kind, person }) => (
                   <div className="bperson" key={kind}>
-                    <span className="avatar" aria-hidden="true">
-                      {initials(person.name)}
-                    </span>
+                    <Avatar person={person} />
                     <div>
                       <div className="role">{kind}</div>
-                      <div className="nm">{person.name}</div>
+                      <div className="nm">
+                        {person.slug ? (
+                          <Link href={authorPath(person.slug)}>{person.name}</Link>
+                        ) : (
+                          person.name
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

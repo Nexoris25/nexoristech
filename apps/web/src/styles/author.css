@@ -96,14 +96,10 @@
  * there is one definition of what an article body looks like on this site.
  */
 .author-page .prof-body { max-width: 100%; }
-/* .prose sets the article's reading size; the author page's own base was one step smaller, so the
-   same paragraph read differently on the two pages. */
-.author-page .prof-body p,
-.author-page .prof-body li {
-  font-size: 1.05rem;
-  line-height: 1.75;
-  color: var(--ink-2, #3a3550);
-}
+/* Nothing here restates the article's type scale. This block existed to patch the reading size
+   before article.css was imported on this page, and it patched it to different values than the
+   article actually uses - 16.8px on a 29.4px line against the article's 16px on 28px - so the two
+   pages still did not match. The stylesheet is loaded now and its rules are the definition. */
 .author-page .prof-body a { color: var(--purple-600, #543cda); text-decoration: underline; }
 
 .author-page .prof-links {

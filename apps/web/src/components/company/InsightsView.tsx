@@ -42,9 +42,13 @@ function ArticleCard({ a }: { a: InsightCard }): ReactNode {
               <span className="card-byname">{a.author}</span>
             </span>
           ) : <span />}
-          {a.publishedAt ? (
-            <span className="card-date">{formatLagosDate(a.publishedAt)}</span>
-          ) : null}
+          {/* Date and reading time together: how current it is and what it will cost to read, which
+              is the pair a reader weighs before opening anything. */}
+          <span className="card-meta">
+            {a.publishedAt ? <span>{formatLagosDate(a.publishedAt)}</span> : null}
+            {a.publishedAt && a.readMinutes ? <span className="card-dot" aria-hidden="true">·</span> : null}
+            {a.readMinutes ? <span>{a.readMinutes} min read</span> : null}
+          </span>
         </div>
       </div>
     </article>
