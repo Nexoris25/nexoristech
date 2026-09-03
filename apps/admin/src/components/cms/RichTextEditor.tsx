@@ -64,6 +64,17 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
   const [html, setHtml] = useState(initialHtml ?? "");
   const [inTable, setInTable] = useState(false);
   const [uploading, setUploading] = useState(false);
+  /*
+   * A file that has been uploaded but not yet placed.
+   *
+   * The picture used to go straight into the document with whatever name it was saved under and
+   * whatever alt text the model wrote. Both are worth a second before they are committed: the name
+   * is how the file will be found in the media library for the rest of its life, and the alt text is
+   * the whole of what a reader who cannot see the picture gets. A generated description is a good
+   * first draft and a poor last word, and the moment to correct it is while the picture is on
+   * screen and the writer knows why they added it.
+   */
+  const [pending, setPending] = useState<{ url: string; name: string; alt: string; id?: string } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   // The block tag under the caret, so the style dropdown always shows what you are actually editing.
   const [blockTag, setBlockTag] = useState("P");
@@ -243,6 +254,28 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     input.click();
   };
 
+  /**
+   * Place the reviewed picture, and keep the library in step with what was typed.
+   *
+   * The name and alt text are saved back to the media row as well as written onto the image, so the
+   * library shows what the editor decided rather than what the upload guessed. If that save fails
+   * the picture is still inserted: losing the image over a metadata write would be the worse
+   * outcome, and the library can be corrected on its own screen.
+   */
+  const confirmPending = async (): Promise<void> => {
+    const p = pending;
+    if (!p) return;
+    setPending(null);
+    insertFigure(p.url, p.alt);
+    if (!p.id) return;
+    const body = new FormData();
+    body.append("action", "update");
+    body.append("id", p.id);
+    body.append("name", p.name);
+    body.append("alt_text", p.alt);
+    await fetch("/api/cms/media", { method: "POST", body }).catch(() => undefined);
+  };
+
   /** Put the picture in the document, with its alt text and a caption slot. */
   const insertFigure = (src: string, alt: string): void => {
     const figure = document.createElement("figure");
@@ -269,10 +302,14 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
         window.alert(problem?.error ? `That image could not be uploaded: ${problem.error}.` : "That image could not be uploaded.");
         return;
       }
-      const done = (await res.json()) as { url: string; altText?: string };
-      // The alt text comes back written by Oge and stays editable: it is on the image in the
-      // document, so selecting the picture and retyping it is the edit.
-      insertFigure(done.url, done.altText ?? "");
+      const done = (await res.json()) as { url: string; altText?: string; id?: string };
+      // Offered for review rather than placed. Nothing reaches the document until it is confirmed.
+      setPending({
+        url: done.url,
+        name: file.name.replace(/\.[a-z0-9]+$/i, ""),
+        alt: done.altText ?? "",
+        ...(done.id ? { id: done.id } : {}),
+      });
     } catch {
       window.alert("That image could not be uploaded. Check your connection and try again.");
     } finally {
@@ -441,6 +478,49 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
         className="cms-rte min-h-[min(26rem,calc(100vh-14rem))] max-h-[calc(100vh-14rem)] overflow-y-auto px-5 py-4 text-[0.92rem] leading-relaxed text-slate-800 focus:outline-none"
         data-placeholder="Start writing..." />
       <input type="hidden" name={name} value={html} />
+
+      {/* Review before the picture is placed.
+          The file is already uploaded and converted at this point - what is being confirmed is how
+          it will be named in the library and what it will say to somebody who cannot see it. */}
+      {pending ? (
+        <div className="fixed inset-0 z-[200] grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Add image">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+            <h2 className="text-[1rem] font-700 text-slate-900">Add image</h2>
+            <img src={pending.url} alt={pending.alt} className="mt-3 max-h-52 w-full rounded-lg object-contain" />
+            <label className="mt-4 flex flex-col gap-1.5">
+              <span className="text-[0.78rem] font-600 text-slate-700">File name</span>
+              <input
+                value={pending.name}
+                onChange={(e) => setPending({ ...pending, name: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-[0.85rem] focus:border-[#543CDA] focus:outline-none"
+              />
+              <span className="text-[0.74rem] text-slate-500">How this file is listed in the media library.</span>
+            </label>
+            <label className="mt-3 flex flex-col gap-1.5">
+              <span className="text-[0.78rem] font-600 text-slate-700">Alt text</span>
+              <textarea
+                rows={3}
+                value={pending.alt}
+                onChange={(e) => setPending({ ...pending, alt: e.target.value })}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-[0.85rem] focus:border-[#543CDA] focus:outline-none"
+              />
+              <span className="text-[0.74rem] text-slate-500">
+                Drafted by Oge from the picture itself. Describe what it shows and why it is here.
+              </span>
+            </label>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" onClick={() => setPending(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-[0.83rem] font-600 text-slate-600 hover:bg-slate-50">
+                Cancel
+              </button>
+              <button type="button" onClick={() => void confirmPending()}
+                className="rounded-lg bg-[#543CDA] px-5 py-2 text-[0.83rem] font-600 text-white hover:bg-[#4330B8]">
+                Insert image
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -386,9 +386,11 @@ export function editorialFallback(input: EditorialInput): EditorialResult {
       // body were the TL;DR rather than the piece itself.
       const prose = sentences(plain(stripTldrBlock(input.body ?? "")));
       let e = "";
-      for (const sentence of prose.slice(0, 3)) {
+      // Three sentences and 280 characters, matching the card's three lines. Whole sentences only:
+      // a teaser that stops mid-thought reads as a fault rather than as an invitation.
+      for (const sentence of prose.slice(0, 4)) {
         const candidate = e ? `${e} ${sentence}` : sentence;
-        if (candidate.length > 200) break;
+        if (candidate.length > 280) break;
         e = candidate;
       }
       return stripEmDash(e || title);

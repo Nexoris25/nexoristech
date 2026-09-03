@@ -20,6 +20,8 @@ import dynamic from "next/dynamic";
 
 const OgeWidget = dynamic(() => import("./OgeWidget.js").then((m) => m.OgeWidget), { ssr: false });
 const CookieConsent = dynamic(() => import("./CookieConsent.js").then((m) => m.CookieConsent), { ssr: false });
+// Site-wide, and deferred with the rest: nobody is waiting to scroll back up on first paint.
+const ScrollToTop = dynamic(() => import("./ScrollToTop.js").then((m) => m.ScrollToTop), { ssr: false });
 const Analytics = dynamic(() => import("./Analytics.js").then((m) => m.Analytics), { ssr: false });
 
 export function DeferredChrome(): React.ReactNode {
@@ -27,6 +29,7 @@ export function DeferredChrome(): React.ReactNode {
     <>
       <OgeWidget />
       <CookieConsent />
+      <ScrollToTop />
       <Analytics />
     </>
   );

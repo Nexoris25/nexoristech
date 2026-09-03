@@ -5,25 +5,25 @@
  * about seeded assets that have no hosted file yet. Admin only. Reads nexoris_cms.
  */
 import type { ReactNode } from "react";
-import { CalendarPlus, FileText, Film, HardDrive, Image as ImageIcon, Layers, Upload } from "lucide-react";
+import { CalendarPlus, HardDrive, Image as ImageIcon, Layers, Upload } from "lucide-react";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { ListFilters } from "../../../../components/cms/ListFilters.js";
 import { filterClause } from "../../../../lib/list-filters.js";
 import { Pagination, currentPage, perPageFrom } from "../../../../components/cms/Pagination.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import Link from "next/link";
+import { MediaGrid, type MediaAsset } from "./MediaGrid.js";
+import { usageFor, type MediaUse } from "../../../../lib/media-usage.js";
+import { isUuid } from "../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
-interface Asset { id: string; name: string; kind: string; size_bytes: string; url: string | null; folder: string; created_at: string }
+type Asset = MediaAsset;
 interface Stats { total: string; images: string; bytes: string; this_month: string }
 function fmtSize(b: number): string { if (b >= 1e9) return `${(b / 1e9).toFixed(1)} GB`; if (b >= 1e6) return `${(b / 1e6).toFixed(1)} MB`; if (b >= 1e3) return `${(b / 1e3).toFixed(0)} KB`; return `${b} B`; }
-const KIND_ICON: Record<string, typeof ImageIcon> = { image: ImageIcon, video: Film, document: FileText };
-const KIND_TINT: Record<string, string> = { image: "#EEEBFC", video: "#DBEAFE", document: "#FEF3C7" };
-const KIND_FG: Record<string, string> = { image: "#543CDA", video: "#2563EB", document: "#B45309" };
 
-export default async function MediaPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string }> }): Promise<ReactNode> {
-  const { page: pageParam, per, q } = await searchParams;
+export default async function MediaPage({ searchParams }: { searchParams: Promise<{ page?: string; per?: string; q?: string; inuse?: string; deleted?: string; saved?: string }> }): Promise<ReactNode> {
+  const { page: pageParam, per, q, inuse, deleted, saved } = await searchParams;
   await requireCmsAccess();
   const pool = cmsDb();
 
@@ -45,11 +45,30 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   const page = currentPage(pageParam, pageCount);
 
   const { rows: assets } = await pool.query<Asset>(
-    `SELECT id, name, kind, size_bytes::text, url, folder, created_at::text
+    `SELECT id, name, kind, size_bytes::text, url, alt_text, folder, created_at::text
        FROM cms_media WHERE true${filters.sql}
       ORDER BY created_at DESC
       LIMIT $${filters.values.length + 1} OFFSET $${filters.values.length + 2}`,
     [...filters.values, perPage, (page - 1) * perPage]);
+  /*
+   * When a delete was refused because the files are in use, the page comes back with their ids and
+   * looks up exactly where each one appears. The list is shown before anything is removed, so the
+   * choice - replace, delete anyway, or leave it - is made with the consequences on screen.
+   */
+  const inUseIds = (inuse ?? "").split(",").map((x) => x.trim()).filter(isUuid);
+  const blocked = inUseIds.length > 0
+    ? (await pool.query<{ id: string; name: string; url: string | null }>(
+        "SELECT id, name, url FROM cms_media WHERE id = ANY($1::uuid[])", [inUseIds])).rows
+    : [];
+  const usage: Map<string, MediaUse[]> = blocked.length > 0
+    ? await usageFor(blocked.filter((b): b is { id: string; name: string; url: string } => Boolean(b.url)))
+    : new Map();
+  const replacements = blocked.length === 1
+    ? (await pool.query<{ id: string; name: string }>(
+        "SELECT id, name FROM cms_media WHERE kind='image' AND id <> ALL($1::uuid[]) ORDER BY created_at DESC LIMIT 100",
+        [inUseIds])).rows
+    : [];
+
   const stats = [
     { icon: Layers, label: "Total Assets", value: Number(s?.total ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
     { icon: ImageIcon, label: "Images", value: Number(s?.images ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
@@ -69,6 +88,75 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
+      {saved ? (
+        <p className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-[0.84rem] text-green-700">File updated.</p>
+      ) : null}
+      {deleted ? (
+        <p className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-[0.84rem] text-green-700">
+          Deleted {deleted} file{deleted === "1" ? "" : "s"}.
+        </p>
+      ) : null}
+
+      {blocked.length > 0 ? (
+        <section className="mt-4 rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] p-5">
+          <h2 className="text-[0.95rem] font-700 text-[#92400E]">
+            {blocked.length === 1 ? "This file is in use" : "These files are in use"}
+          </h2>
+          <p className="mt-1 text-[0.83rem] text-[#92400E]">
+            Nothing has been deleted. Removing a picture a page is showing leaves a broken frame on
+            that page, so here is where each one appears.
+          </p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {blocked.map((b) => (
+              <li key={b.id} className="rounded-lg border border-[#FDE68A] bg-white px-3 py-2.5">
+                <p className="text-[0.84rem] font-600 text-slate-900">{b.name}</p>
+                <ul className="mt-1 flex flex-col gap-0.5">
+                  {(usage.get(b.id) ?? []).map((u, i) => (
+                    <li key={`${b.id}-${i}`} className="text-[0.78rem] text-slate-600">
+                      {u.kind}: <Link href={u.href} className="font-600 text-[#543CDA] hover:underline">{u.title}</Link>{" "}
+                      <span className="text-slate-500">({u.place})</span>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            {/* Replacing is offered for one file at a time: choosing a stand-in for several at once
+                would be one decision standing for several different ones. */}
+            {blocked.length === 1 && replacements.length > 0 ? (
+              <form action="/api/cms/media" method="post" className="flex flex-wrap items-end gap-2">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="id" value={blocked[0]!.id} />
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-[0.75rem] font-600 text-slate-700">Replace it everywhere with</span>
+                  <select name="replace_with" required className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[0.83rem]">
+                    <option value="">Choose a file…</option>
+                    {replacements.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </label>
+                <button type="submit" className="rounded-lg bg-[#543CDA] px-4 py-2 text-[0.83rem] font-600 text-white hover:bg-[#4330B8]">
+                  Replace, then delete
+                </button>
+              </form>
+            ) : null}
+
+            <form action="/api/cms/media" method="post">
+              <input type="hidden" name="action" value="delete" />
+              <input type="hidden" name="force" value="1" />
+              {blocked.map((b) => <input type="hidden" name="id" value={b.id} key={b.id} />)}
+              <button type="submit" className="rounded-lg border border-[#FCA5A5] bg-white px-4 py-2 text-[0.83rem] font-600 text-[#B91C1C] hover:bg-red-50">
+                Delete anyway
+              </button>
+            </form>
+            <Link href="/cms/media" className="px-1 py-2 text-[0.83rem] font-600 text-slate-600 hover:text-slate-900">
+              Keep them
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
       <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((st) => (
           <div key={st.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-subtle">
@@ -81,35 +169,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-subtle">
         <ListFilters searchPlaceholder="Search media by file name..." />
-        <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-          {assets.map((a) => {
-            const Icon = KIND_ICON[a.kind] ?? FileText;
-            return (
-              // The tile had a pointer cursor and a hover lift and did nothing at all: the whole
-              // media library looked clickable and was not. Opening the file is the action the
-              // cursor was already promising. A row with no stored URL is not dressed as a control.
-              <a
-                key={a.id}
-                {...(a.url ? { href: a.url, target: "_blank", rel: "noreferrer" } : {})}
-                title={a.url ? `Open ${a.name}` : undefined}
-                className={`group block overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow ${a.url ? "cursor-pointer hover:shadow-md" : ""}`}
-              >
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
-                  {a.url ? <img src={a.url} alt="" className="h-full w-full object-cover" /> : (
-                    <span className="grid h-full w-full place-items-center" style={{ background: `${KIND_TINT[a.kind] ?? "#F1F5F9"}` }}>
-                      <Icon size={30} style={{ color: KIND_FG[a.kind] ?? "#94A3B8" }} />
-                    </span>
-                  )}
-                  <span className="absolute left-2 top-2 rounded-md bg-white/90 px-1.5 py-0.5 text-[0.62rem] font-600 uppercase tracking-wide text-slate-500 backdrop-blur">{a.kind}</span>
-                </div>
-                <div className="p-2.5">
-                  <p className="truncate text-[0.78rem] font-600 text-slate-800" title={a.name}>{a.name}</p>
-                  <p className="mt-0.5 flex items-center justify-between text-[0.68rem] text-slate-500"><span>{a.folder}</span><span>{fmtSize(Number(a.size_bytes))}</span></p>
-                </div>
-              </a>
-            );
-          })}
-        </div>
+        <MediaGrid assets={assets} />
         <div className="border-t border-slate-100 px-5 py-3 text-[0.8rem] text-slate-500">
           <Pagination page={page} pageCount={pageCount} total={total} basePath="/cms/media" noun="assets" perPage={perPage} />
         </div>

@@ -180,19 +180,26 @@ export class ContentService {
    *
    * No ellipsis on the way out either. The old code ended with `.slice(0, 200)`, which could cut a
    * word; whole sentences are kept instead and a short excerpt is preferred to a severed one.
+   *
+   * The limit is 280 rather than 200, and the instruction asks for a teaser rather than a summary.
+   * Two lines on a card is enough to restate the title in other words, which is what a 200-character
+   * summary tends to be. Three lines is enough to say what the reader gets, and the instruction asks
+   * for the one specific thing - a figure, a range, a comparison - that the title cannot carry.
    */
   private async excerpt(title: string, body: string): Promise<string> {
     const source = stripTldr(body);
     const text = await this.run(
-      `Write a one to two sentence excerpt for this article, used on cards and in search results. Plain and inviting, at most 200 characters. ` +
+      `Write a two to three sentence excerpt for this article, used on cards and in search results. At most 280 characters. ` +
+      `It is a teaser, not a summary: say what the reader will be able to do or decide after reading, and name the most specific thing the article contains - a figure, a comparison, a range - that they cannot get from the title alone. ` +
+      `Plain and inviting. No hype, no questions, no "discover" or "learn about". ` +
       `The article may begin with a TL;DR summary: ignore it and describe the article itself. Do not repeat the title. Finish every sentence. Return only the excerpt text.`,
-      JSON.stringify({ title, body: source.slice(0, 4000) }), 160, 0.5);
+      JSON.stringify({ title, body: source.slice(0, 4000) }), 220, 0.5);
 
     const cleaned = stripEmDash(plain(stripTldr(text)));
     let out = "";
     for (const sentence of cleaned.split(/(?<=[.!?])\s+/)) {
       const candidate = out ? `${out} ${sentence}` : sentence;
-      if (candidate.length > 200) break;
+      if (candidate.length > 280) break;
       out = candidate;
     }
     return out || cleaned.slice(0, 200);

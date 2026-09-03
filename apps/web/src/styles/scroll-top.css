@@ -1,0 +1,67 @@
+/*
+ * Back to top.
+ *
+ * Bottom-left, because the bottom-right corner already carries the Oge launcher and WhatsApp and a
+ * third control there would sit at eye level for the least important job on the page. Below 1024px
+ * the contents launcher takes this corner, so the button steps above it.
+ *
+ * z-index 59 puts it under the Oge panel (200) and the contents sheet (200) — it must never sit on
+ * top of something a reader has deliberately opened.
+ */
+.to-top {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 59;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 15px 10px 12px;
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-950, #0d0a1c);
+  font-family: "Inter", sans-serif;
+  font-size: 0.83rem;
+  font-weight: 600;
+  box-shadow: 0 8px 26px rgba(13, 10, 28, 0.16);
+  cursor: pointer;
+  animation: to-top-in 0.18s ease-out;
+}
+.to-top svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--purple-600, #543cda);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.to-top:hover {
+  border-color: var(--purple-300, #c3b8f4);
+  box-shadow: 0 10px 30px rgba(84, 60, 218, 0.18);
+}
+.to-top:focus-visible {
+  outline: 2px solid var(--purple-600, #543cda);
+  outline-offset: 3px;
+}
+
+@keyframes to-top-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .to-top { animation: none; }
+}
+
+/* Above the contents launcher, which owns this corner below 1024px. Its own height is about 42px. */
+@media (max-width: 1024px) {
+  .to-top { bottom: 74px; }
+}
+
+/* On a narrow phone the label costs more than it explains; the arrow and the label stay for anyone
+   using a screen reader through aria-label either way. */
+@media (max-width: 420px) {
+  .to-top { padding: 11px; }
+  .to-top-text { display: none; }
+}

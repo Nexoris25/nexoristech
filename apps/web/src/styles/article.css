@@ -395,6 +395,16 @@
   margin: 10px 0 28px;
 }
 .article-page .prose .table-wrap {
+  /*
+   * The frame hugs the table.
+   *
+   * A block-level wrapper always spanned the text column, so a table narrower than the column sat
+   * inside a full-width border with empty space to the right of its last cell - which reads as the
+   * table being cut off rather than as it being short. fit-content makes the frame the table's own
+   * width, and max-width keeps it inside the column, at which point it scrolls.
+   */
+  width: fit-content;
+  max-width: 100%;
   overflow-x: auto;
   border: 1px solid var(--purple-200, #dcd6f9);
   border-radius: 12px;
@@ -443,7 +453,20 @@
   min-width: min(30rem, 100%);
 }
 .article-page .prose table {
-  width: 100%;
+  /*
+   * The table is as wide as its content needs and no wider.
+   *
+   * width: 100% made every table fill the column whatever was in it, so the browser had leftover
+   * space to distribute and padded the columns out with it: a three-column table of short values
+   * sat at full width with empty air inside each cell. Tables are not all the same width, and one
+   * carrying two-word answers should not occupy the same space as one carrying sentences.
+   *
+   * auto sizes to the content; max-width keeps it inside the column, at which point the wrapper
+   * scrolls. The wrapper is the thing that spans the text column, so a narrow table still sits in a
+   * full-width frame rather than looking like it has come loose.
+   */
+  width: auto;
+  max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-family: "Inter", sans-serif;
@@ -480,9 +503,17 @@
 }
 .article-page .prose th,
 .article-page .prose td {
-  /* A ceiling in characters rather than pixels: it tracks the type size, which is what decides how
-     much text a reader can take in on one line. */
-  max-width: 26ch;
+  /*
+   * A ceiling in characters rather than pixels: it tracks the type size, which is what decides how
+   * much text a reader takes in on one line.
+   *
+   * The number was chosen by measuring, not picked. Against the three tables in the pricing guide,
+   * 20ch is where a table both narrows and gets shorter: the second went from 719px wide and 399
+   * tall to 708 and 303, because tighter columns let the browser balance the wrap instead of
+   * leaving one column long and the rest padded. Below 20ch tables keep narrowing but start growing
+   * taller again as cells wrap more often than they save.
+   */
+  max-width: 20ch;
   /* Prose in a cell rags better when the last line is not left with one word on it. */
   text-wrap: pretty;
 }
