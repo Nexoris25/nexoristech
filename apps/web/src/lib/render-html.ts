@@ -44,10 +44,28 @@ const slugify = (s: string): string =>
   s.toLowerCase().trim().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 /** Same-site absolute URLs become paths; everything else is left exactly as written. */
+/**
+ * Give an internal path the trailing slash the site actually serves.
+ *
+ * The site is configured with trailing slashes, so `/case-studies` is answered with a 308. Links
+ * written into a body — by an editor, or by Oge's internal-link insertion — arrive without one, so
+ * a reader following one inside an article paid for a redirect and a crawler was pointed at a URL
+ * that was not the canonical one.
+ *
+ * Left alone: an anchor, a query, and any path ending in a file extension, which does not take one.
+ */
+function withTrailingSlash(path: string): string {
+  if (!path.startsWith("/")) return path;
+  if (path.endsWith("/") || path.includes("#") || path.includes("?")) return path;
+  if (/\.[a-z0-9]{2,5}$/i.test(path)) return path;
+  return `${path}/`;
+}
+
 function internalise(name: string, value: string): string {
   if (name !== "href") return value;
   const m = /^https?:\/\/(?:www\.)?nexoristech\.com(\/[^"']*)?$/i.exec(value.trim());
-  return m ? (m[1] ?? "/") : value;
+  // Both branches: a link written absolutely to our own site, and one already written as a path.
+  return m ? withTrailingSlash(m[1] ?? "/") : withTrailingSlash(value);
 }
 
 function cleanAttributes(tag: string, raw: string): string {

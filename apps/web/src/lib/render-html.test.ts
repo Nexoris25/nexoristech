@@ -152,3 +152,43 @@ describe("sanitiseHtml paragraph repair", () => {
     expect(sanitiseHtml("<p>Line.<br></p>")).toBe("<p>Line.</p>");
   });
 });
+
+/**
+ * Internal links in body HTML point at the URL the site actually serves.
+ *
+ * The site is configured with trailing slashes, so /case-studies is answered with a 308. Editor
+ * tools write internal links absolutely — https://nexoristech.com/case-studies — and internalise
+ * already reduced those to a path; it just left the path without its slash. So a reader following a
+ * link inside an article paid for a redirect, and a crawler was pointed at a non-canonical URL.
+ */
+describe("internal links get the trailing slash", () => {
+  it("adds it when reducing an absolute link to a path", () => {
+    expect(sanitiseHtml('<p><a href="https://nexoristech.com/case-studies">Work</a></p>')).toContain(
+      'href="/case-studies/"',
+    );
+  });
+
+  it("adds it to a link already written as a path", () => {
+    expect(sanitiseHtml('<p><a href="/about">About</a></p>')).toContain('href="/about/"');
+  });
+
+  it("leaves one that already has it", () => {
+    expect(sanitiseHtml('<p><a href="/contact/">Contact</a></p>')).toContain('href="/contact/"');
+  });
+
+  it("leaves an external link untouched", () => {
+    expect(sanitiseHtml('<p><a href="https://example.com/page">Away</a></p>')).toContain(
+      'href="https://example.com/page"',
+    );
+  });
+
+  it("does not touch an anchor or a query", () => {
+    expect(sanitiseHtml('<p><a href="#top">Top</a></p>')).toContain('href="#top"');
+    expect(sanitiseHtml('<p><a href="/insights?page=2">More</a></p>')).toContain('href="/insights?page=2"');
+  });
+
+  it("does not put a slash after a file", () => {
+    expect(sanitiseHtml('<p><a href="/uploads/brief.pdf">Brief</a></p>')).toContain('href="/uploads/brief.pdf"');
+  });
+})
+;

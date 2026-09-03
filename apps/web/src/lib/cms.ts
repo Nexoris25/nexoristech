@@ -148,6 +148,7 @@ export function resolveBodyMedia(html: string, base: string): string {
     });
 }
 
+/** Everything a stored block of body HTML needs before it is rendered. */
 function bodyMedia(html: string): string {
   return resolveBodyMedia(html, MEDIA_BASE);
 }

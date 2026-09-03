@@ -34,13 +34,30 @@ const mediaOrigin = ((): string => {
   }
 })();
 
+/**
+ * Google Analytics, allowed only when it is actually configured.
+ *
+ * The site has carried a consent-gated GA4 component from the start, and the CSP has never named
+ * googletagmanager.com — so the moment a visitor accepted analytics, the browser blocked the script
+ * and GA4 recorded nothing. It failed in the console, where nothing on the server would ever show
+ * it, and it failed identically in production. Every visit since launch went uncounted.
+ *
+ * Gated on the measurement id so a deployment with analytics switched off keeps the tighter policy
+ * rather than advertising hosts it never talks to. The endpoints are the script host, and the
+ * collection hosts gtag beacons to.
+ */
+const analyticsOn = Boolean(process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim());
+const GA_SCRIPT = "https://www.googletagmanager.com";
+const GA_CONNECT =
+  "https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com";
+
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${analyticsOn ? ` ${GA_SCRIPT}` : ""}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: https:${mediaOrigin ? ` ${mediaOrigin}` : ""}`,
   "font-src 'self'",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  `connect-src 'self'${isDev ? " ws: wss:" : ""}${analyticsOn ? ` ${GA_CONNECT}` : ""}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

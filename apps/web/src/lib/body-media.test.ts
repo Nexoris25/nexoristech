@@ -58,3 +58,4 @@ describe("resolveBodyMedia", () => {
     expect(resolveBodyMedia(html, BASE)).toBe(html);
   });
 });
+
