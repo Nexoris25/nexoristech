@@ -66,7 +66,7 @@ export default async function LoginPage({
         <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
         <div className="relative flex h-full flex-col justify-between p-10 xl:p-12">
           <div className="flex items-center gap-2.5">
-            <img src="/logo-mark-white.png" alt="" className="h-8 w-auto" />
+            <img src="/logo-mark-white.png" alt="Nexoris Technologies logo" className="h-8 w-auto" />
             <span className="font-roboto text-[1.05rem] font-700 leading-none text-white">
               NEXORIS
               <span className="mt-1 block font-mono text-[0.52rem] font-500 tracking-[0.24em] text-white/60">
@@ -114,7 +114,7 @@ export default async function LoginPage({
       <main className="flex flex-1 items-center justify-center px-5 py-10">
         <div className="w-full max-w-[380px]">
           <div className="mb-8 flex items-center justify-center gap-2.5 lg:hidden">
-            <img src="/logo-mark-purple.png" alt="" className="h-8 w-auto" />
+            <img src="/logo-mark-purple.png" alt="Nexoris Technologies logo" className="h-8 w-auto" />
             <span className="font-roboto text-[1rem] font-700 text-slate-900">Nexoris Technologies</span>
           </div>
 

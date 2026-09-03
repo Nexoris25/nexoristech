@@ -194,7 +194,8 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
               <div className="flex items-center gap-2.5">
                 {/* The floor is enforced at save, so it is stated here rather than discovered there. */}
                 <span className={`text-[0.76rem] font-600 ${words >= MIN_BODY_WORDS ? "text-[#15803D]" : "text-[#B45309]"}`}>
-                  {words} / {MIN_BODY_WORDS} words
+                  {/* A floor, not a target: "412 / 500" read as a quota to fill and stop at. */}
+                  {words} words{words < MIN_BODY_WORDS ? ` (${MIN_BODY_WORDS} minimum)` : ""}
                 </span>
                 <button type="button" onClick={generateContent} disabled={generating || !title.trim()} title={!title.trim() ? "Add a page title first" : "Auto-generate the full page with Oge"} className="inline-flex items-center gap-1.5 rounded-lg border border-[#543CDA]/25 bg-[#F4F1FD] px-3 py-1.5 text-[0.78rem] font-600 text-[#543CDA] hover:bg-[#EEEBFC] disabled:cursor-not-allowed disabled:opacity-50">
                   {generating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}{generating ? "Generating…" : words > 0 ? "Regenerate with Oge" : "Generate with Oge"}

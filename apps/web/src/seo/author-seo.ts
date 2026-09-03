@@ -20,7 +20,9 @@ import {
   BRAND_SUFFIX,
   TITLE_SEPARATOR,
   META_LIMITS,
+  OG_IMAGE,
 } from "@nexoris/seo";
+import { mediaAbsolute } from "../lib/media-url.js";
 import { authorPath } from "../lib/routes.js";
 import type { AuthorProfile } from "../lib/cms.js";
 
@@ -62,6 +64,24 @@ export function authorMetadata(slug: string, author: AuthorProfile | null): Meta
     path: authorPath(slug),
     ogType: "website",
     noindex: false,
-    ...(author.photoUrl ? { image: author.photoUrl } : {}),
+    /*
+     * The author's own photograph is the share card.
+     *
+     * This passed `image`, which is not a field `buildMetadata` reads — the option was spread in, so
+     * nothing typed-checked it and nothing used it. Every author profile fell back to the generated
+     * card and shared as a title on a purple rectangle, when the one image that identifies an author
+     * is their face. It also needs the absolute form: a CMS upload is a path on the media host, and
+     * a relative URL in og:image is not fetchable by anything doing the sharing.
+     */
+    ...(author.photoUrl
+      ? {
+          ogImage: {
+            url: mediaAbsolute(author.photoUrl),
+            width: OG_IMAGE.width,
+            height: OG_IMAGE.height,
+            alt: author.photoAlt ?? author.name,
+          },
+        }
+      : {}),
   });
 }

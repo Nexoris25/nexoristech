@@ -321,6 +321,14 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 
 /* INSIGHTS */
 .ins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px}
+/* Clear of the last row of cards. It had no margin at all, so it sat against them and read as part
+   of the grid rather than as the way out of it. */
+.link-arrow.ins-more{margin-top:32px}
+/* The insights band and the FAQ band that follows both carry up to 96px of padding, so nearly 200px
+   of empty tint opened between the two. Trimming the join closes it without touching the rhythm of
+   every other section. */
+#insights{padding-bottom:clamp(36px,4vw,60px)}
+#insights + .band{padding-top:clamp(36px,4vw,60px)}
 .ins-card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--sh-sm);overflow:hidden;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column}
 .ins-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px)}
 .ins-card .media{border-radius:0;aspect-ratio:16/9;flex:none}

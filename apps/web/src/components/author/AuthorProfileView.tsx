@@ -12,7 +12,6 @@ import { buildPageGraph, profilePageNode, faqPageNode } from "@nexoris/seo";
 import type { ProfileInput } from "@nexoris/seo";
 import { JsonLd } from "../JsonLd.js";
 import { getArticlesByAuthor, type AuthorProfile } from "../../lib/cms.js";
-import { formatLagosDate } from "../../lib/date.js";
 import { withHeadingIds, wrapTables, headingsOf } from "../../lib/render-html.js";
 import { FloatingToc } from "../FloatingToc.js";
 // article.css before author.css: the profile body is set by the article's own rules and author.css
@@ -21,6 +20,7 @@ import { FloatingToc } from "../FloatingToc.js";
 // rendered smaller than the paragraphs under it.
 import "../../styles/article.css";
 import "../../styles/author.css";
+import { ArticleCard } from "../insights/ArticleCard.js";
 import { authorPath } from "../../lib/routes.js";
 
 /**
@@ -219,41 +219,11 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
               {/* The same card as the Insights listing, so an article looks the same wherever it is
                   listed: cover, category, title, excerpt, byline and date. */}
               {articles.map((article) => (
-                <article className="card" key={article.slug}>
-                  <Link className="thumb" href={`/insights/${article.slug}`} aria-hidden="true" tabIndex={-1}>
-                    {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
-                    {article.coverUrl ? (
-                      <img src={article.coverUrl} alt={article.coverAlt ?? ""} loading="lazy" />
-                    ) : null}
-                    {article.category ? <span className="card-cat">{article.category}</span> : null}
-                  </Link>
-                  <div className="card-body">
-                    <h3>
-                      <Link href={`/insights/${article.slug}`}>{article.title}</Link>
-                    </h3>
-                    {article.excerpt ? <p className="card-ex">{article.excerpt}</p> : null}
-                    <div className="card-foot">
-                      <span className="card-by">
-                        {author.photoUrl ? (
-                          <img className="card-av" src={author.photoUrl} alt="" loading="lazy" />
-                        ) : (
-                          <span className="card-av card-av-fb" aria-hidden="true">
-                            {author.name.trim().charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                        <span className="card-byname">{author.name}</span>
-                      </span>
-                      <span className="card-meta">
-                        {article.publishedAt ? <span>{formatLagosDate(article.publishedAt)}</span> : null}
-                        {article.publishedAt && article.readMinutes ? <span className="card-dot" aria-hidden="true">·</span> : null}
-                        {article.readMinutes ? <span>{article.readMinutes} min read</span> : null}
-                      </span>
-                    </div>
-                    <Link className="card-go" href={`/insights/${article.slug}`} tabIndex={-1}>
-                      Read article <span className="arr" aria-hidden="true">&rarr;</span>
-                    </Link>
-                  </div>
-                </article>
+                <ArticleCard
+                  key={article.slug}
+                  article={article}
+                  author={{ name: author.name, ...(author.photoUrl ? { photoUrl: author.photoUrl } : {}) }}
+                />
               ))}
             </div>
           )}

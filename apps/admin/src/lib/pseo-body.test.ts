@@ -102,3 +102,24 @@ describe("answer-first structure", () => {
     expect(text).toMatch(/measured before any build starts/);
   });
 });
+
+/**
+ * Five hundred words is the minimum a programmatic page must clear, not the length it is written to.
+ *
+ * The writer used to stop appending sections the moment the count crossed the floor, so a page landed
+ * just over it and the remaining sections — real content about the same topic, not padding — were
+ * dropped. That made the floor behave as a ceiling.
+ */
+describe("the word floor is a minimum", () => {
+  it("writes past the floor rather than stopping on it", () => {
+    const words = bodyWordCount(composePageBody("Business Process Automation", "automation", "Manufacturing", "Automation"));
+    expect(words).toBeGreaterThan(PSEO_MIN_WORDS + 100);
+  });
+
+  it("keeps every section it has to offer, with no heading written twice", () => {
+    const html = composePageBody("Business Process Automation", "automation", "Manufacturing", "Automation");
+    const headings = [...html.matchAll(/<h2>([^<]*)<\/h2>/g)].map((m) => m[1]);
+    expect(headings.length).toBe(new Set(headings).size);
+    expect(headings.length).toBeGreaterThanOrEqual(4);
+  });
+});

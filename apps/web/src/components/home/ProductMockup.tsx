@@ -130,7 +130,7 @@ export function ProductMockup(): ReactNode {
           {/* Sidebar */}
           <aside className="hidden flex-col bg-ink-950 p-2.5 text-purple-100 min-[675px]:flex">
             <div className="mb-1 flex items-center gap-2 px-1.5 py-1">
-              <img src="/logo-mark-white.png" alt="" className="h-5 w-auto" />
+              <img src="/logo-mark-white.png" alt="Nexoris Technologies logo" className="h-5 w-auto" />
               <span className="font-roboto text-[10px] font-700 leading-tight text-white">
                 Nexoris<br />
                 <span className="font-mono text-[7px] font-500 tracking-[.12em] text-purple-100/50">

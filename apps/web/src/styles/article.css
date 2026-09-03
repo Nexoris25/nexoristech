@@ -571,7 +571,10 @@
   font-size: 1.55rem;
   font-weight: 700;
   letter-spacing: -0.015em;
-  margin-bottom: 8px;
+  /* Centred, and given room beneath it: the questions below are a list that reads as its own block,
+     and a heading sitting hard against them looked like the first item rather than the title. */
+  text-align: center;
+  margin-bottom: 20px;
 }
 .article-page .endline {
   border-top: 1px solid var(--line, #e9e7f0);

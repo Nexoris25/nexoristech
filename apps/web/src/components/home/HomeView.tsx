@@ -6,33 +6,25 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { SolutionFinder } from "./SolutionFinder.js";
-import { formatLagosDate } from "../../lib/date.js";
 import { Testimonials, type Quote } from "./Testimonials.js";
 import { ProductMockup } from "./ProductMockup.js";
 import { ProofStats } from "./ProofStats.js";
 import { OgeChat } from "./OgeChat.js";
 import { ScrollFx } from "./ScrollFx.js";
+import type { InsightCard } from "../../lib/cms.js";
+import { ArticleCard } from "../insights/ArticleCard.js";
 
-/** Brand monogram avatar styling for insight authors (no stock headshots). */
-const avatarStyle: CSSProperties = {
-  display: "grid",
-  placeItems: "center",
-  fontFamily: "'JetBrains Mono', monospace",
-  fontWeight: 700,
-  fontSize: ".64rem",
-  color: "#543CDA",
-};
+/*
+ * The home page lists articles with the same card as everywhere else, so it takes the same type.
+ *
+ * It used to declare its own narrower shape, which dropped the category and the author's photograph
+ * on the way in — the two fields the shared card needs. `getLatestInsights` had always returned them;
+ * this type was quietly throwing them away.
+ */
+export type HomeInsight = InsightCard;
 
-/** The latest published articles, passed in from the page so this stays a pure presentational view. */
-export interface HomeInsight {
-  title: string; slug: string; excerpt?: string | undefined;
-  coverUrl?: string | undefined; coverAlt?: string | undefined;
-  author?: string | undefined; publishedAt?: string | undefined; readMinutes?: number | undefined;
-}
-
-export function HomeView({ insights = [], testimonials = [] }: { insights?: HomeInsight[]; testimonials?: Quote[] }): ReactNode {
+export function HomeView({ insights = [], testimonials = [] }: { insights?: InsightCard[]; testimonials?: Quote[] }): ReactNode {
   return (
     <>
       <ScrollFx />
@@ -605,40 +597,28 @@ export function HomeView({ insights = [], testimonials = [] }: { insights?: Home
           {/* The latest published articles, straight from the CMS. Nothing is rendered when there is
               no published content, rather than showing invented articles (PRD no-fabrication rule). */}
           {insights.length > 0 ? (
-            <div className="ins-grid reveal">
+            /*
+             * The same card the Insights hub and the author profiles use. This section had its own,
+             * with initials in place of the author's face and no category, so an article looked like
+             * a different thing here than everywhere else it was listed.
+             *
+             * insights-page is on the grid for the card styles, not for the page. Every rule in
+             * insights.css is written as `.insights-page .card…`, so the shared card renders
+             * unstyled anywhere that class is absent — the author's headshot came through at its
+             * natural size and pushed the card apart. There is no bare `.insights-page` rule, so the
+             * class brings no page-level styling with it; it only switches the card rules on. It
+             * sits on the grid rather than a wrapper because `.insights-page .ins-grid` needs an
+             * ancestor and would otherwise fight the home page's own grid.
+             */
+            <div className="insights-page ins-grid reveal">
               {insights.map((a) => (
-                <Link className="ins-card" href={`/insights/${a.slug}`} key={a.slug}>
-                  {a.coverUrl ? (
-                    <div className="media">
-                      {/* Remote CMS cover; host isn't configured for next/image, so a plain img. */}
-                      <img src={a.coverUrl} alt={a.coverAlt ?? ""} loading="lazy" />
-                    </div>
-                  ) : null}
-                  <div className="ins-body">
-                    <h3>{a.title}</h3>
-                    {a.excerpt ? <p className="ins-ex">{a.excerpt}</p> : null}
-                    <div className="ins-meta">
-                      <span className="ava" aria-hidden="true" style={avatarStyle}>
-                        {(a.author ?? "Nexoris Technologies").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
-                      </span>
-                      <div>
-                        <div className="an">{a.author ?? "Nexoris Technologies"}</div>
-                        <div className="am">
-                          {a.publishedAt ? formatLagosDate(a.publishedAt) : ""}
-                          {a.readMinutes ? ` · ${a.readMinutes} min read` : ""}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="ins-cta">
-                      Read article <span className="arr">&rarr;</span>
-                    </span>
-                  </div>
-                </Link>
+                <ArticleCard article={a} key={a.slug} />
               ))}
             </div>
           ) : null}
 
-          <Link className="link-arrow" href="/insights">
+          {/* Clear of the cards it follows, rather than sitting against the last row. */}
+          <Link className="link-arrow ins-more" href="/insights">
             Read more insights <span className="arr">&rarr;</span>
           </Link>
         </div>

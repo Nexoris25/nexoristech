@@ -244,8 +244,16 @@ export function composePageBody(title: string, keyword: string, industry: string
       `<h2>How Nexoris Technologies delivers ${topic}</h2><p>We start with a short scoping call to understand your goals, the systems already in place, and who has to live with the result. Work ships in stages, each small enough to review and put into use, so you are never waiting months to see whether the direction is right. Every build ships with security considered from the first design and documentation your own team can read.</p>`,
       `<h2>Why choose Nexoris Technologies</h2><p>We build useful software for real businesses, not demos. Our work in ${ind} pairs modern engineering with first-hand knowledge of how these operations actually run, so the result is something your team uses and trusts rather than something that quietly goes unused after launch. We stay through the rollout, and we would rather scope something smaller that works than something larger that does not. If we are not the right fit for what you need, we will say so plainly and point you somewhere better.</p>`,
     ];
+    /*
+     * Every section that belongs on the page, not just enough of them to cross the line.
+     *
+     * This used to stop the moment the body reached PSEO_MIN_WORDS, which turned a floor into a
+     * target: a page landed on 505 words and the sections after it were dropped, even though they
+     * are real content about the same topic rather than padding. Five hundred is the minimum a page
+     * must clear, not the length it should be written to, so the writer produces the whole thing and
+     * the editor removes anything that does not belong.
+     */
     for (const extra of topUps) {
-      if (bodyWordCount(out) >= PSEO_MIN_WORDS) break;
       // Never repeat a heading the template already asked for.
       const heading = /<h2>([^<]*)<\/h2>/.exec(extra)?.[1] ?? "";
       if (out.includes(`<h2>${heading}</h2>`)) continue;

@@ -59,8 +59,7 @@ export function SiteHeader(): ReactNode {
       <header>
         <div className="wrap nav">
         <Link className="brand" href="/" aria-label="Nexoris Technologies home">
-          {/* Decorative: the link around it is already labelled "Nexoris Technologies home". */}
-          <img className="logo" src="/logo-mark-white.png" alt="" />
+          <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies logo" />
           <span className="wm">
             Nexoris <span>Technologies</span>
           </span>

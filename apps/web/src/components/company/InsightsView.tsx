@@ -14,51 +14,14 @@ import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import type { InsightCard, CategoryTab } from "../../lib/cms.js";
 import { formatLagosDate } from "../../lib/date.js";
+import { ArticleCard as SharedArticleCard } from "../insights/ArticleCard.js";
 
 /** Three rows of the three-column grid. */
 const PAGE_SIZE = 9;
 
+/** The shared card, so the hub, the author profile and the home page all list an article the same way. */
 function ArticleCard({ a }: { a: InsightCard }): ReactNode {
-  return (
-    <article className="card">
-      <Link className="thumb" href={`/insights/${a.slug}`} aria-hidden="true" tabIndex={-1}>
-        {a.coverUrl ? (
-          <img src={a.coverUrl} alt={a.coverAlt ?? ""} loading="lazy" />
-        ) : null}
-        {a.category ? <span className="card-cat">{a.category}</span> : null}
-      </Link>
-      <div className="card-body">
-        <h3>
-          <Link href={`/insights/${a.slug}`}>{a.title}</Link>
-        </h3>
-        {a.excerpt ? <p className="card-ex">{a.excerpt}</p> : null}
-        <div className="card-foot">
-          {a.author ? (
-            <span className="card-by">
-              {a.authorPhotoUrl ? (
-                <img className="card-av" src={a.authorPhotoUrl} alt="" loading="lazy" />
-              ) : (
-                <span className="card-av card-av-fb" aria-hidden="true">
-                  {a.author.trim().charAt(0).toUpperCase()}
-                </span>
-              )}
-              <span className="card-byname">{a.author}</span>
-            </span>
-          ) : <span />}
-          {/* Date and reading time together: how current it is and what it will cost to read, which
-              is the pair a reader weighs before opening anything. */}
-          <span className="card-meta">
-            {a.publishedAt ? <span>{formatLagosDate(a.publishedAt)}</span> : null}
-            {a.publishedAt && a.readMinutes ? <span className="card-dot" aria-hidden="true">·</span> : null}
-            {a.readMinutes ? <span>{a.readMinutes} min read</span> : null}
-          </span>
-        </div>
-          <Link className="card-go" href={`/insights/${a.slug}`} tabIndex={-1}>
-            Read article <span className="arr" aria-hidden="true">&rarr;</span>
-          </Link>
-      </div>
-    </article>
-  );
+  return <SharedArticleCard article={a} />;
 }
 
 function NewsletterSignup(): ReactNode {
