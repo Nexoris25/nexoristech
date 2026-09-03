@@ -8,12 +8,15 @@
  * interest through the existing lead intake so an email is never silently dropped. Cover images are
  * remote CMS URLs, so they use a plain img (next/image can't optimize an unconfigured host).
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
 import type { InsightCard, CategoryTab } from "../../lib/cms.js";
 import { formatLagosDate } from "../../lib/date.js";
+
+/** Three rows of the three-column grid. */
+const PAGE_SIZE = 9;
 
 function ArticleCard({ a }: { a: InsightCard }): ReactNode {
   return (
@@ -164,7 +167,23 @@ export function InsightsView({ cards, categories = [] }: { cards: InsightCard[];
 
   const narrowing = q.length > 0 || category.length > 0;
   const featured = !narrowing && cards.length > 0 ? cards[0] : null;
-  const gridCards = narrowing ? filtered : cards.slice(1);
+  const allGridCards = narrowing ? filtered : cards.slice(1);
+
+  /*
+   * The hub shows a page at a time.
+   *
+   * Rendering every published article the moment somebody opens the page is fine at nine and wrong
+   * at two hundred: the images alone would be the whole download, and nobody reaching the hub has
+   * asked to see the archive. A page of nine fills the three-column grid exactly three rows deep,
+   * which is enough to show the range without asking anyone to commit to it.
+   *
+   * The count resets whenever the search or the category changes, because a reader who has just
+   * narrowed the list is starting again and should not land in the middle of the previous one.
+   */
+  const [shown, setShown] = useState(PAGE_SIZE);
+  useEffect(() => setShown(PAGE_SIZE), [q, category]);
+  const gridCards = allGridCards.slice(0, shown);
+  const remaining = allGridCards.length - gridCards.length;
 
   return (
     <div className="svc-page insights-page">
@@ -305,11 +324,23 @@ export function InsightsView({ cards, categories = [] }: { cards: InsightCard[];
               ) : null}
 
               {gridCards.length > 0 ? (
-                <div className="ins-grid">
-                  {gridCards.map((a) => (
-                    <ArticleCard a={a} key={a.slug} />
-                  ))}
-                </div>
+                <>
+                  <div className="ins-grid">
+                    {gridCards.map((a) => (
+                      <ArticleCard a={a} key={a.slug} />
+                    ))}
+                  </div>
+                  {remaining > 0 ? (
+                    <div className="ins-more">
+                      <button type="button" className="btn btn-ghost" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+                        Load more articles
+                      </button>
+                      <p className="ins-more-count" role="status">
+                        Showing {gridCards.length} of {allGridCards.length}
+                      </p>
+                    </div>
+                  ) : null}
+                </>
               ) : narrowing ? (
                 <div className="ins-empty">
                   <svg viewBox="0 0 24 24" aria-hidden="true">

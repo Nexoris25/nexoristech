@@ -565,3 +565,17 @@
     padding: 8px 13px;
   }
 }
+
+/* Load more. Centred under the grid, with the count beside it so a reader knows how much is left
+   before deciding whether to ask for it. */
+.insights-page .ins-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 34px;
+}
+.insights-page .ins-more-count {
+  font-size: 0.8rem;
+  color: var(--ink-3, #6a6580);
+}

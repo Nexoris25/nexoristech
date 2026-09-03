@@ -129,12 +129,23 @@
   height: 17px;
   fill: currentColor;
 }
+/*
+ * "Articles by ..." is a section heading, and was set at the page's h2 scale - the same size as the
+ * headings inside the profile above it, which made the article list read as another section of the
+ * profile rather than as the start of something new. It also sat under a full band's padding, so
+ * there was a screenful of nothing between the last paragraph and the first card.
+ */
 .author-page .by-head {
   font-family: "Roboto", sans-serif;
-  font-size: var(--fs-h2);
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.015em;
-  margin-bottom: 4px;
+  line-height: 1.25;
+  margin-bottom: 18px;
+}
+/* The articles follow the profile; they are not a separate part of the page needing its own air. */
+.author-page .band + .band {
+  padding-top: clamp(28px, 3vw, 44px);
 }
 
 @media (max-width: 760px) {

@@ -33,6 +33,9 @@ const SYMBOLS: { g: string; name: string }[] = [
   { g: "‘", name: "Open single" }, { g: "’", name: "Close single" }, { g: "–", name: "En dash" }, { g: "✓", name: "Check" },
 ];
 
+/** A file already in the media library, as the picker needs it. */
+interface LibraryItem { id: string; name: string; url: string; alt_text: string | null }
+
 export interface RichTextApi {
   appendHtml: (html: string) => void;
   prependHtml: (html: string) => void;
@@ -61,8 +64,10 @@ export interface RichTextApi {
 export function RichTextEditor({ name, initialHtml, onChange, registerApi, allowImages = false, uploadImages = false, keepHeadingLevels = false }: { name: string; initialHtml?: string; onChange?: (html: string) => void; registerApi?: (api: RichTextApi) => void; allowImages?: boolean; uploadImages?: boolean; keepHeadingLevels?: boolean }): ReactNode {
   const ref = useRef<HTMLDivElement>(null);
   const cellRef = useRef<HTMLTableCellElement | null>(null);
+  const linkRef = useRef<HTMLAnchorElement | null>(null);
   const [html, setHtml] = useState(initialHtml ?? "");
   const [inTable, setInTable] = useState(false);
+  const [inLink, setInLink] = useState(false);
   const [uploading, setUploading] = useState(false);
   /*
    * A file that has been uploaded but not yet placed.
@@ -75,6 +80,13 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
    * screen and the writer knows why they added it.
    */
   const [pending, setPending] = useState<{ url: string; name: string; alt: string; id?: string } | null>(null);
+  /* The link being written or edited. `existing` is true when the caret was inside one already. */
+  const [linkEdit, setLinkEdit] = useState<{ url: string; text: string; existing: boolean } | null>(null);
+  /* Which picker is open: nothing, the choice between the two sources, or the library itself. */
+  const [source, setSource] = useState<"" | "ask" | "library">("");
+  const [library, setLibrary] = useState<LibraryItem[]>([]);
+  const [libraryBusy, setLibraryBusy] = useState(false);
+  const savedRange = useRef<Range | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   // The block tag under the caret, so the style dropdown always shows what you are actually editing.
   const [blockTag, setBlockTag] = useState("P");
@@ -121,15 +133,19 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     const sel = window.getSelection();
     let node = sel && sel.anchorNode ? (sel.anchorNode as Node) : null;
     let cell: HTMLTableCellElement | null = null;
+    let link: HTMLAnchorElement | null = null;
     let tag = "P";
     let foundTag = false;
     while (node && node !== ref.current) {
       if (!cell && node instanceof HTMLTableCellElement) cell = node;
+      if (!link && node instanceof HTMLAnchorElement) link = node;
       if (!foundTag && node instanceof HTMLElement && BLOCK_TAGS.has(node.tagName)) { tag = node.tagName; foundTag = true; }
       node = node.parentNode;
     }
     cellRef.current = cell;
+    linkRef.current = link;
     setInTable(Boolean(cell));
+    setInLink(Boolean(link));
     // Only reflect the caret when it is actually inside this editor.
     if (sel && sel.anchorNode && ref.current?.contains(sel.anchorNode)) setBlockTag(tag);
   };
@@ -148,6 +164,16 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
   }, []);
 
   const setBlock = (tag: string): void => { cmd("formatBlock", tag); afterEdit(); };
+
+  /**
+   * Quote is a toggle, not a one-way door.
+   *
+   * The button only ever applied BLOCKQUOTE, so a paragraph could be quoted and never unquoted:
+   * pressing it again asked the browser to make a blockquote out of a blockquote, which is a no-op.
+   * Pressing it inside a quote now turns the block back into a paragraph, which is what a button
+   * that looks pressed is expected to do.
+   */
+  const toggleQuote = (): void => setBlock(blockTag === "BLOCKQUOTE" ? "P" : "BLOCKQUOTE");
   const align = (c: string): void => { cmd(c); afterEdit(); };
   const run = (c: string) => () => { cmd(c); afterEdit(); };
   // Insert a DOM node at the caret (or append to the end if the caret is outside the editor). More
@@ -207,7 +233,82 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     insertAtCaret(...Array.from(template.content.childNodes));
   };
 
-  const insertLink = (): void => { const url = window.prompt("Link URL", "https://"); if (url) { cmd("createLink", url); afterEdit(); } };
+  /**
+   * Insert, edit, or remove a link.
+   *
+   * `document.execCommand("createLink")` needs a selection and silently does nothing without one,
+   * so the button did nothing at all unless text happened to be highlighted, and there was no way
+   * to change or remove a link once made. A prompt could not have fixed that: editing needs the
+   * current address in the box, and removing needs a control of its own.
+   *
+   * The selection is saved before the dialog opens, because opening it moves focus out of the
+   * editable area and the browser forgets where the caret was.
+   */
+  const openLink = (): void => {
+    const sel = window.getSelection();
+    savedRange.current = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+    const anchor = linkRef.current;
+    if (anchor) {
+      setLinkEdit({ url: anchor.getAttribute("href") ?? "", text: anchor.textContent ?? "", existing: true });
+      return;
+    }
+    setLinkEdit({ url: "https://", text: sel ? sel.toString() : "", existing: false });
+  };
+
+  /** Put the caret back where it was before the dialog took focus. */
+  const restoreRange = (): void => {
+    const range = savedRange.current;
+    if (!range) return;
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
+
+  const applyLink = (): void => {
+    const edit = linkEdit;
+    if (!edit) return;
+    const url = edit.url.trim();
+    const text = edit.text.trim();
+    setLinkEdit(null);
+    if (!url) return;
+
+    const anchor = linkRef.current;
+    if (edit.existing && anchor) {
+      anchor.setAttribute("href", url);
+      if (text && text !== anchor.textContent) anchor.textContent = text;
+      afterEdit();
+      return;
+    }
+
+    ref.current?.focus();
+    restoreRange();
+    const sel = window.getSelection();
+    const hasSelection = Boolean(sel && !sel.isCollapsed);
+    if (hasSelection) {
+      cmd("createLink", url);
+    } else {
+      // Nothing selected: the link is created from the typed text, which is what somebody pressing
+      // the button with no selection is asking for.
+      const a = document.createElement("a");
+      a.href = url;
+      a.textContent = text || url;
+      insertAtCaret(a, document.createTextNode(" "));
+    }
+    afterEdit();
+  };
+
+  const removeLink = (): void => {
+    const anchor = linkRef.current;
+    setLinkEdit(null);
+    if (!anchor) return;
+    const parent = anchor.parentNode;
+    if (!parent) return;
+    while (anchor.firstChild) parent.insertBefore(anchor.firstChild, anchor);
+    parent.removeChild(anchor);
+    linkRef.current = null;
+    setInLink(false);
+    afterEdit();
+  };
   /*
    * A picture from the machine, carried inside the document.
    *
@@ -230,7 +331,20 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
    * `allowImages` still gates it, because an agreement PDF genuinely does want the picture carried
    * inside the document rather than fetched from a URL the recipient may not be able to reach.
    */
-  const insertImage = (): void => {
+  /**
+   * Where the picture comes from.
+   *
+   * The button went straight to a file picker, which assumed every image is new. Most are not: a
+   * logo, a chart, a headshot already lives in the media library, and re-uploading it makes a second
+   * copy with its own name and its own alt text to keep in step with the first. The choice is asked
+   * once, and the library is offered first because reusing what is there is the commoner case.
+   */
+  const chooseImage = (): void => {
+    if (!uploadImages) { pickFromComputer(); return; }
+    setSource("ask");
+  };
+
+  const pickFromComputer = (): void => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/png,image/jpeg,image/gif,image/webp,image/avif";
@@ -252,6 +366,21 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
       reader.readAsDataURL(file);
     };
     input.click();
+  };
+
+  /** Bring in a file that is already in the library, with the name and alt text it already has. */
+  const openLibrary = async (): Promise<void> => {
+    setSource("library");
+    setLibraryBusy(true);
+    try {
+      const res = await fetch("/api/cms/media/list");
+      if (!res.ok) throw new Error("list");
+      setLibrary((await res.json()) as LibraryItem[]);
+    } catch {
+      setLibrary([]);
+    } finally {
+      setLibraryBusy(false);
+    }
   };
 
   /**
@@ -373,16 +502,18 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     const n = document.createElement(tag); n.innerHTML = c.innerHTML; c.replaceWith(n);
   };
 
-  const Btn = ({ onClick, title, children }: { onClick: () => void; title: string; children: ReactNode }): ReactNode => (
-    <button type="button" title={title} aria-label={title} onMouseDown={(e) => e.preventDefault()} onClick={onClick}
-      className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-[#543CDA]">{children}</button>
+  /* `on` marks a tool that is currently applied, so quote and link read as toggles rather than as
+     buttons that may or may not have done something. */
+  const Btn = ({ onClick, title, children, on = false }: { onClick: () => void; title: string; children: ReactNode; on?: boolean }): ReactNode => (
+    <button type="button" title={title} aria-label={title} aria-pressed={on} onMouseDown={(e) => e.preventDefault()} onClick={onClick}
+      className={`grid h-8 w-8 shrink-0 place-items-center rounded-md hover:bg-slate-100 hover:text-[#543CDA] ${on ? "bg-[#EEEBFC] text-[#543CDA]" : "text-slate-600"}`}>{children}</button>
   );
   const Sep = (): ReactNode => <span className="mx-0.5 h-5 w-px shrink-0 bg-slate-200" />;
   const selectCls = "h-8 shrink-0 cursor-pointer rounded-md border border-slate-200 bg-white px-2 text-[0.8rem] font-600 text-slate-700 focus:border-[#543CDA] focus:outline-none";
 
   // The twelve tools that earn their place on the toolbar, in the order writers reach for them. Every
   // remaining tool lives behind the thirteenth control, "More", so the row never overflows.
-  const primary: { title: string; icon: typeof Quote; onClick: () => void }[] = [
+  const primary: { title: string; icon: typeof Quote; onClick: () => void; on?: boolean }[] = [
     { title: "Bold", icon: Bold, onClick: run("bold") },
     { title: "Italic", icon: Italic, onClick: run("italic") },
     { title: "Underline", icon: Underline, onClick: run("underline") },
@@ -392,12 +523,12 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     { title: "Align center", icon: AlignCenter, onClick: () => align("justifyCenter") },
     { title: "Align right", icon: AlignRight, onClick: () => align("justifyRight") },
     { title: "Justify", icon: AlignJustify, onClick: () => align("justifyFull") },
-    { title: "Insert link", icon: Link2, onClick: insertLink },
-    { title: "Quote", icon: Quote, onClick: () => setBlock("BLOCKQUOTE") },
+    { title: inLink ? "Edit link" : "Insert link", icon: Link2, onClick: openLink, on: inLink },
+    { title: blockTag === "BLOCKQUOTE" ? "Remove quote" : "Quote", icon: Quote, onClick: toggleQuote, on: blockTag === "BLOCKQUOTE" },
     {
       title: uploading ? "Uploading image…" : "Insert image",
       icon: uploading ? Loader2 : ImageIcon,
-      onClick: () => { if (!uploading) insertImage(); },
+      onClick: () => { if (!uploading) chooseImage(); },
     },
   ];
   const secondary: { title: string; icon: typeof Quote; onClick: () => void }[] = [
@@ -422,7 +553,7 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
         {primary.map((t, i) => (
           <span key={t.title} className="contents">
             {i === 3 || i === 5 || i === 9 ? <Sep /> : null}
-            <Btn title={t.title} onClick={t.onClick}><t.icon size={16} /></Btn>
+            <Btn title={t.title} onClick={t.onClick} on={t.on ?? false}><t.icon size={16} /></Btn>
           </span>
         ))}
 
@@ -478,6 +609,113 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
         className="cms-rte min-h-[min(26rem,calc(100vh-14rem))] max-h-[calc(100vh-14rem)] overflow-y-auto px-5 py-4 text-[0.92rem] leading-relaxed text-slate-800 focus:outline-none"
         data-placeholder="Start writing..." />
       <input type="hidden" name={name} value={html} />
+
+      {source ? (
+        <div className="fixed inset-0 z-[200] grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Add an image">
+          <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-[1rem] font-700 text-slate-900">Add an image</h2>
+              <button type="button" onClick={() => setSource("")} aria-label="Close" className="text-slate-400 hover:text-slate-700">&times;</button>
+            </div>
+
+            {source === "ask" ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {/* The library first: reusing a file already here is the commoner case, and a second
+                    copy of the same picture is a second name and a second alt text to keep in step. */}
+                <button type="button" onClick={() => void openLibrary()}
+                  className="rounded-xl border border-slate-200 p-4 text-left transition-colors hover:border-[#543CDA] hover:bg-[#F8F7FE]">
+                  <span className="block text-[0.9rem] font-700 text-slate-900">Media Library</span>
+                  <span className="mt-1 block text-[0.8rem] text-slate-500">
+                    A picture already uploaded, with the name and alt text it already has.
+                  </span>
+                </button>
+                <button type="button" onClick={() => { setSource(""); pickFromComputer(); }}
+                  className="rounded-xl border border-slate-200 p-4 text-left transition-colors hover:border-[#543CDA] hover:bg-[#F8F7FE]">
+                  <span className="block text-[0.9rem] font-700 text-slate-900">My computer</span>
+                  <span className="mt-1 block text-[0.8rem] text-slate-500">
+                    Upload a new file. It is converted to WebP and described before it is placed.
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
+                {libraryBusy ? (
+                  <p className="py-10 text-center text-[0.85rem] text-slate-500">Loading the library…</p>
+                ) : library.length === 0 ? (
+                  <p className="py-10 text-center text-[0.85rem] text-slate-500">
+                    Nothing in the library yet. Upload from your computer instead.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {library.map((m) => (
+                      <button key={m.id} type="button"
+                        onClick={() => { setSource(""); insertFigure(m.url, m.alt_text ?? ""); }}
+                        className="overflow-hidden rounded-lg border border-slate-200 text-left transition-shadow hover:border-[#543CDA] hover:shadow-md">
+                        <span className="block aspect-[4/3] w-full overflow-hidden bg-slate-50">
+                          <img src={m.url} alt={m.alt_text ?? ""} className="h-full w-full object-cover" />
+                        </span>
+                        <span className="block truncate px-2 py-1.5 text-[0.74rem] font-600 text-slate-700" title={m.name}>{m.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button type="button" onClick={() => setSource("ask")} className="mt-3 text-[0.8rem] font-600 text-[#543CDA] hover:underline">
+                  &larr; Back
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {linkEdit ? (
+        <div className="fixed inset-0 z-[200] grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label={linkEdit.existing ? "Edit link" : "Insert link"}>
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+            <h2 className="text-[1rem] font-700 text-slate-900">{linkEdit.existing ? "Edit link" : "Insert link"}</h2>
+            <label className="mt-4 flex flex-col gap-1.5">
+              <span className="text-[0.78rem] font-600 text-slate-700">Address</span>
+              <input
+                autoFocus
+                value={linkEdit.url}
+                onChange={(e) => setLinkEdit({ ...linkEdit, url: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink(); } }}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-[0.85rem] focus:border-[#543CDA] focus:outline-none"
+              />
+              <span className="text-[0.74rem] text-slate-500">
+                A path such as /services links within this site; a full address links out.
+              </span>
+            </label>
+            <label className="mt-3 flex flex-col gap-1.5">
+              <span className="text-[0.78rem] font-600 text-slate-700">Text</span>
+              <input
+                value={linkEdit.text}
+                onChange={(e) => setLinkEdit({ ...linkEdit, text: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink(); } }}
+                placeholder="The words the reader clicks"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-[0.85rem] focus:border-[#543CDA] focus:outline-none"
+              />
+            </label>
+            <div className="mt-4 flex items-center justify-between gap-2">
+              {linkEdit.existing ? (
+                <button type="button" onClick={removeLink}
+                  className="rounded-lg border border-[#FCA5A5] px-4 py-2 text-[0.83rem] font-600 text-[#B91C1C] hover:bg-red-50">
+                  Remove link
+                </button>
+              ) : <span />}
+              <span className="flex gap-2">
+                <button type="button" onClick={() => setLinkEdit(null)}
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-[0.83rem] font-600 text-slate-600 hover:bg-slate-50">
+                  Cancel
+                </button>
+                <button type="button" onClick={applyLink}
+                  className="rounded-lg bg-[#543CDA] px-5 py-2 text-[0.83rem] font-600 text-white hover:bg-[#4330B8]">
+                  {linkEdit.existing ? "Save" : "Insert"}
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Review before the picture is placed.
           The file is already uploaded and converted at this point - what is being confirmed is how
