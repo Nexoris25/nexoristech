@@ -9,7 +9,7 @@
  * public page and the search/answer engines get real, crawlable markup.
  */
 import { useEffect, useRef, useState } from "react";
-import type { ClipboardEvent, ReactNode } from "react";
+import type { ClipboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import {
   Bold, Italic, Underline, List, ListOrdered, Quote, Indent, Outdent, Link2,
   Image as ImageIcon, Table as TableIcon, Eraser, AlignLeft, AlignCenter, AlignRight, AlignJustify,
@@ -309,6 +309,37 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
     setInLink(false);
     afterEdit();
   };
+
+  /**
+   * Clicking a link opens it for editing.
+   *
+   * Editing one meant knowing to put the caret inside it and then find the toolbar button, which
+   * reads "Edit link" only once you are already there. Nobody discovers that. Clicking the words is
+   * what everyone tries first, and it did nothing at all, so a wrong address was usually fixed by
+   * deleting the link and writing it again.
+   *
+   * The anchor is taken from the click rather than from `linkRef`, because that is set from the
+   * selection by `trackCell` and the selection has not necessarily caught up by the time this runs.
+   */
+  const onEditorClick = (event: ReactMouseEvent<HTMLDivElement>): void => {
+    // A modified or middle click is the browser's own "open this link" gesture. Left alone, so an
+    // editor can still follow a link to check where it goes.
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+
+    const node = event.target as Node | null;
+    const el = node instanceof HTMLElement ? node : (node?.parentElement ?? null);
+    const anchor = el?.closest("a");
+    if (!(anchor instanceof HTMLAnchorElement) || !ref.current?.contains(anchor)) return;
+
+    // Dragging across the text is selecting it, not asking to edit the link.
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) return;
+
+    event.preventDefault();
+    linkRef.current = anchor;
+    setInLink(true);
+    openLink();
+  };
   /*
    * A picture from the machine, carried inside the document.
    *
@@ -605,7 +636,7 @@ export function RichTextEditor({ name, initialHtml, onChange, registerApi, allow
           controls were off screen exactly when they were needed. Capping the height against the
           viewport keeps the toolbar and the surrounding form still while the text moves. */}
       <div ref={ref} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true"
-        onInput={afterEdit} onBlur={sync} onKeyUp={trackCell} onMouseUp={trackCell} onPaste={onPaste}
+        onInput={afterEdit} onBlur={sync} onKeyUp={trackCell} onMouseUp={trackCell} onClick={onEditorClick} onPaste={onPaste}
         className="cms-rte min-h-[min(26rem,calc(100vh-14rem))] max-h-[calc(100vh-14rem)] overflow-y-auto px-5 py-4 text-[0.92rem] leading-relaxed text-slate-800 focus:outline-none"
         data-placeholder="Start writing..." />
       <input type="hidden" name={name} value={html} />
