@@ -112,6 +112,45 @@ function mediaUrl(value: unknown): string | undefined {
   if (url.startsWith("http")) return url;
   return MEDIA_BASE ? `${MEDIA_BASE}${url.startsWith("/") ? "" : "/"}${url}` : url;
 }
+
+/**
+ * Resolve upload paths inside a block of body HTML.
+ *
+ * Every image on a page except the ones inside the body went through mediaUrl: the cover, the
+ * author's headshot, the gallery. An image placed in the rich text editor is written into the body
+ * as `src="/uploads/….webp"`, and the body was passed through untouched — so the browser resolved
+ * that path against the website's own origin, where nothing is served, and every picture an editor
+ * put inside an article was broken. The cover on the same article worked, which is what made it look
+ * like the upload had succeeded.
+ *
+ * Applied to src and srcset. An absolute URL is left alone, exactly as mediaUrl leaves one alone.
+ */
+export function resolveBodyMedia(html: string, base: string): string {
+  if (!base || !html) return html;
+  const one = (path: string): string =>
+    path.startsWith("http") || path.startsWith("data:")
+      ? path
+      : `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+  return html
+    .replace(/(<img\b[^>]*?\ssrc=")([^"]+)(")/gi, (_m, a: string, url: string, b: string) =>
+      `${a}${one(url)}${b}`)
+    .replace(/(<img\b[^>]*?\ssrcset=")([^"]+)(")/gi, (_m, a: string, set: string, b: string) => {
+      const rewritten = set
+        .split(",")
+        .map((part) => {
+          const trimmed = part.trim();
+          const [url = "", ...rest] = trimmed.split(/\s+/);
+          if (!url) return trimmed;
+          return [one(url), ...rest].join(" ");
+        })
+        .join(", ");
+      return `${a}${rewritten}${b}`;
+    });
+}
+
+function bodyMedia(html: string): string {
+  return resolveBodyMedia(html, MEDIA_BASE);
+}
 /**
  * Postgres hands back timestamps as "2026-07-18 15:40:06.679264+01", which is not valid ISO 8601. Schema
  * dates and Open Graph article times must be ISO, so normalise every timestamp on the way out.
@@ -243,7 +282,7 @@ export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
   return {
     title,
     slug,
-    body: str(r.body) ?? "",
+    body: bodyMedia(str(r.body) ?? ""),
     ...opt("summary", str(r.excerpt)),
     ...opt("coverUrl", mediaUrl(r.featured_image)),
     ...opt("coverAlt", str(r.featured_image_alt)),
@@ -426,7 +465,7 @@ export async function getInsight(slug: string): Promise<Insight | null> {
     // The design uses the short title where the full one would not fit: breadcrumbs and cards.
     ...opt("shortTitle", str(r.short_title)),
     slug,
-    body: str(r.body) ?? "",
+    body: bodyMedia(str(r.body) ?? ""),
     faq: faqsOf(r.faqs),
     noIndex: Boolean(r.noindex),
     ...opt("excerpt", str(r.excerpt)),
@@ -487,7 +526,7 @@ export async function getAuthor(slug: string): Promise<AuthorProfile | null> {
     faq: faqsOf(r.faqs),
     ...opt("photoUrl", mediaUrl(r.headshot_url)),
     ...opt("photoAlt", str(r.headshot_alt)),
-    ...opt("profileHtml", str(r.profile_html)),
+    ...opt("profileHtml", bodyMedia(str(r.profile_html) ?? "") || undefined),
     ...opt("metaTitle", str(r.meta_title)),
     ...opt("metaDescription", str(r.meta_description)),
     // toAuthor does not carry links; the profile page renders and cites both.
@@ -547,7 +586,7 @@ export async function getJob(slug: string): Promise<Job | null> {
   if (!card.title) return null;
   return {
     ...card,
-    description: str(r.body) ?? "",
+    description: bodyMedia(str(r.body) ?? ""),
     ...opt("publishedAt", isoDate(r.published_at)),
   };
 }
@@ -559,7 +598,7 @@ export async function getLegalPage(type: LegalType): Promise<LegalPage | null> {
   const r = rows[0];
   const title = r ? str(r.title) : undefined;
   if (!r || !title) return null;
-  const body = str(r.body);
+  const body = bodyMedia(str(r.body) ?? "") || undefined;
   return {
     title,
     ...opt("shortTitle", str(r.short_title)),
@@ -631,7 +670,7 @@ export async function getPseoPage(slug: string): Promise<PseoPage | null> {
     ...opt("techLabel", str(r.target_keyword)),
     ...opt("location", str(r.target_location)),
     ...opt("summary", str(r.excerpt)),
-    ...opt("body", str(r.body)),
+    ...opt("body", bodyMedia(str(r.body) ?? "") || undefined),
     ...(author ? { author } : {}),
     ...(factChecker ? { factChecker } : {}),
     ...opt("metaTitle", str(r.meta_title)),
