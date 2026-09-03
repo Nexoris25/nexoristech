@@ -1,0 +1,69 @@
+/*
+ * Share row.
+ *
+ * Under the article rather than floating beside it: sharing is something a reader decides after
+ * reading, and a rail that follows them down the page is asking for a decision they have not made
+ * yet. The buttons carry their names as well as their marks, because a row of unlabelled glyphs is
+ * a guessing game and the icons for X and for a link are not universally read.
+ */
+.article-page .share-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 32px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line, #e9e7f0);
+}
+.article-page .share-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-950, #0d0a1c);
+}
+.article-page .share-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.article-page .share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 1px solid var(--line, #e9e7f0);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-2, #3a3550);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.article-page .share-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* X's mark is a filled glyph, not a stroked one. */
+.article-page .share-btn:first-child svg {
+  fill: currentColor;
+  stroke: none;
+}
+.article-page .share-btn:hover {
+  border-color: var(--purple-300, #c3b8f4);
+  background: var(--purple-100, #eeebfc);
+  color: var(--purple-600, #543cda);
+}
+.article-page .share-btn:focus-visible {
+  outline: 2px solid var(--purple-600, #543cda);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .article-page .share-btn span { display: none; }
+  .article-page .share-btn { padding: 10px; }
+}

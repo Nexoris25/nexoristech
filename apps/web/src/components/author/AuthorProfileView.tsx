@@ -50,7 +50,18 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
   // page on the site.
   const path = authorPath(slug);
   const profileHtml = author.profileHtml ? wrapTables(withHeadingIds(author.profileHtml)) : "";
-  const toc = author.profileHtml ? headingsOf(author.profileHtml) : [];
+  /*
+   * The contents, plus the FAQ section.
+   *
+   * headingsOf only sees the profile body, and the questions are a separate section rendered after
+   * it - so a profile with an FAQ had a section the contents list did not know about, and a reader
+   * scrolling by the list would never learn it was there. The article page has carried this entry
+   * since its FAQ was built; the author page is the same page shape and gets the same entry.
+   */
+  const toc = [
+    ...(author.profileHtml ? headingsOf(author.profileHtml) : []),
+    ...(author.faq.length > 0 ? [{ id: "faq-heading", text: "Common questions" }] : []),
+  ];
 
   const av = author.name
     .split(/\s+/)
@@ -246,18 +257,22 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
       </section>
 
       {author.faq.length > 0 ? (
-        <section className="band faq-block" aria-labelledby="faq-heading">
+        <section className="band" aria-label={`Common questions about ${author.name}`}>
           <div className="wrap">
-            <h2 id="faq-heading">Common questions</h2>
-            <div className="faq-wrap">
-              {author.faq.map((item) => (
-                <details className="faq" key={item.question}>
-                  <summary>
-                    {item.question} <span className="fq-pm">+</span>
-                  </summary>
-                  <div className="faq-a">{item.answer}</div>
-                </details>
-              ))}
+            {/* Same block as an article's, so the heading, the accordion and the scroll offset that
+                keeps an anchored heading clear of the sticky header all behave identically. */}
+            <div className="faq-block">
+              <h2 id="faq-heading">Common questions</h2>
+              <div className="faq-wrap">
+                {author.faq.map((item) => (
+                  <details className="faq" key={item.question}>
+                    <summary>
+                      {item.question} <span className="fq-pm">+</span>
+                    </summary>
+                    <div className="faq-a">{item.answer}</div>
+                  </details>
+                ))}
+              </div>
             </div>
           </div>
         </section>

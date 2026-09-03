@@ -26,6 +26,7 @@ import { FloatingToc } from "../../../components/FloatingToc.js";
 import { TocSpy } from "../../../components/TocSpy.js";
 import "../../../styles/article.css";
 import { authorPath } from "../../../lib/routes.js";
+import { ArticleEngage } from "../../../components/ArticleEngage.js";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -274,6 +275,11 @@ export default async function ArticlePage({
           way out as well as in the editor, so a row written before the editor normalised anything
           cannot put a script on a public page. */}
       <div className="prose" dangerouslySetInnerHTML={{ __html: wrapTables(withHeadingIds(readableBody)) }} />
+
+      {/* Under the article, where a reader has finished and can decide. It also carries the beacon
+          that records the read, which is the only place a page view on a statically generated page
+          is actually observable. */}
+      <ArticleEngage slug={article.slug} title={article.title} />
 
       {article.faq.length > 0 ? (
         <section className="faq-block" aria-labelledby="faq-heading">

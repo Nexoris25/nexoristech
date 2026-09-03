@@ -16,7 +16,7 @@ import { RowActions } from "../../../../components/cms/RowActions.js";
 
 export const dynamic = "force-dynamic";
 
-interface Row { id: string; title: string; short_title: string | null; slug: string; category: string | null; author: string | null; status: string; views: string; published_at: string | null; }
+interface Row { id: string; title: string; short_title: string | null; slug: string; category: string | null; author: string | null; status: string; views: string; share_count: string; published_at: string | null; }
 function abbr(n: number): string { return n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}K` : String(n); }
 
 const STATUS: Record<string, { bg: string; fg: string; label: string }> = {
@@ -48,7 +48,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
 
   await requireCmsAccess();
   const { rows } = await cmsDb().query<Row>(
-    `SELECT c.id, c.title, c.short_title, c.slug, cat.name AS category, a.name AS author, c.status, c.views::text,
+    `SELECT c.id, c.title, c.short_title, c.slug, cat.name AS category, a.name AS author, c.status, c.views::text, c.share_count::text,
             c.published_at::text
        FROM cms_content c
        LEFT JOIN cms_category cat ON cat.id = c.category_id
@@ -88,7 +88,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
         />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
-            <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Title</th><th className="px-5 py-3 font-600">Category</th><th className="px-5 py-3 font-600">Author</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Views</th><th className="px-5 py-3 font-600">Published</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
+            <thead><tr className="border-b border-slate-200 bg-slate-50 text-[0.66rem] uppercase tracking-wide text-slate-500"><th className="px-5 py-3 font-600">Title</th><th className="px-5 py-3 font-600">Category</th><th className="px-5 py-3 font-600">Author</th><th className="px-5 py-3 font-600">Status</th><th className="px-5 py-3 font-600">Views</th><th className="px-5 py-3 font-600">Shares</th><th className="px-5 py-3 font-600">Published</th><th className="px-5 py-3 text-right font-600">Actions</th></tr></thead>
             <tbody>
               {rows.map((r) => {
                 const s = STATUS[r.status] ?? STATUS.draft!;
@@ -105,6 +105,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
                         header already says Views, and the authors list has always shown Total Views
                         as a plain number, so this is also the consistent form. */}
                     <td className="px-5 py-3 text-[0.82rem] font-600 text-slate-700">{abbr(+r.views)}</td>
+                    {/* Read and passed on are different facts, and only one of them says the piece worked. */}
+                    <td className="px-5 py-3 text-[0.82rem] font-600 text-slate-700">{abbr(+r.share_count)}</td>
                     <td className="px-5 py-3 text-[0.8rem] text-slate-600">{r.published_at ? new Date(r.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : <span className="text-slate-300">—</span>}</td>
                     <td className="px-5 py-3 text-right"><RowActions id={r.id} kind="insight" status={r.status} editHref={`/cms/insights/${r.id}`} viewHref={`https://nexoristech.com/insights/${r.slug}`} back="/cms/insights" label={r.title} /></td>
                   </tr>
