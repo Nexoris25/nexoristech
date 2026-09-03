@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buildMetadata, buildPageGraph, absoluteUrl } from "@nexoris/seo";
+import { buildMetadata, buildPageGraph, resolveUrl } from "@nexoris/seo";
 import { getCaseStudy, getCaseStudySlugs } from "../../../lib/cms.js";
 import { withHeadingIds, headingsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
@@ -75,7 +75,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       path,
       headline: study.title,
       description: study.summary ?? "",
-      ...(study.coverUrl ? { image: { url: absoluteUrl(study.coverUrl), alt: study.coverAlt ?? study.title } } : {}),
+      ...(study.coverUrl ? { image: { url: resolveUrl(study.coverUrl), alt: study.coverAlt ?? study.title } } : {}),
       ...(study.servicePaths.length > 0 ? { aboutPaths: study.servicePaths } : {}),
       ...(study.publishedAt ? { datePublished: study.publishedAt } : {}),
       ...(study.updatedAt ? { dateModified: study.updatedAt } : {}),

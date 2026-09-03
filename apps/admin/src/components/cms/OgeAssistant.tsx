@@ -37,6 +37,7 @@ export interface OgeApply {
   /** Put the link on the phrase where it already appears. False when it could not be placed. */
   linkInline?: (anchor: string, target: string) => boolean;
   storeFaqs?: (items: FaqItem[]) => void; // persist for FAQPage schema
+  editFaqs?: (items: FaqItem[]) => void;  // the same setter, used when a question is edited by hand
   storeTldr?: (items: string[]) => void;
 }
 export interface OgeSeo {
@@ -81,7 +82,10 @@ async function callOge(kind: string, ctx: OgeContext, extra?: Record<string, unk
   } catch { return null; }
 }
 
-export function OgeAssistant({ tabs, getContext, apply, seo, bios }: { tabs: OgeTab[]; getContext: () => OgeContext; apply?: OgeApply; seo?: OgeSeo; bios?: OgeBios }): ReactNode {
+/** What the page already holds, so the panel opens describing the page rather than the session. */
+export interface OgeInitial { faqs?: FaqItem[]; tldr?: string[]; excerpt?: string }
+
+export function OgeAssistant({ tabs, getContext, apply, seo, bios, initial }: { tabs: OgeTab[]; getContext: () => OgeContext; apply?: OgeApply; seo?: OgeSeo; bios?: OgeBios; initial?: OgeInitial }): ReactNode {
   // Only the first three tabs show inline; the rest live behind a "More" menu so the tab row never
   // overflows or wraps, even on a 360px panel.
   const realTabs = tabs.filter((t) => t !== "more");
@@ -91,7 +95,21 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios }: { tabs: Oge
   const [moreOpen, setMoreOpen] = useState(false);
   const [busy, setBusy] = useState("");
   const [source, setSource] = useState<Record<string, "oge" | "fallback">>({});
-  const [results, setResults] = useState<Record<string, unknown>>({});
+  /*
+   * Seeded from what the page already holds.
+   *
+   * These were component state starting empty, so everything Oge had produced disappeared on
+   * reload: the panel offered to generate FAQs that were already written, and the excerpt and
+   * TL;DR looked as though nothing had been done. Seeding from the saved values means the panel
+   * describes the page rather than the session.
+   */
+  const [results, setResults] = useState<Record<string, unknown>>(() => {
+    const seed: Record<string, unknown> = {};
+    if (initial?.faqs && initial.faqs.length > 0) seed["faqs"] = initial.faqs;
+    if (initial?.tldr && initial.tldr.length > 0) seed["tldr"] = initial.tldr;
+    if (initial?.excerpt) seed["excerpt"] = initial.excerpt;
+    return seed;
+  });
   const [copied, setCopied] = useState("");
   const overflowActive = overflow.some((t) => t === active);
 
@@ -169,7 +187,7 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios }: { tabs: Oge
           : active === "tldr" ? <TldrTab busy={busy === "tldr"} source={source.tldr} result={results.tldr as string[] | undefined} onGenerate={() => void run("tldr")} onInsert={(html) => apply?.insertTop?.(html)} copied={copied} onCopy={copy} />
           : active === "excerpt" ? <ExcerptTab busy={busy === "excerpt"} source={source.excerpt} result={results.excerpt as string | undefined} onGenerate={() => void run("excerpt")} onApply={apply?.excerpt} copied={copied} onCopy={copy} />
           : active === "author-bio" ? <BioTab busy={busy} source={source} bios={bios} onGenerate={(_who, ctx) => run("author-bio", ctx)} onInsert={(html) => apply?.insertBottom?.(html)} />
-          : active === "faqs" ? <FaqTab busy={busy === "faqs"} source={source.faqs} result={results.faqs as FaqItem[] | undefined} onGenerate={() => void run("faqs")} />
+          : active === "faqs" ? <FaqTab busy={busy === "faqs"} source={source.faqs} result={results.faqs as FaqItem[] | undefined} onGenerate={() => void run("faqs")} onEdit={apply?.editFaqs ? (items) => { setResults((r) => ({ ...r, faqs: items })); apply.editFaqs?.(items); } : undefined} />
           : active === "internal-links" ? <LinksTab busy={busy === "internal-links"} source={source["internal-links"]} result={results["internal-links"] as InternalLink[] | undefined} onGenerate={() => void run("internal-links")} getBody={apply?.getBody} linkInline={apply?.linkInline} />
           : <MoreTab />}
       </div>
@@ -348,14 +366,49 @@ function BioTab({ busy, source, bios, onGenerate, onInsert }: { busy: string; so
   );
 }
 
-function FaqTab({ busy, source, result, onGenerate }: { busy: boolean; source: "oge" | "fallback" | undefined; result?: FaqItem[] | undefined; onGenerate: () => void }): ReactNode {
+function FaqTab({ busy, source, result, onGenerate, onEdit }: { busy: boolean; source: "oge" | "fallback" | undefined; result?: FaqItem[] | undefined; onGenerate: () => void; onEdit?: ((items: FaqItem[]) => void) | undefined }): ReactNode {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[0.78rem] text-slate-500">5 to 7 questions with precise answers.</p>
         <Badge source={source} />
       </div>
-      {result ? <div className="mb-3 space-y-2">{result.map((f, i) => <details key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5"><summary className="cursor-pointer text-[0.82rem] font-600 text-slate-800">{i + 1}. {f.question}</summary><p className="mt-1.5 text-[0.8rem] text-slate-600">{f.answer}</p></details>)}</div> : null}
+      {/* Editable in place.
+          A generated question is a first draft: the wording is often nearly right and the answer
+          often needs a figure corrected. Regenerating the whole set to fix one word threw away the
+          six that were already good, so each is editable and each can be removed on its own. */}
+      {result ? (
+        <div className="mb-3 space-y-2">
+          {result.map((f, i) => (
+            <details key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+              <summary className="cursor-pointer text-[0.82rem] font-600 text-slate-800">{i + 1}. {f.question}</summary>
+              {onEdit ? (
+                <div className="mt-2 flex flex-col gap-2">
+                  <input
+                    value={f.question}
+                    onChange={(e) => onEdit(result.map((x, j) => (j === i ? { ...x, question: e.target.value } : x)))}
+                    aria-label={`Question ${i + 1}`}
+                    className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-[0.8rem] font-600 focus:border-[#543CDA] focus:outline-none"
+                  />
+                  <textarea
+                    rows={3}
+                    value={f.answer}
+                    onChange={(e) => onEdit(result.map((x, j) => (j === i ? { ...x, answer: e.target.value } : x)))}
+                    aria-label={`Answer ${i + 1}`}
+                    className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-[0.8rem] focus:border-[#543CDA] focus:outline-none"
+                  />
+                  <button type="button" onClick={() => onEdit(result.filter((_, j) => j !== i))}
+                    className="self-start text-[0.74rem] font-600 text-slate-500 hover:text-[#B91C1C]">
+                    Remove this question
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-1.5 text-[0.8rem] text-slate-600">{f.answer}</p>
+              )}
+            </details>
+          ))}
+        </div>
+      ) : null}
       {/* Generating saves the set to the page's own faqs field, which is what the published page
           renders and what faqPageNode turns into FAQPage schema. There is deliberately no "insert
           into content" any more: pasting the same questions into the body published them twice,

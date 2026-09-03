@@ -79,7 +79,6 @@ export interface BuiltMetadata {
   robots: {
     index: boolean;
     follow: boolean;
-    googleBot: { index: boolean; follow: boolean };
   };
 }
 

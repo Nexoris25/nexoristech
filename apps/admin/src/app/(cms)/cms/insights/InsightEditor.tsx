@@ -35,6 +35,15 @@ interface Initial {
   authorId?: string; factCheckerId?: string; status?: string; featuredImage?: string; featuredImageAlt?: string;
   metaTitle?: string; metaDescription?: string; authorBio?: string; factCheckerBio?: string;
   publishDate?: string; noindex?: boolean; schemaType?: string;
+  /*
+   * What Oge has already produced for this page.
+   *
+   * These were not loaded, so the state behind the hidden fields started empty on every open. The
+   * panel showed "Generate" for work already done, and - worse - saving the page wrote those empty
+   * arrays back over what was there. Editing a published article to fix a typo silently deleted its
+   * FAQs and its TL;DR.
+   */
+  faqs?: FaqItem[]; tldr?: string[];
 }
 interface PageRef { title: string; url: string }
 const field = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-[0.86rem] text-slate-900 placeholder:text-slate-400 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15 resize-none";
@@ -78,8 +87,8 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
   const [authorBio, setAuthorBio] = useState(initial?.authorBio ?? "");
   const [factCheckerBio, setFactCheckerBio] = useState(initial?.factCheckerBio ?? "");
   const [schemaType, setSchemaType] = useState(initial?.schemaType ?? "BlogPosting");
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [tldr, setTldr] = useState<string[]>([]);
+  const [faqs, setFaqs] = useState<FaqItem[]>(initial?.faqs ?? []);
+  const [tldr, setTldr] = useState<string[]>(initial?.tldr ?? []);
   const rte = useRef<RichTextApi | null>(null);
 
   const shownSlug = slugEdited ? slug : slugify(title);
@@ -230,6 +239,7 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
           <OgeAssistant
             tabs={["seo", "tldr", "excerpt", "author-bio", "faqs", "internal-links", "more"]}
             getContext={() => ({ title, body, ...authorContext(authorId), pages })}
+            initial={{ faqs, tldr, excerpt }}
             seo={{ score, findings, metaTitle, setMetaTitle, metaDesc, setMetaDesc }}
             bios={{
               ...(nameOf(authorId) ? { authorName: nameOf(authorId) } : {}),
@@ -246,6 +256,7 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
               getBody: () => rte.current?.getHtml() ?? "",
               linkInline: (anchor, target) => rte.current?.linkInline(anchor, target) ?? false,
               storeFaqs: (items) => setFaqs(items),
+              editFaqs: setFaqs,
               storeTldr: (items) => setTldr(items),
             }}
           />

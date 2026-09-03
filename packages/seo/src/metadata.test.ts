@@ -101,7 +101,8 @@ describe("buildMetadata", () => {
       noindex: true,
     });
     expect(meta.robots.index).toBe(false);
-    expect(meta.robots.googleBot.index).toBe(false);
+    // No googleBot entry: it would emit a second meta tag saying the same thing as the first.
+    expect("googleBot" in meta.robots).toBe(false);
   });
 
   it("throws when a title breaks the hard limit", () => {

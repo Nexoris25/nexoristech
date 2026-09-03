@@ -9,7 +9,7 @@ import { requireUuid } from "../../../../../lib/route-params.js";
 
 export const dynamic = "force-dynamic";
 
-interface Row { id: string; title: string; short_title: string | null; slug: string | null; body: string | null; excerpt: string | null; category_id: string | null; author_id: string | null; fact_checker_id: string | null; status: string; featured_image: string | null; featured_image_alt: string | null; meta_title: string | null; meta_description: string | null; focus_keyword: string | null; author_bio: string | null; fact_checker_bio: string | null; publish_date: string | null; noindex: boolean; schema_type: string | null }
+interface Row { id: string; title: string; short_title: string | null; slug: string | null; body: string | null; excerpt: string | null; category_id: string | null; author_id: string | null; fact_checker_id: string | null; status: string; featured_image: string | null; featured_image_alt: string | null; meta_title: string | null; meta_description: string | null; focus_keyword: string | null; author_bio: string | null; fact_checker_bio: string | null; publish_date: string | null; noindex: boolean; schema_type: string | null; faqs: { question: string; answer: string }[] | null; tldr: string[] | null }
 
 export default async function EditInsightPage({ params }: { params: Promise<{ id: string }> }): Promise<ReactNode> {
   await requireCmsAccess();
@@ -20,7 +20,7 @@ export default async function EditInsightPage({ params }: { params: Promise<{ id
     pool.query<Row>(
       `SELECT c.id, c.title, c.short_title, c.slug, c.body, c.excerpt, c.category_id, c.author_id, c.fact_checker_id, c.status, c.featured_image,
               c.featured_image_alt, c.meta_title, c.meta_description, c.focus_keyword, c.author_bio, c.fact_checker_bio,
-              c.noindex, c.schema_type, to_char(c.published_at, 'YYYY-MM-DD"T"HH24:MI') AS publish_date
+              c.noindex, c.schema_type, c.faqs, c.tldr, to_char(c.published_at, 'YYYY-MM-DD"T"HH24:MI') AS publish_date
          FROM cms_content c WHERE c.id=$1 AND c.kind='insight'`, [id]),
     pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_category WHERE active ORDER BY name"),
     pool.query<{ id: string; name: string; job_title: string | null; years_experience: string | null; expertise: string[] | null; bio: string | null }>(
@@ -51,6 +51,7 @@ export default async function EditInsightPage({ params }: { params: Promise<{ id
           categoryId: r.category_id ?? "", authorId: r.author_id ?? "", factCheckerId: r.fact_checker_id ?? "", status: r.status,
           featuredImage: r.featured_image ?? "", featuredImageAlt: r.featured_image_alt ?? "", metaTitle: r.meta_title ?? "",
           metaDescription: r.meta_description ?? "", authorBio: r.author_bio ?? "",
+          faqs: Array.isArray(r.faqs) ? r.faqs : [], tldr: Array.isArray(r.tldr) ? r.tldr : [],
           factCheckerBio: r.fact_checker_bio ?? "", publishDate: r.publish_date ?? "", noindex: r.noindex, schemaType: r.schema_type ?? "BlogPosting",
         }} />
       </div>

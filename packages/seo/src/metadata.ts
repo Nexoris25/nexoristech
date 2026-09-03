@@ -141,10 +141,18 @@ export function buildMetadata(input: BuildMetadataInput): BuiltMetadata {
       description,
       images: [ogImage.url],
     },
+    /*
+     * One robots directive, not two.
+     *
+     * A separate googleBot entry makes Next emit `<meta name="googlebot">` beside
+     * `<meta name="robots">`. It earns its place only when it says something different from the
+     * general directive - Google reads the robots tag like every other crawler. Here both said
+     * "index, follow", so every page carried the same instruction twice and any tool that lists
+     * the head reported it twice: "index, follow, index, follow".
+     */
     robots: {
       index,
       follow: true,
-      googleBot: { index, follow: true },
     },
   };
 }

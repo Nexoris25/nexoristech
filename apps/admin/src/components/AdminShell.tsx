@@ -597,6 +597,7 @@ export function AdminShell({ staff, unread, notifications, access, children }: {
                 <p className="text-[0.72rem] capitalize text-slate-500">{staff.role}</p>
               </div>
               <Link href="/complete-profile" className={MENU_ITEM}><UserCog size={15} strokeWidth={2} /> Profile</Link>
+              <Link href="/account" className={MENU_ITEM}><KeyRound size={15} strokeWidth={2} /> Your account</Link>
               <Link href="/users/sessions" className={MENU_ITEM}><LayoutGrid size={15} strokeWidth={2} /> Active sessions</Link>
               <Link href="/settings" className={MENU_ITEM}><Settings size={15} strokeWidth={2} /> Settings</Link>
               <form action="/api/auth/logout" method="post" className="border-t border-slate-100">

@@ -13,7 +13,7 @@ import {
   buildMetadata,
   buildPageGraph,
   howToNode,
-  absoluteUrl,
+  resolveUrl,
   fitMetaDescription,
 } from "@nexoris/seo";
 import type { ArticleInput, PersonRef } from "@nexoris/seo";
@@ -36,9 +36,21 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 }
 
 const BRAND_SUFFIX = " | Nexoris Technologies";
-/** Absolute URL for a media file — like absoluteUrl but without the trailing slash it adds to pages. */
+/**
+ * Absolute URL for a media file.
+ *
+ * `absoluteUrl` prefixes the site origin unconditionally, which is right for a page path and wrong
+ * for media: uploads are served from their own origin, so a cover image already arrives absolute
+ * and prefixing it again produced
+ * `https://nexoristech.com/https:/media.nexoristech.com/uploads/...` — a URL that fetches nothing.
+ * Every social preview for every article carried it, in production as well as locally, because the
+ * media base is set in both.
+ *
+ * `resolveUrl` exists for exactly this and passes an http(s) URL through untouched. The trailing
+ * slash still goes: it is added for pages and a file does not want one.
+ */
 function mediaAbsolute(url: string): string {
-  return absoluteUrl(url).replace(/\/+$/, "");
+  return resolveUrl(url).replace(/\/+$/, "");
 }
 /** A page title that always ends with the brand once and respects buildMetadata's 60-char hard limit. */
 function safeTitle(raw: string): string {
