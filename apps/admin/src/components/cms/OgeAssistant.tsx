@@ -490,7 +490,19 @@ function LinksTab({ busy, source, result, onGenerate, getBody, linkInline }: {
                     <span className="text-[0.74rem] font-600 text-[#B45309]">Could not place it</span>
                   ) : (
                     <button type="button" disabled={!found || !linkInline}
-                      onClick={() => setDone((d) => ({ ...d, [key]: linkInline?.(l.anchor, l.target) ? "placed" : "missing" }))}
+                      /*
+                       * Place the link, then record what happened. Not the other way round.
+                       *
+                       * This used to call linkInline inside the setDone updater. React runs an
+                       * updater during the next render, so placing the link — which writes the new
+                       * body back into the editor — happened while this component was rendering, and
+                       * React warned that one component was updating another mid-render. An updater
+                       * has to be pure; the work belongs in the handler.
+                       */
+                      onClick={() => {
+                        const placed = linkInline?.(l.anchor, l.target) ?? false;
+                        setDone((d) => ({ ...d, [key]: placed ? "placed" : "missing" }));
+                      }}
                       className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#543CDA] px-2.5 py-1.5 text-[0.74rem] font-600 text-white hover:bg-[#4330B8] disabled:cursor-not-allowed disabled:bg-slate-300">
                       <CornerDownLeft size={12} /> Place link
                     </button>
