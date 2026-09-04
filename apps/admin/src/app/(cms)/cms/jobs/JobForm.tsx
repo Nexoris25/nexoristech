@@ -11,6 +11,7 @@ import { RichTextEditor, type RichTextApi } from "../../../../components/cms/Ric
 import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
 import { metaChecks, metaFindings, metaScore } from "../../../../lib/meta-quality.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
+import { EXCERPT_MAX } from "../../../../lib/content-limits.js";
 
 interface Dept { id: string; name: string }
 interface Initial {
@@ -81,7 +82,7 @@ export function JobForm({ initial, departments }: { initial?: Initial; departmen
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="text-[0.95rem] font-700 text-slate-900">About the Role &amp; Responsibilities</h2><span className="text-[0.76rem] text-slate-500">{words} words</span></div>
             <RichTextEditor name="body" onChange={setBody} registerApi={(api) => { rte.current = api; }} {...(initial?.body ? { initialHtml: initial.body } : {})} />
             <label className="mt-4 flex flex-col gap-1.5">
-              <span className="flex items-center justify-between"><span className={label}>Short Summary</span><span className="text-[0.72rem] text-slate-500">{excerpt.length}/200</span></span>
+              <span className="flex items-center justify-between"><span className={label}>Short Summary</span><span className="text-[0.72rem] text-slate-500">{excerpt.length}/{EXCERPT_MAX}</span></span>
               <textarea name="excerpt" value={excerpt} maxLength={200} onChange={(e) => setExcerpt(e.target.value)} rows={2} placeholder="A short summary used on the careers hub card..." className={field} />
             </label>
           </section>

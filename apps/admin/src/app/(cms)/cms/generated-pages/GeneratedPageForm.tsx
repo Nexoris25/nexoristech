@@ -15,6 +15,7 @@ import { OgeAssistant } from "../../../../components/cms/OgeAssistant.js";
 import { metaChecks, metaFindings, metaScore } from "../../../../lib/meta-quality.js";
 import type { FaqItem, PageRef } from "../../../../components/cms/OgeAssistant.js";
 import { ImageUpload } from "../../../../components/cms/ImageUpload.js";
+import { EXCERPT_MAX } from "../../../../lib/content-limits.js";
 // The publish gate's own floor, so the editor and the gate can never disagree about the number.
 import { MIN_BODY_WORDS, MIN_READINESS } from "../../../../lib/pseo-gate.js";
 import { computeReadiness } from "../../../../lib/pseo-readiness.js";
@@ -184,7 +185,7 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
                   : null}
               </label>
               <label className="flex flex-col gap-1.5 sm:col-span-2"><span className={label}>Target Keyword</span><input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="e.g. ai in healthcare" className={field} /></label>
-              <label className="flex flex-col gap-1.5 sm:col-span-2"><span className="flex items-center justify-between"><span className={label}>Short Description</span><span className="text-[0.72rem] text-slate-500">{excerpt.length}/160</span></span><textarea name="excerpt" value={excerpt} maxLength={160} onChange={(e) => setExcerpt(e.target.value)} rows={2} placeholder="A short description of what this page covers..." className={field} /></label>
+              <label className="flex flex-col gap-1.5 sm:col-span-2"><span className="flex items-center justify-between"><span className={label}>Short Description</span><span className="text-[0.72rem] text-slate-500">{excerpt.length}/{EXCERPT_MAX}</span></span><textarea name="excerpt" value={excerpt} maxLength={EXCERPT_MAX} onChange={(e) => setExcerpt(e.target.value)} rows={2} placeholder="A short description of what this page covers..." className={field} /></label>
             </div>
           </section>
 

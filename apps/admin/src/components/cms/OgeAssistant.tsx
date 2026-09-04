@@ -8,7 +8,7 @@
  * each get a per-article generated bio. Real AI via the Oge gateway when configured, deterministic draft
  * otherwise; a badge shows which ran. Everything is a draft the editor approves before saving.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Sparkles, Loader2, Check, Copy, CornerDownLeft, Search, ListTree, AlignLeft, HelpCircle, User, Link2, LayoutList, ChevronDown } from "lucide-react";
 import { findAnchor, alreadyLinks } from "../../lib/inline-links.js";
@@ -434,9 +434,27 @@ function LinksTab({ busy, source, result, onGenerate, getBody, linkInline }: {
   linkInline?: ((anchor: string, target: string) => boolean) | undefined;
 }): ReactNode {
   // What happened to each suggestion once acted on, so a row can report its own outcome.
-  const [done, setDone] = useState<Record<string, "placed" | "missing">>({});
+  /*
+   * Only failures are remembered. Whether a link exists is read from the article.
+   *
+   * This used to record "placed" and show Linked from that memory, which then outlived the link:
+   * remove it in the editor and the row still said Linked, and refreshing the suggestions kept
+   * saying so because the memory was keyed by anchor and target and survived. The body is the only
+   * thing that knows whether a link is there, so it is the only thing asked.
+   */
+  const [failed, setFailed] = useState<Record<string, true>>({});
 
   const body = getBody?.() ?? "";
+
+  /*
+   * A failure is about the article as it was when the attempt was made.
+   *
+   * Once the writing changes the reason may be gone — the phrase has been typed in, or the link that
+   * was in the way has been removed — so the note is cleared and the button offered again.
+   */
+  useEffect(() => {
+    setFailed({});
+  }, [body]);
 
   return (
     <div>
@@ -454,7 +472,7 @@ function LinksTab({ busy, source, result, onGenerate, getBody, linkInline }: {
             const key = `${l.anchor}|${l.target}`;
             const found = body ? findAnchor(body, l.anchor) : null;
             const linked = body ? alreadyLinks(body, l.target) : false;
-            const state = done[key];
+            const failedHere = failed[key] === true;
 
             return (
               <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-[0.8rem]">
@@ -482,11 +500,11 @@ function LinksTab({ busy, source, result, onGenerate, getBody, linkInline }: {
                 <p className="mt-1.5 text-[0.74rem] text-slate-600">{l.rationale}</p>
 
                 <div className="mt-2 flex items-center justify-end gap-2">
-                  {state === "placed" || linked ? (
+                  {linked ? (
                     <span className="inline-flex items-center gap-1 rounded-lg bg-[#DCFCE7] px-2.5 py-1.5 text-[0.74rem] font-600 text-[#15803D]">
                       <Check size={12} /> Linked
                     </span>
-                  ) : state === "missing" ? (
+                  ) : failedHere ? (
                     <span className="text-[0.74rem] font-600 text-[#B45309]">Could not place it</span>
                   ) : (
                     <button type="button" disabled={!found || !linkInline}
@@ -501,7 +519,9 @@ function LinksTab({ busy, source, result, onGenerate, getBody, linkInline }: {
                        */
                       onClick={() => {
                         const placed = linkInline?.(l.anchor, l.target) ?? false;
-                        setDone((d) => ({ ...d, [key]: placed ? "placed" : "missing" }));
+                        // A success needs no record: the link is in the article, and the article is
+                        // what the Linked badge reads.
+                        if (!placed) setFailed((f) => ({ ...f, [key]: true }));
                       }}
                       className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#543CDA] px-2.5 py-1.5 text-[0.74rem] font-600 text-white hover:bg-[#4330B8] disabled:cursor-not-allowed disabled:bg-slate-300">
                       <CornerDownLeft size={12} /> Place link
