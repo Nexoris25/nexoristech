@@ -20,7 +20,9 @@ import type { ArticleInput, PersonRef } from "@nexoris/seo";
 import { isArticleType } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { formatLagosDate } from "../../../lib/date.js";
-import { getInsight, getInsightSlugs, type Author } from "../../../lib/cms.js";
+import { getInsight, getInsightSlugs, getAllInsightCards, type Author } from "../../../lib/cms.js";
+import { pickRelated } from "../../../lib/related.js";
+import { ArticleCard } from "../../../components/insights/ArticleCard.js";
 import { headingsOf, withHeadingIds, wrapTables, stepsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
 import { TocSpy } from "../../../components/TocSpy.js";
@@ -146,6 +148,26 @@ export default async function ArticlePage({
   const { slug } = await params;
   const article = await getInsight(slug);
   if (!article) notFound();
+
+  /*
+   * What to read next.
+   *
+   * A reader who reaches the end of a piece is the most engaged audience the site has, and the page
+   * simply stopped. Ranked from the published articles rather than asked for at render time: these
+   * pages are statically generated, so one render serves many readers and a live call would answer
+   * differently on every rebuild for the same article.
+   */
+  const related = pickRelated(
+    {
+      slug,
+      title: article.title,
+      ...(article.excerpt ? { excerpt: article.excerpt } : {}),
+      ...(article.category ? { category: article.category } : {}),
+      ...(article.author ? { author: article.author.name } : {}),
+    },
+    await getAllInsightCards(60),
+    3,
+  );
 
   const path = `/insights/${slug}`;
   const articleInput: ArticleInput = {
@@ -308,6 +330,23 @@ export default async function ArticlePage({
               ) : null}
             </div>
           ))}
+        </section>
+      ) : null}
+
+      {/*
+        * Below the bylines, because the people who wrote it belong with the piece that has just
+        * ended, and what to read next belongs after that. Three at most, and fewer when fewer are
+        * genuinely related: padding the row out with something unrelated is how a recommendation
+        * stops being worth reading.
+        */}
+      {related.length > 0 ? (
+        <section className="related" aria-labelledby="related-heading">
+          <h2 id="related-heading">Recommended reading</h2>
+          <div className="insights-page ins-grid">
+            {related.map((a) => (
+              <ArticleCard article={a} key={a.slug} />
+            ))}
+          </div>
         </section>
       ) : null}
     </div>

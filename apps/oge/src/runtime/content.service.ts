@@ -206,12 +206,50 @@ export class ContentService {
   }
 
   private async faqs(title: string, body: string): Promise<FaqItem[]> {
+    /*
+     * Questions a reader would ask, not the title with a question mark on it.
+     *
+     * Given the title, a model reaches for it: an article called "Hospital Management System in
+     * Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)" produced "What is Hospital Management
+     * System in Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)?" and four more like it. A title
+     * carries scaffolding — the subtitle, the year, the bracketed acronyms — that positions the
+     * article on a page and makes nonsense of a question.
+     *
+     * These answers are published as FAQPage schema and quoted by assistants, so a question nobody
+     * would ask is worse than no FAQ at all.
+     */
     const text = await this.run(
-      `Write 5 to 7 frequently asked questions with clear, self-contained answers based only on the article. These become FAQPage schema, so each answer must stand on its own. Return strict JSON: {"faqs": [{"question": string, "answer": string}]}.`,
+      [
+        "Write 5 to 7 frequently asked questions with clear, self-contained answers, based only on the article.",
+        "Ask what a reader would actually type into a search box about this subject: how much, how long, what is required, what happens if, which option suits whom.",
+        "Never restate the article title as a question, and never quote the title inside a question.",
+        "Leave out any subtitle, year, or bracketed list from the title; ask about the subject itself in plain words.",
+        "Each question must be different in substance from the others, and each answer must stand on its own because these become FAQPage schema.",
+        'Return strict JSON: {"faqs": [{"question": string, "answer": string}]}.',
+      ].join(" "),
       JSON.stringify({ title, body: body.slice(0, 8000) }), 900, 0.4);
     const j = parseJson<{ faqs: FaqItem[] }>(text);
     if (!j || !Array.isArray(j.faqs)) throw new Error("bad faq json");
-    return j.faqs.filter((f) => f.question && f.answer).map((f) => ({ question: stripEmDash(f.question), answer: stripEmDash(f.answer) })).slice(0, 7);
+
+    /*
+     * A question that swallows the title is dropped, not published.
+     *
+     * The instruction above is the first defence and not a guarantee, and this is cheap to check:
+     * the title's own opening clause, stripped of punctuation, appearing whole inside a question is
+     * the exact shape of the fault. Short titles are left alone — a two or three word title is the
+     * subject, and asking about it is what a reader would do.
+     */
+    const lead = (title.split(/\s*[:|–—]\s*/)[0] ?? title).replace(/\s*\([^)]*\)\s*$/, "").trim();
+    const flat = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const parrot = flat(lead);
+    const echoesTitle = (q: string): boolean =>
+      parrot.split(" ").length >= 4 && flat(q).includes(parrot);
+
+    return j.faqs
+      .filter((f) => f.question && f.answer)
+      .map((f) => ({ question: stripEmDash(f.question), answer: stripEmDash(f.answer) }))
+      .filter((f) => !echoesTitle(f.question))
+      .slice(0, 7);
   }
 
   /**

@@ -2,9 +2,9 @@
  * Insights article. Ported from the approved handoff (Insights Article.html), scoped under
  * .article-page. Keeps the SEO/E-E-A-T structure from the route (author, fact-checker, TL;DR, FAQ,
  * JSON-LD) and restyles it: a centered dark hero with byline and cover, a static heading TOC on
- * desktop, serif reading prose, and author/fact-checker cards. Related reads, the mid-article CTA,
- * and the mobile TOC sheet from the handoff are omitted (no backing data / out of scope) rather
- * than faked.
+ * desktop, serif reading prose, and author/fact-checker cards. Related reads are ranked from the
+ * published articles and shown under the bylines. The mid-article CTA and the mobile TOC sheet from
+ * the handoff are still omitted (no backing data / out of scope) rather than faked.
  */
 .article-page .art-hero {
   background: var(--ink-950, #0d0a1c);
@@ -405,6 +405,14 @@
    */
   width: fit-content;
   max-width: 100%;
+  /*
+   * Centred when it does not fill the column.
+   *
+   * fit-content stopped the frame stretching past the last cell, but left a narrow table pinned to
+   * the left with all the slack on one side, which reads as a table that has drifted rather than one
+   * that is simply short. Auto margins put the spare space evenly on both sides.
+   */
+  margin-inline: auto;
   overflow-x: auto;
   border: 1px solid var(--purple-200, #dcd6f9);
   border-radius: 12px;
@@ -507,13 +515,19 @@
    * A ceiling in characters rather than pixels: it tracks the type size, which is what decides how
    * much text a reader takes in on one line.
    *
-   * The number was chosen by measuring, not picked. Against the three tables in the pricing guide,
-   * 20ch is where a table both narrows and gets shorter: the second went from 719px wide and 399
-   * tall to 708 and 303, because tighter columns let the browser balance the wrap instead of
-   * leaving one column long and the rest padded. Below 20ch tables keep narrowing but start growing
-   * taller again as cells wrap more often than they save.
+   * This was 20ch, measured against the three tables in one pricing article, and it did not
+   * generalise. On an article whose cells carry sentences rather than figures it held every column
+   * short, so the table could not use the width it had: three tables sat at 541 to 631 pixels inside
+   * a 720 pixel column while running up to 1566 pixels tall, with the spare width simply unused. A
+   * cap meant to stop one column dominating was instead forcing every column to wrap.
+   *
+   * 28ch was chosen by measuring again, across three published articles at 1280px. Tables that were
+   * too narrow now fill the column and lose a fifth to a quarter of their height (1034 to 811, 870
+   * to 800, 458 to 370); the one table that genuinely preferred a tight cap gives up 120 pixels of
+   * height for it. Nothing scrolls that did not scroll before, and on a phone the cap makes no
+   * difference at all: the table's own min-width decides there and every value measured identically.
    */
-  max-width: 20ch;
+  max-width: 28ch;
   /* Prose in a cell rags better when the last line is not left with one word on it. */
   text-wrap: pretty;
 }
@@ -593,6 +607,42 @@
   gap: 14px;
   margin-top: 26px;
   font-family: "Inter", sans-serif;
+}
+
+/*
+ * What to read next, after the people who wrote it.
+ *
+ * The article simply ended: the most engaged reader the site gets reached the bottom of the page and
+ * was offered nothing. Three cards at most, and the same card the Insights hub and the author
+ * profiles use, so an article looks like itself wherever it is listed.
+ *
+ * insights-page is on the grid to switch those card rules on, exactly as the home page does. There is
+ * no bare .insights-page rule, so it brings no page-level styling with it.
+ */
+.article-page .related {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line, #e9e7f0);
+  font-family: "Inter", sans-serif;
+}
+.article-page .related > h2 {
+  font-family: "Roboto", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 18px;
+}
+.article-page .related .ins-grid {
+  display: grid;
+  /* Three across where there is room, and never a lone card stretched across the column. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 0;
+}
+@media (max-width: 900px) {
+  .article-page .related .ins-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .article-page .pcard {
   display: flex;

@@ -12,7 +12,7 @@
  * produced the same eight headings.
  */
 import { describe, it, expect } from "vitest";
-import { composePageBody, bodyWordCount, fixAcronyms, sentenceCase, PSEO_MIN_WORDS } from "./oge-content.js";
+import { composePageBody, bodyWordCount, fixAcronyms, sentenceCase, PSEO_MIN_WORDS, faqSubject, editorialFallback } from "./oge-content.js";
 import { computeReadiness } from "./pseo-readiness.js";
 
 describe("acronym casing", () => {
@@ -107,5 +107,66 @@ describe("computeReadiness", () => {
     const r = computeReadiness({ body: "", authorId: null, metaDescription: null });
     expect(r.conditions).toHaveLength(6);
     for (const c of r.conditions) expect(typeof c.label).toBe("string");
+  });
+});
+
+/**
+ * A generated question asks about the subject, not about the headline.
+ *
+ * The whole page title used to be dropped into every question, so "Hospital Management System in
+ * Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)" produced "What is Hospital Management System in
+ * Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)?" five times over, and those questions were
+ * published as FAQPage schema for assistants to quote.
+ */
+describe("faqSubject", () => {
+  it("drops the subtitle after a colon", () => {
+    expect(faqSubject("Hospital Management System in Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)"))
+      .toBe("Hospital Management System in Nigeria");
+  });
+
+  it("drops a trailing parenthetical", () => {
+    expect(faqSubject("Payroll Software (PAYE and Pension)")).toBe("Payroll Software");
+  });
+
+  it("drops the ranking that makes a listicle a listicle", () => {
+    expect(faqSubject("10 Best Software Development Companies in Nigeria"))
+      .toBe("Software Development Companies in Nigeria");
+    expect(faqSubject("Top 7 Fintech Platforms")).toBe("Fintech Platforms");
+  });
+
+  it("drops a year at either end", () => {
+    expect(faqSubject("Website Costs in Nigeria in 2026")).toBe("Website Costs in Nigeria");
+    expect(faqSubject("2026 Guide to IoT")).toBe("Guide to IoT");
+  });
+
+  it("prefers the focus keyword, which is the subject stated deliberately", () => {
+    expect(faqSubject("Anything At All: A Guide", "hospital management software")).toBe("hospital management software");
+  });
+
+  it("leaves a plain title alone", () => {
+    expect(faqSubject("Business Process Automation")).toBe("Business Process Automation");
+  });
+
+  it("never returns nothing to build a question from", () => {
+    expect(faqSubject("").length).toBeGreaterThan(0);
+    expect(faqSubject(": (2026)").length).toBeGreaterThan(0);
+  });
+});
+
+describe("generated FAQs", () => {
+  it("do not quote the whole title back as a question", () => {
+    const title = "Hospital Management System in Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)";
+    const faqs = editorialFallback({
+      kind: "faqs",
+      title,
+      body: "<p>Hospital software in Nigeria has to handle records, billing and NDPA compliance.</p>",
+    }) as { question: string; answer: string }[];
+
+    expect(faqs.length).toBeGreaterThan(0);
+    for (const f of faqs) {
+      expect(f.question).not.toContain("Buyer's Guide");
+      expect(f.question).not.toContain("EHR, EMR");
+      expect(f.question.length).toBeLessThan(90);
+    }
   });
 });

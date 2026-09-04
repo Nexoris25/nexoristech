@@ -104,6 +104,40 @@ function anchorFor(title: string, body: string): string {
   return title;
 }
 
+/**
+ * What a generated FAQ should be about.
+ *
+ * The whole page title used to be dropped into every question, so an article called "Hospital
+ * Management System in Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)" produced "What is Hospital
+ * Management System in Nigeria: 2026 Buyer's Guide (EHR, EMR, Cost, NDPA)?" five times over. A title
+ * is written to be read above an article; the parts that position it there — the subtitle after the
+ * colon, the year, the list of acronyms in brackets, the "10 Best" that makes it a listicle — are not
+ * part of the subject and make nonsense of a question.
+ *
+ * So the subject is the title's opening clause with that scaffolding removed. The focus keyword wins
+ * when there is one: it is the subject stated deliberately.
+ */
+export function faqSubject(title?: string, focusKeyword?: string): string {
+  const keyword = focusKeyword?.trim();
+  if (keyword) return keyword;
+
+  const lead = (title ?? "").split(/\s*[:|–—]\s*/)[0] ?? "";
+  const cleaned = lead
+    // A trailing parenthetical is an aside, never the subject.
+    .replace(/\s*\([^)]*\)\s*$/g, "")
+    // "10 Best ...", "Top 7 ...", "The 5 Best ...": the ranking is the article's shape, not its topic.
+    .replace(/^\s*(the\s+)?(top\s+)?\d+\s+(best|top|leading|greatest)\s+/i, "")
+    .replace(/^\s*(the\s+)?(best|top|leading)\s+\d+\s+/i, "")
+    .replace(/^\s*\d+\s+/, "")
+    // A leading or trailing year is when it was written about, not what it is about.
+    .replace(/^\s*(19|20)\d{2}\s+/, "")
+    .replace(/\s+(in\s+)?(19|20)\d{2}\s*$/, "")
+    .replace(/[\s,:;-]+$/, "")
+    .trim();
+
+  return cleaned || (title ?? "").trim() || "this solution";
+}
+
 export type EditorialKind = "seo" | "tldr" | "excerpt" | "faqs" | "author-bio" | "internal-links" | "page-body";
 export interface SeoResult { metaTitle: string; metaDescription: string }
 export interface FaqItem { question: string; answer: string }
@@ -435,7 +469,7 @@ export function editorialFallback(input: EditorialInput): EditorialResult {
       // Always return exactly 5 questions with answers grounded in the page content: for each canonical
       // question, use the first body sentence that matches its intent, else a house-voice answer that
       // still references the real topic. The editor refines before publishing.
-      const topic = (input.focusKeyword?.trim() || title || "this solution").trim();
+      const topic = faqSubject(title, input.focusKeyword);
       const cap = topic.charAt(0).toUpperCase() + topic.slice(1);
       // FAQ answers are prose, never a summary block: exclude any TL;DR sentence from the source and
       // strip the token from the output so a generated FAQ can never contain "TLDR".
