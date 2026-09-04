@@ -149,7 +149,7 @@ describe("internal link suggestions", () => {
     const links = editorialFallback({
       kind: "internal-links",
       title: "Custom software",
-      body: "<p>We build custom software for logistics teams.</p>",
+      body: "<p>We build custom software for logistics teams across Nigeria, from fleet tracking to route planning and delivery reporting.</p>",
     }) as { anchor: string; target: string }[];
     expect(links.length).toBeGreaterThan(0);
     for (const l of links) {
@@ -253,5 +253,124 @@ describe("what Oge offers to link", () => {
     const links = await suggest();
     const automation = links.find((l) => l.target === "/business-process-automation");
     expect(automation?.anchor.split(/\s+/).length).toBeGreaterThan(1);
+  });
+});
+
+/**
+ * An anchor has to read as the name of something.
+ *
+ * The picker used to take the first run of words from the target's title that appeared in the copy,
+ * longest size first, and length is not quality: from "Lagos Cybersecurity Guidelines 2026: What
+ * Every Nigerian Business Must Do Now" it returned "Must Do", because those two words happened to sit
+ * together in the article. "dashboard" on its own was the same fault from the other end — a real word
+ * that could lead anywhere on the site.
+ */
+describe("anchor phrases read as names", () => {
+  const suggest = (title: string, url: string, body: string) =>
+    (editorialFallback({
+      kind: "internal-links",
+      title: "An article",
+      body,
+      pages: [{ title, url }],
+    }) as { anchor: string; target: string }[]).find((l) => l.target === url);
+
+  it("does not hang a link on a sentence fragment", () => {
+    const found = suggest(
+      "Lagos Cybersecurity Guidelines 2026: What Every Nigerian Business Must Do Now",
+      "/insights/lagos-cybersecurity",
+      "<p>Every Nigerian business must do a great deal more about security this year, and the Lagos Cybersecurity Guidelines set out exactly what that means in practice.</p>",
+    );
+    expect(found?.anchor).not.toBe("Must Do");
+    expect(found?.anchor?.toLowerCase()).not.toMatch(/^(must|do|what|every|how|now|and|the|of|to)\b/);
+    expect(found?.anchor?.toLowerCase()).not.toMatch(/\b(must|do|what|every|and|the|of|to|now)$/);
+  });
+
+  it("prefers the phrase that names the subject", () => {
+    const found = suggest(
+      "Lagos Cybersecurity Guidelines 2026: What Every Nigerian Business Must Do Now",
+      "/insights/lagos-cybersecurity",
+      "<p>The Lagos Cybersecurity Guidelines apply to every Nigerian business that handles customer records, and compliance is now being checked rather than assumed.</p>",
+    );
+    expect(found?.anchor).toBe("Lagos Cybersecurity Guidelines");
+  });
+
+  it("keeps a proper name over a generic word beside it", () => {
+    const found = suggest(
+      "GovTech Platforms",
+      "/govtech-platforms",
+      "<p>We build GovTech Platforms for federal and state agencies, alongside the revenue and case management systems those agencies already run.</p>",
+    );
+    expect(found?.anchor).toBe("GovTech Platforms");
+  });
+
+  it("offers nothing rather than a bare generic word", () => {
+    // "dashboard" is a real word and a useless anchor: it could lead anywhere on this site.
+    const found = suggest(
+      "Business Dashboards and Analytics",
+      "/data-dashboards-predictive-analytics",
+      "<p>Every team we speak to wants a dashboard of some kind, and we are asked for one on almost every project we scope.</p>",
+    );
+    expect(found).toBeUndefined();
+  });
+
+  it("still finds a real phrase when the copy uses one", () => {
+    const found = suggest(
+      "Business Process Automation Services",
+      "/business-process-automation",
+      "<p>Our business process automation work always starts with a process audit, because automating a broken process only makes it fail faster.</p>",
+    );
+    expect(found?.anchor?.toLowerCase()).toBe("business process automation");
+  });
+});
+
+/**
+ * The rest of what a usable set of suggestions has to be.
+ *
+ * Each of these was a real fault in the output before it was fixed: a price caught in a two-word
+ * window, the same phrase offered for two different destinations, and an industry page matched to an
+ * article on a completely different subject because both mention Nigeria.
+ */
+describe("a usable set of suggestions", () => {
+  const run = (title: string, body: string, pages?: { title: string; url: string }[]) =>
+    editorialFallback({ kind: "internal-links", title, body, ...(pages ? { pages } : {}) }) as
+      { anchor: string; target: string }[];
+
+  const article =
+    "<p>Nigerian hospitals pay ₦766 million a year for software they barely use, and the 2026 budget " +
+    "does nothing to change that.</p>" +
+    "<p>A hospital management system should cut that cost, not add to it, and the clinic teams we work " +
+    "with care far more about uptime than about features.</p>";
+
+  it("never puts a figure or a year in link text", () => {
+    for (const l of run("Hospital costs", article)) {
+      expect(l.anchor, `anchor "${l.anchor}"`).not.toMatch(/[\d₦$€£%]/);
+    }
+  });
+
+  it("never offers the same phrase for two different pages", () => {
+    const links = run("Hospital costs", article);
+    const anchors = links.map((l) => l.anchor.toLowerCase());
+    expect(anchors.length).toBe(new Set(anchors).size);
+  });
+
+  it("does not match an industry page on the country alone", () => {
+    // Both mention Nigeria and nothing else in common; that is not a reason to link them.
+    const links = run(
+      "Cybersecurity rules",
+      "<p>Nigerian businesses now face new cybersecurity rules that change how customer records are " +
+        "stored, audited and reported to the regulator each year.</p>",
+      [{ title: "School Management Software in Nigeria", url: "/education-software" }],
+    );
+    expect(links.map((l) => l.target)).not.toContain("/education-software");
+  });
+
+  it("will link the company name to the home page when the article names it", () => {
+    const links = run(
+      "How we work",
+      "<p>Nexoris Technologies builds hospital software for clinics across the country, and the team " +
+        "stays on after launch to keep it running.</p>",
+    );
+    const home = links.find((l) => l.target === "/");
+    expect(home?.anchor).toBe("Nexoris Technologies");
   });
 });

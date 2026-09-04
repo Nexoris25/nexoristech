@@ -314,7 +314,9 @@ export class ContentService {
         "Suggest up to 5 internal links from this article to other Nexoris Technologies pages, chosen ONLY from the candidate list.",
         "The anchor must be a phrase that appears in the article body word for word, copied exactly as written there, including its capitalisation.",
         "Use between two and six words. Never a single word, and never a fragment of a word.",
-        "The phrase must describe what the linked page is about, so a reader knows where it leads before clicking.",
+        "The phrase must name something: a service, a product, a technology, a place, an organisation, a regulation, or the subject itself as the article words it. Names and institutions make the best anchors.",
+        "It must read as a phrase on its own, the way a heading does. Never start or end on a joining word such as the, of, to, for, and, with, what, every, must, do, now, is, are, this or your, and never pick a sentence fragment like \"must do\", \"do now\" or \"how to get\".",
+        "The phrase must describe what the linked page is about, so a reader who scans the page knows where it leads without reading the sentence around it.",
         "Only suggest a link where the article genuinely discusses that subject. Fewer good links are better than five weak ones, and none at all is a valid answer.",
         "Do not link a page to itself, and do not suggest the same target twice.",
         'Return strict JSON: {"links": [{"anchor": string, "target": string, "rationale": string}]}.',
@@ -325,6 +327,31 @@ export class ContentService {
 
     const valid = new Set(pages.map((p) => p.url));
     const plain = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    /*
+     * Words that cannot begin or end an anchor.
+     *
+     * A phrase hanging off one of these is a fragment of a sentence rather than the name of
+     * anything. Asked for an anchor from "What Every Nigerian Business Must Do Now", a model will
+     * happily return "Must Do": two words, present in the copy, and meaningless as a link.
+     */
+    const EDGE = new Set([
+      "a", "an", "the", "and", "or", "but", "so", "for", "of", "to", "in", "on", "at", "by", "with",
+      "from", "into", "over", "under", "about", "as", "than", "then", "that", "this", "these",
+      "those", "is", "are", "was", "were", "be", "been", "do", "does", "did", "have", "has", "had",
+      "can", "could", "will", "would", "should", "may", "might", "must", "what", "when", "where",
+      "which", "who", "why", "how", "every", "each", "any", "all", "some", "no", "not", "your",
+      "our", "their", "its", "you", "we", "they", "it", "now", "here", "there", "more", "most",
+      "if", "up", "out", "off", "down", "just", "only", "also", "very",
+    ]);
+    /** Reads as the name of something rather than as a piece of a sentence. */
+    const readsAsAName = (anchor: string): boolean => {
+      const words = anchor.split(/\s+/).map((w) => w.toLowerCase().replace(/[^a-z0-9-]/g, "")).filter(Boolean);
+      if (words.length === 0) return false;
+      if (EDGE.has(words[0]!) || EDGE.has(words[words.length - 1]!)) return false;
+      // At least one word doing real work, not a string of joints.
+      return words.some((w) => w.length > 2 && !EDGE.has(w));
+    };
+
     /** The phrase stands on its own in the copy: not inside a longer word, and not invented. */
     const inBody = (anchor: string): boolean => {
       const escaped = anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
@@ -335,9 +362,10 @@ export class ContentService {
     return j.links
       .filter((l) => l.anchor && valid.has(l.target))
       .map((l) => ({ anchor: stripEmDash(l.anchor).trim(), target: l.target, rationale: stripEmDash(l.rationale ?? "") }))
-      // A model asked for two words still returns one sometimes, and still invents a phrase the
-      // article does not contain. Both are checked here rather than left for the editor to discover.
-      .filter((l) => l.anchor.split(/\s+/).length >= 2 && inBody(l.anchor))
+      // A model asked for two words still returns one sometimes, still invents a phrase the article
+      // does not contain, and still hands back a sentence fragment like "must do". All three are
+      // checked here rather than left for the editor to find.
+      .filter((l) => l.anchor.split(/\s+/).length >= 2 && readsAsAName(l.anchor) && inBody(l.anchor))
       .filter((l) => (used.has(l.target) ? false : (used.add(l.target), true)))
       .slice(0, 5);
   }

@@ -12,6 +12,16 @@
  * counts as a failure rather than a success.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+/*
+ * Loaded once here, for its cost rather than its exports.
+ *
+ * Each test re-imports this module after `vi.resetModules()`, because it reads WEB_ORIGIN at import
+ * time and every test needs its own view of the environment. The first of those imports pulled in
+ * the database client and everything under it, which took two seconds on its own and, inside the
+ * full parallel run, tripped vitest's five-second limit — failing a test with nothing wrong in it.
+ * Importing here pays the transform and load at collection, so the re-imports are cheap.
+ */
+import "./publish-notify.js";
 
 const ORIGINAL_FETCH = globalThis.fetch;
 

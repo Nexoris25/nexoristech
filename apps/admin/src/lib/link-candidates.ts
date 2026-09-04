@@ -15,48 +15,76 @@
  * fintech; "/fintech-software" cannot.
  */
 import type { Pool } from "pg";
-import {
-  CORE_PAGES,
-  SERVICE_PAGES,
-  INDUSTRY_PAGES,
-  LEGAL_ROUTES,
-  SERVICE_LABELS,
-} from "./site-pages.js";
+import { CORE_PAGES, SERVICE_PAGES, INDUSTRY_PAGES, LEGAL_ROUTES } from "./site-pages.js";
 
 export interface LinkCandidate {
   title: string;
   url: string;
 }
 
-/** Readable names for the pages that are not services, so every candidate reads like a page. */
-const PAGE_LABELS: Record<string, string> = {
-  "/": "Nexoris Technologies Home",
+/**
+ * The real name of every fixed page, as the site itself publishes it.
+ *
+ * These used to be guessed from the path, and the guesses were poor enough to break the ranking.
+ * "/healthcare-software" became "Healthcare Software", which offers one matchable word once the
+ * generic "software" is discounted — so an article that says "hospital" fifty-four times and
+ * "clinic" twenty-nine never scored against it, and the Healthcare page was never suggested. The
+ * page's real name is "Hospital & Clinic Software in Nigeria", which matches that article on three
+ * words and gives an anchor worth reading.
+ *
+ * Taken verbatim from the titles the site serves, the same ones llms.txt lists. Keep in step with
+ * apps/web/src/content when a marketing page is renamed.
+ */
+const PAGE_TITLES: Record<string, string> = {
+  // Core
+  "/": "Nexoris Technologies",
   "/about": "About Nexoris Technologies",
-  "/how-we-work": "How We Work: Our Delivery Process",
-  "/case-studies": "Case Studies and Client Projects",
+  "/how-we-work": "How We Work",
+  "/case-studies": "Case Studies & Projects",
   "/contact": "Contact Nexoris Technologies",
+
+  // Services
+  "/ai-product-development": "Custom Software & App Development",
+  "/ai-chatbots-virtual-assistants": "AI Chatbots & Virtual Assistants",
+  "/business-process-automation": "Business Process Automation Services",
+  "/ai-ecommerce-development": "E-Commerce Website Development",
+  "/data-dashboards-predictive-analytics": "Business Dashboards & Analytics",
+  "/ai-systems-integration": "Systems Integration Services",
+  "/data-infrastructure-ai-readiness": "Data Cleaning & AI Readiness",
+  "/iot-development": "IoT Development & Monitoring",
+  "/govtech-platforms": "GovTech & Public Sector Platforms",
+  "/ai-seo-geo": "SEO & AI Search Optimisation",
+  "/managed-technology-operations": "Software Maintenance & Support",
+
+  // Industries
+  "/education-software": "School Management Software in Nigeria",
+  "/healthcare-software": "Hospital & Clinic Software in Nigeria",
+  "/hospitality-software": "Hotel & Short-Let Software in Nigeria",
+  "/restaurant-software": "Restaurant POS & Ordering Software",
+  "/retail-ecommerce-software": "Retail & E-Commerce Software",
+  "/real-estate-software": "Real Estate Software in Nigeria",
+  "/logistics-software": "Fleet & Logistics Software in Nigeria",
+  "/fintech-software": "Fintech Software Development",
+  "/insurance-software": "Insurance Software Solutions",
+  "/manufacturing-software": "Manufacturing ERP & Software",
+  "/agritech-software": "Agritech & Farm Software in Nigeria",
+  "/professional-services-software": "Software for Law & Accounting Firms",
+  "/church-management-software": "Church Management Software",
+  "/ngo-software": "NGO & M&E Software",
+  "/government-digital-solutions": "Government Digital Solutions",
+  "/construction-software": "Construction Management Software",
+  "/media-entertainment-software": "Media & Streaming Platforms",
+  "/fitness-wellness-software": "Salon, Spa & Gym Software",
+  "/automotive-software": "Dealership & Workshop Software",
+  "/events-software": "Event Ticketing & Management Software",
+
+  // Legal
   "/privacy-policy": "Privacy Policy",
   "/terms-of-service": "Terms of Service",
   "/cookie-policy": "Cookie Policy",
 };
 
-/**
- * An industry page's name, from its path.
- *
- * Every industry route ends in "-software" or names its sector directly, so the path carries the
- * whole of the title: "/fintech-software" is "Fintech Software". Written out rather than guessed
- * only where the path would read wrongly.
- */
-const INDUSTRY_LABELS: Record<string, string> = {
-  "/government-digital-solutions": "Government Digital Solutions",
-  "/professional-services-software": "Software for Law and Accounting Firms",
-  "/fitness-wellness-software": "Salon, Spa and Gym Software",
-  "/media-entertainment-software": "Media and Entertainment Software",
-  "/ngo-software": "NGO and Non-Profit Software",
-  "/church-management-software": "Church Management Software",
-  "/retail-ecommerce-software": "Retail and E-commerce Software",
-};
-
+/** A last-resort name from the path, for a page added to site-pages.ts and not yet named here. */
 const titleCase = (path: string): string =>
   path
     .split("/")
@@ -68,12 +96,10 @@ const titleCase = (path: string): string =>
 
 /** The marketing site's fixed pages: core, services, industries and legal. */
 export function staticLinkCandidates(): LinkCandidate[] {
-  return [
-    ...CORE_PAGES.map((p) => ({ title: PAGE_LABELS[p] ?? titleCase(p), url: p })),
-    ...SERVICE_PAGES.map((p) => ({ title: SERVICE_LABELS[p] ?? titleCase(p), url: p })),
-    ...INDUSTRY_PAGES.map((p) => ({ title: INDUSTRY_LABELS[p] ?? titleCase(p), url: p })),
-    ...LEGAL_ROUTES.map((p) => ({ title: PAGE_LABELS[p] ?? titleCase(p), url: p })),
-  ];
+  return [...CORE_PAGES, ...SERVICE_PAGES, ...INDUSTRY_PAGES, ...LEGAL_ROUTES].map((p) => ({
+    title: PAGE_TITLES[p] ?? titleCase(p),
+    url: p,
+  }));
 }
 
 /** Where a published CMS item lives on the site. */

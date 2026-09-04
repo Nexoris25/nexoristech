@@ -6,27 +6,26 @@
  */
 import { deriveMetaTitle, fitMetaDescription } from "@nexoris/seo";
 import { cmsDb } from "./cms-db.js";
-import { CORE_PAGES, SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
+import { staticLinkCandidates } from "./link-candidates.js";
+import { SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
 
 const GATEWAY = process.env.OGE_GATEWAY_URL ?? "http://localhost:4000";
 
-/** A readable page name from its path, e.g. "/services/ai-solutions" -> "AI Solutions", "/" -> "Home". */
-function titleFromPath(path: string): string {
-  if (path === "/") return "Home";
-  const seg = path.split("/").filter(Boolean).pop() ?? "";
-  return seg.split("-").map((w) => (w.length <= 3 && w === w.toLowerCase() && /^(ai|seo|geo|hr)$/.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1))).join(" ");
-}
-/** The real internal-link candidates: the marketing site's core, service, and industry pages. */
-/*
+/**
  * Candidate pages to link to, as site-relative paths.
  *
- * These used to be absolute, built onto the production origin. A link inside our own article to
- * https://nexoristech.com/... is a link off the current site: from staging or a local run it leaves
- * the environment you are in, and even in production it costs a full navigation instead of a
- * client-side one. An internal link is a path.
+ * One list, shared with the editors. There used to be a second one here that built each title from
+ * its path, so "/healthcare-software" arrived as "Healthcare Software" — a name offering one usable
+ * word once the generic "software" is discounted. An article saying "hospital" fifty-four times
+ * never scored against it, and the Healthcare page could not be suggested no matter how relevant it
+ * was. The shared list carries the page's real name, "Hospital & Clinic Software in Nigeria".
+ *
+ * The paths are site-relative on purpose. A link inside our own article to https://nexoristech.com/…
+ * is a link off the current site: from staging or a local run it leaves the environment you are in,
+ * and even in production it costs a full navigation instead of a client-side one.
  */
 function siteLinkCandidates(): { title: string; url: string }[] {
-  return [...CORE_PAGES, ...SERVICE_PAGES, ...INDUSTRY_PAGES].map((p) => ({ title: titleFromPath(p), url: p }));
+  return staticLinkCandidates();
 }
 
 /** A path, whatever form the candidate arrived in. Absolute same-site URLs are reduced to their path. */
@@ -48,6 +47,9 @@ function toPath(url: string): string {
 const WEAK_ANCHOR = new Set([
   "services", "service", "solutions", "solution", "technology", "technologies", "company",
   "business", "businesses", "software", "systems", "about", "contact", "insights", "work",
+  // Almost every page on this site is about Nigeria, so matching on it says nothing: it was pairing
+  // a cybersecurity article with the school management page on that word alone.
+  "nigeria", "nigerian", "development", "platform", "platforms",
 ]);
 
 /**
@@ -75,33 +77,206 @@ function occursAsPhrase(hay: string, phrase: string): boolean {
 }
 
 /**
- * An anchor phrase that is actually in the article, and long enough to mean something.
+ * Words that cannot begin or end an anchor.
  *
- * Two words at least, wherever the copy allows it. A one-word anchor tells a reader and a search
- * engine almost nothing about where the link goes: "software" could lead anywhere on this site,
- * while "business process automation" says exactly what is on the other end. A single word is taken
- * only when no longer phrase from the title appears in the copy at all, and never when it is one of
- * the generic ones below.
+ * A phrase that starts or ends on one of these is a fragment of a sentence rather than the name of
+ * anything: articles, prepositions, conjunctions, auxiliaries, question words and quantifiers are the
+ * joints between the words that carry meaning, and a link hung on them says nothing about where it
+ * goes. This is what produced "Must Do" and "Do Now" out of "What Every Nigerian Business Must Do
+ * Now" — grammatical debris that happened to appear in the copy.
+ */
+const EDGE_WORDS = new Set([
+  "a", "an", "the", "and", "or", "but", "nor", "so", "yet", "for", "of", "to", "in", "on", "at",
+  "by", "with", "from", "into", "onto", "over", "under", "about", "as", "than", "then", "that",
+  "this", "these", "those", "is", "are", "was", "were", "be", "been", "being", "do", "does", "did",
+  "doing", "have", "has", "had", "can", "could", "will", "would", "shall", "should", "may", "might",
+  "must", "what", "when", "where", "which", "who", "whom", "whose", "why", "how", "every", "each",
+  "any", "all", "some", "no", "not", "your", "our", "their", "its", "his", "her", "my", "you", "we",
+  "they", "it", "now", "here", "there", "more", "most", "best", "top", "new", "other", "such",
+  "much", "many", "very", "just", "only", "also", "still", "if", "up", "out", "off", "down",
+  // The rest of the prepositions. "across build and operations" got through without these.
+  "across", "through", "throughout", "within", "without", "before", "after", "during", "between",
+  "among", "amongst", "per", "via", "upon", "toward", "towards", "against", "behind", "beyond",
+  "plus", "versus", "vs", "like", "unlike", "near", "beside", "besides", "despite", "except",
+  "since", "until", "while", "whether", "because", "although", "though", "however", "both",
+  "either", "neither", "same", "own", "one", "two", "three", "first", "second", "next", "last",
+  // Adverbs, which trail off a phrase: "regional SaaS platforms typically" reaches for a verb that
+  // never arrives.
+  "typically", "usually", "often", "generally", "always", "never", "already", "currently",
+  "recently", "simply", "largely", "mainly", "mostly", "particularly", "especially", "rather",
+  "quite", "almost", "nearly", "well", "even", "yet", "far", "later", "earlier", "instead",
+  "therefore", "meanwhile", "otherwise", "perhaps", "maybe", "indeed", "truly", "really",
+]);
+
+/** A word that carries meaning on its own: not a joint, not a generic, not a bare number. */
+function isContentWord(word: string): boolean {
+  const w = word.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  if (!w) return false;
+  return w.length > 2 && !EDGE_WORDS.has(w) && !WEAK_ANCHOR.has(w) && !/^\d+$/.test(w);
+}
+
+/**
+ * How good a phrase is as the visible text of a link.
+ *
+ * Higher is better; zero means it must not be used. The rules are about whether the phrase names
+ * something a reader would recognise as a subject, which is the whole job of anchor text: someone
+ * scanning the page should know where the link goes without reading the sentence around it.
+ */
+function anchorQuality(phrase: string): number {
+  const words = phrase.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return 0;
+
+  const first = words[0]!.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  const last = words[words.length - 1]!.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  // A phrase hanging off a joint at either end is a sentence fragment, not a name.
+  if (EDGE_WORDS.has(first) || EDGE_WORDS.has(last)) return 0;
+
+  /*
+   * No figures in a link.
+   *
+   * "Nigeria ₦766" and "public 2026" were both offered as anchors: a price and a year caught in a
+   * two-word window. Neither names anything, and a number in link text reads as a typo.
+   */
+  if (/[\d₦$€£%]/.test(phrase)) return 0;
+
+  const content = words.filter(isContentWord).length;
+  if (content === 0) return 0;
+
+  /*
+   * Two words at least, with one exception.
+   *
+   * A single word could lead anywhere on this site: "dashboard", "data", "product", "government"
+   * were all being offered as anchors, each taken from a page title and each useless as a link. The
+   * first attempt at this rule allowed any capitalised word through, which failed immediately —
+   * page titles are in title case, so every word in them is capitalised and nothing was excluded.
+   *
+   * The exception is a genuine proper name that carries its own capitals: an acronym like NITDA, or
+   * a name like GovTech. Those identify something on their own, which is the whole test.
+   */
+  if (words.length === 1 && !/[A-Z]{2}|[a-z][A-Z]/.test(words[0]!)) return 0;
+
+  /*
+   * A joining word inside the phrase costs it.
+   *
+   * "dashboards for the medical" is three real words with two joints holding them together, and it
+   * stops before the noun it was reaching for. Banning internal joints outright would lose good
+   * phrases — "Public-sector and donor-funded facilities" reads perfectly well — so they are priced
+   * rather than forbidden, and a cleaner phrase from the same sentence wins instead.
+   */
+  const joints = words.filter((w) => EDGE_WORDS.has(w.toLowerCase().replace(/[^a-z0-9-]/g, ""))).length;
+
+  /*
+   * Shape, not size.
+   *
+   * This used to add three points per content word, so a longer phrase always beat a shorter one and
+   * the picker kept extending: "Lagos Cybersecurity Guidelines" lost to "Lagos Cybersecurity
+   * Guidelines apply", and "GovTech Platforms" to "build GovTech Platforms". Relevance is measured
+   * elsewhere, against the target's own words; what is judged here is whether the phrase reads like a
+   * name, and for that, three words is the sweet spot and every extra word is a small cost.
+   */
+  let score = 10 - Math.abs(words.length - 3) - joints * 2;
+  // A proper noun is the most specific thing a phrase can contain: a product, a place, an institution.
+  if (words.some((w) => /^[A-Z][a-z]/.test(w))) score += 2;
+  return score;
+}
+
+/**
+ * The best anchor phrase for a link to `title`, taken from words the article actually uses.
+ *
+ * This used to return the first run of words from the title that appeared in the copy, longest size
+ * first. Length is not quality: from "Lagos Cybersecurity Guidelines 2026: What Every Nigerian
+ * Business Must Do Now" it returned "Must Do", because those two words happened to sit next to each
+ * other in the article. Every candidate is now scored on whether it names something, and the best
+ * one wins rather than the first one found.
+ *
+ * An empty string when nothing in the title reads as a name in this article's own words. The caller
+ * drops the suggestion: no link is better than a link on "must do".
  */
 function anchorFor(title: string, body: string): string {
-  const hay = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").toLowerCase();
-  const words = title.split(/\s+/).filter(Boolean);
+  /*
+   * The anchor comes out of the article, not out of the target page's title.
+   *
+   * Looking for runs of the title inside the copy was the wrong way round. A page called "Hospital &
+   * Clinic Software in Nigeria" is almost never quoted verbatim by an article, so that search found
+   * either nothing or a stray fragment that happened to line up. What an editor actually does is find
+   * where the article talks about the subject and link the words the writer used there.
+   *
+   * So: take the words that identify the target, find the phrases in this article that contain one,
+   * and pick the one that reads best as a name.
+   */
+  const targetTerms = new Set(
+    faqSubject(title)
+      .toLowerCase()
+      .split(/[^a-z0-9-]+/)
+      .filter((w) => w.length > 3 && !WEAK_ANCHOR.has(w) && !EDGE_WORDS.has(w)),
+  );
+  if (targetTerms.size === 0) return "";
 
-  // Longest first, so the most specific phrase in the title wins.
-  for (let size = words.length; size >= 2; size--) {
-    for (let start = 0; start + size <= words.length; start++) {
-      const phrase = words.slice(start, start + size).join(" ");
-      if (occursAsPhrase(hay, phrase)) return phrase;
+  /*
+   * Block boundaries end a sentence as surely as a full stop does.
+   *
+   * Stripping tags first ran the end of one paragraph into the start of the next, so a phrase could
+   * be assembled across the join: "clinical analytics Live dashboards" is two sentences with the
+   * seam still visible in the stray capital. A marker goes in before the tags come out.
+   */
+  const text = body
+    .replace(/<\/(p|li|h[1-6]|td|th|blockquote|div)>/gi, " . ")
+    .replace(/<(br|hr)\b[^>]*>/gi, " . ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ");
+  let best = "";
+  let bestScore = 0;
+
+  // Sentence by sentence, so a phrase can never straddle a full stop and read as nonsense.
+  for (const sentence of text.split(/[.!?;:]+|[\r\n]+/)) {
+    const words = sentence.trim().split(/\s+/).filter(Boolean);
+    /*
+     * Anchors come out of running prose, never out of a heading or a table cell.
+     *
+     * Those are short, title-cased and full of nouns, which is exactly what this is looking for, so
+     * they won every comparison and produced things like "Factor SaaS Custom Open" — a row of column
+     * headings read as though it were a phrase. A real sentence is longer than this; anything shorter
+     * is a label, and a label is not a place to put a link.
+     */
+    if (words.length < 8) continue;
+
+    // Shortest first, so a tie is settled in favour of the tighter phrase.
+    for (let size = 2; size <= 4; size++) {
+      for (let start = 0; start + size <= words.length; start++) {
+        const phrase = words
+          .slice(start, start + size)
+          .join(" ")
+          // A phrase never begins or ends on punctuation; commas and brackets inside it are noise.
+          .replace(/^[^\w]+|[^\w]+$/g, "");
+        if (!phrase || /[(),"“”]/.test(phrase)) continue;
+
+        const lower = phrase.toLowerCase();
+        const hits = [...targetTerms].filter((t) => lower.includes(t)).length;
+        if (hits === 0) continue;
+
+        /*
+         * Words that are not part of what the target is called are noise in its anchor.
+         *
+         * Without this the phrase kept growing: every extra content word scored, so "Lagos
+         * Cybersecurity Guidelines" lost to "Lagos Cybersecurity Guidelines apply" and "GovTech
+         * Platforms" lost to "build GovTech Platforms". The verb the sentence happened to attach is
+         * not part of the name, and a reader scanning the link is not helped by it.
+         */
+        const offTarget = phrase
+          .split(/\s+/)
+          .filter((w) => isContentWord(w) && ![...targetTerms].some((t) => w.toLowerCase().includes(t)))
+          .length;
+
+        // What the phrase says about the target first, how well it reads second.
+        const quality = anchorQuality(phrase);
+        const score = hits * 6 + quality - offTarget * 3;
+        if (quality === 0 || score <= bestScore) continue;
+        best = phrase;
+        bestScore = score;
+      }
     }
   }
-  // Nothing longer is in the copy, so a single strong word is better than a suggestion that cannot
-  // be placed at all.
-  for (const word of words) {
-    if (WEAK_ANCHOR.has(word.toLowerCase())) continue;
-    if (word.length < 5) continue;
-    if (occursAsPhrase(hay, word)) return word;
-  }
-  return title;
+  return best;
 }
 
 /**
@@ -518,7 +693,15 @@ export function editorialFallback(input: EditorialInput): EditorialResult {
         .map((p) => {
           const words = p.title.toLowerCase().split(/\s+/).filter((w) => w.length > 3 && !WEAK_ANCHOR.has(w));
           const hits = words.filter((w) => occursAsPhrase(hay, w));
-          return { p, score: hits.length, hit: hits[0], anchor: anchorFor(p.title, body) };
+          /*
+           * The original markup, not the flattened text.
+           *
+           * `body` here has already been through plain(), which strips the tags. anchorFor needs
+           * them: paragraph, list and cell boundaries are how it knows where one sentence ends, and
+           * without them the whole article is a single run. That is how a row of table headings came
+           * back as the phrase "Factor SaaS Custom Open".
+           */
+          return { p, score: hits.length, hit: hits[0], anchor: anchorFor(p.title, input.body ?? body) };
         })
         /*
          * Only what is actually relevant, and only what can actually be placed.
@@ -528,14 +711,33 @@ export function editorialFallback(input: EditorialInput): EditorialResult {
          * nothing and was true of any page on the site. A suggestion whose anchor is not in the copy
          * is worse still: the Place button refuses it, so it arrives already broken.
          */
-        .filter((s) => s.score > 0 && occursAsPhrase(hay, s.anchor.toLowerCase()))
+        // An empty anchor means nothing in that page's title reads as a name in this article's own
+        // words, so there is no honest way to link it here.
+        .filter((s) => s.score > 0 && s.anchor !== "" && occursAsPhrase(hay, s.anchor.toLowerCase()))
         .sort((a, b) => b.score - a.score);
 
-      const links: InternalLink[] = scored.slice(0, 5).map(({ p, hit, anchor }) => ({
-        anchor,
-        target: toPath(p.url),
-        rationale: `Your article mentions ${hit}, which this page covers in depth.`,
-      }));
+      /*
+       * One phrase, one destination.
+       *
+       * The same anchor was being offered for two different pages — "development work" pointed at
+       * both product development and IoT — which cannot both be placed: the first link consumes the
+       * phrase, and a reader meeting the same words twice going to different places is being told
+       * the words mean two things. The better-scoring page keeps the phrase.
+       */
+      const takenAnchors = new Set<string>();
+      const links: InternalLink[] = scored
+        .filter(({ anchor }) => {
+          const key = anchor.toLowerCase();
+          if (takenAnchors.has(key)) return false;
+          takenAnchors.add(key);
+          return true;
+        })
+        .slice(0, 5)
+        .map(({ p, hit, anchor }) => ({
+          anchor,
+          target: toPath(p.url),
+          rationale: `Your article mentions ${hit}, which this page covers in depth.`,
+        }));
       return links;
     }
     case "page-body":
