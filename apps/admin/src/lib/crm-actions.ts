@@ -7,14 +7,12 @@
 import { revalidatePath } from "next/cache";
 import { db } from "./db.js";
 import { requireStaff } from "./auth.js";
-import { draftReply } from "./oge.js";
 import { recommendationForLead } from "./lead-recommendation.js";
 import { prepareFollowUp } from "./followup.js";
 import {
   STAGES,
   ENGAGEMENT_TYPES,
   type StageState,
-  type DraftState,
   type FollowUpState,
 } from "./crm-constants.js";
 
@@ -241,47 +239,10 @@ export async function markFollowUpSent(formData: FormData): Promise<void> {
   revalidatePath("/dashboard");
 }
 
-/**
- * Draft a reply for a lead via the Oge CRM Worker (PRD 3.2). Drafts only: the salesperson reviews
- * and sends. Grounds the draft in the lead's words and the deterministic service match.
+/*
+ * `draftLeadReply` stood here: a one-shot "draft a reply" action fed by a DraftReply button on the
+ * lead page. It was superseded by the stage-aware follow-up panel (`regenerateFollowUp` above,
+ * rendered by FollowUpPanel), which drafts against the lead's stage and persists the result rather
+ * than returning it to a transient form state. The button was removed from the page when the panel
+ * landed; the action stayed behind with nothing able to call it.
  */
-export async function draftLeadReply(
-  _prev: DraftState,
-  formData: FormData,
-): Promise<DraftState> {
-  const staff = await requireStaff();
-  if (staff.role === "viewer") {
-    return { error: "Viewers cannot draft replies." };
-  }
-  const leadId = String(formData.get("leadId") ?? "");
-  if (!leadId) return { error: "Missing lead." };
-
-  const { rows } = await db().query<{
-    name: string | null;
-    company: string | null;
-    message: string | null;
-    finder: Record<string, unknown> | null;
-  }>("SELECT name, company, message, finder FROM lead WHERE id = $1", [leadId]);
-  const lead = rows[0];
-  if (!lead) return { error: "That lead no longer exists." };
-
-  const rec = recommendationForLead(lead.finder);
-  const matchedServices = rec ? rec.services.map((s) => s.label) : [];
-  const message =
-    (lead.message ?? "").trim() ||
-    (matchedServices.length > 0
-      ? `Interested in ${matchedServices.join(", ")}.`
-      : "A new enquiry with limited detail.");
-
-  const result = await draftReply({
-    ...(lead.name ? { name: lead.name } : {}),
-    ...(lead.company ? { company: lead.company } : {}),
-    message,
-    matchedServices,
-    ...(rec ? { industry: rec.industry.label } : {}),
-  });
-  if (!result) {
-    return { error: "Could not draft a reply right now. Please try again." };
-  }
-  return { draft: result.draft, draftedBy: result.draftedBy };
-}

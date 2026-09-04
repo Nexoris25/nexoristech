@@ -19,21 +19,26 @@ function strength(value: string): { score: number; label: string; color: string 
   return { score: s, label: value ? labels[s]! : "", color: colors[s]! };
 }
 
+/*
+ * There is deliberately no way to seed this field.
+ *
+ * It used to take a `defaultValue`, and the sign-in page passed a working administrator password
+ * into it, which then appeared in the served HTML. No caller needs the prop — a password field
+ * should always start empty — so it is gone rather than left as a loaded gun for the next edit.
+ */
 export function PasswordInput({
   name,
   placeholder = "••••••••••",
-  defaultValue = "",
   autoComplete = "current-password",
   showStrength = false,
 }: {
   name: string;
   placeholder?: string;
-  defaultValue?: string;
   autoComplete?: string;
   showStrength?: boolean;
 }): ReactNode {
   const [show, setShow] = useState(false);
-  const [value, setValue] = useState(defaultValue);
+  const [value, setValue] = useState("");
   const st = strength(value);
 
   return (

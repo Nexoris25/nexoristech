@@ -101,12 +101,6 @@ export interface ReassignState {
   ok?: boolean;
 }
 
-export interface DraftState {
-  error?: string;
-  draft?: string;
-  draftedBy?: "ai" | "template";
-}
-
 export interface FollowUpState {
   error?: string;
   ok?: boolean;

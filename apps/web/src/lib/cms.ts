@@ -357,21 +357,11 @@ export async function getAllCaseStudies(): Promise<CaseStudyCard[]> {
     .filter((c) => c.title && c.slug);
 }
 
-export async function getFeaturedCaseStudies(limit = 2): Promise<CaseStudyCard[]> {
-  const rows = await query(
-    `SELECT title, slug, excerpt, featured_image, highlights
-       FROM cms_content WHERE kind='case_study' AND status='published'
-      ORDER BY featured DESC, display_order, created_at DESC LIMIT $1`, [limit]);
-  return rows
-    .map((r) => ({
-      title: str(r.title) ?? "",
-      slug: str(r.slug) ?? "",
-      ...opt("summary", str(r.excerpt)),
-      ...opt("coverUrl", mediaUrl(r.featured_image)),
-      metrics: [] as Metric[],
-    }))
-    .filter((c) => c.title && c.slug);
-}
+/*
+ * `getFeaturedCaseStudies` stood here, reading published case studies ordered by a `featured` flag.
+ * Its only caller was the home ProofBand, which the current home page does not render, so the query
+ * ran nowhere. `getCaseStudiesForService` and `getAllCaseStudies` above are the live readers.
+ */
 
 // ----------------------------------------------------------------------------------------------------
 // Insights.
