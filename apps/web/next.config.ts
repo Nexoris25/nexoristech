@@ -105,10 +105,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  eslint: {
-    // Linting runs as its own workspace task; do not run it again during the build.
-    ignoreDuringBuilds: true,
-  },
   webpack: (config) => {
     // The workspace packages and content modules use explicit .js import specifiers that point
     // at TypeScript sources (NodeNext style). Teach webpack to resolve .js to .ts and .tsx.
