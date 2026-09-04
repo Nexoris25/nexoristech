@@ -131,7 +131,7 @@ export default async function LoginPage({
                 // The testing account, prefilled while developing only. In production this is empty:
                 // a sign-in form that names a real account is telling an attacker which address to
                 // attack, and it survives into a deployment far too easily.
-                {...(process.env.NODE_ENV === "production" ? {} : { defaultValue: "admin@nexoristech.com" })}
+                {...(process.env.NODE_ENV === "production" ? {} : { defaultValue: "chinedu@nexoristech.com" })}
                 placeholder="you@nexoristech.com"
                 className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-[0.9rem] text-slate-900 placeholder:text-slate-500 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15"
               />

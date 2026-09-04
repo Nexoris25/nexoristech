@@ -628,17 +628,16 @@
   letter-spacing: -0.015em;
   margin: 0 0 18px;
 }
+/*
+ * The grid is the site's own, not a second one.
+ *
+ * This used to restate the columns and the gap, which made the same card sit differently here than
+ * on the Insights hub or the home page: a tighter gap, and a jump straight from three columns to one
+ * where every other listing steps through two. .ins-grid already carries all of that, so only the
+ * top margin is set — the heading above provides the spacing this section needs.
+ */
 .article-page .related .ins-grid {
-  display: grid;
-  /* Three across where there is room, and never a lone card stretched across the column. */
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
   margin-top: 0;
-}
-@media (max-width: 900px) {
-  .article-page .related .ins-grid {
-    grid-template-columns: 1fr;
-  }
 }
 .article-page .pcard {
   display: flex;
