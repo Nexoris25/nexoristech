@@ -145,7 +145,16 @@ export default async function LoginPage({
 
             <label className="flex flex-col gap-1.5">
               <span className="text-[0.82rem] font-600 text-slate-700">Password</span>
-              <PasswordInput name="password" defaultValue="NexorisAdmin2026!" />
+              {/*
+                * Never prefilled, and never with a real password.
+                *
+                * This field carried a working administrator password as a literal, with no guard on
+                * it at all: unlike the email beside it, nothing kept it out of production, so the
+                * sign-in page shipped the credential to anyone who opened it or read the page source.
+                * It is in the repository's history too, which is why the password itself has to be
+                * changed rather than only deleted from here.
+                */}
+              <PasswordInput name="password" autoComplete="current-password" />
             </label>
 
             <div className="flex items-center justify-between">
