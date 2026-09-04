@@ -128,10 +128,16 @@ export default async function LoginPage({
                 type="email"
                 autoComplete="username"
                 required
-                // The testing account, prefilled while developing only. In production this is empty:
-                // a sign-in form that names a real account is telling an attacker which address to
-                // attack, and it survives into a deployment far too easily.
-                {...(process.env.NODE_ENV === "production" ? {} : { defaultValue: "chinedu@nexoristech.com" })}
+                /*
+                 * Nothing is prefilled, in any environment.
+                 *
+                 * This carried a real administrator's address as a development convenience, guarded
+                 * so it would not reach production. The guard worked and the address was still
+                 * wrong to keep: a sign-in form that names a real account tells anyone who opens it
+                 * which address to attack, it sat in the repository where the account it names is
+                 * the one with full access, and a guard is only ever one edit from being removed.
+                 * Typing an email address is not a burden worth that.
+                 */
                 placeholder="you@nexoristech.com"
                 className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-[0.9rem] text-slate-900 placeholder:text-slate-500 focus:border-[#543CDA] focus:outline-none focus:ring-2 focus:ring-[#543CDA]/15"
               />
