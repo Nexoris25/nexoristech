@@ -35,6 +35,39 @@ export interface AnchorMatch {
 /** Blocks a link may sit in. Headings and existing links are excluded by design. */
 const LINKABLE = /<(p|li|td|th|blockquote)\b[^>]*>([\s\S]*?)<\/\1>/gi;
 
+/**
+ * Headings that open a summary of the article rather than a part of it.
+ *
+ * These blocks restate what the piece says, for a reader deciding whether to read it and for an
+ * assistant quoting it. A link in one sends that reader away before they have started, and the same
+ * sentence usually appears again further down where it is actually being made — which is where the
+ * link belongs, with the argument around it.
+ */
+const SUMMARY_HEADING =
+  /^\s*(tl;?\s*dr|key\s+facts?(\s+at\s+a\s+glance)?|key\s+takeaways?|the\s+short\s+version|in\s+short|at\s+a\s+glance|summary)\b/i;
+
+/**
+ * The character ranges covered by summary blocks: each summary heading up to the next heading.
+ *
+ * Editors write these as an ordinary heading followed by a list, so there is no wrapper to test for
+ * and no class to look at. The span between one heading and the next is the block.
+ */
+export function summaryRanges(html: string): [number, number][] {
+  const headings = [...html.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi)];
+  const ranges: [number, number][] = [];
+  for (let i = 0; i < headings.length; i++) {
+    const heading = headings[i]!;
+    const text = (heading[2] ?? "").replace(/<[^>]+>/g, "").replace(/&[a-z]+;/gi, " ").trim();
+    if (!SUMMARY_HEADING.test(text)) continue;
+    const next = headings[i + 1];
+    ranges.push([heading.index, next ? next.index : html.length]);
+  }
+  return ranges;
+}
+
+const within = (ranges: readonly [number, number][], index: number): boolean =>
+  ranges.some(([from, to]) => index >= from && index < to);
+
 const escapeRx = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
@@ -72,12 +105,15 @@ export function findAnchor(bodyHtml: string, anchor: string): AnchorMatch | null
   if (!phrase) return null;
 
   const rx = phraseRx(phrase);
+  const summaries = summaryRanges(bodyHtml);
 
   let paragraphNumber = 0;
   LINKABLE.lastIndex = 0;
   let block: RegExpExecArray | null;
   while ((block = LINKABLE.exec(bodyHtml)) !== null) {
     paragraphNumber += 1;
+    // A TL;DR or Key Facts block summarises the article; a link belongs where the point is made.
+    if (within(summaries, block.index)) continue;
     const inner = block[2] ?? "";
     const hit = rx.exec(inner);
     if (!hit) continue;
@@ -121,10 +157,13 @@ export function applyInlineLink(bodyHtml: string, anchor: string, target: string
   if (alreadyLinks(bodyHtml, target)) return { html: bodyHtml, applied: false, reason: "already-linked" };
 
   const rx = phraseRx(phrase);
+  const summaries = summaryRanges(bodyHtml);
   let done = false;
 
-  const html = bodyHtml.replace(LINKABLE, (whole, tag: string, inner: string) => {
+  const html = bodyHtml.replace(LINKABLE, (whole, tag: string, inner: string, offset: number) => {
     if (done) return whole;
+    // The same exclusion the finder applies, so what is offered and what is placed agree.
+    if (within(summaries, offset)) return whole;
     const hit = rx.exec(inner);
     if (!hit) return whole;
     if (insideLink(inner, hit.index)) return whole;

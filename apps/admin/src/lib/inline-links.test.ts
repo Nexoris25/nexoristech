@@ -374,3 +374,63 @@ describe("a usable set of suggestions", () => {
     expect(home?.anchor).toBe("Nexoris Technologies");
   });
 });
+
+/**
+ * A summary block is not a place for a link.
+ *
+ * TL;DR and Key Facts restate the article for a reader deciding whether to read it, and for an
+ * assistant quoting it. A link there sends that reader away before they have started — and the same
+ * sentence almost always appears again further down where the point is actually made, which is where
+ * the link belongs, with the argument around it. Those blocks are also short and dense with nouns, so
+ * they used to win every anchor comparison and take the link every time.
+ */
+describe("summary blocks are left alone", () => {
+  const body =
+    "<h2>TL;DR</h2><ul><li>A hospital management system cuts admin time for Nigerian clinics.</li></ul>" +
+    "<h2>Key Facts at a Glance</h2><ul><li>A hospital management system costs less than the staff time it saves.</li></ul>" +
+    "<h2>What it actually does</h2>" +
+    "<p>In practice a hospital management system replaces three spreadsheets and a paper ledger, which is where the saving comes from.</p>";
+
+  it("finds the phrase in the article body, not in the TL;DR", () => {
+    const found = findAnchor(body, "hospital management system");
+    expect(found).not.toBeNull();
+    // The running text, not either summary list.
+    expect(found?.after).toContain("replaces three spreadsheets");
+  });
+
+  it("places the link in the body and leaves both summaries untouched", () => {
+    const out = applyInlineLink(body, "hospital management system", "/healthcare-software");
+    expect(out.applied).toBe(true);
+
+    const tldr = out.html.slice(out.html.indexOf("<h2>TL;DR"), out.html.indexOf("<h2>Key Facts"));
+    const keyFacts = out.html.slice(out.html.indexOf("<h2>Key Facts"), out.html.indexOf("<h2>What it actually"));
+    expect(tldr).not.toContain("<a ");
+    expect(keyFacts).not.toContain("<a ");
+    expect(out.html.slice(out.html.indexOf("<h2>What it actually"))).toContain('<a href="/healthcare-software">');
+  });
+
+  it("refuses when the phrase appears only in a summary", () => {
+    const summaryOnly =
+      "<h2>Key Takeaways</h2><ul><li>Fleet tracking pays for itself within a year.</li></ul>" +
+      "<h2>The rest</h2><p>Everything else about the project is unrelated to that.</p>";
+    expect(applyInlineLink(summaryOnly, "Fleet tracking", "/logistics-software").applied).toBe(false);
+    expect(findAnchor(summaryOnly, "Fleet tracking")).toBeNull();
+  });
+
+  it("treats an ordinary heading as ordinary", () => {
+    const normal = "<h2>How we work</h2><p>Our fleet tracking work starts with a survey of the depot and its routes.</p>";
+    expect(applyInlineLink(normal, "fleet tracking", "/logistics-software").applied).toBe(true);
+  });
+
+  it("does not suggest an anchor that only exists in a summary", () => {
+    const links = editorialFallback({
+      kind: "internal-links",
+      title: "An article",
+      body:
+        "<h2>Key Facts</h2><ul><li>Fleet tracking and logistics software cut fuel spend across the depot network.</li></ul>" +
+        "<h2>The argument</h2><p>None of that is what this piece is about, and the rest concerns office printers entirely.</p>",
+      pages: [{ title: "Fleet & Logistics Software in Nigeria", url: "/logistics-software" }],
+    }) as { anchor: string; target: string }[];
+    expect(links.map((l) => l.target)).not.toContain("/logistics-software");
+  });
+});

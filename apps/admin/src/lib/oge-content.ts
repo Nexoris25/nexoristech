@@ -7,6 +7,7 @@
 import { deriveMetaTitle, fitMetaDescription } from "@nexoris/seo";
 import { cmsDb } from "./cms-db.js";
 import { staticLinkCandidates } from "./link-candidates.js";
+import { summaryRanges, findAnchor } from "./inline-links.js";
 import { SERVICE_PAGES, INDUSTRY_PAGES } from "./site-pages.js";
 
 const GATEWAY = process.env.OGE_GATEWAY_URL ?? "http://localhost:4000";
@@ -219,7 +220,20 @@ function anchorFor(title: string, body: string): string {
    * be assembled across the join: "clinical analytics Live dashboards" is two sentences with the
    * seam still visible in the stray capital. A marker goes in before the tags come out.
    */
-  const text = body
+  /*
+   * The summary blocks are not a place to take an anchor from either.
+   *
+   * A TL;DR or Key Facts list restates the article in short sentences full of exactly the nouns this
+   * is looking for, so it won every comparison — and a link can no longer be placed there, which
+   * would leave the suggestion offered and unplaceable. Cutting them out here means what is proposed
+   * is what can be accepted.
+   */
+  let usable = body;
+  for (const [from, to] of summaryRanges(body).reverse()) {
+    usable = usable.slice(0, from) + " " + usable.slice(to);
+  }
+
+  const text = usable
     .replace(/<\/(p|li|h[1-6]|td|th|blockquote|div)>/gi, " . ")
     .replace(/<(br|hr)\b[^>]*>/gi, " . ")
     .replace(/<[^>]+>/g, " ")
@@ -711,9 +725,15 @@ export function editorialFallback(input: EditorialInput): EditorialResult {
          * nothing and was true of any page on the site. A suggestion whose anchor is not in the copy
          * is worse still: the Place button refuses it, so it arrives already broken.
          */
-        // An empty anchor means nothing in that page's title reads as a name in this article's own
-        // words, so there is no honest way to link it here.
-        .filter((s) => s.score > 0 && s.anchor !== "" && occursAsPhrase(hay, s.anchor.toLowerCase()))
+        /*
+         * Offered only if it can actually be placed.
+         *
+         * This tested the phrase against the whole body, which is not the same question: the placer
+         * refuses summary blocks and existing links, so a phrase living only in a TL;DR passed here
+         * and then arrived in the editor with its Place button dead. findAnchor is what the editor
+         * itself calls, so asking it means what is offered is what can be accepted.
+         */
+        .filter((s) => s.score > 0 && s.anchor !== "" && findAnchor(input.body ?? body, s.anchor) !== null)
         .sort((a, b) => b.score - a.score);
 
       /*
