@@ -36,6 +36,21 @@ export interface AnchorMatch {
 const LINKABLE = /<(p|li|td|th|blockquote)\b[^>]*>([\s\S]*?)<\/\1>/gi;
 
 const escapeRx = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The phrase, matched only where it is a whole phrase.
+ *
+ * This was a plain substring match, so a suggested anchor of "cost" linked the first four letters of
+ * "costs" and left the s outside the link, and "automation" cut into "automations". The reader saw a
+ * word with its ending sheared off, and the markup carried a link around a fragment.
+ *
+ * A hyphen counts as part of a word here: "commerce" must not match inside "e-commerce", which is a
+ * different thing and a different page. Any run of whitespace in the phrase matches any run in the
+ * copy, so a paste that left two spaces between words still matches.
+ */
+function phraseRx(phrase: string): RegExp {
+  return new RegExp(`(?<![\\w-])${escapeRx(phrase).replace(/\\?\s+/g, "\\s+")}(?![\\w-])`, "i");
+}
 const stripTags = (s: string): string => s.replace(/<[^>]+>/g, "");
 const decode = (s: string): string =>
   s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
@@ -56,8 +71,7 @@ export function findAnchor(bodyHtml: string, anchor: string): AnchorMatch | null
   const phrase = anchor.trim();
   if (!phrase) return null;
 
-  // Any run of whitespace in the phrase may be any run of whitespace in the copy.
-  const rx = new RegExp(escapeRx(phrase).replace(/\\?\s+/g, "\\s+"), "i");
+  const rx = phraseRx(phrase);
 
   let paragraphNumber = 0;
   LINKABLE.lastIndex = 0;
@@ -106,7 +120,7 @@ export function applyInlineLink(bodyHtml: string, anchor: string, target: string
   if (!phrase) return { html: bodyHtml, applied: false, reason: "not-found" };
   if (alreadyLinks(bodyHtml, target)) return { html: bodyHtml, applied: false, reason: "already-linked" };
 
-  const rx = new RegExp(escapeRx(phrase).replace(/\\?\s+/g, "\\s+"), "i");
+  const rx = phraseRx(phrase);
   let done = false;
 
   const html = bodyHtml.replace(LINKABLE, (whole, tag: string, inner: string) => {

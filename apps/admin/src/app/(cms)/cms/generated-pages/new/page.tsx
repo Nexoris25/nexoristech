@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
+import { linkCandidates } from "../../../../../lib/link-candidates.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { GeneratedPageForm } from "../GeneratedPageForm.js";
 
@@ -10,15 +11,8 @@ export const dynamic = "force-dynamic";
 export default async function NewGeneratedPage(): Promise<ReactNode> {
   await requireCmsAccess();
   const pool = cmsDb();
-  // Internal-link candidates: what is actually published and therefore safe to link to.
-  const { rows: linkRows } = await pool.query<{ title: string; slug: string; kind: string }>(
-    `SELECT title, slug, kind FROM cms_content
-      WHERE status='published' AND slug IS NOT NULL AND kind IN ('insight','generated_page','case_study')
-      ORDER BY published_at DESC NULLS LAST LIMIT 60`);
-  const linkPages = linkRows.map((r) => ({
-    title: r.title,
-    url: r.kind === "insight" ? `/insights/${r.slug}` : r.kind === "case_study" ? `/case-studies/${r.slug}` : `/${r.slug}`,
-  }));
+  // Everything Oge may link to: published CMS content plus the marketing site's own pages.
+  const linkPages = await linkCandidates(pool);
   const [{ rows }, { rows: authors }, { rows: categories }] = await Promise.all([
     pool.query<{ name: string }>("SELECT name FROM cms_template WHERE active ORDER BY name"),
     pool.query<{ id: string; name: string }>("SELECT id, name FROM cms_author WHERE active ORDER BY name"),

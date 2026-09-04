@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
+import { linkCandidates } from "../../../../../lib/link-candidates.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { InsightEditor } from "../InsightEditor.js";
 import { requireUuid } from "../../../../../lib/route-params.js";
@@ -16,7 +17,7 @@ export default async function EditInsightPage({ params }: { params: Promise<{ id
   const { id } = await params;
   requireUuid(id);
   const pool = cmsDb();
-  const [{ rows }, { rows: categories }, { rows: authors }, { rows: pageRows }] = await Promise.all([
+  const [{ rows }, { rows: categories }, { rows: authors }, pages] = await Promise.all([
     pool.query<Row>(
       `SELECT c.id, c.title, c.short_title, c.slug, c.body, c.excerpt, c.category_id, c.author_id, c.fact_checker_id, c.status, c.featured_image,
               c.featured_image_alt, c.meta_title, c.meta_description, c.focus_keyword, c.author_bio, c.fact_checker_bio,
@@ -27,11 +28,10 @@ export default async function EditInsightPage({ params }: { params: Promise<{ id
       // The bio generator needs the author's real record, not just a name: without it an
       // E-E-A-T bio has nothing factual to stand on and a model invents credentials.
       "SELECT id, name, job_title, years_experience, expertise, bio FROM cms_author WHERE active ORDER BY name"),
-    pool.query<{ title: string; slug: string }>("SELECT title, slug FROM cms_content WHERE kind='insight' AND status='published' AND slug IS NOT NULL AND id<>$1 ORDER BY published_at DESC NULLS LAST LIMIT 60", [id]),
+    linkCandidates(pool, id),
   ]);
   const r = rows[0];
   if (!r) notFound();
-  const pages = pageRows.map((p) => ({ title: p.title, url: `/insights/${p.slug}` }));
 
   const crumb = (r.short_title ?? r.title).trim();
   return (

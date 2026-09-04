@@ -6,6 +6,10 @@
  */
 import { describe, it, expect } from "vitest";
 import { findAnchor, alreadyLinks, applyInlineLink } from "./inline-links.js";
+// Imported at module scope, not inside a test. Loading this pulls in the database client, which took
+// long enough under the full parallel run to trip vitest's five-second limit and fail a test that had
+// nothing wrong with it.
+import { editorialFallback } from "./oge-content.js";
 
 const BODY = [
   "<h2>Choosing a system</h2>",
@@ -131,7 +135,6 @@ describe("applyInlineLink", () => {
 
 describe("internal link suggestions", () => {
   it("suggests a phrase that is actually in the article", async () => {
-    const { editorialFallback } = await import("./oge-content.js");
     const body =
       "<p>Most teams come to us for custom software development after a spreadsheet stops coping.</p>" +
       "<p>We also work on healthcare technology for clinics in Lagos.</p>";
@@ -143,7 +146,6 @@ describe("internal link suggestions", () => {
   });
 
   it("targets a path, never the production origin", async () => {
-    const { editorialFallback } = await import("./oge-content.js");
     const links = editorialFallback({
       kind: "internal-links",
       title: "Custom software",
@@ -154,5 +156,102 @@ describe("internal link suggestions", () => {
       expect(l.target.startsWith("/")).toBe(true);
       expect(l.target).not.toContain("nexoristech.com");
     }
+  });
+});
+
+/**
+ * A link never wraps part of a word.
+ *
+ * Matching was a plain substring test, so an anchor of "cost" linked the first four letters of
+ * "costs" and left the s sitting outside the link. The reader saw a word with its ending sheared
+ * off, and the markup carried an anchor around a fragment.
+ */
+describe("word boundaries", () => {
+  const body = "<p>We publish our costs openly, and our automations run overnight.</p>";
+
+  it("does not link a prefix of a longer word", () => {
+    expect(applyInlineLink(body, "cost", "/pricing").applied).toBe(false);
+    expect(findAnchor(body, "cost")).toBeNull();
+  });
+
+  it("does not link a stem inside a plural", () => {
+    expect(applyInlineLink(body, "automation", "/business-process-automation").applied).toBe(false);
+  });
+
+  it("still links the whole word when the copy uses it", () => {
+    const out = applyInlineLink(body, "costs", "/pricing");
+    expect(out.applied).toBe(true);
+    expect(out.html).toContain('<a href="/pricing">costs</a>');
+    // The letters either side survive untouched.
+    expect(out.html).toContain("our <a");
+    expect(out.html).toContain("</a> openly");
+  });
+
+  it("treats a hyphen as part of the word, so a compound is not split", () => {
+    const html = "<p>We build e-commerce storefronts.</p>";
+    expect(applyInlineLink(html, "commerce", "/ai-ecommerce-development").applied).toBe(false);
+    expect(applyInlineLink(html, "e-commerce", "/ai-ecommerce-development").applied).toBe(true);
+  });
+
+  it("matches a multi-word phrase across the whitespace a paste leaves behind", () => {
+    const html = "<p>Our business  process   automation work.</p>";
+    const out = applyInlineLink(html, "business process automation", "/business-process-automation");
+    expect(out.applied).toBe(true);
+    expect(out.html).toContain("business  process   automation</a>");
+  });
+});
+
+/**
+ * What Oge offers to link to, and what it calls the link.
+ *
+ * Two faults sat here. The Insights editor passed its own candidate list, and that list replaced the
+ * marketing site's pages rather than adding to them, so an article about automation could never be
+ * linked to the automation service page it is actually about. And the top five candidates were
+ * returned whatever they scored, so a page with nothing in common arrived with the rationale "A
+ * strong related Nexoris Technologies page" — a sentence true of every page on the site.
+ */
+describe("what Oge offers to link", () => {
+  const body =
+    "<p>We build business process automation for factories, and healthcare software for clinics.</p>" +
+    "<p>Our automation work starts with a process audit.</p>";
+
+  const suggest = (pages?: { title: string; url: string }[]) => {
+    return editorialFallback({
+      kind: "internal-links",
+      title: "Automation in Nigerian factories",
+      body,
+      ...(pages ? { pages } : {}),
+    }) as { anchor: string; target: string; rationale: string }[];
+  };
+
+  it("offers the service and industry pages even when the editor passes its own list", async () => {
+    // The editor always passes something, which is why these were never reachable.
+    const links = await suggest([{ title: "An unrelated article", url: "/insights/unrelated" }]);
+    const targets = links.map((l) => l.target);
+    expect(targets).toContain("/business-process-automation");
+  });
+
+  it("offers nothing that the article does not actually discuss", async () => {
+    const links = await suggest([{ title: "Deep Sea Fishing Quotas", url: "/insights/fishing" }]);
+    expect(links.map((l) => l.target)).not.toContain("/insights/fishing");
+  });
+
+  it("gives every suggestion a reason drawn from the article", async () => {
+    for (const l of await suggest()) {
+      expect(l.rationale).toMatch(/Your article mentions /);
+      expect(l.rationale).not.toMatch(/A strong related/);
+    }
+  });
+
+  it("only suggests anchors that can actually be placed", async () => {
+    for (const l of await suggest()) {
+      expect(findAnchor(body, l.anchor), `anchor "${l.anchor}" is not in the copy`).not.toBeNull();
+    }
+  });
+
+  it("prefers a phrase over a lone word", async () => {
+    const links = await suggest();
+    const automation = links.find((l) => l.target === "/business-process-automation");
+    expect(automation?.anchor.split(/\s+/).length).toBeGreaterThan(1);
   });
 });

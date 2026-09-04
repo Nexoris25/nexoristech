@@ -62,16 +62,44 @@ const WEAK_ANCHOR = new Set([
  * phrase is a more specific and more useful link than a single word. Single words are taken only
  * when they carry meaning on their own.
  */
+/**
+ * Whether the phrase stands on its own in the copy, rather than sitting inside a longer word.
+ *
+ * This was `hay.includes(phrase)`, a plain substring test, which is how a suggestion of "cost" came
+ * back for an article that only ever says "costs": the link then wrapped four letters and left the s
+ * outside it. A hyphen counts as part of a word, so "commerce" does not match inside "e-commerce".
+ */
+function occursAsPhrase(hay: string, phrase: string): boolean {
+  const escaped = phrase.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`).test(hay);
+}
+
+/**
+ * An anchor phrase that is actually in the article, and long enough to mean something.
+ *
+ * Two words at least, wherever the copy allows it. A one-word anchor tells a reader and a search
+ * engine almost nothing about where the link goes: "software" could lead anywhere on this site,
+ * while "business process automation" says exactly what is on the other end. A single word is taken
+ * only when no longer phrase from the title appears in the copy at all, and never when it is one of
+ * the generic ones below.
+ */
 function anchorFor(title: string, body: string): string {
   const hay = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").toLowerCase();
   const words = title.split(/\s+/).filter(Boolean);
-  for (let size = words.length; size >= 1; size--) {
+
+  // Longest first, so the most specific phrase in the title wins.
+  for (let size = words.length; size >= 2; size--) {
     for (let start = 0; start + size <= words.length; start++) {
       const phrase = words.slice(start, start + size).join(" ");
-      if (size === 1 && WEAK_ANCHOR.has(phrase.toLowerCase())) continue;
-      if (phrase.length < 4) continue;
-      if (hay.includes(phrase.toLowerCase())) return phrase;
+      if (occursAsPhrase(hay, phrase)) return phrase;
     }
+  }
+  // Nothing longer is in the copy, so a single strong word is better than a suggestion that cannot
+  // be placed at all.
+  for (const word of words) {
+    if (WEAK_ANCHOR.has(word.toLowerCase())) continue;
+    if (word.length < 5) continue;
+    if (occursAsPhrase(hay, word)) return word;
   }
   return title;
 }
@@ -440,19 +468,39 @@ export function editorialFallback(input: EditorialInput): EditorialResult {
       // Suggest links to real Nexoris Technologies pages with a natural anchor phrase. Candidates come
       // from the caller when given, otherwise from the live site map, so the tool works even before the
       // body is long. Each is scored by how well the page's topic overlaps the content, best first.
-      const candidates = (input.pages && input.pages.length ? input.pages : siteLinkCandidates());
+      /*
+       * The caller's list plus the marketing site's own pages, never one instead of the other.
+       *
+       * The editor always passes candidates, so this fell to the caller's list every time and the
+       * service, industry, contact and legal pages were never offered at all — an article about
+       * automation could not be linked to the automation service page it is actually about.
+       */
+      const given = input.pages ?? [];
+      const seen = new Set(given.map((p) => toPath(p.url)));
+      const candidates = [...given, ...siteLinkCandidates().filter((p) => !seen.has(toPath(p.url)))];
+
       const hay = `${title} ${input.focusKeyword ?? ""} ${body}`.toLowerCase();
-      const scored = candidates.map((p) => {
-        const words = p.title.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
-        const hits = words.filter((w) => hay.includes(w));
-        return { p, score: hits.length, hit: hits[0] };
-      }).sort((a, b) => b.score - a.score);
-      const links: InternalLink[] = scored.slice(0, 5).map(({ p, score, hit }) => ({
-        anchor: anchorFor(p.title, body),
+      const scored = candidates
+        .map((p) => {
+          const words = p.title.toLowerCase().split(/\s+/).filter((w) => w.length > 3 && !WEAK_ANCHOR.has(w));
+          const hits = words.filter((w) => occursAsPhrase(hay, w));
+          return { p, score: hits.length, hit: hits[0], anchor: anchorFor(p.title, body) };
+        })
+        /*
+         * Only what is actually relevant, and only what can actually be placed.
+         *
+         * The top five were taken whatever they scored, so a page with nothing in common was offered
+         * with the rationale "A strong related Nexoris Technologies page" — a sentence that says
+         * nothing and was true of any page on the site. A suggestion whose anchor is not in the copy
+         * is worse still: the Place button refuses it, so it arrives already broken.
+         */
+        .filter((s) => s.score > 0 && occursAsPhrase(hay, s.anchor.toLowerCase()))
+        .sort((a, b) => b.score - a.score);
+
+      const links: InternalLink[] = scored.slice(0, 5).map(({ p, hit, anchor }) => ({
+        anchor,
         target: toPath(p.url),
-        rationale: score > 0 && hit
-          ? `Your content mentions ${hit}, which this page covers in depth.`
-          : `A strong related Nexoris Technologies page to link from this topic.`,
+        rationale: `Your article mentions ${hit}, which this page covers in depth.`,
       }));
       return links;
     }

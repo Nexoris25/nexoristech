@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireCmsAccess } from "../../../../../lib/auth.js";
+import { linkCandidates } from "../../../../../lib/link-candidates.js";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { GeneratedPageForm } from "../GeneratedPageForm.js";
 import { requireUuid } from "../../../../../lib/route-params.js";
@@ -23,15 +24,8 @@ export default async function EditGeneratedPage({
   const { gate } = await searchParams;
   requireUuid(id);
   const pool = cmsDb();
-  // Internal-link candidates: what is actually published and therefore safe to link to.
-  const { rows: linkRows } = await pool.query<{ title: string; slug: string; kind: string }>(
-    `SELECT title, slug, kind FROM cms_content
-      WHERE status='published' AND slug IS NOT NULL AND kind IN ('insight','generated_page','case_study')
-      ORDER BY published_at DESC NULLS LAST LIMIT 60`);
-  const linkPages = linkRows.map((r) => ({
-    title: r.title,
-    url: r.kind === "insight" ? `/insights/${r.slug}` : r.kind === "case_study" ? `/case-studies/${r.slug}` : `/${r.slug}`,
-  }));
+  // Everything Oge may link to: published CMS content plus the marketing site's own pages.
+  const linkPages = await linkCandidates(pool, id);
   const [{ rows }, { rows: templates }, { rows: authors }, { rows: categories }] = await Promise.all([
     pool.query<Row>(
       `SELECT id, title, slug, service_industry, industry, target_location, search_intent, target_keyword, excerpt,

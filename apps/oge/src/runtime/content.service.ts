@@ -260,13 +260,48 @@ export class ContentService {
 
   private async internalLinks(title: string, body: string, pages: { title: string; url: string }[]): Promise<InternalLink[]> {
     if (pages.length === 0) throw new Error("no candidate pages");
+    /*
+     * The anchor has to be words the article already contains.
+     *
+     * This asked for a phrase that "appears or fits in the article". Anything that merely fits is
+     * unusable: the editor places a link by finding the phrase in the copy, so a suggestion that is
+     * not there arrives with its Place button disabled and no way to act on it.
+     *
+     * Two to six words, because a one-word anchor tells a reader and a search engine nothing about
+     * where the link goes. "software" could lead anywhere on this site; "business process
+     * automation" says exactly what is on the other end.
+     */
     const text = await this.run(
-      `Suggest up to 5 internal links from this article to other Nexoris Technologies pages, chosen ONLY from the candidate list. For each, give the anchor text (a natural phrase that appears or fits in the article), the target URL from the list, and a one-line rationale. Return strict JSON: {"links": [{"anchor": string, "target": string, "rationale": string}]}.`,
-      JSON.stringify({ title, body: body.slice(0, 6000), candidates: pages.slice(0, 40) }), 600, 0.3);
+      [
+        "Suggest up to 5 internal links from this article to other Nexoris Technologies pages, chosen ONLY from the candidate list.",
+        "The anchor must be a phrase that appears in the article body word for word, copied exactly as written there, including its capitalisation.",
+        "Use between two and six words. Never a single word, and never a fragment of a word.",
+        "The phrase must describe what the linked page is about, so a reader knows where it leads before clicking.",
+        "Only suggest a link where the article genuinely discusses that subject. Fewer good links are better than five weak ones, and none at all is a valid answer.",
+        "Do not link a page to itself, and do not suggest the same target twice.",
+        'Return strict JSON: {"links": [{"anchor": string, "target": string, "rationale": string}]}.',
+      ].join(" "),
+      JSON.stringify({ title, body: body.slice(0, 6000), candidates: pages.slice(0, 60) }), 600, 0.3);
     const j = parseJson<{ links: InternalLink[] }>(text);
     if (!j || !Array.isArray(j.links)) throw new Error("bad links json");
+
     const valid = new Set(pages.map((p) => p.url));
-    return j.links.filter((l) => l.anchor && valid.has(l.target)).map((l) => ({ anchor: stripEmDash(l.anchor), target: l.target, rationale: stripEmDash(l.rationale ?? "") })).slice(0, 5);
+    const plain = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    /** The phrase stands on its own in the copy: not inside a longer word, and not invented. */
+    const inBody = (anchor: string): boolean => {
+      const escaped = anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+      return new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, "i").test(plain);
+    };
+
+    const used = new Set<string>();
+    return j.links
+      .filter((l) => l.anchor && valid.has(l.target))
+      .map((l) => ({ anchor: stripEmDash(l.anchor).trim(), target: l.target, rationale: stripEmDash(l.rationale ?? "") }))
+      // A model asked for two words still returns one sometimes, and still invents a phrase the
+      // article does not contain. Both are checked here rather than left for the editor to discover.
+      .filter((l) => l.anchor.split(/\s+/).length >= 2 && inBody(l.anchor))
+      .filter((l) => (used.has(l.target) ? false : (used.add(l.target), true)))
+      .slice(0, 5);
   }
 
   /**
