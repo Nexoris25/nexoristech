@@ -23,13 +23,33 @@ async function revalidateWeb(paths: string[]): Promise<boolean> {
   const secret = process.env.REVALIDATION_SECRET;
   if (!secret) return false;
   try {
-    const res = await fetch(`${WEB_ORIGIN}/api/revalidate`, {
+    /*
+     * With the trailing slash.
+     *
+     * The website appends one to every URL, so this POST was answered with a 308 — and a redirect
+     * turns a POST into a GET and drops its body. The call looked like it worked (the redirect
+     * follows, the endpoint answers) and revalidated nothing at all, so publishing never refreshed
+     * a single page: every one of them waited for its own five-minute timer instead. This is the
+     * same trailing-slash trap the engagement beacon fell into.
+     */
+    const res = await fetch(`${WEB_ORIGIN}/api/revalidate/`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-revalidate-secret": secret },
       body: JSON.stringify({ paths }),
       signal: AbortSignal.timeout(10000),
+      /*
+       * Do not follow a redirect.
+       *
+       * Following one is how this failed silently: the 308 was followed as a GET, the endpoint
+       * answered 200, and `res.ok` reported a success that had revalidated nothing. A redirect on
+       * this call means the URL is wrong, and the honest answer to a wrong URL is a failure.
+       */
+      redirect: "manual",
     });
-    return res.ok;
+    if (!res.ok) return false;
+    // The endpoint echoes the paths it acted on, so a 200 that did nothing cannot pass for a success.
+    const body = (await res.json().catch(() => null)) as { revalidated?: unknown } | null;
+    return Array.isArray(body?.revalidated) && body.revalidated.length > 0;
   } catch {
     return false;
   }
@@ -90,6 +110,14 @@ export interface PublishNotifyInput {
   kind: "insight" | "case_study" | "legal_page" | "generated_page" | "job" | "author" | "category" | "testimonial";
   /** True when the item is live; false when it was unpublished or deleted. */
   published: boolean;
+  /**
+   * Further pages this particular item appears on, beyond the fixed hubs.
+   *
+   * An article is listed on its author's profile, and the profile lives at a path only the caller
+   * can work out: authors have no stored slug, it is derived from the name. Without this the profile
+   * kept showing yesterday's list until its own timer came round.
+   */
+  extraPaths?: string[];
 }
 
 /**
@@ -102,13 +130,21 @@ export interface PublishNotifyInput {
  * carry the author or sit in the category.
  */
 const HUB_PATHS: Record<PublishNotifyInput["kind"], string[]> = {
-  insight: ["/insights"],
+  /*
+   * The home page lists the latest articles, and it was not here.
+   *
+   * Publishing rebuilt the article and the Insights hub and stopped there, so the new piece appeared
+   * on the hub and was missing from the home page until that page's own five minute timer came
+   * round. Someone publishing and then checking the site saw exactly that: present in one place,
+   * absent in another, with nothing to explain the difference.
+   */
+  insight: ["/insights", "/"],
   case_study: ["/case-studies"],
   legal_page: [],
   generated_page: [],
   job: ["/careers"],
-  author: ["/insights"],
-  category: ["/insights"],
+  author: ["/insights", "/"],
+  category: ["/insights", "/"],
   // A testimonial renders inside the homepage carousel and has no page of its own.
   testimonial: ["/"],
 };
@@ -128,9 +164,14 @@ export async function notifyPublished(input: PublishNotifyInput): Promise<{ reva
   const standalone = !NO_URL_OF_ITS_OWN.has(input.kind);
   // The item, its hub, and — for anything with a URL — the two files that advertise the site's
   // contents. A testimonial adds no URL, so asking for the sitemap to rebuild would be busywork.
-  const paths = standalone
-    ? [input.path, ...HUB_PATHS[input.kind], "/sitemap.xml", "/llms.txt"]
-    : [...HUB_PATHS[input.kind]];
+  const extra = input.extraPaths ?? [];
+  const paths = [
+    ...new Set(
+      standalone
+        ? [input.path, ...HUB_PATHS[input.kind], ...extra, "/sitemap.xml", "/llms.txt"]
+        : [...HUB_PATHS[input.kind], ...extra],
+    ),
+  ];
 
   const [revalidated, indexNow, googleJob] = await Promise.all([
     revalidateWeb(paths),

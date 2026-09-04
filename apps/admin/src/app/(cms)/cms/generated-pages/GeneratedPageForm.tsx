@@ -260,7 +260,11 @@ export function GeneratedPageForm({ initial, templates, authors = [], categories
 
             <div className="mt-4 flex items-center justify-end gap-2">
               <a href="/cms/generated-pages" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-600 hover:bg-slate-50">Cancel</a>
-              <button type="submit" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
+              {/* On a new page this says Publish and now means it: it used to send no intent, so
+                  the status came from the dropdown above, which defaults to Draft. On an existing
+                  page it says Update and keeps whatever the dropdown holds, loaded from the row. The
+                  gate still decides whether publishing is allowed. */}
+              <button type="submit" name="intent" value={edit ? "save" : "publish"} className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
             </div>
           </section>
         </div>

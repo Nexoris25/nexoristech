@@ -229,7 +229,22 @@ export function InsightEditor({ initial, categories, authors, pages = [] }: { in
                   Save as Draft
                 </button>
               ) : null}
-              <button type="submit" name="intent" value="save" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
+              {/* An existing piece that is not live yet gets its own way to go live. Changing the
+                  dropdown and pressing Update does the same thing, but only if you know that, and
+                  a draft that somebody believes they published is the failure this prevents. */}
+              {edit && initial?.status !== "published" ? (
+                <button type="submit" name="intent" value="publish"
+                  className="rounded-lg border border-[#543CDA]/40 px-5 py-2.5 text-[0.85rem] font-600 text-[#543CDA] hover:bg-[#EEEBFC]">
+                  Publish
+                </button>
+              ) : null}
+              {/*
+                On a new article this button says Publish and now means it: it used to carry intent
+                "save", which defers to the Status dropdown, and that defaults to Draft. On an
+                existing article it says Update and keeps whatever the dropdown holds, which is
+                loaded from the row, so an update never changes the status behind the editor's back.
+              */}
+              <button type="submit" name="intent" value={edit ? "save" : "publish"} className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update" : "Publish"}</button>
             </div>
           </section>
         </div>

@@ -14,6 +14,31 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const slugify = (s: string): string => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/**
+ * The profile pages an article is listed on.
+ *
+ * An author profile lists everything that person has written, and publishing never rebuilt it, so a
+ * new article was missing from its own author's page until that page's timer came round. Authors
+ * have no stored slug — the site derives it from the display name — so the path has to be worked out
+ * here, from the same name, rather than read from a column.
+ *
+ * Best effort: a failure to look the names up must not stop the article being saved.
+ */
+async function profilePaths(pool: ReturnType<typeof cmsDb>, ids: (string | null)[]): Promise<string[]> {
+  const wanted = [...new Set(ids.filter((v): v is string => Boolean(v)))];
+  if (wanted.length === 0) return [];
+  try {
+    const { rows } = await pool.query<{ name: string }>(
+      "SELECT name FROM cms_author WHERE id = ANY($1::uuid[])", [wanted]);
+    return rows
+      .map((r) => slugify(r.name ?? ""))
+      .filter(Boolean)
+      .map((slug) => `/${slug}`);
+  } catch {
+    return [];
+  }
+}
 const VALID = new Set(["draft", "in_review", "scheduled", "published", "archived"]);
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -31,11 +56,25 @@ export async function POST(request: NextRequest): Promise<Response> {
   const authorId = String(f.get("author_id") ?? "").trim() || null;
   const factCheckerId = String(f.get("fact_checker_id") ?? "").trim() || null;
   const statusRaw = String(f.get("status") ?? "draft").trim();
-  // "Save as Draft" and "Unpublish" are their own buttons, so the intent they carry decides the
-  // status rather than whatever the dropdown happens to be showing. Both land on draft: unpublish is
-  // the same state change, named for what the editor is actually doing when the piece is already live.
+  /*
+   * The button decides, and "Publish" means publish.
+   *
+   * "Save as Draft" and "Unpublish" are their own buttons and both land on draft: unpublish is the
+   * same state change, named for what the editor is doing when the piece is already live.
+   *
+   * The primary button read "Publish" on a new article and carried intent "save", which falls through
+   * to the Status dropdown — and that defaults to Draft. So filling everything in, setting a publish
+   * date and pressing the button marked Publish produced a draft. The Publish Date field is written
+   * whatever the status is, so the row then carried a publication date while sitting at draft, and the
+   * article looked published in the list and appeared nowhere on the site.
+   */
   const intent = String(f.get("intent") ?? "save").trim();
-  const requested = intent === "draft" || intent === "unpublish" ? "draft" : statusRaw;
+  const requested =
+    intent === "draft" || intent === "unpublish"
+      ? "draft"
+      : intent === "publish"
+        ? "published"
+        : statusRaw;
   const status = VALID.has(requested) ? requested : "draft";
   const featured = String(f.get("featured_image") ?? "").trim() || null;
   const featuredAlt = String(f.get("featured_image_alt") ?? "").trim() || null;
@@ -69,7 +108,8 @@ export async function POST(request: NextRequest): Promise<Response> {
         WHERE id=$23 AND kind='insight'`,
       [...vals, id]);
     await syncToKnowledgeBase({ kind: "insight", slug, title, status, excerpt, metaDescription: metaDesc, body });
-    await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex });
+    await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex,
+      extraPaths: await profilePaths(pool, [authorId, factCheckerId]) });
     return NextResponse.redirect(new URL(`/cms/insights/${id}`, request.url), { status: 303 });
   }
   const { rows } = await pool.query<{ id: string }>(
@@ -81,6 +121,7 @@ export async function POST(request: NextRequest): Promise<Response> {
      RETURNING id`,
     vals);
   await syncToKnowledgeBase({ kind: "insight", slug, title, status, excerpt, metaDescription: metaDesc, body });
-    await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex });
+  await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex,
+    extraPaths: await profilePaths(pool, [authorId, factCheckerId]) });
   return NextResponse.redirect(new URL(`/cms/insights/${rows[0]?.id ?? ""}`, request.url), { status: 303 });
 }

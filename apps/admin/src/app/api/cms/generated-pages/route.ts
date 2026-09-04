@@ -26,8 +26,18 @@ export async function POST(request: NextRequest): Promise<Response> {
   const title = String(f.get("title") ?? "").trim();
   if (!title) return NextResponse.redirect(new URL(`${id ? `/cms/generated-pages/${id}` : "/cms/generated-pages/new"}?error=title`, request.url), { status: 303 });
 
+  /*
+   * The button decides, and "Publish" means publish.
+   *
+   * The primary button read "Publish" on a new page and sent no intent at all, so the status came
+   * from the dropdown, which defaults to Draft. Pressing Publish produced a draft. The quality gate
+   * still has the last word below: a page that does not clear it is held at draft and forced to
+   * noindex whatever the button asked for.
+   */
   const statusRaw = String(f.get("status") ?? "draft").trim();
-  const requestedStatus = VALID.has(statusRaw) ? statusRaw : "draft";
+  const intent = String(f.get("intent") ?? "save").trim();
+  const asked = intent === "publish" ? "published" : intent === "draft" ? "draft" : statusRaw;
+  const requestedStatus = VALID.has(asked) ? asked : "draft";
   const slug = slugify(String(f.get("slug") ?? "") || title);
   /** Accept a JSON field only if it parses; a malformed one becomes an empty array rather than a 500. */
   const jsonOr = (v: FormDataEntryValue | null, fallback: string): string => { try { const t = String(v ?? ""); JSON.parse(t); return t || fallback; } catch { return fallback; } };
