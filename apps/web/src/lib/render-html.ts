@@ -240,11 +240,23 @@ export function splitSections(input: string): HtmlSection[] {
   const clean = sanitiseHtml(input);
   if (!clean.trim()) return [];
 
-  const parts = clean.split(/(?=<h2\b)/i).filter((p) => p.trim());
+  /*
+   * Split on whatever level the editor actually used for their sections.
+   *
+   * This assumed H2. The Cookie Policy was written with H3s and no H2 at all, so it produced no
+   * sections carrying a heading — and the page, which shows an interim notice when it finds none,
+   * told every visitor the policy "is being finalised" while eighteen thousand characters of
+   * published policy sat in the database. A document is not unfinished because of the heading level
+   * somebody picked, so the highest level present is the one that marks its sections.
+   */
+  const level = [2, 3, 4].find((n) => new RegExp(`<h${n}\\b`, "i").test(clean)) ?? 2;
+  const headingRx = new RegExp(`^<h${level}\\b[^>]*>([\\s\\S]*?)<\\/h${level}>`, "i");
+
+  const parts = clean.split(new RegExp(`(?=<h${level}\\b)`, "i")).filter((p) => p.trim());
   const sections: HtmlSection[] = [];
 
   for (const part of parts) {
-    const m = /^<h2\b[^>]*>([\s\S]*?)<\/h2>/i.exec(part);
+    const m = headingRx.exec(part);
     if (!m) {
       // Copy before the first heading. It belongs to the page, not to a section.
       sections.push({ heading: "", id: "", html: part });

@@ -34,34 +34,35 @@ export const metadata: Metadata = buildMetadata({
 });
 
 /** The places somebody who hit a dead end is most likely to have been heading for. */
+/**
+ * Where a lost visitor most likely meant to go.
+ *
+ * There were six of these and two of them — /services and /industries — were themselves 404s: the
+ * page that exists to rescue somebody from a dead link was offering two more. Neither path is a real
+ * page on this site; services are individual pages reached from the header, and the home page groups
+ * them.
+ *
+ * Four is enough. Each answers a different reason for being here: what we do, proof that we do it,
+ * what we have written, and how to reach a person.
+ */
 const DESTINATIONS: { href: string; title: string; text: string }[] = [
   {
-    href: "/services",
-    title: "Services",
-    text: "Custom software, websites, apps, automation, data and AI, and what each one involves.",
+    href: "/#services",
+    title: "What we do",
+    text: "Custom software, websites, apps, automation, and the AI worth building in.",
   },
   {
-    href: "/industries",
-    title: "Industries",
-    text: "The sectors we build for, and the problems that come up again and again in each.",
-  },
-  {
-    href: "/case-studies",
+    href: "/case-studies/",
     title: "Case studies",
-    text: "Work we have delivered, what it changed, and how it was built.",
+    text: "Work we have delivered, what changed for the business, and how it was built.",
   },
   {
-    href: "/insights",
+    href: "/insights/",
     title: "Insights",
-    text: "Writing on software, automation and AI, aimed at people making the decision.",
+    text: "Writing on software, cost and automation, for the person making the decision.",
   },
   {
-    href: "/about",
-    title: "About Nexoris",
-    text: "Who we are, where we are, and how we work with the people who hire us.",
-  },
-  {
-    href: "/contact",
+    href: "/contact/",
     title: "Contact",
     text: "Tell us what you are trying to build. A real person reads every brief.",
   },
@@ -85,7 +86,7 @@ export default function NotFound(): ReactNode {
             <h1>We could not find that page.</h1>
             <p>
               The page has moved, or the link that brought you here was wrong. Nothing is broken on
-              your side. Below is everything on the site, grouped the way it is organised.
+              your side. Here are the places people usually mean.
             </p>
             <div className="nf-actions">
               <Link className="btn btn-primary" href="/">
@@ -101,10 +102,7 @@ export default function NotFound(): ReactNode {
 
       <section className="band" aria-label="Where to go next">
         <div className="wrap">
-          <div className="band-head">
-            <span className="eyebrow">Where to go next</span>
-            <h2 className="h-section">The rest of the site.</h2>
-          </div>
+          <h2 className="nf-next">Where to go next</h2>
           <div className="nf-grid">
             {DESTINATIONS.map((d) => (
               <Link className="nf-card" href={d.href} key={d.href}>

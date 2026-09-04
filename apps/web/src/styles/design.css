@@ -542,21 +542,33 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
    The page a visitor reaches by accident, in the same language as the pages they meant to reach.
    Its own block rather than reusing the hero heading styles wholesale, because a 404 has no
    subject to announce: the code is the loudest thing on it, and the heading is a sentence. */
-.nf-head{max-width:60ch;margin-top:26px}
-.nf-code{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.78rem;font-weight:700;
+/*
+ * Scoped under .svc-page, which is the page these live on.
+ *
+ * service.css carries `.svc-page *{margin:0;padding:0}` and loads after this file, so at equal
+ * specificity it won: every padding and margin set here was stripped, and the 404 cards rendered
+ * with their text pressed against the border. Naming the page ancestor outranks the wildcard.
+ */
+.svc-page .nf-head{max-width:60ch;margin-top:26px}
+.svc-page .nf-code{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.78rem;font-weight:700;
   letter-spacing:.18em;color:var(--purple-300,#b9aef7);border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.06);border-radius:999px;padding:6px 14px}
-.nf-head h1{font-family:"Roboto",sans-serif;font-size:clamp(2rem,1.4rem+2.4vw,3rem);font-weight:700;
+.svc-page .nf-head h1{font-family:"Roboto",sans-serif;font-size:clamp(2rem,1.4rem+2.4vw,3rem);font-weight:700;
   letter-spacing:-.02em;line-height:1.08;margin-top:18px}
-.nf-head p{color:rgba(255,255,255,.78);font-size:1.05rem;line-height:1.65;margin-top:16px}
-.nf-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.svc-page .nf-head p{color:rgba(255,255,255,.78);font-size:1.05rem;line-height:1.65;margin-top:16px}
+.svc-page .nf-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 
-.nf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
-.nf-card{position:relative;display:block;border:1px solid var(--line);border-radius:16px;
+/* A heading over the links, rather than the full band-head the section pages use. This is a signpost
+   on a page nobody chose to visit, so it should be quiet and get out of the way of the links. */
+.svc-page .nf-next{font-family:"Roboto",sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:-.01em;
+  color:var(--ink-950)}
+/* Four cards, so the row divides evenly instead of leaving one stranded on a second line. auto-fit
+   steps down to two and then one without needing a breakpoint for each. */
+.svc-page .nf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:20px}
+.svc-page .nf-card{position:relative;display:block;border:1px solid var(--line);border-radius:16px;
   background:#fff;padding:22px 22px 46px;transition:border-color .15s,box-shadow .15s,transform .15s}
-.nf-card:hover{border-color:var(--purple-300,#b9aef7);box-shadow:0 10px 30px rgba(84,60,218,.09);transform:translateY(-2px)}
-.nf-card h3{font-family:"Roboto",sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink-950)}
-.nf-card p{margin-top:8px;font-size:.92rem;line-height:1.6;color:var(--ink-2,#3a3550)}
-.nf-go{position:absolute;left:22px;bottom:20px;color:var(--purple-600,#543cda);font-weight:700}
-@media (max-width:1024px){.nf-grid{grid-template-columns:1fr 1fr}}
-@media (max-width:640px){.nf-grid{grid-template-columns:1fr}}
+.svc-page .nf-card:hover{border-color:var(--purple-300,#b9aef7);box-shadow:0 10px 30px rgba(84,60,218,.09);transform:translateY(-2px)}
+.svc-page .nf-card h3{font-family:"Roboto",sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink-950)}
+.svc-page .nf-card p{margin-top:8px;font-size:.92rem;line-height:1.6;color:var(--ink-2,#3a3550)}
+.svc-page .nf-go{position:absolute;left:22px;bottom:20px;color:var(--purple-600,#543cda);font-weight:700}
+@media (max-width:640px){.svc-page .nf-grid{grid-template-columns:1fr}}

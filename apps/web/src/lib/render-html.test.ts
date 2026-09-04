@@ -192,3 +192,43 @@ describe("internal links get the trailing slash", () => {
   });
 })
 ;
+
+/**
+ * A document is sectioned by the heading level its author used.
+ *
+ * splitSections assumed H2. The Cookie Policy was written with H3s and no H2 at all, so it produced
+ * no sections carrying a heading — and the legal page, which shows an interim notice when it finds
+ * none, told every visitor the policy "is being finalised" while eighteen thousand characters of
+ * published policy sat in the database.
+ */
+describe("splitSections and heading levels", () => {
+  it("splits on H2 when the document uses them", () => {
+    const out = splitSections("<h2>One</h2><p>a</p><h2>Two</h2><p>b</p>");
+    expect(out.map((s) => s.heading)).toEqual(["One", "Two"]);
+  });
+
+  it("splits on H3 when there is no H2 anywhere", () => {
+    const out = splitSections("<h3>One</h3><p>a</p><h3>Two</h3><p>b</p>");
+    expect(out.map((s) => s.heading)).toEqual(["One", "Two"]);
+  });
+
+  it("prefers H2 when a document mixes the two", () => {
+    const out = splitSections("<h2>Section</h2><p>a</p><h3>Sub</h3><p>b</p>");
+    expect(out.map((s) => s.heading)).toEqual(["Section"]);
+    // The subheading stays inside its section rather than starting a new one.
+    expect(out[0]?.html).toContain("<h3>Sub</h3>");
+  });
+
+  it("keeps copy before the first heading as an unnamed preamble", () => {
+    const out = splitSections("<p>intro</p><h3>One</h3><p>a</p>");
+    expect(out[0]?.heading).toBe("");
+    expect(out[0]?.html).toContain("intro");
+    expect(out[1]?.heading).toBe("One");
+  });
+
+  it("gives every section an id to anchor to", () => {
+    for (const s of splitSections("<h3>What Are Cookies?</h3><p>a</p>")) {
+      if (s.heading) expect(s.id.length).toBeGreaterThan(0);
+    }
+  });
+});
