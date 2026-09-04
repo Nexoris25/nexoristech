@@ -83,9 +83,46 @@ export function LegalPageForm({ initial }: { initial?: Initial }): ReactNode {
             }}
           />
 
-          <div className="flex items-center justify-end gap-2">
+          {/*
+            * Publish, unpublish, park as a draft, or just update.
+            *
+            * The only control here was "Save Draft" on a new page and "Update Page" on an existing
+            * one, so a legal page could be written and edited but never put live or taken down
+            * except by knowing to change the Status select first — and nothing said so. Each button
+            * now states what it does, and carries that intent to the route rather than leaving the
+            * dropdown to decide quietly.
+            */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <a href="/cms/legal-pages" className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-600 hover:bg-slate-50">Cancel</a>
-            <button type="submit" className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">{edit ? "Update Page" : "Save Draft"}</button>
+
+            {/* Parking an unfinished page belongs to the moment it is being written. */}
+            {!edit ? (
+              <button type="submit" name="intent" value="draft"
+                className="rounded-lg border border-slate-200 px-5 py-2.5 text-[0.85rem] font-600 text-slate-700 hover:bg-slate-50">
+                Save as Draft
+              </button>
+            ) : null}
+
+            {/* Taking a live page down is the only thing this could mean, so it only appears there. */}
+            {edit && initial?.status === "published" ? (
+              <button type="submit" name="intent" value="unpublish"
+                className="rounded-lg border border-[#DC2626]/30 px-5 py-2.5 text-[0.85rem] font-600 text-[#DC2626] hover:bg-red-50">
+                Unpublish
+              </button>
+            ) : null}
+
+            {/* A page that is not live yet gets its own way to go live, on any visit. */}
+            {edit && initial?.status !== "published" ? (
+              <button type="submit" name="intent" value="publish"
+                className="rounded-lg border border-[#543CDA]/40 px-5 py-2.5 text-[0.85rem] font-600 text-[#543CDA] hover:bg-[#EEEBFC]">
+                Publish
+              </button>
+            ) : null}
+
+            <button type="submit" name="intent" value={edit ? "save" : "publish"}
+              className="rounded-lg bg-[#543CDA] px-6 py-2.5 text-[0.85rem] font-600 text-white hover:bg-[#4330B8]">
+              {edit ? "Update Page" : "Publish"}
+            </button>
           </div>
         </div>
       </div>

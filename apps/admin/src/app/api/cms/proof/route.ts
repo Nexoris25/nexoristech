@@ -77,8 +77,19 @@ export async function POST(request: NextRequest): Promise<Response> {
     .filter((v) => (SERVICE_PAGES as readonly string[]).includes(v));
   const body = String(f.get("body") ?? "");
   const excerpt = String(f.get("excerpt") ?? "").trim() || null;
+  /*
+   * The button decides, and "Publish" means publish.
+   *
+   * Status came only from the dropdown, so a legal page could be created and updated but never put
+   * live or taken down without knowing to change a select first. The buttons carry the intent now,
+   * the same way the Insights editor does: publish, unpublish and save-as-draft each say plainly
+   * what they will do, and an ordinary update keeps whatever the dropdown holds.
+   */
   const statusRaw = String(f.get("status") ?? "draft").trim();
-  const status = VALID_STATUS.has(statusRaw) ? statusRaw : "draft";
+  const intent = String(f.get("intent") ?? "save").trim();
+  const asked =
+    intent === "publish" ? "published" : intent === "draft" || intent === "unpublish" ? "draft" : statusRaw;
+  const status = VALID_STATUS.has(asked) ? asked : "draft";
   const order = Number(f.get("display_order")) || 0;
   const featured = f.get("featured") != null;
   const serviceIndustry = String(f.get("service_industry") ?? "").trim() || null;
