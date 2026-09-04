@@ -29,8 +29,10 @@ import { regenerateFollowUp } from "../../../../lib/crm-actions.js";
 import { CopyEmail } from "./CopyEmail.js";
 import { StageControl } from "./StageControl.js";
 import { FollowUpPanel } from "./FollowUpPanel.js";
+import { ReassignRequest } from "./ReassignRequest.js";
 import { SOURCE_LABEL } from "../../../../lib/lead-ui.js";
 import { requireUuid } from "../../../../lib/route-params.js";
+import { canRequestReassignment } from "../../../../lib/crm-constants.js";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +53,7 @@ interface Lead {
   created_at: string;
   finder: Record<string, unknown> | null;
   owner: string | null;
+  assigned_to: string | null;
   followup_stage: string | null;
   followup_draft: string | null;
   followup_drafted_by: string | null;
@@ -102,7 +105,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
   const { rows } = await pool.query<Lead>(
     `SELECT l.id, l.name, l.email, l.phone, l.company, l.message, l.source, l.page, l.score, l.band,
-            l.justification, l.scored_by, l.status, l.created_at, l.finder, s.name AS owner,
+            l.justification, l.scored_by, l.status, l.created_at, l.finder, s.name AS owner, l.assigned_to,
             l.followup_stage, l.followup_draft, l.followup_drafted_by, l.followup_due::text, l.followup_sent_at::text
        FROM lead l LEFT JOIN staff s ON s.id = l.assigned_to WHERE l.id = $1`,
     [id],
@@ -117,8 +120,28 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
     [id],
   );
 
+  /*
+   * Whether this lead already has a reassignment request awaiting a decision.
+   *
+   * Without this the owner is shown a form that can only fail: the action refuses a second open
+   * request, so the reply would be an error where the truthful answer is "you already asked, and
+   * nobody has decided yet".
+   */
+  const { rows: openRequest } = await pool.query<{ reason: string; requested: string }>(
+    `SELECT reason, created_at::text AS requested
+       FROM reassignment_request WHERE lead_id = $1 AND status = 'pending' LIMIT 1`,
+    [id],
+  );
+  const pendingReassign = openRequest[0];
+
   const insights = deriveInsights(lead);
   const canEdit = Boolean(staff) && staff!.role !== "viewer";
+  const canRequestReassign = canRequestReassignment({
+    role: staff?.role,
+    staffId: staff?.id,
+    assignedTo: lead.assigned_to,
+    status: lead.status,
+  });
   const stage = lead.followup_stage ?? lead.status;
   const hasFollowUp = !NO_FOLLOWUP.has(stage);
   const initialDraft = lead.followup_draft
@@ -326,6 +349,28 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               ? <StageControl leadId={lead.id} currentStatus={lead.status} />
               : <p className="text-[0.82rem] text-slate-500">Current stage: <span className="font-600 text-slate-800">{lead.status}</span></p>}
           </div>
+          {/*
+            * Asking for the lead to be handed over.
+            *
+            * The reassignment queue and the admin's approve/decline screen were both built, and the
+            * salesperson's side of it was never rendered on this page — so the queue could never
+            * receive a request and the whole feature sat unreachable. It belongs here, under the
+            * stage control: this column is where the lead's lifecycle and ownership are managed.
+            *
+            * A request already awaiting a decision is reported rather than re-offered, so the owner
+            * can see they have been heard instead of submitting into an error.
+            */}
+          {pendingReassign ? (
+            <div className="mt-4 border-t border-purple-200 pt-4 text-[0.82rem] text-neutral-600">
+              <p className="font-600 text-ink-950">
+                Reassignment requested{" "}
+                <span className="font-400 text-neutral-600">{timeAgo(pendingReassign.requested)}</span>
+              </p>
+              <p className="mt-1">Awaiting an admin decision. Reason given: “{pendingReassign.reason}”</p>
+            </div>
+          ) : canRequestReassign ? (
+            <ReassignRequest leadId={lead.id} />
+          ) : null}
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-[#DDD6FE] bg-white shadow-subtle">

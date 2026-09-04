@@ -101,6 +101,33 @@ export interface ReassignState {
   ok?: boolean;
 }
 
+/**
+ * Whether to offer the reassignment request control to the person looking at a lead.
+ *
+ * These conditions mirror the guards inside `requestReassignment`, so the control appears only
+ * where submitting it would actually succeed — a viewer, a colleague who does not own the lead, or
+ * anyone looking at a closed lead would be refused by the action, and should not be shown a form
+ * that can only produce an error.
+ *
+ * Admins are excluded deliberately. Reassignment is theirs to perform directly from the queue, so
+ * an admin requesting one would be asking themselves for permission.
+ *
+ * A pure function, separate from the page, because it is the part worth testing: the flow it gates
+ * cannot be exercised until real salespeople own real leads.
+ */
+export function canRequestReassignment(input: {
+  role: string | null | undefined;
+  staffId: string | null | undefined;
+  assignedTo: string | null;
+  status: string;
+}): boolean {
+  const { role, staffId, assignedTo, status } = input;
+  if (!role || !staffId) return false;
+  if (role === "viewer" || role === "admin") return false;
+  if (!assignedTo || assignedTo !== staffId) return false;
+  return !(CLOSED_STAGES as readonly string[]).includes(status);
+}
+
 export interface FollowUpState {
   error?: string;
   ok?: boolean;
