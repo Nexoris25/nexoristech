@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   companyLinks,
   industriesFeatured,
@@ -59,7 +60,9 @@ export function SiteHeader(): ReactNode {
       <header>
         <div className="wrap nav">
         <Link className="brand" href="/" aria-label="Nexoris Technologies home">
-          <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies logo" />
+          {/* Intrinsic size of the file; .logo sizes it to 34px tall and lets the width follow. priority
+              because it is in the header of every page, above the fold on all of them. */}
+          <Image className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies logo" width={195} height={218} priority />
           <span className="wm">
             Nexoris <span>Technologies</span>
           </span>

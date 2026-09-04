@@ -31,6 +31,15 @@ export function ArticleCard({ article, author }: ArticleCardProps): ReactNode {
       {/* The thumbnail repeats the title link, so it is hidden from assistive technology and taken
           out of the tab order rather than read out and tabbed through twice. */}
       <Link className="thumb" href={href} aria-hidden="true" tabIndex={-1}>
+        {/*
+          * A plain img, deliberately.
+          *
+          * CMS uploads are served from the admin origin, and next/image refuses that host: even a
+          * hardcoded remotePattern for it is rejected by the optimiser, so every card thumbnail came
+          * back 400 and rendered blank. The upload pipeline already converts to WebP at quality 82
+          * and caps the width at 2400px, so what optimisation would add here is responsive sizing,
+          * and it is not worth trading a working image for a broken one.
+          */}
         {article.coverUrl ? <img src={article.coverUrl} alt={article.coverAlt ?? ""} loading="lazy" /> : null}
         {article.category ? <span className="card-cat">{article.category}</span> : null}
       </Link>

@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const services = [
   { label: "AI Product Development", href: "/ai-product-development" },
@@ -90,7 +91,7 @@ export function SiteFooter(): ReactNode {
         <div className="foot-top">
           <div className="foot-brand">
             <Link className="brand" href="/">
-              <img className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies logo" />{" "}
+              <Image className="logo" src="/logo-mark-white.png" alt="Nexoris Technologies logo" width={195} height={218} />{" "}
               <span className="wm">
                 Nexoris <span>Technologies</span>
               </span>

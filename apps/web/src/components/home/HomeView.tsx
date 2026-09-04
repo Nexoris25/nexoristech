@@ -6,6 +6,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SolutionFinder } from "./SolutionFinder.js";
 import { Testimonials, type Quote } from "./Testimonials.js";
 import { ProductMockup } from "./ProductMockup.js";
@@ -679,10 +680,14 @@ export function HomeView({ insights = [], testimonials = [] }: { insights?: Insi
       {/* CLOSING CTA */}
       <section className="cta" id="cta" aria-label="Closing CTA">
         <div className="photo">
-          <img
+          {/* fill, because .cta .photo is already an inset-0 positioned box and the CSS crops with
+              object-fit. sizes says it spans the viewport, so the optimiser picks by screen width. */}
+          <Image
             src="/home-hero.webp"
             alt="Application source code on a screen, representing the software Nexoris Technologies builds"
-            loading="lazy"
+            fill
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
           />
         </div>
         <div className="glow" />

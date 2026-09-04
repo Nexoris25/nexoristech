@@ -151,7 +151,7 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
               </div>
               <div className="ih-body">
                 <div className="ih-head">
-                  <img className="ih-logo-img" src="/case-studies/covyvo-logo.webp" alt="Covyvo" />
+                  <Image className="ih-logo-img" src="/case-studies/covyvo-logo.webp" alt="Covyvo" width={860} height={120} />
                 </div>
                 <div className="ih-tag">Payroll, e-invoicing &amp; core business tools</div>
                 <p>
@@ -187,7 +187,7 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
               </div>
               <div className="ih-body">
                 <div className="ih-head">
-                  <img className="ih-logo-img gleen" src="/case-studies/gleen-logo.webp" alt="GLEEN" />
+                  <Image className="ih-logo-img gleen" src="/case-studies/gleen-logo.webp" alt="GLEEN" width={354} height={140} />
                 </div>
                 <div className="ih-tag">Gamified exam preparation for Nigerian students</div>
                 <p>

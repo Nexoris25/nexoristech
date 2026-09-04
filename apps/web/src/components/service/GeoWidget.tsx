@@ -5,6 +5,7 @@
  * platform's authentic visual style, cycling automatically with a typed query. Ported from the
  * approved brief; styling in styles/geo-widget.css. Decorative (aria illustrates the product).
  */
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import "../../styles/geo-widget.css";
@@ -155,7 +156,7 @@ export function GeoWidget(): ReactNode {
               </div>
               <div className="gaio-srcs">
                 <div className="gaio-src">
-                  <div className="gaio-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}><img src="/logo-mark-white.png" alt="Nexoris Technologies logo" style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
+                  <div className="gaio-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}><Image src="/logo-mark-white.png" alt="Nexoris Technologies logo" width={195} height={218} style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
                   <div>
                     <div className="gaio-sname">nexoristech.com</div>
                     <div className="gaio-stitle">Nexoris Technologies · Custom Software</div>
@@ -266,7 +267,7 @@ export function GeoWidget(): ReactNode {
                   <div className="ppx-src">
                     <span className="ppx-snum">1</span>
                     <div className="ppx-sinfo">
-                      <div className="ppx-sfav" style={{ background: "#543CDA", color: "#fff", fontSize: 8, fontWeight: 800 }}><img src="/logo-mark-white.png" alt="Nexoris Technologies logo" style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
+                      <div className="ppx-sfav" style={{ background: "#543CDA", color: "#fff", fontSize: 8, fontWeight: 800 }}><Image src="/logo-mark-white.png" alt="Nexoris Technologies logo" width={195} height={218} style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
                       <div>
                         <div className="ppx-sname">nexoristech.com</div>
                         <div className="ppx-stitle">Nexoris Technologies</div>
@@ -320,7 +321,7 @@ export function GeoWidget(): ReactNode {
                     <div className="gem-src-head">Sources</div>
                     <div className="gem-src-row">
                       <span className="gem-src">
-                        <div className="gem-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}><img src="/logo-mark-white.png" alt="Nexoris Technologies logo" style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
+                        <div className="gem-fav" style={{ background: "#543CDA", color: "#fff", fontSize: 9, fontWeight: 800 }}><Image src="/logo-mark-white.png" alt="Nexoris Technologies logo" width={195} height={218} style={{ width: "72%", height: "72%", objectFit: "contain" }} /></div>
                         <span>nexoristech.com</span>
                       </span>
                       <span className="gem-src">

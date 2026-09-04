@@ -8,6 +8,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ScrollFx } from "../home/ScrollFx.js";
 import type { CaseStudyCard } from "../../lib/cms.js";
 
@@ -121,7 +122,9 @@ export function ServiceView({ content, caseStudies = [] }: { content: ServiceCon
               c.heroWidget
             ) : c.hero.media ? (
               <div className="hero-media reveal">
-                <img src={c.hero.media.src} alt={c.hero.media.alt} loading="eager" />
+                {/* .hero-media is position:relative with a fixed aspect ratio, so fill matches the existing
+                    object-fit crop exactly. priority: it is the hero of the page. */}
+                <Image src={c.hero.media.src} alt={c.hero.media.alt} fill sizes="(max-width: 1080px) 100vw, 46vw" style={{ objectFit: "cover" }} priority />
                 <div className="ovl" />
                 <div className="hero-chip">
                   <span className="hci">
@@ -400,7 +403,7 @@ export function ServiceView({ content, caseStudies = [] }: { content: ServiceCon
       <section className="cta" id="cta" aria-label="Closing CTA">
         {c.cta.media ? (
           <div className="photo">
-            <img src={c.cta.media.src} alt={c.cta.media.alt} loading="lazy" />
+            <Image src={c.cta.media.src} alt={c.cta.media.alt} fill sizes="100vw" style={{ objectFit: "cover" }} />
           </div>
         ) : null}
         <div className="glow" />
