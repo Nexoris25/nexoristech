@@ -11,6 +11,17 @@ import { formatLagosDate, resolveDateTokens } from "../lib/date.js";
 import { ScrollFx } from "./home/ScrollFx.js";
 import { FloatingToc } from "./FloatingToc.js";
 import { TocSpy } from "./TocSpy.js";
+/*
+ * article.css first, then legal.css.
+ *
+ * A policy is rich text from the same editor an article uses, so it should render like one: the same
+ * tables, lists, quotes and spacing. Every rule in article.css is scoped to .article-page and a child
+ * class, so adding that class here brings the body typography and nothing else — the article hero,
+ * its contents column and its byline all need classes this page does not have. The author profile
+ * adopts the same pair for the same reason. legal.css loads after, so anything particular to a policy
+ * still wins.
+ */
+import "../styles/article.css";
 import "../styles/legal.css";
 
 /** Stable, readable anchor id from a section heading. */
@@ -31,7 +42,7 @@ export async function LegalPageView({
   const anchors = sections.filter((s) => s.heading);
 
   return (
-    <div className="svc-page legal-page">
+    <div className="svc-page legal-page article-page">
       <ScrollFx />
 
       <section className="legal-hero" aria-label={title}>
@@ -93,7 +104,7 @@ export async function LegalPageView({
                 {preamble.map((s, i) => (
                   <div
                     key={`preamble-${i}`}
-                    className="legal-preamble"
+                    className="legal-preamble prose"
                     // The CMS stores HTML, and it is sanitised in splitSections before it gets here.
                     // It used to be handed to ReactMarkdown, which escapes raw HTML, so every tag in a
                     // policy rendered as visible text.
@@ -114,7 +125,9 @@ export async function LegalPageView({
                         <b>In short:</b> {s.plainSummary}
                       </div>
                     ) : null}
-                    <div dangerouslySetInnerHTML={{ __html: resolveDateTokens(s.body) }} />
+                    {/* prose: the article body rules, so a policy's tables, lists and quotes look
+                        like an article's rather than like unstyled HTML. */}
+                    <div className="prose" dangerouslySetInnerHTML={{ __html: resolveDateTokens(s.body) }} />
                   </section>
                 ))}
               </div>

@@ -6,7 +6,7 @@
  * the pages and their schema/metadata never need to know where the data comes from.
  */
 import { cmsDb, nameSlug } from "./cms-db.js";
-import { splitSections } from "./render-html.js";
+import { splitSections, wrapTables } from "./render-html.js";
 
 // Media paths are stored relative to the CMS upload origin; set CMS_MEDIA_BASE to an absolute origin
 // (CDN or the admin host) in production so images and OG tags resolve. Empty keeps paths as stored.
@@ -606,7 +606,16 @@ export async function getLegalPage(type: LegalType): Promise<LegalPage | null> {
     // Split on the headings the editor wrote, so the contents list has real entries and each section
     // carries its own number. The whole document used to arrive as one section with a blank heading,
     // which is why the table of contents showed a single empty item and the body rendered as one wall.
-    sections: body ? splitSections(body).map((x) => ({ heading: x.heading, id: x.id, body: x.html })) : [],
+    /*
+     * Tables get the same frame an article's do.
+     *
+     * A policy table arrived as a bare <table> with nothing around it, so it had no border, no
+     * rounded frame, and no way to scroll on a phone: on a narrow screen it simply pushed the page
+     * sideways. wrapTables is what the article page has always called; the legal page never did.
+     */
+    sections: body
+      ? splitSections(body).map((x) => ({ heading: x.heading, id: x.id, body: wrapTables(x.html) }))
+      : [],
     ...opt("intro", str(r.excerpt)),
     ...opt("effectiveDate", isoDate(r.effective_date)),
   };
