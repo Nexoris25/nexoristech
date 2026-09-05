@@ -29,6 +29,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   for (const path of paths) {
     revalidatePath(path);
   }
+  // Discovery documents and marketing relationships change when CMS content is published/unpublished.
+  if (paths.length) {
+    revalidatePath("/sitemap.xml");
+    revalidatePath("/llms.txt");
+    revalidatePath("/", "layout");
+  }
 
   return Response.json({ revalidated: paths });
 }

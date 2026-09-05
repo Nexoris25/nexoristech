@@ -6,6 +6,8 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ContextualPhoto } from "../ContextualPhoto.js";
+import { productTeamImage } from "../../content/contextual-images.js";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { CareersRoles } from "./CareersRoles.js";
 import type { JobCard } from "../../lib/cms.js";
@@ -99,6 +101,7 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
       </section>
 
       {/* CULTURE */}
+      <section className="band" aria-label="Working together"><div className="wrap company-editorial"><div><span className="kicker">The work we care about</span><h2 className="h-section">Thoughtful people. Useful software.</h2><p className="lede">Explore our approach to building software, the way we work together, and the roles currently open.</p><Link href="/how-we-work/" className="link-arrow">See how we work →</Link></div><ContextualPhoto image={productTeamImage} /></div></section>
       <section className="band" aria-label="Culture">
         <div className="wrap">
           <div className="band-head reveal">

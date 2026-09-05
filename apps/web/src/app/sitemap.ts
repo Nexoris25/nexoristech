@@ -9,14 +9,13 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@nexoris/seo";
 import { allHardcodedPages } from "../content/index.js";
 import {
-  getInsightSlugs,
   getAuthorSlugs,
-  getJobSlugs,
-  getPseoSlugs,
+  getDiscoveryEntries,
 } from "../lib/cms.js";
 import { authorPath } from "../lib/routes.js";
 
 const LEGAL = ["/privacy-policy", "/terms-of-service", "/cookie-policy"];
+export const revalidate = 300;
 
 function entries(
   paths: string[],
@@ -32,41 +31,29 @@ function entries(
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const hardcoded: MetadataRoute.Sitemap = allHardcodedPages.map((page) => ({
-    url: absoluteUrl(page.meta.slug),
+    url: new URL(absoluteUrl(page.meta.slug)).href,
     changeFrequency: "monthly",
     priority: page.meta.slug === "/" ? 1 : 0.7,
   }));
 
-  const [insights, authors, jobs, pseo] = await Promise.all([
-    getInsightSlugs(),
+  const [authors, content] = await Promise.all([
     getAuthorSlugs(),
-    getJobSlugs(),
-    getPseoSlugs(),
+    getDiscoveryEntries(),
   ]);
 
-  return [
+  const result: MetadataRoute.Sitemap = [
     ...hardcoded,
-    ...entries(["/insights", "/careers"], "weekly", 0.6),
+    ...entries(["/insights", "/careers", "/oge"], "weekly", 0.6),
     ...entries(LEGAL, "monthly", 0.3),
-    ...entries(
-      insights.map((s) => `/insights/${s}`),
-      "weekly",
-      0.6,
-    ),
     ...entries(
       authors.map((s) => authorPath(s)),
       "monthly",
       0.4,
     ),
-    ...entries(
-      jobs.map((s) => `/careers/${s}`),
-      "weekly",
-      0.5,
-    ),
-    ...entries(
-      pseo.map((s) => `/${s}`),
-      "monthly",
-      0.6,
-    ),
+    ...content.map(entry => ({ url: absoluteUrl(entry.path), ...(entry.updatedAt ? { lastModified: entry.updatedAt } : {}) })),
   ];
+  // The routing layer gives built-in pages precedence over generated pages and author slugs.
+  const unique = new Map<string, MetadataRoute.Sitemap[number]>();
+  for (const entry of result) if (!unique.has(entry.url)) unique.set(entry.url, entry);
+  return [...unique.values()];
 }

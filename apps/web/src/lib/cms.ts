@@ -13,6 +13,19 @@ import { splitSections, wrapTables } from "./render-html.js";
 const MEDIA_BASE = (process.env.CMS_MEDIA_BASE ?? "").replace(/\/+$/, "");
 
 export interface Metric { label: string; value: string }
+export interface DiscoveryEntry { path: string; title: string; summary?: string; updatedAt?: string; kind: string }
+
+/** Uncapped, indexable CMS inventory. Case studies retain their deliberate noindex policy. */
+export async function getDiscoveryEntries(): Promise<DiscoveryEntry[]> {
+  const rows = await query(`SELECT kind, slug, title, excerpt, updated_at::text AS updated_at FROM cms_content
+    WHERE status='published' AND noindex=false AND kind IN ('insight','job','generated_page') AND slug IS NOT NULL
+    ORDER BY kind, slug`);
+  return rows.filter(r => str(r.slug) && str(r.title)).map(r => ({
+    kind: String(r.kind), title: str(r.title)!,
+    path: r.kind === "insight" ? `/insights/${str(r.slug)}` : r.kind === "job" ? `/careers/${str(r.slug)}` : `/${str(r.slug)}`,
+    ...opt("summary", str(r.excerpt)), ...opt("updatedAt", isoDate(r.updated_at)),
+  }));
+}
 export interface Testimonial { quote: string; authorName: string; authorRole?: string; company?: string; avatarUrl?: string; avatarAlt?: string }
 export interface CaseStudyCard { title: string; slug: string; summary?: string; coverUrl?: string; coverAlt?: string; industry?: string; metrics: Metric[] }
 /** One image in a case study's gallery. */

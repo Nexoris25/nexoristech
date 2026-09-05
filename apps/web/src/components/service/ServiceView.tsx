@@ -11,6 +11,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ScrollFx } from "../home/ScrollFx.js";
 import type { CaseStudyCard } from "../../lib/cms.js";
+import { ContextualPhoto } from "../ContextualPhoto.js";
+import type { ContextualImage } from "../../content/contextual-images.js";
 
 /** The six delivery-stage icons, consistent across every page; only the copy varies per service. */
 const STAGE_ICONS: ReactNode[] = [
@@ -76,7 +78,7 @@ function Svg({ children }: { children: ReactNode }): ReactNode {
   return <svg viewBox="0 0 24 24">{children}</svg>;
 }
 
-export function ServiceView({ content, caseStudies = [] }: { content: ServiceContent; caseStudies?: CaseStudyCard[] }): ReactNode {
+export function ServiceView({ content, caseStudies = [], contextImage }: { content: ServiceContent; caseStudies?: CaseStudyCard[]; contextImage?: ContextualImage | undefined }): ReactNode {
   const c = content;
   return (
     <div className="svc-page">
@@ -119,7 +121,7 @@ export function ServiceView({ content, caseStudies = [] }: { content: ServiceCon
               ) : null}
             </div>
             {c.heroWidget ? (
-              c.heroWidget
+              <div className="service-demo"><p className="demo-caption">Interactive illustration · sample data</p>{c.heroWidget}</div>
             ) : c.hero.media ? (
               <div className="hero-media reveal">
                 {/* .hero-media is position:relative with a fixed aspect ratio, so fill matches the existing
@@ -177,6 +179,8 @@ export function ServiceView({ content, caseStudies = [] }: { content: ServiceCon
             <h2 className="h-section">{c.scope.h2}</h2>
             {c.scope.lede ? <p className="lede">{c.scope.lede}</p> : null}
           </div>
+          <div className="scope-editorial">
+          {contextImage ? <ContextualPhoto image={contextImage} /> : null}
           <div className="cover reveal">
             {c.scope.items.map((it, i) => (
               <div className="cv" key={i}>
@@ -189,6 +193,7 @@ export function ServiceView({ content, caseStudies = [] }: { content: ServiceCon
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </div>
       </section>

@@ -14,19 +14,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Button, Container, Section } from "@nexoris/ui";
-import {
-  buildGraph,
-  serviceNode,
-  faqPageNode,
-  breadcrumbNode,
-  type JsonLdNode,
-} from "@nexoris/seo";
+import { buildPageGraph } from "@nexoris/seo";
 import { resolveProof } from "@nexoris/pseo";
 import type { PseoPage } from "../lib/cms.js";
 import { JsonLd } from "./JsonLd.js";
 import { Markdown } from "./Markdown.js";
 import { FloatingToc } from "./FloatingToc.js";
-import { withHeadingIds, headingsOf } from "../lib/render-html.js";
+import { withHeadingIds, headingsOf, wrapTables } from "../lib/render-html.js";
 import { resolveDateTokens } from "../lib/date.js";
 import { authorPath } from "../lib/routes.js";
 
@@ -44,33 +38,24 @@ export function PseoPageView({ page }: { page: PseoPage }): ReactNode {
     ...(page.location ? { location: page.location } : {}),
   });
 
-  const nodes: JsonLdNode[] = [
-    serviceNode({
+  const service = {
       name: h1,
       path,
       ...(serviceType ? { serviceType } : {}),
       ...(page.industryLabel ? { audience: page.industryLabel } : {}),
-    }),
-  ];
+    };
   // The written body, with anchors, so the contents control has something to point at.
-  const bodyHtml = page.body ? withHeadingIds(resolveDateTokens(page.body)) : "";
+  const bodyHtml = page.body ? wrapTables(withHeadingIds(resolveDateTokens(page.body))) : "";
   const toc = bodyHtml ? headingsOf(bodyHtml) : [];
 
-  const faqNode = page.faq.length > 0 ? faqPageNode(page.faq) : undefined;
-  if (faqNode) nodes.push(faqNode);
-  nodes.push(
-    breadcrumbNode([
-      { name: "Solutions", path: "/contact" },
-      ...(page.category ? [{ name: page.category, path }] : []),
-      { name: h1, path },
-    ]),
-  );
+  const graph = buildPageGraph({ page: { routeClass: "pseo", path, name: h1, description: summary ?? h1, breadcrumbs: [{ name: h1, path }] }, service, faq: page.faq });
 
   return (
     <>
-      <JsonLd graph={buildGraph(nodes)} />
+      <JsonLd graph={graph} />
       <Section>
         <Container className="max-w-article">
+          <nav className="pseo-breadcrumb" aria-label="Breadcrumb"><Link href="/">Home</Link><span aria-hidden="true"> / </span><span>{h1}</span></nav>
           {page.category ? (
             <p className="font-mono text-[0.72rem] uppercase tracking-[0.12em] text-purple-600">
               {page.category}

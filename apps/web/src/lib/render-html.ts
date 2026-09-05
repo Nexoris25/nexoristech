@@ -39,6 +39,17 @@ const KEEP: Record<string, Set<string>> = {
 
 const VOID = new Set(["br", "img", "hr"]);
 
+/** Decode display text only; sanitised HTML is never decoded back into executable markup. */
+export function decodeHtmlText(value: string): string {
+  const named: Record<string, string> = { amp: "&", quot: '"', apos: "'", lt: "<", gt: ">", nbsp: " ", ndash: "–", mdash: "—", rsquo: "’", lsquo: "‘", ldquo: "“", rdquo: "”", hellip: "…", trade: "™", copy: "©" };
+  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, entity: string) => {
+    if (!entity.startsWith("#")) return named[entity.toLowerCase()] ?? whole;
+    const hex = entity[1]?.toLowerCase() === "x";
+    const point = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10);
+    return point > 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) ? String.fromCodePoint(point) : whole;
+  });
+}
+
 /** A URL-safe anchor from heading text. */
 const slugify = (s: string): string =>
   s.toLowerCase().trim().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -169,7 +180,7 @@ export function headingsOf(html: string): { text: string; id: string }[] {
   return [...sanitiseHtml(html).matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/gi)]
     .map((m) => (m[1] ?? "").replace(/<[^>]+>/g, "").trim())
     .filter(Boolean)
-    .map((text, i) => ({ text, id: slugify(text) || `section-${i + 1}` }));
+    .map((text, i) => ({ text: decodeHtmlText(text), id: slugify(text) || `section-${i + 1}` }));
 }
 
 /**
@@ -263,7 +274,7 @@ export function splitSections(input: string): HtmlSection[] {
       continue;
     }
     const heading = (m[1] ?? "").replace(/<[^>]+>/g, "").trim();
-    sections.push({ heading, id: slugify(heading) || `section-${sections.length + 1}`, html: part.slice(m[0].length) });
+    sections.push({ heading: decodeHtmlText(heading), id: slugify(heading) || `section-${sections.length + 1}`, html: part.slice(m[0].length) });
   }
   return sections;
 }

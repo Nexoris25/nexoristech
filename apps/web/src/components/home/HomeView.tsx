@@ -10,10 +10,10 @@ import Image from "next/image";
 import { SolutionFinder } from "./SolutionFinder.js";
 import { Testimonials, type Quote } from "./Testimonials.js";
 import { ProductMockup } from "./ProductMockup.js";
-import { ProofStats } from "./ProofStats.js";
+import { CaseStudyProof } from "../CaseStudyProof.js";
 import { OgeChat } from "./OgeChat.js";
 import { ScrollFx } from "./ScrollFx.js";
-import type { InsightCard } from "../../lib/cms.js";
+import type { InsightCard, CaseStudyCard } from "../../lib/cms.js";
 import { ArticleCard } from "../insights/ArticleCard.js";
 
 /*
@@ -24,8 +24,34 @@ import { ArticleCard } from "../insights/ArticleCard.js";
  * this type was quietly throwing them away.
  */
 export type HomeInsight = InsightCard;
+export const HOME_FAQ = [
+              {
+                q: "What does Nexoris Technologies actually do?",
+                a: "We design and build websites, web applications, mobile apps, and custom business systems for companies in Nigeria and abroad. Where AI can genuinely make the product better, we build it in. Where it cannot, we leave it out and tell you why.",
+              },
+              {
+                q: "Do I need to understand the technology to work with you?",
+                a: "No. Tell us the problem in plain words. We turn it into a clear scope, and the Solution Finder or a short call points you to the right service without the jargon.",
+              },
+              {
+                q: "How long does a project take, and what will it cost?",
+                a: "A business website is usually four to eight weeks. A custom system or app typically runs three to six months, delivered in stages so you see working software early. Every project starts with a written scope, timeline, and cost before work begins, so there are no surprise invoices.",
+              },
+              {
+                q: "Do I own what you build?",
+                a: "Yes, completely. All source code, designs, and project files are handed over to you at the end of the project. Nothing is held back, and your team can run it independently.",
+              },
+              {
+                q: "Do you force AI into every project?",
+                a: "No. We add AI only where it earns its place, like answering customers at any hour or warning you before stock runs out. If your project does not need it, we will say so before you pay for it.",
+              },
+              {
+                q: "What happens after launch?",
+                a: "You own everything and can run it yourself. Most clients also take a managed plan so we keep monitoring, updating, and improving the product. Either way, the choice is yours.",
+              },
+            ];
 
-export function HomeView({ insights = [], testimonials = [] }: { insights?: InsightCard[]; testimonials?: Quote[] }): ReactNode {
+export function HomeView({ insights = [], testimonials = [], studies = [] }: { insights?: InsightCard[]; testimonials?: Quote[]; studies?: CaseStudyCard[] }): ReactNode {
   return (
     <>
       <ScrollFx />
@@ -66,6 +92,7 @@ export function HomeView({ insights = [], testimonials = [] }: { insights?: Insi
             </div>
           </div>
           <ProductMockup />
+          <p className="demo-caption home-demo-caption">Example business dashboard · illustrative data</p>
         </div>
       </section>
 
@@ -445,28 +472,25 @@ export function HomeView({ insights = [], testimonials = [] }: { insights?: Insi
       </section>
 
       {/* PROOF */}
-      <section className="band" id="proof" aria-label="Proof">
+      {studies.length ? <div className="svc-page"><CaseStudyProof studies={studies} heading="The work, in our clients’ context." /></div> : <section className="band" id="proof" aria-label="Our work">
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
               <span className="dot" />
-              Proof
+              Our work
             </span>
-            <h2 className="h-section">Work our clients can put a number on.</h2>
+            <h2 className="h-section">See what we build.</h2>
             <p className="lede">
-              We agree the outcome before we start, then we track the work against it. Here is some
-              of what that looks like.
+              Explore Covyvo and GLEEN, our in-house products. Client case studies appear when their results are verified and approved for publication.
             </p>
           </div>
-          <ProofStats />
-          <p className="dyn">Verified project figures only, shown when real outcomes exist.</p>
           <div className="proof-foot reveal">
             <Link className="link-arrow" href="/case-studies">
               See the work <span className="arr">&rarr;</span>
             </Link>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* WHY */}
       <section className="band" aria-label="Why us">
@@ -640,32 +664,7 @@ export function HomeView({ insights = [], testimonials = [] }: { insights?: Insi
             </p>
           </div>
           <div className="faq-wrap reveal">
-            {[
-              {
-                q: "What does Nexoris Technologies actually do?",
-                a: "We design and build websites, web applications, mobile apps, and custom business systems for companies in Nigeria and abroad. Where AI can genuinely make the product better, we build it in. Where it cannot, we leave it out and tell you why.",
-              },
-              {
-                q: "Do I need to understand the technology to work with you?",
-                a: "No. Tell us the problem in plain words. We turn it into a clear scope, and the Solution Finder or a short call points you to the right service without the jargon.",
-              },
-              {
-                q: "How long does a project take, and what will it cost?",
-                a: "A business website is usually four to eight weeks. A custom system or app typically runs three to six months, delivered in stages so you see working software early. Every project starts with a written scope, timeline, and cost before work begins, so there are no surprise invoices.",
-              },
-              {
-                q: "Do I own what you build?",
-                a: "Yes, completely. All source code, designs, and project files are handed over to you at the end of the project. Nothing is held back, and your team can run it independently.",
-              },
-              {
-                q: "Do you force AI into every project?",
-                a: "No. We add AI only where it earns its place, like answering customers at any hour or warning you before stock runs out. If your project does not need it, we will say so before you pay for it.",
-              },
-              {
-                q: "What happens after launch?",
-                a: "You own everything and can run it yourself. Most clients also take a managed plan so we keep monitoring, updating, and improving the product. Either way, the choice is yours.",
-              },
-            ].map((item) => (
+            {HOME_FAQ.map((item) => (
               <details className="faq" key={item.q}>
                 <summary>
                   {item.q} <span className="fq-pm">+</span>

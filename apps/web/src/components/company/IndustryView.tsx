@@ -16,6 +16,10 @@ import { IndustrySolutionFinder, type FinderService } from "./IndustrySolutionFi
 import { OutcomeShift } from "./OutcomeShift.js";
 import { industryLabel as sectorLabel, isIndustrySlug } from "@nexoris/recommend";
 import type { MarketingPage, Section } from "../../content/types.js";
+import { ContextualPhoto } from "../ContextualPhoto.js";
+import { industryImages } from "../../content/contextual-images.js";
+import { CaseStudyProof } from "../CaseStudyProof.js";
+import type { CaseStudyCard } from "../../lib/cms.js";
 
 interface Service {
   key: RegExp;
@@ -451,7 +455,7 @@ function renderSection(section: Section, slug: string): ReactNode {
   return null;
 }
 
-export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
+export function IndustryView({ page, caseStudies = [] }: { page: MarketingPage; caseStudies?: CaseStudyCard[] }): ReactNode {
   const { hero, meta } = page;
   const slug = meta.slug.replace(/^\//, "");
   const label = industryLabel(meta.title);
@@ -476,6 +480,9 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
 
   const body: ReactNode[] = [];
   for (const section of page.sections) {
+    if (section.id === "outcomes" && caseStudies.length) {
+      body.push(<CaseStudyProof studies={caseStudies} key="cms-proof" />);
+    }
     const node = renderSection(section, slug);
     if (node) body.push(node);
     // Drop the industry-tailored Solution Finder in right after "what we build", where the hero's
@@ -510,6 +517,7 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
             <span className="sep">/</span>
             <span className="here">{label}</span>
           </nav>
+          <div className="industry-hero-grid">
           <div className="hero-inner reveal">
             <span className="kicker on-dark">
               <span className="dot" />
@@ -531,6 +539,8 @@ export function IndustryView({ page }: { page: MarketingPage }): ReactNode {
                 {hero.trustStrip}
               </span>
             ) : null}
+          </div>
+          {industryImages[slug] ? <ContextualPhoto image={industryImages[slug]} priority /> : null}
           </div>
         </div>
       </section>

@@ -18,10 +18,10 @@ import { buildMetadata } from "@nexoris/seo";
 import { resolveDateTokens } from "../../lib/date.js";
 import { allHardcodedPages, pagesBySlug } from "../../content/index.js";
 import { PageRenderer } from "../../components/PageRenderer.js";
-import { HomeView } from "../../components/home/HomeView.js";
+import { HomeView, HOME_FAQ } from "../../components/home/HomeView.js";
 import { ServiceView } from "../../components/service/ServiceView.js";
 import { servicePages } from "../../content/service-pages/index.js";
-import { HowWeWorkView } from "../../components/company/HowWeWorkView.js";
+import { HowWeWorkView, HOW_WE_WORK_FAQ } from "../../components/company/HowWeWorkView.js";
 import { AboutView } from "../../components/company/AboutView.js";
 import { ContactView } from "../../components/company/ContactView.js";
 import { CaseStudiesView } from "../../components/company/CaseStudiesView.js";
@@ -32,6 +32,8 @@ import { getPseoPage, getPseoSlugs, getLatestInsights, getTestimonials, getCaseS
 import { AuthorProfileView } from "../../components/author/AuthorProfileView.js";
 import { authorMetadata } from "../../seo/author-seo.js";
 import { graphForPage, metadataForPage } from "../../seo/page-seo.js";
+import { serviceImages } from "../../content/contextual-images.js";
+import { caseStudiesForIndustry } from "../../lib/case-study-industry.js";
 
 interface RouteParams {
   slug?: string[];
@@ -39,6 +41,7 @@ interface RouteParams {
 
 // New published programmatic pages render on demand; the gate keeps the rest unpublished.
 export const dynamicParams = true;
+export const revalidate = 300;
 
 /** Resolve the optional catch-all segments to a content-module slug ("/", "/about", ...). */
 function toSlug(segments: string[] | undefined): string {
@@ -120,12 +123,13 @@ export default async function MarketingRoute({
   if (page.meta.slug === "/") {
     // Approved testimonials come from the CMS. The carousel previously shipped five placeholders
     // reading "Client name / Role, Company", which the live homepage was showing to visitors.
-    const [insights, testimonials] = await Promise.all([getLatestInsights(3), getTestimonials(6)]);
+    const [insights, testimonials, studies] = await Promise.all([getLatestInsights(3), getTestimonials(6), getAllCaseStudies()]);
     return (
       <>
-        <JsonLd graph={graphForPage(page)} />
+        <JsonLd graph={graphForPage(page, HOME_FAQ.map(f => ({ question: f.q, answer: f.a })))} />
         <HomeView
           insights={insights}
+          studies={studies.slice(0, 3)}
           testimonials={testimonials.map((t) => ({
             text: t.quote,
             name: t.authorName,
@@ -147,8 +151,8 @@ export default async function MarketingRoute({
     const proof = await getCaseStudiesForService(page.meta.slug, 3);
     return (
       <>
-        <JsonLd graph={graphForPage(page)} />
-        <ServiceView content={service} caseStudies={proof} />
+        <JsonLd graph={graphForPage(page, service.faq.items.map(f => ({ question: f.q, answer: f.a })))} />
+        <ServiceView content={service} caseStudies={proof} contextImage={serviceImages[page.meta.slug]} />
       </>
     );
   }
@@ -157,7 +161,7 @@ export default async function MarketingRoute({
   if (page.meta.slug === "/how-we-work") {
     return (
       <>
-        <JsonLd graph={graphForPage(page)} />
+        <JsonLd graph={graphForPage(page, HOW_WE_WORK_FAQ.map(f => ({ question: f.q, answer: f.a })))} />
         <HowWeWorkView />
       </>
     );
@@ -194,7 +198,7 @@ export default async function MarketingRoute({
     return (
       <>
         <JsonLd graph={graphForPage(page)} />
-        <IndustryView page={page} />
+        <IndustryView page={page} caseStudies={caseStudiesForIndustry(await getAllCaseStudies(), key.slice(1))} />
       </>
     );
   }

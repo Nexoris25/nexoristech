@@ -8,7 +8,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { buildMetadata } from "@nexoris/seo";
+import { buildMetadata, buildPageGraph } from "@nexoris/seo";
+import { JsonLd } from "../../components/JsonLd.js";
 import { ScrollFx } from "../../components/home/ScrollFx.js";
 import { OgeMark } from "../../components/home/OgeMark.js";
 import { OgeLaunchButton } from "../../components/oge/OgeLaunchButton.js";
@@ -80,16 +81,16 @@ const CAPS: { icon: ReactNode; title: string; body: string }[] = [
   },
 ];
 
-const SPECS: { size: number; label: string; note: string; dark: boolean }[] = [
-  { size: 60, label: "Launcher", note: "60px · squircle", dark: false },
-  { size: 42, label: "Panel header", note: "42px · on dark", dark: true },
-  { size: 28, label: "Message avatar", note: "28px · inline", dark: false },
-  { size: 20, label: "Favicon", note: "20px and down", dark: true },
+const QUESTIONS = [
+  { title: "Find the right service", question: "Which service would help automate my business?", body: "Explore what we build and follow the relevant service pages." },
+  { title: "Understand the process", question: "What happens after I send a project brief?", body: "Learn how scoping, delivery, and support work before you get in touch." },
+  { title: "Talk to the team", question: "Can I speak with someone about my project?", body: "Share your enquiry and review your details before they are sent." },
 ];
 
 export default function MeetOgePage(): ReactNode {
   return (
-    <div className="svc-page">
+    <div className="svc-page oge-page">
+      <JsonLd graph={buildPageGraph({ page: { routeClass: "about", path: "/oge", name: "Meet Oge", description: "The Nexoris Technologies website assistant, helping you explore our services and contact the team.", breadcrumbs: [{ name: "Meet Oge", path: "/oge" }] } })} />
       <ScrollFx />
 
       {/* HERO */}
@@ -140,32 +141,24 @@ export default function MeetOgePage(): ReactNode {
         </div>
       </section>
 
-      {/* THE MARK */}
-      <section className="band" aria-label="Icon and avatar">
+      {/* Customer questions, rather than internal avatar specifications. */}
+      <section className="band" aria-label="Ways Oge can help">
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
               <span className="dot" />
-              Icon &amp; avatar
+              Start a conversation
             </span>
-            <h2 className="h-section">One face, every size.</h2>
+            <h2 className="h-section">A useful place to start.</h2>
             <p className="lede">
-              Oge is a woman, so she has a face. A warm, friendly portrait of a Nigerian woman on the
-              brand-purple squircle, drawn in clean flat shapes that stay legible from the launcher
-              down to a favicon. Approachable, never cartoonish.
+              Ask a question in your own words. Oge helps you navigate our services, understand the process, and reach the team.
             </p>
           </div>
-          <div className="ogp-specs reveal">
-            {SPECS.map((s) => (
-              <div className={`ogp-spec${s.dark ? " dark" : ""}`} key={s.label}>
-                <div className="mk">
-                  <span>
-                    <OgeMark size={s.size} />
-                  </span>
-                </div>
-                <b>{s.label}</b>
-                <span className="sn">{s.note}</span>
-              </div>
+          <div className="ogp-caps reveal">
+            {QUESTIONS.map((s) => (
+              <article className="oge-prompt" key={s.title}>
+                <h3>{s.title}</h3><p>“{s.question}”</p><p>{s.body}</p>
+              </article>
             ))}
           </div>
           <div className="ogp-meaning reveal">
@@ -178,36 +171,7 @@ export default function MeetOgePage(): ReactNode {
                 across a table.
               </p>
             </div>
-            <div className="ogp-mc">
-              <h3>The palette</h3>
-              <p>
-                Brand purples on the deep ink ground, warm brown skin, and a single gold-earring
-                accent, so she sits naturally in the header, the footer launcher, and inside the dark
-                chat panel without introducing a clashing colour.
-              </p>
-              <div className="ogp-swatches">
-                <span className="ogp-sw">
-                  <i style={{ background: "#6A55F2" }} />
-                  #6A55F2
-                </span>
-                <span className="ogp-sw">
-                  <i style={{ background: "#4330B8" }} />
-                  #4330B8
-                </span>
-                <span className="ogp-sw">
-                  <i style={{ background: "#0D0A1C" }} />
-                  #0D0A1C
-                </span>
-                <span className="ogp-sw">
-                  <i style={{ background: "#f4c95d" }} />
-                  #F4C95D gold
-                </span>
-                <span className="ogp-sw">
-                  <i style={{ background: "#1FAE54" }} />
-                  #1FAE54 online
-                </span>
-              </div>
-            </div>
+            <div className="ogp-mc"><h3>A clear route to a person</h3><p>You can contact the team directly whenever you prefer. Oge is a starting point for questions about Nexoris Technologies.</p><Link className="link-arrow" href="/contact/">Contact the team →</Link></div>
           </div>
         </div>
       </section>

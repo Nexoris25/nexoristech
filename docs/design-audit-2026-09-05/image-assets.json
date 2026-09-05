@@ -1,0 +1,156 @@
+[
+  {
+    "key": "education",
+    "path": "apps\\web\\public\\images\\context\\education.webp",
+    "bytes": 92088,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "healthcare",
+    "path": "apps\\web\\public\\images\\context\\healthcare.webp",
+    "bytes": 80606,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "hospitality",
+    "path": "apps\\web\\public\\images\\context\\hospitality.webp",
+    "bytes": 80474,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "restaurant",
+    "path": "apps\\web\\public\\images\\context\\restaurant.webp",
+    "bytes": 99082,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "retail",
+    "path": "apps\\web\\public\\images\\context\\retail.webp",
+    "bytes": 118590,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "real-estate",
+    "path": "apps\\web\\public\\images\\context\\real-estate.webp",
+    "bytes": 75824,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "logistics",
+    "path": "apps\\web\\public\\images\\context\\logistics.webp",
+    "bytes": 117804,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "fintech",
+    "path": "apps\\web\\public\\images\\context\\fintech.webp",
+    "bytes": 123368,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "insurance",
+    "path": "apps\\web\\public\\images\\context\\insurance.webp",
+    "bytes": 136518,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "manufacturing",
+    "path": "apps\\web\\public\\images\\context\\manufacturing.webp",
+    "bytes": 106488,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "agritech",
+    "path": "apps\\web\\public\\images\\context\\agritech.webp",
+    "bytes": 212686,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "professional-services",
+    "path": "apps\\web\\public\\images\\context\\professional-services.webp",
+    "bytes": 78030,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "church",
+    "path": "apps\\web\\public\\images\\context\\church.webp",
+    "bytes": 98680,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "ngo",
+    "path": "apps\\web\\public\\images\\context\\ngo.webp",
+    "bytes": 98764,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "government",
+    "path": "apps\\web\\public\\images\\context\\government.webp",
+    "bytes": 114682,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "construction",
+    "path": "apps\\web\\public\\images\\context\\construction.webp",
+    "bytes": 165690,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "media",
+    "path": "apps\\web\\public\\images\\context\\media.webp",
+    "bytes": 83198,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "wellness",
+    "path": "apps\\web\\public\\images\\context\\wellness.webp",
+    "bytes": 101040,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "automotive",
+    "path": "apps\\web\\public\\images\\context\\automotive.webp",
+    "bytes": 110496,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "events",
+    "path": "apps\\web\\public\\images\\context\\events.webp",
+    "bytes": 97400,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "product-team",
+    "path": "apps\\web\\public\\images\\context\\product-team.webp",
+    "bytes": 99908,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "key": "systems",
+    "path": "apps\\web\\public\\images\\context\\systems.webp",
+    "bytes": 92392,
+    "width": 1536,
+    "height": 1024
+  }
+]

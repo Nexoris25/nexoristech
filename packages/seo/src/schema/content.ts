@@ -16,6 +16,7 @@ import type { JsonLdNode } from "./jsonld.js";
 
 /** A person on an article: the author, or the fact-checker acting as reviewer. */
 export interface PersonRef {
+  type?: "Person" | "Organization";
   name: string;
   /** The author profile slug, for the Person @id and url. */
   slug?: string;
@@ -25,6 +26,7 @@ export interface PersonRef {
 }
 
 function personNode(person: PersonRef): JsonLdNode {
+  if (person.type === "Organization") return { "@type": "Organization", "@id": SITE_NODE_IDS.organization, name: person.name };
   const url = person.slug ? absoluteUrl(authorPath(person.slug)) : undefined;
   return {
     "@type": "Person",
@@ -111,7 +113,7 @@ export function profilePageNode(input: ProfileInput): JsonLdNode {
   ];
   return {
     "@type": "ProfilePage",
-    "@id": `${url}#profilepage`,
+    "@id": `${url}#webpage`,
     url,
     inLanguage: LOCALE,
     mainEntity: {
@@ -147,19 +149,21 @@ export interface JobInput {
 export function jobPostingNode(input: JobInput): JsonLdNode {
   return {
     "@type": "JobPosting",
+    "@id": `${absoluteUrl(input.path)}#job`,
+    mainEntityOfPage: { "@id": `${absoluteUrl(input.path)}#webpage` },
     title: input.title,
     description: input.description,
     datePosted: input.datePosted,
     employmentType: input.employmentType,
     hiringOrganization: { "@id": SITE_NODE_IDS.organization },
-    jobLocation: {
+    jobLocation: input.locationLocality ? {
       "@type": "Place",
       address: {
         "@type": "PostalAddress",
         addressLocality: input.locationLocality,
         addressCountry: COUNTRY_CODE,
       },
-    },
+    } : undefined,
     url: absoluteUrl(input.path),
   };
 }
@@ -188,6 +192,7 @@ export function caseStudyNode(input: CaseStudyInput): JsonLdNode {
     mainEntityOfPage: { "@id": `${url}#webpage` },
     image: input.image ? imageObjectNode(input.image) : undefined,
     publisher: { "@id": SITE_NODE_IDS.organization },
+    author: { "@id": SITE_NODE_IDS.organization },
     about:
       input.aboutPaths && input.aboutPaths.length > 0
         ? input.aboutPaths.map((p) => ({

@@ -15,6 +15,7 @@ import type {
   ServiceInput,
 } from "@nexoris/seo";
 import type { MarketingPage } from "../content/types.js";
+import { industryImages, productTeamImage } from "../content/contextual-images.js";
 
 /** The page name without the brand suffix, used for breadcrumbs and the Service node name. */
 export function pageName(page: MarketingPage): string {
@@ -83,7 +84,7 @@ const PAGE_IMAGE: Record<string, { src: string; alt: string }> = {
 
 /** The page's own image, if it has one. */
 export function pageImage(page: MarketingPage): { src: string; alt: string } | undefined {
-  return PAGE_IMAGE[page.meta.slug];
+  return page.meta.slug === "/about" ? productTeamImage : industryImages[page.meta.slug.slice(1)] ?? PAGE_IMAGE[page.meta.slug];
 }
 
 /** The FAQ items on a page, if it has an FAQ section. */
@@ -140,16 +141,17 @@ function serviceInput(page: MarketingPage): ServiceInput | undefined {
 }
 
 /** Build the JSON-LD @graph for a page. */
-export function graphForPage(page: MarketingPage): JsonLdNode {
+export function graphForPage(page: MarketingPage, renderedFaq?: FaqItem[]): JsonLdNode {
   const isHome = page.meta.slug === "/";
   const service = serviceInput(page);
-  const faq = faqItems(page);
+  const faq = renderedFaq ?? faqItems(page);
   return buildPageGraph({
     page: {
       routeClass: page.meta.routeClass,
       path: page.meta.slug,
       name: page.meta.title,
       description: page.meta.description,
+      ...(pageImage(page) ? { primaryImage: { url: `${SITE_ORIGIN}${pageImage(page)!.src}`, alt: pageImage(page)!.alt } } : {}),
       ...(isHome
         ? {}
         : { breadcrumbs: [{ name: pageName(page), path: page.meta.slug }] }),

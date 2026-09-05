@@ -8,7 +8,8 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { buildPageGraph, profilePageNode, faqPageNode } from "@nexoris/seo";
+import { buildPageGraph } from "@nexoris/seo";
+import { mediaAbsolute } from "../../lib/media-url.js";
 import type { ProfileInput } from "@nexoris/seo";
 import { JsonLd } from "../JsonLd.js";
 import { getArticlesByAuthor, type AuthorProfile } from "../../lib/cms.js";
@@ -42,7 +43,7 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
     ...(author.x ? { otherSameAs: [author.x] } : {}),
     ...(author.expertise.length > 0 ? { knowsAbout: author.expertise } : {}),
     ...(author.photoUrl
-      ? { image: { url: author.photoUrl, alt: author.photoAlt ?? author.name } }
+      ? { image: { url: mediaAbsolute(author.photoUrl), alt: author.photoAlt ?? author.name } }
       : {}),
   };
 
@@ -95,19 +96,15 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
             description: author.metaDescription ?? author.bio ?? `${author.name} writes for Nexoris Technologies.`,
             // The headshot, described by the alt text the CMS already holds.
             ...(author.photoUrl
-              ? { primaryImage: { url: author.photoUrl, alt: author.photoAlt ?? author.name } }
+                ? { primaryImage: { url: mediaAbsolute(author.photoUrl), alt: author.photoAlt ?? author.name } }
               : {}),
             breadcrumbs: [
               { name: "Insights", path: "/insights" },
               { name: author.name, path },
             ],
           },
-          extraNodes: [
-            profilePageNode(profileInput),
-            // faqPageNode returns undefined for an empty set, so the filter is what keeps a stray
-            // undefined out of the graph rather than the length check alone.
-            ...[faqPageNode(author.faq)].filter((n) => n !== undefined),
-          ],
+          profile: profileInput,
+          faq: author.faq,
         })}
       />
 

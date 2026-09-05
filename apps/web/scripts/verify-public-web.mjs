@@ -1,0 +1,44 @@
+/** Read-only HTTP verification of the actual rendered public site. Run from the repository root. */
+import { readFile, writeFile } from 'node:fs/promises';
+const origin=process.env.WEB_VERIFY_ORIGIN ?? 'http://localhost:3000';
+const routes=JSON.parse(await readFile('docs/design-audit-2026-09-05/routes.json','utf8'));
+const decode=s=>s.replaceAll('&amp;','&').replaceAll('&quot;','"').replaceAll('&#x27;',"'");
+const records=[];
+for(const path of routes){
+ const response=await fetch(origin+path);
+ const html=await response.text();
+ const issues=[];
+ const get=(rx)=>decode(rx.exec(html)?.[1]??'');
+ const title=get(/<title>([^<]*)<\/title>/);
+ const description=get(/<meta name="description" content="([^"]*)"/);
+ const canonical=get(/<link rel="canonical" href="([^"]*)"/);
+ const h1Count=[...html.matchAll(/<h1(?:\s|>)/g)].length;
+ const graphs=[...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(m=>JSON.parse(m[1]));
+ const nodes=graphs.flatMap(g=>g['@graph']??[g]);
+ if(response.status!==200)issues.push('HTTP '+response.status);
+ if(!title||!description)issues.push('Missing title or description');
+ if(canonical!=='https://nexoristech.com'+path)issues.push('Canonical mismatch: '+canonical);
+ if(h1Count!==1)issues.push('H1 count '+h1Count);
+ if(!nodes.some(n=>['WebPage','AboutPage','ContactPage','CollectionPage','ProfilePage'].includes(n['@type'])))issues.push('Missing page schema');
+ if(!nodes.some(n=>n['@type']==='Organization'&&n.logo?.url))issues.push('Missing organization logo');
+ const ids=nodes.map(n=>n['@id']).filter(Boolean);
+ if(ids.length!==new Set(ids).size)issues.push('Duplicate graph entity IDs');
+ if(/content="[^"]*noindex/.test(html))issues.push('Unexpected noindex');
+ records.push({path,status:response.status,title,canonical,h1Count,schemaTypes:nodes.map(n=>n['@type']),issues});
+ if(issues.length)console.log(path,issues);
+}
+const sitemapResponse=await fetch(origin+'/sitemap.xml');
+const xml=await sitemapResponse.text();
+const sitemapUrls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>decode(m[1]));
+const robotsResponse=await fetch(origin+'/robots.txt');
+const robots=await robotsResponse.text();
+const llmsResponse=await fetch(origin+'/llms.txt');
+const llms=await llmsResponse.text();
+const alias=await fetch(origin+'/llm.txt',{redirect:'manual'});
+const missing=await fetch(origin+'/audit-page-that-does-not-exist/');
+const missingHtml=await missing.text();
+const discovery={sitemapStatus:sitemapResponse.status,sitemapCount:sitemapUrls.length,duplicates:sitemapUrls.length-new Set(sitemapUrls).size,missingRoutes:routes.filter(p=>!sitemapUrls.includes('https://nexoristech.com'+p)),robotsStatus:robotsResponse.status,robotsSitemap:robots.includes('Sitemap: https://nexoristech.com/sitemap.xml'),llmsStatus:llmsResponse.status,llmsContentType:llmsResponse.headers.get('content-type'),llmsHasOge:llms.includes('/oge/'),llmsHasInsights:llms.includes('/insights/'),aliasStatus:alias.status,aliasLocation:alias.headers.get('location'),notFoundStatus:missing.status,notFoundNoindex:/content="[^"]*noindex/.test(missingHtml)};
+await writeFile('docs/design-audit-2026-09-05/http-verification.json',JSON.stringify({origin,records,discovery},null,2));
+const failed=records.some(r=>r.issues.length)||discovery.missingRoutes.length||discovery.duplicates||discovery.sitemapStatus!==200||discovery.robotsStatus!==200||!discovery.robotsSitemap||discovery.llmsStatus!==200||!discovery.llmsHasOge||!discovery.llmsHasInsights||discovery.aliasStatus!==308||discovery.aliasLocation!=='/llms.txt'||discovery.notFoundStatus!==404||!discovery.notFoundNoindex;
+console.log(JSON.stringify({routes:records.length,failedRoutes:records.filter(r=>r.issues.length).length,discovery},null,2));
+process.exitCode=failed?1:0;

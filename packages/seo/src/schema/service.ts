@@ -33,6 +33,8 @@ export interface ServiceInput {
 export function serviceNode(input: ServiceInput): JsonLdNode {
   return {
     "@type": "Service",
+    "@id": `${absoluteUrl(input.path)}#service`,
+    mainEntityOfPage: { "@id": `${absoluteUrl(input.path)}#webpage` },
     name: input.name,
     serviceType: input.serviceType,
     provider: { "@id": SITE_NODE_IDS.organization },

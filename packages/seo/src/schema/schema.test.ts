@@ -201,7 +201,7 @@ describe("author identity across the graph", () => {
     const profile = profilePageNode({ slug, name: "Chinedu Nwogu" }) as Record<string, unknown>;
     const person = profile["mainEntity"] as { "@id": string };
     expect(person["@id"]).toBe("https://nexoristech.com/chinedu-nwogu/#person");
-    expect(profile["@id"]).toBe("https://nexoristech.com/chinedu-nwogu/#profilepage");
+    expect(profile["@id"]).toBe("https://nexoristech.com/chinedu-nwogu/#webpage");
     expect(profile["url"]).toBe("https://nexoristech.com/chinedu-nwogu/");
   });
 });

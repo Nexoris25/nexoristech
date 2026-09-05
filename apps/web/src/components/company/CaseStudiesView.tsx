@@ -13,12 +13,6 @@ import { ScrollFx } from "../home/ScrollFx.js";
 import { CaseStudyGrid } from "./CaseStudyGrid.js";
 import type { CaseStudyCard } from "../../lib/cms.js";
 
-const PLACEHOLDERS = [
-  "The headline result, stated plainly, appears here.",
-  "A client situation that looked like yours before we started.",
-  "What changed, in numbers we can stand behind.",
-];
-
 const STORY_STEPS = [
   {
     n: "01",
@@ -61,10 +55,9 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
               <span className="dot" />
               Our work
             </span>
-            <h1>The work, with the numbers attached.</h1>
+            <h1>Software built for real work.</h1>
             <p className="lede">
-              Every project here shipped against agreed outcomes. Filter by industry or service to
-              find a business that looked like yours before we started.
+              Explore our own products and published client work, with the context behind each build.
             </p>
           </div>
         </div>
@@ -78,7 +71,7 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
               <span className="dot" />
               Client projects
             </span>
-            <h2 className="h-section">Filter the work to find your situation.</h2>
+            <h2 className="h-section">{studies.length ? "Find work relevant to your business." : "Client work, shared with permission."}</h2>
           </div>
           {/* The published work. The placeholders below were written for the case of having none yet,
               and that is the only case they still serve — they used to show even when the CMS held
@@ -87,23 +80,9 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
             <CaseStudyGrid studies={studies} />
           ) : (
             <>
-              <div className="cs-toolbar reveal">
-                <span />
-                <span className="cs-count">Verified figures only</span>
-              </div>
-              <div className="cs-grid reveal">
-                {PLACEHOLDERS.map((h) => (
-                  <article className="cs-ph" key={h}>
-                    <div className="ph-stripe" />
-                    <span className="ph-tag">Verified case study</span>
-                    <h3>{h}</h3>
-                    <div className="ph-meta">Industry &middot; Service &middot; Outcome</div>
-                  </article>
-                ))}
-              </div>
               {/* This note explains an empty grid ("this space stays honest rather than filled"), so it
                   belongs with the empty grid and not under real work. */}
-              <div className="cs-note">
+              <div className="cs-note proof-empty">
                 <div className="cn-ic">
                   <svg viewBox="0 0 24 24">
                     <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
@@ -113,9 +92,7 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
                 <p>
                   Client case studies are published here only when the outcome is verified and the
                   client has approved the figures.{" "}
-                  <b>If a number cannot be stood behind, it does not appear.</b> Until a
-                  project&rsquo;s results are confirmed, this space stays honest rather than filled.
-                  Our two in-house products below are real proof of capability you can look at today.
+                  Explore our in-house products below while new client stories are prepared.
                 </p>
               </div>
             </>

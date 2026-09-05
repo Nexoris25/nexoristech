@@ -14,7 +14,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buildMetadata, buildPageGraph, resolveUrl } from "@nexoris/seo";
+import { buildMetadata, buildPageGraph, deriveMetaTitle, fitMetaDescription } from "@nexoris/seo";
+import { mediaAbsolute } from "../../../lib/media-url.js";
 import { getCaseStudy, getCaseStudySlugs } from "../../../lib/cms.js";
 import { withHeadingIds, headingsOf } from "../../../lib/render-html.js";
 import { FloatingToc } from "../../../components/FloatingToc.js";
@@ -37,15 +38,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // Derived, not authored. A case study is portfolio evidence rather than a page written to be
     // found in search, so it carries no meta title or meta description of its own; the heading and
     // the summary shown on the page are what describe it.
-    title: `${study.title} | Nexoris Technologies`,
-    description: study.summary ?? "",
+    title: deriveMetaTitle(study.metaTitle ?? study.title, 37),
+    description: fitMetaDescription(study.metaDescription ?? study.summary ?? "").text,
     path: `/case-studies/${study.slug}`,
     // Deliberately kept out of the index. A case study is proof shown to someone already reading a
     // service page, not a page meant to rank on its own, and the owner does not want these counted
     // as part of the site's indexable surface. They stay reachable and their links still pass value;
     // they are simply not listed in the sitemap and not indexed.
     noindex: true,
-    ...(study.coverUrl ? { image: study.coverUrl } : {}),
+    ...(study.coverUrl ? { ogImage: { url: mediaAbsolute(study.coverUrl), alt: study.coverAlt ?? study.title, width: 1200, height: 630 } } : {}),
   });
 }
 
@@ -67,7 +68,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       name: study.title,
       description: study.summary ?? "",
       ...(study.coverUrl
-        ? { primaryImage: { url: resolveUrl(study.coverUrl), alt: study.coverAlt ?? study.title } }
+        ? { primaryImage: { url: mediaAbsolute(study.coverUrl), alt: study.coverAlt ?? study.title } }
         : {}),
       breadcrumbs: [
         { name: "Case studies", path: "/case-studies" },
@@ -78,7 +79,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
       path,
       headline: study.title,
       description: study.summary ?? "",
-      ...(study.coverUrl ? { image: { url: resolveUrl(study.coverUrl), alt: study.coverAlt ?? study.title } } : {}),
+      ...(study.coverUrl ? { image: { url: mediaAbsolute(study.coverUrl), alt: study.coverAlt ?? study.title } } : {}),
       ...(study.servicePaths.length > 0 ? { aboutPaths: study.servicePaths } : {}),
       ...(study.publishedAt ? { datePublished: study.publishedAt } : {}),
       ...(study.updatedAt ? { dateModified: study.updatedAt } : {}),

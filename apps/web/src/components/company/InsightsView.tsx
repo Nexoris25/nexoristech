@@ -104,6 +104,8 @@ function NewsletterSignup(): ReactNode {
 
 export function InsightsView({ cards, categories = [] }: { cards: InsightCard[]; categories?: CategoryTab[] }): ReactNode {
   const [query, setQuery] = useState("");
+  // The WebSite SearchAction and shared search links must actually open their requested results.
+  useEffect(() => { setQuery(new URLSearchParams(window.location.search).get("q") ?? ""); }, []);
   const [category, setCategory] = useState("");
   const q = query.trim().toLowerCase();
 
@@ -310,7 +312,7 @@ export function InsightsView({ cards, categories = [] }: { cards: InsightCard[];
                     <circle cx="11" cy="11" r="7" />
                     <path d="M21 21l-4.3-4.3" />
                   </svg>
-                  <h2>Nothing here yet.</h2>
+                  <h2>{q || category ? "No matching articles." : "New writing is on its way."}</h2>
                   <p>
                     {category && q
                       ? "No article in this category matches that search."

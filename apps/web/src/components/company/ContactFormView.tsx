@@ -280,7 +280,7 @@ export function ContactFormView(): ReactNode {
             it sends. Nothing goes out without your approval.
           </p>
           <div className="brief-btns">
-            <button type="button" className="btn btn-primary" onClick={shapeNotes}>
+            <button type="button" className="btn btn-glass" onClick={shapeNotes}>
               Shape my notes into a brief
             </button>
             <button type="submit" className="btn btn-glass">

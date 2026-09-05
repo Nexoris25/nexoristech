@@ -9,6 +9,8 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ContextualPhoto } from "../ContextualPhoto.js";
+import { productTeamImage } from "../../content/contextual-images.js";
 import Image from "next/image";
 import {
   siNextdotjs,
@@ -100,7 +102,7 @@ const VALUES: { title: string; body: string; icon: ReactNode }[] = [
 
 export function AboutView(): ReactNode {
   return (
-    <div className="svc-page">
+    <div className="svc-page about-page">
       <ScrollFx />
 
       {/* HERO */}
@@ -153,28 +155,7 @@ export function AboutView(): ReactNode {
                 </div>
               </div>
             </div>
-            <div className="hero-media reveal">
-              <Image
-                src="/about/team-meeting.webp"
-                alt="Members of the Nexoris Technologies team discussing a project together over laptops in the office"
-                fill
-                sizes="(max-width: 900px) 100vw, 42vw"
-                priority
-              />
-              <div className="ovl" />
-              <div className="hero-chip abt-hero-chip">
-                <span className="hci">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M3 12a9 9 0 0 1 18 0M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z" />
-                    <path d="M3 12h18" />
-                  </svg>
-                </span>
-                <span>
-                  <b>Built in Lagos, used everywhere</b>
-                  <span>Software for the real local environment</span>
-                </span>
-              </div>
-            </div>
+            <ContextualPhoto image={productTeamImage} priority />
           </div>
         </div>
       </section>
@@ -213,15 +194,7 @@ export function AboutView(): ReactNode {
               </p>
             </div>
             <div className="abt-story-aside reveal">
-              <div className="abt-story-media">
-                <Image
-                  className="abt-art"
-                  src="/about/team-collaborating.webp"
-                  alt="Nexoris Technologies team members reviewing work together on a laptop"
-                  fill
-                  sizes="(max-width: 1080px) 60vw, 30vw"
-                />
-              </div>
+
               <div className="abt-pull">
                 <div className="qm">&ldquo;</div>
                 <p>We begin with the problem and the people, and only then choose the technology.</p>
@@ -394,7 +367,7 @@ export function AboutView(): ReactNode {
               <h3>The team is growing.</h3>
               <p>
                 We hire people who care that the thing works, looks right, and holds up after launch.
-                As the team grows, the people behind your project will appear here.
+                Explore the roles we are hiring for and how to apply.
               </p>
               <Link className="link-arrow" href="/careers">
                 See open roles <span className="arr">&rarr;</span>

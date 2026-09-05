@@ -91,13 +91,13 @@ export async function LegalPageView({
                   above the copy pushed the policy itself off the first screen. */}
               <nav className="toc reveal" data-toc aria-label="On this page">
                 <h2>On this page</h2>
-                <ol>
+                <ul>
                   {anchors.map((s) => (
                     <li key={s.id}>
                       <a href={`#${s.id}`}>{s.heading}</a>
                     </li>
                   ))}
-                </ol>
+                </ul>
               </nav>
 
               <div className="legal-body reveal">

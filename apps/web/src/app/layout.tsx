@@ -34,6 +34,7 @@ import "../styles/careers.css";
 import "../styles/insights.css";
 import "../styles/industry.css";
 import "../styles/pseo.css";
+import "../styles/editorial.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -65,7 +66,7 @@ export default function RootLayout({
         <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/roboto.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
-      <body>
+      <body className="nexoris-site">
         <SkipLink targetId="main-content" />
         <SiteHeader />
         <main id="main-content">{children}</main>

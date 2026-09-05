@@ -8,7 +8,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { buildMetadata, buildGraph, jobPostingNode } from "@nexoris/seo";
+import { buildMetadata, buildPageGraph, deriveMetaTitle, fitMetaDescription } from "@nexoris/seo";
+import { sanitiseHtml, wrapTables } from "../../../lib/render-html.js";
 import type { JobInput } from "@nexoris/seo";
 import { JsonLd } from "../../../components/JsonLd.js";
 import { getJob, getJobSlugs } from "../../../lib/cms.js";
@@ -39,10 +40,9 @@ export async function generateMetadata({
   const job = await getJob(slug);
   if (!job) return { title: "Role not found | Nexoris Technologies" };
   return buildMetadata({
-    title: `${job.title} | Nexoris Technologies`,
+    title: deriveMetaTitle(job.title, 37),
     description:
-      job.summary ??
-      `An open role at Nexoris Technologies: ${job.title}.`,
+      fitMetaDescription(job.summary ?? `An open role at Nexoris Technologies: ${job.title}.`).text,
     path: `/careers/${slug}`,
     ogType: "website",
     noindex: false,
@@ -61,7 +61,7 @@ export default async function JobPage({
   const jobInput: JobInput = {
     path: `/careers/${slug}`,
     title: job.title,
-    description: job.summary ?? job.title,
+    description: sanitiseHtml(job.description ?? job.summary ?? job.title),
     ...(job.employmentType ? { employmentType: job.employmentType } : {}),
     ...(job.publishedAt ? { datePosted: job.publishedAt } : {}),
     ...(job.location ? { locationLocality: job.location } : {}),
@@ -79,7 +79,7 @@ export default async function JobPage({
 
   return (
     <div className="svc-page job-page">
-      <JsonLd graph={buildGraph([jobPostingNode(jobInput)])} />
+      <JsonLd graph={buildPageGraph({ page: { routeClass: "job", path: `/careers/${slug}`, name: job.title, description: job.summary ?? job.title, breadcrumbs: [{ name: "Careers", path: "/careers" }, { name: job.title, path: `/careers/${slug}` }] }, job: jobInput })} />
 
       <section className="job-hero" aria-label={job.title}>
         <div className="glow" />
@@ -132,7 +132,7 @@ export default async function JobPage({
           <div className="job-layout">
             <div className="job-body">
               {job.description ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{job.description}</ReactMarkdown>
+                /<\w+[\s>]/.test(job.description) ? <div dangerouslySetInnerHTML={{ __html: wrapTables(sanitiseHtml(job.description)) }} /> : <ReactMarkdown remarkPlugins={[remarkGfm]}>{job.description}</ReactMarkdown>
               ) : (
                 <p>
                   Full details for this role are being finalised. In the meantime, reach out and we

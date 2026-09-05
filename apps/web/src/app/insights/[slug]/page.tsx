@@ -178,7 +178,7 @@ export default async function ArticlePage({
     description: descriptionFor(article.excerpt, article.tldr, article.metaDescription),
     author: article.author
       ? personRef(article.author)
-      : { name: "Nexoris Technologies" },
+      : { name: "Nexoris Technologies", type: "Organization" },
     ...(article.factChecker ? { reviewer: personRef(article.factChecker) } : {}),
     ...(article.category ? { articleSection: article.category } : {}),
     ...(article.coverUrl
@@ -258,7 +258,8 @@ export default async function ArticlePage({
     ...headingsOf(readableBody),
     ...(article.faq.length > 0 ? [{ id: "faq-heading", text: "Common questions" }] : []),
   ];
-  const people = [
+  const sameCredit = article.author && article.factChecker && article.author.slug === article.factChecker.slug && article.author.name === article.factChecker.name && article.author.bio === article.factChecker.bio;
+  const people = sameCredit && article.author ? [{ kind: "Written and fact-checked by", person: article.author }] : [
     article.author ? { kind: "Written by", person: article.author } : null,
     article.factChecker ? { kind: "Fact-checked by", person: article.factChecker } : null,
   ].filter((p): p is { kind: string; person: Author } => p !== null);

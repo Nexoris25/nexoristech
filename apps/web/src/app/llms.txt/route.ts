@@ -6,7 +6,7 @@
  */
 import { buildLlmsTxt, absoluteUrl, type CatalogueEntry } from "@nexoris/seo";
 import { servicePages, industryPages, about, howWeWork, caseStudies as caseStudiesPage } from "../../content/index.js";
-import { getAllInsightCards, getAllCaseStudies } from "../../lib/cms.js";
+import { getDiscoveryEntries, getAuthorSlugs, getAuthor } from "../../lib/cms.js";
 import type { MarketingPage } from "../../content/types.js";
 
 export const revalidate = 300;
@@ -28,28 +28,24 @@ export async function GET(): Promise<Response> {
    * with no evidence to point at. These are the two things an answer engine weighs most.
    */
   const company = [about, howWeWork, caseStudiesPage].map(toEntry);
-  const studies = (await getAllCaseStudies()).map((c) => ({
-    name: c.title,
-    path: `/case-studies/${c.slug}`,
-    ...(c.summary ? { summary: c.summary } : {}),
-  }));
+  company.push({ name: "Meet Oge", path: "/oge", summary: "Our website assistant and how it helps." }, { name: "Careers", path: "/careers", summary: "Working with Nexoris Technologies and current opportunities." });
 
   let text = buildLlmsTxt({
     summary: SUMMARY,
     services,
     industries,
     company,
-    ...(studies.length > 0 ? { caseStudies: studies } : {}),
   });
 
-  const insights = await getAllInsightCards(40);
-  if (insights.length > 0) {
-    const lines = insights.map((i) => {
-      const url = absoluteUrl(`/insights/${i.slug}`);
-      return i.excerpt ? `- [${i.title}](${url}): ${i.excerpt}` : `- [${i.title}](${url})`;
-    });
-    text += `\n## Insights\n\n${lines.join("\n")}\n`;
+  const clean = (value: string): string => value.replace(/[\r\n]+/g, " ").replace(/[[\]<>]/g, "").trim();
+  const content = await getDiscoveryEntries();
+  for (const [kind, title] of [["insight", "Insights"], ["generated_page", "Guides"], ["job", "Open roles"]]) {
+    const entries = content.filter(entry => entry.kind === kind);
+    if (entries.length) text += `\n## ${title}\n\n${entries.map(entry => `- [${clean(entry.title)}](${absoluteUrl(entry.path)})${entry.summary ? `: ${clean(entry.summary)}` : ""}`).join("\n")}\n`;
   }
+  const authors = await Promise.all((await getAuthorSlugs()).map(async slug => ({ slug, author: await getAuthor(slug) })));
+  if (authors.length) text += `\n## Authors\n\n${authors.filter(a => a.author).map(a => `- [${clean(a.author!.name)}](${absoluteUrl(`/${a.slug}`)})`).join("\n")}\n`;
+  text += `\n## Policies\n\n${["privacy-policy", "terms-of-service", "cookie-policy"].map(slug => `- [${slug.replace(/-/g, " ")}](${absoluteUrl(`/${slug}`)})`).join("\n")}\n`;
 
   return new Response(text, {
     headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=86400" },

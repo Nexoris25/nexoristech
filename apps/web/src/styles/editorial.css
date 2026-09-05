@@ -1,0 +1,176 @@
+/* Public web presentation. Scoped above page CSS to remain stable during client navigation. */
+:root {
+  --maxw: 1280px;
+  --gut: clamp(20px, 4vw, 48px);
+  --bg: #fafaf8;
+  --line: #dedee5;
+  --ink-2: #4e4b5e;
+  --ink-3: #625e70;
+  --r: 8px;
+  --sh-sm: 0 1px 3px rgb(13 10 28 / 3%);
+  --sh-md: 0 8px 24px rgb(13 10 28 / 6%);
+  --sh-lg: 0 18px 48px rgb(13 10 28 / 10%);
+  --fs-hero: clamp(2.125rem, 1.5rem + 2.7vw, 3.875rem);
+  --fs-h2: clamp(1.75rem, 1.25rem + 1.65vw, 2.625rem);
+  --fs-body: 1.0625rem;
+}
+.nexoris-site h1, .nexoris-site h2 { letter-spacing: -.035em; text-wrap: balance; }
+.nexoris-site :is(h2,h3,h4)[id], .nexoris-site section[id] { scroll-margin-top: 100px; }
+.nexoris-site :is(.kicker,.svc-page .kicker) {
+  font-family: Inter, sans-serif; font-size: .75rem; font-weight: 650; letter-spacing: .12em;
+}
+.nexoris-site :is(.kicker,.svc-page .kicker) .dot { display: none; }
+.nexoris-site :is(.hero,.svc-page .hero) { padding-block: clamp(48px, 6vw, 84px); }
+.nexoris-site :is(.hero,.cta,.ai-band) > .glow { opacity: .22; }
+.nexoris-site :is(.band,.svc-page .band) { padding-block: clamp(48px, 6.5vw, 88px); }
+.nexoris-site :is(.band.soft,.svc-page .band.soft) { background: #f3f3f1; }
+.nexoris-site :is(.hero h1,.svc-page .hero h1) { line-height: 1.08; font-weight: 650; }
+.nexoris-site :is(.hero .lede,.svc-page .hero .lede) { line-height: 1.75; color: #d6d3df; }
+.nexoris-site :is(.h-section,.svc-page .h-section) { line-height: 1.15; font-weight: 650; }
+.nexoris-site :is(.btn,.svc-page .btn) { min-height: 48px; border-radius: 6px; white-space: normal; text-align: center; }
+.nexoris-site :is(.btn-primary,.svc-page .btn-primary) { box-shadow: none; }
+.nexoris-site .brand .wm { font-family: Inter, sans-serif; font-size: 1rem; letter-spacing: -.025em; }
+.nexoris-site .mfeat { border-radius: 8px; background: var(--ink-950); }
+.nexoris-site .mfeat::before { opacity: .15; }
+.nexoris-site .mcol .mh { font-family: Inter, sans-serif; font-size: .75rem; color: var(--ink-2); }
+.nexoris-site .mitem span { font-size: .8125rem; }
+.nexoris-site .flyout { border-radius: 10px; }
+.nexoris-site .foot-brand :is(p,.addr,.addr a), .nexoris-site .foot-bottom .mono { color: #bdb9ca; }
+.nexoris-site .foot-brand .addr { font-family: Inter, sans-serif; font-size: .875rem; }
+.nexoris-site .foot-col h5 { font-family: Inter, sans-serif; color: #bdb9ca; font-size: .75rem; }
+.nexoris-site .foot-col a, .nexoris-site .foot-bottom .links a { color: #d1cddb; font-size: .875rem; }
+.nexoris-site .soc { width: 44px; height: 44px; }
+
+/* Quiet surfaces and an editorial rhythm, while retaining all controls and content. */
+.nexoris-site :is(.pain-card,.qcard,.why-card,.ind-card,.abt-mv-card,.abt-val,.ih-card,.proof-card,.faq,.ogp-cap) {
+  box-shadow: none; border-radius: 8px;
+}
+.nexoris-site .svc-page .qcard { background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding-inline: 0; }
+.nexoris-site .svc-page .qcard .qm { display: none; }
+.nexoris-site .svc-page .qcard p { font-size: 1.125rem; line-height: 1.65; }
+.nexoris-site .svc-page .cover .cv p { font-size: 1rem; line-height: 1.65; }
+.nexoris-site :is(.faq,.svc-page .faq) { border-inline: 0; border-top: 0; border-radius: 0; background: transparent; }
+.nexoris-site :is(.faq-wrap,.svc-page .faq-wrap) { gap: 0; border-top: 1px solid var(--line); }
+.nexoris-site :is(.faq[open],.svc-page .faq[open]) { box-shadow: none; }
+.nexoris-site :is(.faq>summary,.svc-page .faq>summary) { padding-block: 24px; line-height: 1.5; }
+.nexoris-site :is(.faq-head,.svc-page .faq-head) { max-width: 820px; text-align: left; }
+.nexoris-site :is(.faq-head .kicker,.svc-page .faq-head .kicker) { justify-content: flex-start; }
+.nexoris-site :is(.cta,.svc-page .cta) { padding-block: clamp(56px, 7vw, 88px); }
+
+/* Photography carries context, not proof. Fixed ratios reserve layout space. */
+.nexoris-site .context-photo { margin: 0; min-width: 0; }
+.nexoris-site .context-photo img { display: block; width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: 8px; filter: none; }
+.nexoris-site .context-photo figcaption { margin-top: 10px; font-size: .75rem; line-height: 1.5; color: var(--ink-3); }
+.nexoris-site .hero .context-photo figcaption { color: #bdb9ca; }
+.nexoris-site .industry-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; margin-top: 32px; }
+.nexoris-site .industry-page .hero .crumb { justify-content: flex-start; }
+.nexoris-site .industry-page .hero-inner { margin: 0; text-align: left; align-items: flex-start; max-width: none; }
+.nexoris-site .industry-page .hero-inner :is(h1,.lede) { margin-inline: 0; }
+.nexoris-site .industry-page .hero-inner :is(.hero-cta,.kicker) { justify-content: flex-start; }
+.nexoris-site .industry-page .hero-inner h1 { font-size: clamp(2.125rem, 1.25rem + 2.4vw, 3.375rem); }
+.nexoris-site .industry-page .ind-pain-card { border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: none; padding-inline: 0; background: transparent; }
+.nexoris-site .industry-page .ind-pain-q { font-size: 1.0625rem; line-height: 1.7; }
+.nexoris-site .industry-page .ind-sol-item { border-radius: 0; box-shadow: none; }
+.nexoris-site .scope-editorial { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(32px, 5vw, 64px); margin-top: 40px; align-items: start; }
+.nexoris-site .scope-editorial .cover { margin-top: 0; grid-template-columns: 1fr; }
+.nexoris-site .scope-editorial .context-photo { position: sticky; top: 106px; }
+.nexoris-site .service-demo { min-width: 0; }
+.nexoris-site .demo-caption { color: #c6c2d2; font-size: .75rem; line-height: 1.6; margin-bottom: 12px; }
+.nexoris-site .ind-out-viz::after { content: "Illustrative comparison · not measured client results"; display: block; margin-top: 12px; color: var(--ink-3); font-size: .75rem; }
+.nexoris-site .proof-empty { border-block: 1px solid var(--line); padding-block: 28px; max-width: 68ch; }
+.nexoris-site .proof-empty p { color: var(--ink-2); line-height: 1.75; margin-bottom: 16px; }
+
+/* Company pages: genuine portrait remains separate from contextual imagery. */
+.nexoris-site .home-demo-caption { text-align: center; margin-top: 16px; }
+.nexoris-site .foot-col h2 { font-family: Inter,sans-serif; color: #bdb9ca; font-size: .75rem; }
+.nexoris-site .insights-page .card { border-radius: 6px; box-shadow: none; border-color: var(--line); }
+.nexoris-site .insights-page .card:hover { transform: none; box-shadow: none; }
+.nexoris-site .insights-page .card-body h3 { font-size: 1.25rem; line-height: 1.35; }
+.nexoris-site .insights-page .card-ex { font-size: .9375rem; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.nexoris-site .insights-page .card-go { background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; justify-content: space-between; padding: 16px 0 0; }
+.nexoris-site .insights-page .card:hover .card-go { background: transparent; color: var(--purple-700); }
+.nexoris-site .insights-page .card-cat { border-radius: 3px; font-family: Inter,sans-serif; font-size: .6875rem; }
+.nexoris-site .insights-page .feat { border-radius: 8px; box-shadow: none; }
+.nexoris-site .insights-page .nl { border-radius: 8px; }
+.nexoris-site .insights-page .nl::before { opacity: .2; }
+.nexoris-site .insights-page .card-meta { flex-wrap: wrap; }
+.nexoris-site .ogw-launch, .nexoris-site .wa-fab, .nexoris-site .to-top, .nexoris-site .toc-fab { box-shadow: 0 4px 16px rgb(13 10 28 / 12%); border-radius: 10px; min-width: 44px; min-height: 44px; }
+.nexoris-site .ogw-launch .ogw-av { border-radius: 10px; }
+.nexoris-site .ogw-launch .ogw-ring { display: none; }
+.nexoris-site .legal-page .toc ul { list-style: none; }
+.nexoris-site .article-page .toc-aside a { font-family: Inter,sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
+.nexoris-site .article-page .toc-aside .toc-text { -webkit-line-clamp: unset; }
+.nexoris-site .job-page .job-body, .nexoris-site .case-study-page .cs-body, .nexoris-site .pseo-page .prose { font-family: Inter,sans-serif; font-size: 1.0625rem; line-height: 1.85; }
+.nexoris-site .pseo-body { font-family: Inter,sans-serif; font-size: 1.0625rem; line-height: 1.85; }
+.nexoris-site .pseo-breadcrumb { margin-bottom: 28px; font-size: .8125rem; color: var(--ink-3); }
+.nexoris-site .abt-founder { box-shadow: none; border-radius: 8px; }
+.nexoris-site .abt-founder-photo { border-radius: 6px; }
+.nexoris-site .abt-mv-card { background: transparent; border-inline: 0; }
+.nexoris-site .abt-val p { font-size: 1rem; line-height: 1.7; }
+.nexoris-site .company-editorial { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,64px); align-items: center; }
+.nexoris-site .company-editorial .lede { margin-top: 20px; }
+.nexoris-site .contact-page .hero { padding-bottom: 48px; }
+.nexoris-site .contact-page .form-card { border-radius: 8px; box-shadow: none; }
+.nexoris-site .contact-page .field :is(input,select,textarea) { font-size: 1rem; border-radius: 5px; }
+.nexoris-site .contact-page .aside-card { border-radius: 8px; box-shadow: none; }
+.nexoris-site .contact-page .micro, .nexoris-site .contact-page .privacy-note { font-size: .8125rem; line-height: 1.65; }
+.nexoris-site .contact-page .next-step { border-radius: 0; box-shadow: none; }
+.nexoris-site .ih-shot { aspect-ratio: 16/10; }
+.nexoris-site .ih-shot img { object-fit: contain; background: #f0f0f3; }
+
+/* All CMS editorial families share the same readable long-form treatment. */
+.nexoris-site .article-page .prose { font-family: Inter, sans-serif; font-size: 1.0625rem; line-height: 1.85; color: #34313f; overflow-wrap: anywhere; }
+.nexoris-site .article-page .prose :is(p,ul,ol) { margin-block: 0 1.4em; }
+.nexoris-site .article-page .prose h2 { font-size: clamp(1.5rem,2.3vw,2rem); line-height: 1.25; margin-top: 2.2em; margin-bottom: .8em; }
+.nexoris-site .article-page .prose h3 { font-size: 1.25rem; line-height: 1.4; margin-top: 1.8em; }
+.nexoris-site .article-page .prose a { text-decoration: underline; text-underline-offset: .2em; }
+.nexoris-site .article-page .art-head h1 { max-width: 25ch; font-weight: 650; line-height: 1.12; }
+.nexoris-site .article-page .tldr { background: #f3f3f1; border: 1px solid var(--line); border-left: 3px solid var(--purple-600); border-radius: 4px; box-shadow: none; }
+.nexoris-site .article-page .toc a { font-family: Inter, sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
+.nexoris-site .article-page .toc ol { list-style: none; padding-left: 0; }
+.nexoris-site .article-page .table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+.nexoris-site .article-page .prose table { font-family: Inter, sans-serif; font-size: .9375rem; line-height: 1.65; }
+.nexoris-site .article-page .prose :is(th,td) { padding: 16px; min-width: 120px; }
+.nexoris-site .article-page .prose figure, .nexoris-site .article-page .art-figure { border-radius: 6px; overflow: hidden; }
+.nexoris-site .article-page .prose figcaption { font-family: Inter, sans-serif; font-size: .8125rem; line-height: 1.65; color: var(--ink-2); }
+.nexoris-site .legal-page .legal-head h1 { font-size: clamp(2.125rem,4vw,3.25rem); }
+.nexoris-site .legal-page .legal-sec { border-radius: 0; box-shadow: none; }
+.nexoris-site .author-page .prof { box-shadow: none; border-radius: 8px; }
+.nexoris-site .author-page .prof-av { box-shadow: none; border-radius: 6px; }
+.nexoris-site .author-page .prof-chips { gap: 8px; }
+.nexoris-site .author-page .bio { font-size: 1.0625rem; line-height: 1.8; }
+.nexoris-site .ogp-stage { box-shadow: none; background: #1c182b; border: 1px solid #3c354e; border-radius: 8px; }
+.nexoris-site .ogp-stage .ring { opacity: .25; }
+.nexoris-site .ogp-mini { border-radius: 8px; box-shadow: none; }
+.nexoris-site .oge-prompt { padding: 28px 0; border-top: 1px solid var(--line); }
+.nexoris-site .oge-prompt h3 { font-size: 1.25rem; margin-bottom: 12px; }
+.nexoris-site .oge-prompt p { color: var(--ink-2); line-height: 1.7; }
+
+@media (max-width: 1080px) {
+  .nexoris-site .brand .wm { display: inline-block; }
+  .nexoris-site .brand .wm span { display: none; }
+  .nexoris-site .svc-page .hero-media { order: 0; }
+}
+@media (max-width: 900px) {
+  .nexoris-site :is(.industry-hero-grid,.scope-editorial,.company-editorial) { grid-template-columns: 1fr; }
+  .nexoris-site .scope-editorial .context-photo { position: static; }
+  .nexoris-site .industry-hero-grid { gap: 32px; }
+  .nexoris-site .industry-page .hero-inner h1 { max-width: 24ch; }
+  .nexoris-site .industry-page .hero-inner .hero-cta { width: 100%; }
+}
+@media (max-width: 600px) {
+  .nexoris-site :is(.hero,.svc-page .hero) { padding-block: 36px 44px; }
+  .nexoris-site :is(.hero .crumb,.svc-page .hero .crumb) { font-size: .75rem; margin-bottom: 24px; flex-wrap: wrap; }
+  .nexoris-site :is(.hero h1,.svc-page .hero h1) { font-size: 2.125rem; }
+  .nexoris-site :is(.hero .lede,.svc-page .hero .lede) { font-size: 1rem; line-height: 1.75; }
+  .nexoris-site .svc-page .hero-inner { text-align: left; align-items: flex-start; }
+  .nexoris-site .svc-page .hero-inner .kicker { justify-content: flex-start; }
+  .nexoris-site .svc-page .hero-cta { justify-content: flex-start; width: 100%; }
+  .nexoris-site .context-photo img { aspect-ratio: 4/3; }
+  .nexoris-site .article-page .prose { font-size: 1rem; line-height: 1.8; }
+  .nexoris-site .article-page .byline { gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nexoris-site *, .nexoris-site *::before, .nexoris-site *::after { scroll-behavior: auto; }
+  .nexoris-site .reveal.anim { animation: none; }
+}

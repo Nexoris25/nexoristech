@@ -81,7 +81,7 @@ export function buildPageGraph(input: PageGraphInput): JsonLdNode {
   }
 
   if (routeClass === "author" && input.profile) {
-    nodes.push(profilePageNode(input.profile));
+    nodes[nodes.length - 1] = { ...webPageNode(input.page), ...profilePageNode(input.profile) };
   }
 
   if (routeClass === "job" && input.job) {

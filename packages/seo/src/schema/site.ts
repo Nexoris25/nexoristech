@@ -42,7 +42,7 @@ function postalAddress(): JsonLdNode {
 }
 
 /** The Organization node (PRD 9.2). */
-export function organizationNode(logoUrl?: string): JsonLdNode {
+export function organizationNode(logoUrl = `${SITE_ORIGIN}/brand/nexoris-logo-purple.png`): JsonLdNode {
   return {
     "@type": "Organization",
     "@id": orgId,
