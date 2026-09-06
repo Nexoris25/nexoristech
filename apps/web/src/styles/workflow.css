@@ -1,0 +1,270 @@
+/* Aligned desktop comparison. Compact screens retain the two-state interaction. */
+.industry-page .ind-out-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+}
+.industry-page .ind-out-copy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.industry-page .ind-out-copy .band-head {
+  margin: 0;
+}
+.industry-page .ind-out-copy .ind-out {
+  margin-top: 32px;
+}
+.industry-page .ind-out-viz {
+  max-width: none;
+  min-width: 0;
+}
+.industry-page .workflow-preview {
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  border: 1px solid #dedce7;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 18px 48px rgb(27 20 52 / 4%);
+}
+.industry-page .workflow-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 30px 36px;
+  border-bottom: 1px solid #e9e5ef;
+}
+.industry-page .workflow-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  font:
+    600 11px/1.5 Inter,
+    sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b5b85;
+}
+.industry-page .workflow-heading h3 {
+  margin: 0;
+  font:
+    600 clamp(20px, 2vw, 28px) / 1.25 Inter,
+    sans-serif;
+  letter-spacing: -0.035em;
+  color: #211b31;
+}
+.industry-page .workflow-context {
+  max-width: 180px;
+  font:
+    400 13px/1.6 Inter,
+    sans-serif;
+  color: #716b80;
+}
+.industry-page .workflow-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.industry-page .workflow-column-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 36px;
+}
+.industry-page .workflow-column-head svg {
+  flex-shrink: 0;
+}
+.industry-page .workflow-column-head h4 {
+  margin: 0 0 5px;
+  font:
+    600 19px/1.4 Inter,
+    sans-serif;
+  letter-spacing: -0.02em;
+}
+.industry-page .workflow-column-head p {
+  margin: 0;
+  font:
+    400 13px/1.5 Inter,
+    sans-serif;
+}
+.industry-page .workflow-before {
+  background: #faf9fb;
+  color: #6c6275;
+}
+.industry-page .workflow-after {
+  background: #f0ecfc;
+  color: #5136b5;
+  border-left: 1px solid #e2daf5;
+}
+.industry-page .workflow-column-head.workflow-after {
+  background: #241544;
+  color: #fff;
+  border-color: #241544;
+}
+.industry-page .workflow-column-head.workflow-after p {
+  color: #d6ccec;
+}
+.industry-page .workflow-comparison-row {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+}
+.industry-page .workflow-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 26px 36px;
+  border-top: 1px solid #e7e2ed;
+}
+.industry-page .workflow-cell h5 {
+  margin: 0 0 8px;
+  font:
+    600 16px/1.4 Inter,
+    sans-serif;
+  color: #30253d;
+}
+.industry-page .workflow-cell p {
+  margin: 0;
+  font:
+    400 14px/1.7 Inter,
+    sans-serif;
+  color: #665d71;
+  max-width: 390px;
+}
+.industry-page .workflow-cell.workflow-after p {
+  color: #514465;
+}
+.industry-page .workflow-step-number,
+.industry-page .workflow-step-status {
+  flex: 0 0 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  font:
+    500 12px/1 Inter,
+    sans-serif;
+}
+.industry-page .workflow-step-status {
+  background: #ded5f6;
+  color: #5635af;
+  border-radius: 50%;
+}
+.industry-page .workflow-transition {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid #e2daf0;
+  background: #fff;
+  color: #735ca2;
+}
+.industry-page .workflow-summary {
+  padding: 24px 36px 30px;
+  border-top: 1px solid #e2ddeb;
+}
+.industry-page .workflow-summary > span {
+  display: block;
+  margin-bottom: 6px;
+  font:
+    600 13px/1.5 Inter,
+    sans-serif;
+}
+.industry-page .workflow-summary p {
+  margin: 0;
+  font:
+    400 14px/1.65 Inter,
+    sans-serif;
+}
+.industry-page .workflow-switch,
+.industry-page .workflow-accessible-status {
+  display: none;
+}
+@media (max-width: 760px) {
+  .industry-page .ind-out-copy {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .industry-page .ind-out-copy .ind-out {
+    margin: 0;
+  }
+  .industry-page .workflow-heading {
+    padding: 24px;
+  }
+  .industry-page .workflow-context {
+    display: none;
+  }
+  .industry-page .workflow-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 4px;
+    margin: 18px 20px;
+    border: 1px solid #e6e3ed;
+    border-radius: 10px;
+    background: #f5f4f7;
+  }
+  .industry-page .workflow-switch button {
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: #655e73;
+    background: transparent;
+    font:
+      600 14px/1.4 Inter,
+      sans-serif;
+    cursor: pointer;
+  }
+  .industry-page .workflow-switch button[aria-pressed="true"] {
+    background: #fff;
+    border-color: #ded8ec;
+    color: #5136b5;
+    box-shadow: 0 1px 3px rgb(27 20 52 / 6%);
+  }
+  .industry-page .workflow-switch button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+  .industry-page .workflow-switch button:focus-visible {
+    outline: 3px solid #7964dc;
+    outline-offset: 3px;
+  }
+  .industry-page .workflow-comparison,
+  .industry-page .workflow-comparison-row {
+    grid-template-columns: 1fr;
+  }
+  .industry-page .show-after .workflow-before,
+  .industry-page .show-before .workflow-after,
+  .industry-page .workflow-transition {
+    display: none;
+  }
+  .industry-page .workflow-after {
+    border-left: 0;
+  }
+  .industry-page .workflow-column-head,
+  .industry-page .workflow-cell,
+  .industry-page .workflow-summary {
+    padding: 24px;
+  }
+  .industry-page .workflow-cell {
+    min-height: 134px;
+    gap: 14px;
+  }
+  .industry-page .workflow-accessible-status {
+    display: block;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

@@ -11,10 +11,16 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { ScrollFx } from "../home/ScrollFx.js";
-import { ICONS } from "./industryIcons.js";
-import { IndustrySolutionFinder, type FinderService } from "./IndustrySolutionFinder.js";
+import { ServiceIcon } from "./ServiceIcon.js";
+import {
+  IndustrySolutionFinder,
+  type FinderService,
+} from "./IndustrySolutionFinder.js";
 import { OutcomeShift } from "./OutcomeShift.js";
-import { industryLabel as sectorLabel, isIndustrySlug } from "@nexoris/recommend";
+import {
+  industryLabel as sectorLabel,
+  isIndustrySlug,
+} from "@nexoris/recommend";
 import type { MarketingPage, Section } from "../../content/types.js";
 import { ContextualPhoto } from "../ContextualPhoto.js";
 import { industryImages } from "../../content/contextual-images.js";
@@ -39,7 +45,8 @@ const SERVICES: Service[] = [
     key: /product development|custom software|websites?, apps/i,
     title: "AI Product Development",
     href: "/ai-product-development",
-    blurb: "Custom websites, web apps, mobile apps, and business systems built around how you work.",
+    blurb:
+      "Custom websites, web apps, mobile apps, and business systems built around how you work.",
     iconKey: "cube",
     goal: "Build a new product, app, or internal system",
     result:
@@ -49,7 +56,8 @@ const SERVICES: Service[] = [
     key: /chatbot|assistant/i,
     title: "AI Chatbots & Virtual Assistants",
     href: "/ai-chatbots-virtual-assistants",
-    blurb: "Assistants that answer from your own content and hand off to a human when needed.",
+    blurb:
+      "Assistants that answer from your own content and hand off to a human when needed.",
     iconKey: "chat",
     goal: "Answer customers instantly, day and night",
     result:
@@ -59,7 +67,8 @@ const SERVICES: Service[] = [
     key: /automation|process/i,
     title: "Business Process Automation",
     href: "/business-process-automation",
-    blurb: "Automate the repetitive, manual workflows quietly eating your team's hours.",
+    blurb:
+      "Automate the repetitive, manual workflows quietly eating your team's hours.",
     iconKey: "gear",
     goal: "Take repetitive manual work off my team",
     result:
@@ -69,7 +78,8 @@ const SERVICES: Service[] = [
     key: /e-?commerce/i,
     title: "AI E-Commerce",
     href: "/ai-ecommerce-development",
-    blurb: "Online stores built around your catalogue, with payments and renewals handled.",
+    blurb:
+      "Online stores built around your catalogue, with payments and renewals handled.",
     iconKey: "cart",
     goal: "Sell more online and take payments",
     result:
@@ -79,7 +89,8 @@ const SERVICES: Service[] = [
     key: /dashboard|analytics/i,
     title: "Data Dashboards & Analytics",
     href: "/data-dashboards-predictive-analytics",
-    blurb: "Your numbers in one live view, with forecasts you can actually act on.",
+    blurb:
+      "Your numbers in one live view, with forecasts you can actually act on.",
     iconKey: "chart",
     goal: "See my numbers and forecasts clearly",
     result:
@@ -89,7 +100,8 @@ const SERVICES: Service[] = [
     key: /integration|systems/i,
     title: "AI & Systems Integration",
     href: "/ai-systems-integration",
-    blurb: "Connect the tools and data you already use so they finally talk to each other.",
+    blurb:
+      "Connect the tools and data you already use so they finally talk to each other.",
     iconKey: "nodes",
     goal: "Make my existing tools work together",
     result:
@@ -99,7 +111,8 @@ const SERVICES: Service[] = [
     key: /infrastructure|readiness/i,
     title: "Data Infrastructure & AI Readiness",
     href: "/data-infrastructure-ai-readiness",
-    blurb: "Clean, structured, well-governed data, the groundwork everything else needs.",
+    blurb:
+      "Clean, structured, well-governed data, the groundwork everything else needs.",
     iconKey: "db",
     goal: "Get my data clean and ready for AI",
     result:
@@ -109,7 +122,8 @@ const SERVICES: Service[] = [
     key: /iot/i,
     title: "IoT Development",
     href: "/iot-development",
-    blurb: "Sensors and connected devices that report what is happening on the ground.",
+    blurb:
+      "Sensors and connected devices that report what is happening on the ground.",
     iconKey: "sensor",
     goal: "Track assets, stock, or equipment live",
     result:
@@ -119,7 +133,8 @@ const SERVICES: Service[] = [
     key: /govtech|government/i,
     title: "GovTech Platforms",
     href: "/govtech-platforms",
-    blurb: "Citizen services, registries, and revenue platforms built for institutions.",
+    blurb:
+      "Citizen services, registries, and revenue platforms built for institutions.",
     iconKey: "bank",
     goal: "Deliver citizen or public-sector services",
     result:
@@ -129,7 +144,8 @@ const SERVICES: Service[] = [
     key: /seo|geo|content|found/i,
     title: "AI Content, SEO & GEO",
     href: "/ai-seo-geo",
-    blurb: "Get found on Google and surfaced inside AI tools when customers search.",
+    blurb:
+      "Get found on Google and surfaced inside AI tools when customers search.",
     iconKey: "search",
     goal: "Get found on Google and AI tools",
     result:
@@ -166,64 +182,11 @@ function resolveServices(note: string): Service[] {
   return picked;
 }
 
-/** Per-industry glyph set for the "problem" cards, so each page's variant matches its sector. */
-const PAIN_ICONS: Record<string, string[]> = {
-  "agritech-software": ["leaf", "cloud", "shield", "coins"],
-  "automotive-software": ["car", "wrench", "calendar", "coins"],
-  "church-management-software": ["church", "users", "calendar", "heart"],
-  "construction-software": ["hardhat", "ruler", "truck", "chart"],
-  "education-software": ["book", "users", "screen", "chart"],
-  "events-software": ["calendar", "ticket", "users", "camera"],
-  "fintech-software": ["coins", "shield", "chart", "phone"],
-  "fitness-wellness-software": ["dumbbell", "calendar", "heart", "users"],
-  "government-digital-solutions": ["bank", "doc", "users", "shield"],
-  "healthcare-software": ["pulse", "stethoscope", "calendar", "shield"],
-  "hospitality-software": ["home", "calendar", "star", "users"],
-  "insurance-software": ["shield", "doc", "scale", "chart"],
-  "logistics-software": ["truck", "box", "pin", "gauge"],
-  "manufacturing-software": ["factory", "gauge", "box", "wrench"],
-  "media-entertainment-software": ["play", "camera", "users", "chart"],
-  "ngo-software": ["heart", "users", "doc", "coins"],
-  "professional-services-software": ["briefcase", "doc", "clock", "users"],
-  "real-estate-software": ["home", "key", "users", "chart"],
-  "restaurant-software": ["utensils", "cart", "clock", "users"],
-  "retail-ecommerce-software": ["cart", "tag", "box", "chart"],
-};
-const PAIN_FALLBACK = ["gauge", "chart", "shield", "users"];
-
-function painIcon(slug: string, index: number): string {
-  const set = PAIN_ICONS[slug] ?? PAIN_FALLBACK;
-  return set[index % set.length] ?? "gauge";
-}
-
-/** Choose a "what we build" card icon from keywords in the solution title. */
-const SOLUTION_ICON_RULES: { re: RegExp; icon: string }[] = [
-  { re: /marketplace|market\b|store|shop/i, icon: "cart" },
-  { re: /credit|pay|loan|invoice|billing|payment|wallet|finance/i, icon: "coins" },
-  { re: /traceab|complian|audit|record|certif/i, icon: "shield" },
-  { re: /offline|field|mobile|app\b/i, icon: "phone" },
-  { re: /portal|website|site\b|booking/i, icon: "screen" },
-  { re: /dashboard|report|analytic|forecast/i, icon: "chart" },
-  { re: /sensor|iot|device|telemetr|track/i, icon: "sensor" },
-  { re: /integrat|connect|sync|api/i, icon: "nodes" },
-  { re: /automation|automate|workflow|schedul/i, icon: "gear" },
-  { re: /calendar|appointment|reservation|event/i, icon: "calendar" },
-  { re: /data|database|infrastructure|warehouse/i, icon: "db" },
-  { re: /member|customer|patient|student|donor|citizen|guest|tenant|crm/i, icon: "users" },
-  { re: /content|seo|search/i, icon: "search" },
-  { re: /manage|admin|operations|scheme/i, icon: "grid" },
-];
-
-function solutionIcon(title: string): string {
-  for (const rule of SOLUTION_ICON_RULES) {
-    if (rule.re.test(title)) return rule.icon;
-  }
-  return "cube";
-}
-
 /** Short industry label for the breadcrumb, from the meta title. */
 function industryLabel(title: string): string {
-  return (title.split("|")[0] ?? "Industry").replace(/\bin Nigeria\b/i, "").trim();
+  return (title.split("|")[0] ?? "Industry")
+    .replace(/\bin Nigeria\b/i, "")
+    .trim();
 }
 
 function renderSection(section: Section, slug: string): ReactNode {
@@ -236,15 +199,18 @@ function renderSection(section: Section, slug: string): ReactNode {
               <span className="dot" />
               The problem
             </span>
-            {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
+            {section.heading ? (
+              <h2 className="h-section">{section.heading}</h2>
+            ) : null}
           </div>
           <div className="ind-pain reveal">
             {section.cards.map((c, i) => (
               <article className="ind-pain-card" key={c.body}>
-                <span className="ind-pain-ic">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    {ICONS[painIcon(slug, i)] ?? ICONS.gauge}
-                  </svg>
+                <span
+                  className="ind-pain-ic editorial-index"
+                  aria-hidden="true"
+                >
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <p className="ind-pain-q">&ldquo;{c.body}&rdquo;</p>
               </article>
@@ -268,26 +234,34 @@ function renderSection(section: Section, slug: string): ReactNode {
 
   if (section.kind === "cards" && section.id === "solutions") {
     return (
-      <section className="band soft" aria-label="What we build" key={section.id}>
+      <section
+        className="band soft"
+        aria-label="What we build"
+        key={section.id}
+      >
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
               <span className="dot" />
               What we build
             </span>
-            {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
+            {section.heading ? (
+              <h2 className="h-section">{section.heading}</h2>
+            ) : null}
             {section.intro ? <p className="lede">{section.intro}</p> : null}
           </div>
           <div
             className="ind-sol reveal"
-            style={{ "--sol-cols": Math.min(4, Math.ceil(section.cards.length / 2)) } as CSSProperties}
+            style={
+              {
+                "--sol-cols": Math.min(4, Math.ceil(section.cards.length / 2)),
+              } as CSSProperties
+            }
           >
-            {section.cards.map((c) => (
+            {section.cards.map((c, i) => (
               <div className="ind-sol-item" key={(c.title ?? "") + c.body}>
-                <span className="ind-sol-ic">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    {ICONS[solutionIcon(c.title ?? c.body)] ?? ICONS.cube}
-                  </svg>
+                <span className="ind-sol-ic editorial-index" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 {c.title ? <h3>{c.title.replace(/\.$/, "")}</h3> : null}
                 <p>{c.body}</p>
@@ -301,7 +275,11 @@ function renderSection(section: Section, slug: string): ReactNode {
 
   if (section.kind === "cards" && section.id.startsWith("ai")) {
     return (
-      <section className="band ink" aria-label="Where AI helps" key={section.id}>
+      <section
+        className="band ink"
+        aria-label="Where AI helps"
+        key={section.id}
+      >
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker on-dark">
@@ -320,12 +298,10 @@ function renderSection(section: Section, slug: string): ReactNode {
             ) : null}
           </div>
           <div className="ind-ai-grid reveal">
-            {section.cards.map((c) => (
+            {section.cards.map((c, i) => (
               <div className="ind-ai-row" key={(c.title ?? "") + c.body}>
-                <span className="ri">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M12 3l1.9 4.6L19 9l-4.6 1.9L12 16l-1.9-4.6L5 9l5.1-1.4z" />
-                  </svg>
+                <span className="ri editorial-index" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>
                   {c.title ? <b>{c.title.replace(/\.$/, "")}</b> : null}
@@ -360,7 +336,9 @@ function renderSection(section: Section, slug: string): ReactNode {
                   <span className="dot" />
                   What changes
                 </span>
-                {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
+                {section.heading ? (
+                  <h2 className="h-section">{section.heading}</h2>
+                ) : null}
               </div>
               <div className="ind-out">
                 {(section.body ?? []).map((p) => (
@@ -369,7 +347,7 @@ function renderSection(section: Section, slug: string): ReactNode {
               </div>
             </div>
             <div className="ind-out-viz">
-              <OutcomeShift />
+              <OutcomeShift industry={slug} />
             </div>
           </div>
         </div>
@@ -380,20 +358,26 @@ function renderSection(section: Section, slug: string): ReactNode {
   if (section.kind === "dynamic" && section.id === "services-links") {
     const services = resolveServices(section.note);
     return (
-      <section className="band soft" aria-label="Built with these services" key={section.id}>
+      <section
+        className="band soft"
+        aria-label="Built with these services"
+        key={section.id}
+      >
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
               <span className="dot" />
               Built with these services
             </span>
-            {section.heading ? <h2 className="h-section">{section.heading}</h2> : null}
+            {section.heading ? (
+              <h2 className="h-section">{section.heading}</h2>
+            ) : null}
           </div>
           <div className="ind-svc reveal">
             {services.map((s) => (
               <Link className="ind-svc-a" href={s.href} key={s.href}>
                 <span className="si">
-                  <svg viewBox="0 0 24 24">{ICONS[s.iconKey] ?? ICONS.cube}</svg>
+                  <ServiceIcon name={s.iconKey} />
                 </span>
                 <span>
                   <b>{s.title}</b>
@@ -412,7 +396,12 @@ function renderSection(section: Section, slug: string): ReactNode {
 
   if (section.kind === "faq") {
     return (
-      <section className="band" id="faq" aria-label="Frequently asked questions" key={section.id}>
+      <section
+        className="band"
+        id="faq"
+        aria-label="Frequently asked questions"
+        key={section.id}
+      >
         <div className="wrap">
           <div className="faq-head reveal">
             <span className="kicker">
@@ -438,7 +427,11 @@ function renderSection(section: Section, slug: string): ReactNode {
 
   if (section.kind === "cta-band") {
     return (
-      <section className="cta" aria-label="Closing call to action" key={section.id}>
+      <section
+        className="cta"
+        aria-label="Closing call to action"
+        key={section.id}
+      >
         <div className="glow" />
         <div className="wrap cta-inner reveal">
           <h2>{section.heading}</h2>
@@ -455,7 +448,13 @@ function renderSection(section: Section, slug: string): ReactNode {
   return null;
 }
 
-export function IndustryView({ page, caseStudies = [] }: { page: MarketingPage; caseStudies?: CaseStudyCard[] }): ReactNode {
+export function IndustryView({
+  page,
+  caseStudies = [],
+}: {
+  page: MarketingPage;
+  caseStudies?: CaseStudyCard[];
+}): ReactNode {
   const { hero, meta } = page;
   const slug = meta.slug.replace(/^\//, "");
   const label = industryLabel(meta.title);
@@ -518,29 +517,35 @@ export function IndustryView({ page, caseStudies = [] }: { page: MarketingPage; 
             <span className="here">{label}</span>
           </nav>
           <div className="industry-hero-grid">
-          <div className="hero-inner reveal">
-            <span className="kicker on-dark">
-              <span className="dot" />
-              {sector}
-            </span>
-            <h1>{hero.h1}</h1>
-            {hero.subline ? <p className="lede">{hero.subline}</p> : null}
-            <div className="hero-cta">
-              <Link className="btn btn-primary" href={hero.primaryCta?.href ?? "/contact"}>
-                {hero.primaryCta?.label ?? "Talk to us"} <span className="arr">&rarr;</span>
-              </Link>
-              <Link className="btn btn-ghost on-dark" href="#solution-finder">
-                Find the right service
-              </Link>
-            </div>
-            {hero.trustStrip ? (
-              <span className="hero-meta">
-                <span className="hb" />
-                {hero.trustStrip}
+            <div className="hero-inner reveal">
+              <span className="kicker on-dark">
+                <span className="dot" />
+                {sector}
               </span>
+              <h1>{hero.h1}</h1>
+              {hero.subline ? <p className="lede">{hero.subline}</p> : null}
+              <div className="hero-cta">
+                <Link
+                  className="btn btn-primary"
+                  href={hero.primaryCta?.href ?? "/contact"}
+                >
+                  {hero.primaryCta?.label ?? "Talk to us"}{" "}
+                  <span className="arr">&rarr;</span>
+                </Link>
+                <Link className="btn btn-ghost on-dark" href="#solution-finder">
+                  Find the right service
+                </Link>
+              </div>
+              {hero.trustStrip ? (
+                <span className="hero-meta">
+                  <span className="hb" />
+                  {hero.trustStrip}
+                </span>
+              ) : null}
+            </div>
+            {industryImages[slug] ? (
+              <ContextualPhoto image={industryImages[slug]} priority />
             ) : null}
-          </div>
-          {industryImages[slug] ? <ContextualPhoto image={industryImages[slug]} priority /> : null}
           </div>
         </div>
       </section>

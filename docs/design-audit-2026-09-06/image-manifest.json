@@ -1,0 +1,15 @@
+{
+  "method": "Built-in image generation; inspected and optimized to WebP",
+  "images": [
+    {
+      "key": "workflow-automation",
+      "prompt": "Use case: photorealistic-natural. Asset type: Nexoris technology services website editorial photograph, landscape 3:2. Hyper-realistic candid documentary photo of a Black Nigerian female operations manager at a refined Lagos office desk, reviewing an automated purchase approval workflow with a Black Nigerian male colleague. Primary visible monitor at three-quarter angle shows a tasteful abstract process diagram with linked rectangular steps and a small approval queue, no legible text or numbers. Her hand rests naturally on a mouse, colleague points at one process stage. Clean warm ivory office, graphite equipment, discreet deep plum notebook and violet interface accents to fit Nexoris branding. Natural window light, authentic skin texture, professional contemporary clothing, credible uncluttered scene. No white people, no logos, watermarks, captions, slogans, futuristic holograms, hand distortions or gratuitous charts. Landscape medium shot focused on actual workflow review, not posed camera smiles.",
+      "source": "C:/Users/CNED/.codex/generated_images/01a07090-d0a1-7ed1-ad12-36816ef3c523/exec-4fa608db-a571-47a1-8467-cc9d67549ca0.png"
+    },
+    {
+      "key": "data-readiness",
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape 3:2 editorial photograph for Nexoris Data Infrastructure and AI Readiness service. Hyper-realistic candid photo of a Black Nigerian data engineer woman and Black Nigerian data analyst man reviewing data quality at a tidy contemporary Lagos technology office. Main monitor clearly shows abstract structured database tables with linked columns and data validation indicators, no legible words or numbers, a secondary laptop shows a neat schema diagram. Natural side light, tactile desk, graphite equipment, muted ivory walls and subtle violet interface accents. Camera over side of desk with faces and screen visible, credible ergonomic posture, real skin texture and modest professional clothing. Data modelling and preparation, not server maintenance and not futuristic AI illustration. No white people, no logos, no watermarks, no captions, no fake text, no sci-fi holograms, no camera-facing posed smiles.",
+      "source": "C:/Users/CNED/.codex/generated_images/01a07090-d0a1-7ed1-ad12-36816ef3c523/exec-86f27534-bdec-431f-b401-64fe4b7d09e5.png"
+    }
+  ]
+}

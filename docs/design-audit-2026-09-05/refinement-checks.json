@@ -1,0 +1,83 @@
+[
+  {
+    "path": "/education-software/",
+    "beforeState": true,
+    "afterState": true,
+    "changed": true,
+    "captions": 0,
+    "documentWidth": 375,
+    "overflow": false,
+    "pressed": "true",
+    "steps": 3,
+    "width": 390
+  },
+  {
+    "path": "/healthcare-software/",
+    "beforeState": false,
+    "afterState": true,
+    "changed": false,
+    "captions": 0,
+    "documentWidth": 375,
+    "overflow": false,
+    "pressed": "true",
+    "steps": 3,
+    "width": 390
+  },
+  {
+    "path": "/hospitality-software/",
+    "beforeState": false,
+    "afterState": true,
+    "changed": false,
+    "captions": 0,
+    "documentWidth": 375,
+    "overflow": false,
+    "pressed": "true",
+    "steps": 3,
+    "width": 390
+  },
+  {
+    "path": "/restaurant-software/",
+    "beforeState": false,
+    "afterState": true,
+    "changed": false,
+    "captions": 0,
+    "documentWidth": 375,
+    "overflow": false,
+    "pressed": "true",
+    "steps": 3,
+    "width": 390
+  },
+  {
+    "path": "/retail-ecommerce-software/",
+    "beforeState": false,
+    "afterState": true,
+    "changed": false,
+    "captions": 0,
+    "documentWidth": 375,
+    "overflow": false,
+    "pressed": "true",
+    "steps": 3,
+    "width": 390
+  },
+  {
+    "path": "/education-software/",
+    "beforePressed": "true",
+    "settled": true,
+    "afterPressed": "true",
+    "captions": 0,
+    "documentWidth": 1265,
+    "overflow": false,
+    "steps": 3,
+    "width": 1280
+  },
+  {
+    "path": "/healthcare-software/",
+    "settled": true,
+    "keyboard": true,
+    "beforePressed": "true",
+    "afterPressed": "true",
+    "documentWidth": 375,
+    "overflow": false,
+    "width": 390
+  }
+]

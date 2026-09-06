@@ -10,7 +10,7 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ICONS } from "./industryIcons.js";
+import { ServiceIcon } from "./ServiceIcon.js";
 
 export interface FinderService {
   title: string;
@@ -33,9 +33,15 @@ export function IndustrySolutionFinder({
     const win = (start: number): FinderService[] =>
       Array.from({ length: count }, (_, i) => services[(start + i) % n]!);
     return [
-      { q: "What would make the biggest difference to your business right now?", opts: win(0) },
+      {
+        q: "What would make the biggest difference to your business right now?",
+        opts: win(0),
+      },
       { q: "And what is the next priority after that?", opts: win(2 % n) },
-      { q: "What would make the biggest long-term difference?", opts: win(4 % n) },
+      {
+        q: "What would make the biggest long-term difference?",
+        opts: win(4 % n),
+      },
     ];
   }, [services]);
 
@@ -78,19 +84,19 @@ export function IndustrySolutionFinder({
           <span className="dot" />
           Solution Finder
         </span>
-        <h2>Not sure which service you need? Let us point you to the right one.</h2>
+        <h2>
+          Not sure which service you need? Let us point you to the right one.
+        </h2>
         <p>
-          You do not need to know the jargon. Answer three short questions about what matters most,
-          and we will match you to the service that will make the biggest difference first. It takes
-          under a minute.
+          You do not need to know the jargon. Answer three short questions about
+          what matters most, and we will match you to the service that will make
+          the biggest difference first. It takes under a minute.
         </p>
         <div className="cat-chips">
           {services.slice(0, 4).map((s) => (
             <div className="cat-chip" key={s.href}>
               <span className="ci ci1">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  {ICONS[s.iconKey] ?? ICONS.cube}
-                </svg>
+                <ServiceIcon name={s.iconKey} />
               </span>
               {s.title}
             </div>
@@ -100,7 +106,9 @@ export function IndustrySolutionFinder({
 
       <div className="finder-panel">
         <div className="fp-top">
-          <span>{done ? "Complete" : `Question ${step + 1} of ${questions.length}`}</span>
+          <span>
+            {done ? "Complete" : `Question ${step + 1} of ${questions.length}`}
+          </span>
           <span className="fp-dots">
             {questions.map((_, i) => (
               <i key={i} className={done || i <= step ? "on" : ""} />
@@ -113,7 +121,12 @@ export function IndustrySolutionFinder({
             <div className="fp-q font-head">{current.q}</div>
             <div className="fp-opts">
               {current.opts.map((s) => (
-                <button key={s.href} type="button" className="fp-opt" onClick={() => answer(s.href)}>
+                <button
+                  key={s.href}
+                  type="button"
+                  className="fp-opt"
+                  onClick={() => answer(s.href)}
+                >
                   <span className="od" />
                   {s.goal}
                 </button>
@@ -123,9 +136,7 @@ export function IndustrySolutionFinder({
         ) : (
           <div className="fp-result on">
             <div className="ric ci1">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {ICONS[best.iconKey] ?? ICONS.cube}
-              </svg>
+              <ServiceIcon name={best.iconKey} />
             </div>
             <div className="rk">Recommended for you</div>
             <h3>{best.title}</h3>

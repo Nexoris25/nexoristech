@@ -1,0 +1,308 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/about/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/how-we-work/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/case-studies/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/contact/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/ai-product-development/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/ai-chatbots-virtual-assistants/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/business-process-automation/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/ai-ecommerce-development/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/data-dashboards-predictive-analytics/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/ai-systems-integration/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/data-infrastructure-ai-readiness/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/iot-development/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/govtech-platforms/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/ai-seo-geo/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/managed-technology-operations/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/education-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/healthcare-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/hospitality-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/restaurant-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/retail-ecommerce-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/real-estate-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/logistics-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/fintech-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/insurance-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/manufacturing-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/agritech-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/professional-services-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/church-management-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/ngo-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/government-digital-solutions/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/construction-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/media-entertainment-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/fitness-wellness-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/automotive-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/events-software/",
+    "status": 200,
+    "industry": true,
+    "errors": []
+  },
+  {
+    "path": "/insights/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/careers/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/privacy-policy/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/terms-of-service/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/cookie-policy/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/website-cost-in-nigeria/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/hospital-management-system-nigeria/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/best-software-development-companies-nigeria/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/hidden-cost-of-bad-ux/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/ai-chatbot-for-nigerian-businesses/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/custom-erp-software/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/lagos-cybersecurity-guidelines-2026/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/insights/ai-personalization-roi/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/chinedu-nwogu/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  },
+  {
+    "path": "/oge/",
+    "status": 200,
+    "industry": false,
+    "errors": []
+  }
+]

@@ -11,6 +11,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ScrollFx } from "../home/ScrollFx.js";
 import type { CaseStudyCard } from "../../lib/cms.js";
+import { SectorIcon } from "../company/SectorIcon.js";
 import { ContextualPhoto } from "../ContextualPhoto.js";
 import type { ContextualImage } from "../../content/contextual-images.js";
 
@@ -58,27 +59,71 @@ export interface ServiceContent {
   };
   /** Optional bespoke hero widget (e.g. the GEO platform-response widget); replaces the media image. */
   heroWidget?: ReactNode;
-  problem: { kicker: string; h2: string; quotes: { text: string; tag?: string }[]; close: ReactNode };
+  problem: {
+    kicker: string;
+    h2: string;
+    quotes: { text: string; tag?: string }[];
+    close: ReactNode;
+  };
   scope: { kicker: string; h2: string; lede?: ReactNode; items: IconItem[] };
-  ai: { kicker: string; h2: string; intro: string; feats: IconItem[]; foot: string };
+  ai: {
+    kicker: string;
+    h2: string;
+    intro: string;
+    feats: IconItem[];
+    foot: string;
+  };
   process: {
     h2: string;
     steps?: { title: string; body: string }[];
     /** Delivery stages: title + description, with deliverables shown as compact pill tags. */
-    stages?: { title: string; desc: string; activities?: string[]; deliverables?: string[] }[];
+    stages?: {
+      title: string;
+      desc: string;
+      activities?: string[];
+      deliverables?: string[];
+    }[];
     note: ReactNode;
   };
-  proof: { kicker: string; h2: string; lede: string; cards: { tag: string; title: string }[] };
-  industryLinks: { kicker: string; h2: string; lede: string; links: ServiceLink[] };
-  faq: { kicker: string; h2: string; lede: string; items: { q: string; a: string }[] };
-  cta: { h2: string; body: string; button: { label: string; href: string }; media?: { src: string; alt: string } };
+  proof: {
+    kicker: string;
+    h2: string;
+    lede: string;
+    cards: { tag: string; title: string }[];
+  };
+  industryLinks: {
+    kicker: string;
+    h2: string;
+    lede: string;
+    links: ServiceLink[];
+  };
+  faq: {
+    kicker: string;
+    h2: string;
+    lede: string;
+    items: { q: string; a: string }[];
+  };
+  cta: {
+    h2: string;
+    body: string;
+    button: { label: string; href: string };
+    media?: { src: string; alt: string };
+  };
 }
 
 function Svg({ children }: { children: ReactNode }): ReactNode {
   return <svg viewBox="0 0 24 24">{children}</svg>;
 }
 
-export function ServiceView({ content, caseStudies = [], contextImage }: { content: ServiceContent; caseStudies?: CaseStudyCard[]; contextImage?: ContextualImage | undefined }): ReactNode {
+export function ServiceView({
+  content,
+  caseStudies = [],
+  contextImage,
+}: {
+  content: ServiceContent;
+  caseStudies?: CaseStudyCard[];
+  contextImage?: ContextualImage | undefined;
+}): ReactNode {
   const c = content;
   return (
     <div className="svc-page">
@@ -105,7 +150,10 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
                 <Link className="btn btn-primary" href={c.hero.primaryCta.href}>
                   {c.hero.primaryCta.label} <span className="arr">&rarr;</span>
                 </Link>
-                <a className="btn btn-ghost on-dark" href={c.hero.secondaryCta.href}>
+                <a
+                  className="btn btn-ghost on-dark"
+                  href={c.hero.secondaryCta.href}
+                >
                   {c.hero.secondaryCta.label}
                 </a>
               </div>
@@ -121,12 +169,24 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
               ) : null}
             </div>
             {c.heroWidget ? (
-              <div className="service-demo"><p className="demo-caption">Interactive illustration · sample data</p>{c.heroWidget}</div>
+              <div className="service-demo">
+                <p className="demo-caption">
+                  Interactive illustration · sample data
+                </p>
+                {c.heroWidget}
+              </div>
             ) : c.hero.media ? (
               <div className="hero-media reveal">
                 {/* .hero-media is position:relative with a fixed aspect ratio, so fill matches the existing
                     object-fit crop exactly. priority: it is the hero of the page. */}
-                <Image src={c.hero.media.src} alt={c.hero.media.alt} fill sizes="(max-width: 1080px) 100vw, 46vw" style={{ objectFit: "cover" }} priority />
+                <Image
+                  src={c.hero.media.src}
+                  alt={c.hero.media.alt}
+                  fill
+                  sizes="(max-width: 1080px) 100vw, 46vw"
+                  style={{ objectFit: "cover" }}
+                  priority
+                />
                 <div className="ovl" />
                 <div className="hero-chip">
                   <span className="hci">
@@ -180,20 +240,22 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
             {c.scope.lede ? <p className="lede">{c.scope.lede}</p> : null}
           </div>
           <div className="scope-editorial">
-          {contextImage ? <ContextualPhoto image={contextImage} /> : null}
-          <div className="cover reveal">
-            {c.scope.items.map((it, i) => (
-              <div className="cv" key={i}>
-                <span className="ic">
-                  <Svg>{it.icon}</Svg>
-                </span>
-                <div>
-                  <h3>{it.title}</h3>
-                  <p>{it.body}</p>
+            {contextImage ? <ContextualPhoto image={contextImage} /> : null}
+            <div className="cover reveal">
+              {c.scope.items.map((it, i) => (
+                <div className="cv" key={i}>
+                  <span className="ic">
+                    <span className="editorial-index" aria-hidden="true">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </span>
+                  <div>
+                    <h3>{it.title}</h3>
+                    <p>{it.body}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -213,11 +275,15 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
                 <p>{c.ai.intro}</p>
               </div>
             </div>
-            <div className={`ai-feats${c.ai.feats.length === 4 ? " ai-feats-4" : ""}`}>
+            <div
+              className={`ai-feats${c.ai.feats.length === 4 ? " ai-feats-4" : ""}`}
+            >
               {c.ai.feats.map((f, i) => (
                 <article className="afeat" key={i}>
                   <span className="ai-ic">
-                    <Svg>{f.icon}</Svg>
+                    <span className="editorial-index" aria-hidden="true">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                   </span>
                   <h3>{f.title}</h3>
                   <p>{f.body}</p>
@@ -250,7 +316,9 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
             <div className="dstages reveal">
               {c.process.stages.map((st, i) => (
                 <div className="dstage" key={i}>
-                  <span className="dstage-num">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="dstage-num">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <h3>{st.title}</h3>
                   <p>{st.desc}</p>
                   {st.deliverables && st.deliverables.length > 0 ? (
@@ -279,10 +347,14 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
               {c.process.steps.map((s, i) => (
                 <div className="pstep" key={i}>
                   <span className="pnode">
-                    <span className="pn-badge">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="pn-badge">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                     <Svg>{STAGE_ICONS[i]}</Svg>
                   </span>
-                  <div className="pnum">Stage {String(i + 1).padStart(2, "0")}</div>
+                  <div className="pnum">
+                    Stage {String(i + 1).padStart(2, "0")}
+                  </div>
                   <h3>{s.title}</h3>
                   <p>{s.body}</p>
                 </div>
@@ -313,46 +385,64 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
           renders the case studies that name this service, and when none do, it does not render at all.
           A service page with no proof yet is honest; a proof section with no proof in it is not. */}
       {caseStudies.length > 0 ? (
-      <section className="band soft" id="proof" aria-label="Proof">
-        <div className="wrap">
-          <div className="band-head reveal">
-            <span className="kicker">
-              <span className="dot" />
-              {c.proof.kicker}
-            </span>
-            <h2 className="h-section">{c.proof.h2}</h2>
-            <p className="lede">{c.proof.lede}</p>
-          </div>
-          <div className="proof-grid reveal">
-            {caseStudies.map((study) => (
-              <Link className="proof-card" href={`/case-studies/${study.slug}`} key={study.slug}>
-                {study.coverUrl ? (
-                  <span className="pc-shot">
-                    <img src={study.coverUrl} alt={study.coverAlt ?? ""} loading="lazy" />
+        <section className="band soft" id="proof" aria-label="Proof">
+          <div className="wrap">
+            <div className="band-head reveal">
+              <span className="kicker">
+                <span className="dot" />
+                {c.proof.kicker}
+              </span>
+              <h2 className="h-section">{c.proof.h2}</h2>
+              <p className="lede">{c.proof.lede}</p>
+            </div>
+            <div className="proof-grid reveal">
+              {caseStudies.map((study) => (
+                <Link
+                  className="proof-card"
+                  href={`/case-studies/${study.slug}`}
+                  key={study.slug}
+                >
+                  {study.coverUrl ? (
+                    <span className="pc-shot">
+                      <img
+                        src={study.coverUrl}
+                        alt={study.coverAlt ?? ""}
+                        loading="lazy"
+                      />
+                    </span>
+                  ) : (
+                    <span className="pc-shot pc-shot-none" aria-hidden="true" />
+                  )}
+                  <span className="pc-body">
+                    {study.industry ? (
+                      <span className="pc-tag">{study.industry}</span>
+                    ) : null}
+                    <h3>{study.title}</h3>
+                    {study.summary ? (
+                      <span className="pc-sum">{study.summary}</span>
+                    ) : null}
+                    <span className="pc-go">
+                      Read the case study <span className="arr">&rarr;</span>
+                    </span>
                   </span>
-                ) : (
-                  <span className="pc-shot pc-shot-none" aria-hidden="true" />
-                )}
-                <span className="pc-body">
-                  {study.industry ? <span className="pc-tag">{study.industry}</span> : null}
-                  <h3>{study.title}</h3>
-                  {study.summary ? <span className="pc-sum">{study.summary}</span> : null}
-                  <span className="pc-go">Read the case study <span className="arr">&rarr;</span></span>
-                </span>
+                </Link>
+              ))}
+            </div>
+            <div className="proof-foot reveal">
+              <Link className="link-arrow" href="/case-studies">
+                See the work <span className="arr">&rarr;</span>
               </Link>
-            ))}
+            </div>
           </div>
-          <div className="proof-foot reveal">
-            <Link className="link-arrow" href="/case-studies">
-              See the work <span className="arr">&rarr;</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
       ) : null}
 
       {/* WHERE WE BUILD IT */}
-      <section className="band" id="industries-links" aria-label="Where we build it">
+      <section
+        className="band"
+        id="industries-links"
+        aria-label="Where we build it"
+      >
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
@@ -366,7 +456,7 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
             {c.industryLinks.links.map((l, i) => (
               <Link className="cv" href={l.href} key={i}>
                 <span className="ic">
-                  <Svg>{l.icon}</Svg>
+                  <SectorIcon href={l.href} />
                 </span>
                 <div>
                   <h3>
@@ -408,7 +498,13 @@ export function ServiceView({ content, caseStudies = [], contextImage }: { conte
       <section className="cta" id="cta" aria-label="Closing CTA">
         {c.cta.media ? (
           <div className="photo">
-            <Image src={c.cta.media.src} alt={c.cta.media.alt} fill sizes="100vw" style={{ objectFit: "cover" }} />
+            <Image
+              src={c.cta.media.src}
+              alt={c.cta.media.alt}
+              fill
+              sizes="100vw"
+              style={{ objectFit: "cover" }}
+            />
           </div>
         ) : null}
         <div className="glow" />

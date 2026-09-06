@@ -60,8 +60,6 @@
 /* Photography carries context, not proof. Fixed ratios reserve layout space. */
 .nexoris-site .context-photo { margin: 0; min-width: 0; }
 .nexoris-site .context-photo img { display: block; width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border-radius: 8px; filter: none; }
-.nexoris-site .context-photo figcaption { margin-top: 10px; font-size: .75rem; line-height: 1.5; color: var(--ink-3); }
-.nexoris-site .hero .context-photo figcaption { color: #bdb9ca; }
 .nexoris-site .industry-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; margin-top: 32px; }
 .nexoris-site .industry-page .hero .crumb { justify-content: flex-start; }
 .nexoris-site .industry-page .hero-inner { margin: 0; text-align: left; align-items: flex-start; max-width: none; }
@@ -76,7 +74,6 @@
 .nexoris-site .scope-editorial .context-photo { position: sticky; top: 106px; }
 .nexoris-site .service-demo { min-width: 0; }
 .nexoris-site .demo-caption { color: #c6c2d2; font-size: .75rem; line-height: 1.6; margin-bottom: 12px; }
-.nexoris-site .ind-out-viz::after { content: "Illustrative comparison · not measured client results"; display: block; margin-top: 12px; color: var(--ink-3); font-size: .75rem; }
 .nexoris-site .proof-empty { border-block: 1px solid var(--line); padding-block: 28px; max-width: 68ch; }
 .nexoris-site .proof-empty p { color: var(--ink-2); line-height: 1.75; margin-bottom: 16px; }
 

@@ -10,6 +10,7 @@ import Image from "next/image";
 import { SolutionFinder } from "./SolutionFinder.js";
 import { Testimonials, type Quote } from "./Testimonials.js";
 import { ProductMockup } from "./ProductMockup.js";
+import { ProductShowcase } from "./ProductShowcase.js";
 import { CaseStudyProof } from "../CaseStudyProof.js";
 import { OgeChat } from "./OgeChat.js";
 import { ScrollFx } from "./ScrollFx.js";
@@ -25,35 +26,43 @@ import { ArticleCard } from "../insights/ArticleCard.js";
  */
 export type HomeInsight = InsightCard;
 export const HOME_FAQ = [
-              {
-                q: "What does Nexoris Technologies actually do?",
-                a: "We design and build websites, web applications, mobile apps, and custom business systems for companies in Nigeria and abroad. Where AI can genuinely make the product better, we build it in. Where it cannot, we leave it out and tell you why.",
-              },
-              {
-                q: "Do I need to understand the technology to work with you?",
-                a: "No. Tell us the problem in plain words. We turn it into a clear scope, and the Solution Finder or a short call points you to the right service without the jargon.",
-              },
-              {
-                q: "How long does a project take, and what will it cost?",
-                a: "A business website is usually four to eight weeks. A custom system or app typically runs three to six months, delivered in stages so you see working software early. Every project starts with a written scope, timeline, and cost before work begins, so there are no surprise invoices.",
-              },
-              {
-                q: "Do I own what you build?",
-                a: "Yes, completely. All source code, designs, and project files are handed over to you at the end of the project. Nothing is held back, and your team can run it independently.",
-              },
-              {
-                q: "Do you force AI into every project?",
-                a: "No. We add AI only where it earns its place, like answering customers at any hour or warning you before stock runs out. If your project does not need it, we will say so before you pay for it.",
-              },
-              {
-                q: "What happens after launch?",
-                a: "You own everything and can run it yourself. Most clients also take a managed plan so we keep monitoring, updating, and improving the product. Either way, the choice is yours.",
-              },
-            ];
+  {
+    q: "What does Nexoris Technologies actually do?",
+    a: "We design and build websites, web applications, mobile apps, and custom business systems for companies in Nigeria and abroad. Where AI can genuinely make the product better, we build it in. Where it cannot, we leave it out and tell you why.",
+  },
+  {
+    q: "Do I need to understand the technology to work with you?",
+    a: "No. Tell us the problem in plain words. We turn it into a clear scope, and the Solution Finder or a short call points you to the right service without the jargon.",
+  },
+  {
+    q: "How long does a project take, and what will it cost?",
+    a: "A business website is usually four to eight weeks. A custom system or app typically runs three to six months, delivered in stages so you see working software early. Every project starts with a written scope, timeline, and cost before work begins, so there are no surprise invoices.",
+  },
+  {
+    q: "Do I own what you build?",
+    a: "Yes, completely. All source code, designs, and project files are handed over to you at the end of the project. Nothing is held back, and your team can run it independently.",
+  },
+  {
+    q: "Do you force AI into every project?",
+    a: "No. We add AI only where it earns its place, like answering customers at any hour or warning you before stock runs out. If your project does not need it, we will say so before you pay for it.",
+  },
+  {
+    q: "What happens after launch?",
+    a: "You own everything and can run it yourself. Most clients also take a managed plan so we keep monitoring, updating, and improving the product. Either way, the choice is yours.",
+  },
+];
 
-export function HomeView({ insights = [], testimonials = [], studies = [] }: { insights?: InsightCard[]; testimonials?: Quote[]; studies?: CaseStudyCard[] }): ReactNode {
+export function HomeView({
+  insights = [],
+  testimonials = [],
+  studies = [],
+}: {
+  insights?: InsightCard[];
+  testimonials?: Quote[];
+  studies?: CaseStudyCard[];
+}): ReactNode {
   return (
-    <>
+    <div className="home-page">
       <ScrollFx />
 
       {/* HERO */}
@@ -69,9 +78,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               Software built around the way your business really works.
             </h1>
             <p className="lede">
-              Nexoris Technologies designs and builds websites, web applications, mobile apps, and
-              business systems for companies in Nigeria and abroad. Where AI can genuinely make a
-              product better, we build it in, and everything we deliver belongs to you, completely.
+              Nexoris Technologies designs and builds websites, web
+              applications, mobile apps, and business systems for companies in
+              Nigeria and abroad.
             </p>
             <div className="hero-cta">
               <Link className="btn btn-primary" href="/contact">
@@ -88,11 +97,18 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
                   <path d="M9 12l2 2 4-4" />
                 </svg>
               </span>
-              Trusted by founders, executives, operations leaders, and public institutions.
+              Trusted by founders, executives, operations leaders, and public
+              institutions.
             </div>
           </div>
           <ProductMockup />
-          <p className="demo-caption home-demo-caption">Example business dashboard · illustrative data</p>
+          <p className="demo-caption home-demo-caption">
+            Example business dashboard · illustrative data
+          </p>
+          <p className="hero-support">
+            Where AI can genuinely make a product better, we build it in, and
+            everything we deliver belongs to you, completely.
+          </p>
         </div>
       </section>
 
@@ -104,7 +120,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <span className="dot" />
               The problem
             </span>
-            <h2 className="h-section">You already know where the time is going.</h2>
+            <h2 className="h-section">
+              You already know where the time is going.
+            </h2>
           </div>
           <div className="pain-grid reveal">
             <article className="pain-card">
@@ -116,9 +134,10 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>The retyping.</h3>
               <p>
-                Your team enters the same customer details into three different tools, every single
-                day. Nobody planned it that way. It just grew, and now it quietly eats hours that
-                should go into real work.
+                Your team enters the same customer details into three different
+                tools, every single day. Nobody planned it that way. It just
+                grew, and now it quietly eats hours that should go into real
+                work.
               </p>
             </article>
             <article className="pain-card">
@@ -130,8 +149,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>The waiting.</h3>
               <p>
-                The report you need for Monday&apos;s decision arrives on Wednesday. By then the
-                moment has passed, and you decided on instinct. Again.
+                The report you need for Monday&apos;s decision arrives on
+                Wednesday. By then the moment has passed, and you decided on
+                instinct. Again.
               </p>
             </article>
             <article className="pain-card">
@@ -143,8 +163,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>The silence.</h3>
               <p>
-                A customer sends a message at 9pm with money in hand and a simple question. Nobody is
-                there to answer. By morning, they have bought from someone who was.
+                A customer sends a message at 9pm with money in hand and a
+                simple question. Nobody is there to answer. By morning, they
+                have bought from someone who was.
               </p>
             </article>
           </div>
@@ -184,8 +205,8 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>Build new software.</h3>
               <p>
-                We design and build websites, apps, online stores, and custom systems around the way
-                you work. Not the other way round.
+                We design and build websites, apps, online stores, and custom
+                systems around the way you work. Not the other way round.
               </p>
               <div className="svc-links">
                 <Link className="tag" href="/ai-product-development">
@@ -214,8 +235,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>Automate the busywork.</h3>
               <p>
-                We take the repetitive work off your team and answer your customers at any hour. Your
-                people get their time back for work that needs judgement.
+                We take the repetitive work off your team and answer your
+                customers at any hour. Your people get their time back for work
+                that needs judgement.
               </p>
               <div className="svc-links">
                 <Link className="tag" href="/business-process-automation">
@@ -241,11 +263,15 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>Understand your numbers.</h3>
               <p>
-                We turn your data into clear dashboards and forecasts you can act on. No more
-                deciding this quarter with last quarter&apos;s numbers.
+                We turn your data into clear dashboards and forecasts you can
+                act on. No more deciding this quarter with last quarter&apos;s
+                numbers.
               </p>
               <div className="svc-links">
-                <Link className="tag" href="/data-dashboards-predictive-analytics">
+                <Link
+                  className="tag"
+                  href="/data-dashboards-predictive-analytics"
+                >
                   Data Dashboards &amp; Analytics
                 </Link>
                 <Link className="tag" href="/data-infrastructure-ai-readiness">
@@ -265,8 +291,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </div>
               <h3>Grow it and keep it running.</h3>
               <p>
-                We help people find you online and we look after your software long after launch. The
-                product you paid for keeps getting better.
+                We help people find you online and we look after your software
+                long after launch. The product you paid for keeps getting
+                better.
               </p>
               <div className="svc-links">
                 <Link className="tag" href="/ai-seo-geo">
@@ -294,10 +321,13 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <span className="dot" />
               How we work
             </span>
-            <h2 className="h-section">How a project runs, from first call to handover.</h2>
+            <h2 className="h-section">
+              How a project runs, from first call to handover.
+            </h2>
             <p className="lede">
-              Whether it is a single website or a full business platform, the process stays the same.
-              Plan properly, design before building, and check the work at every stage.
+              Whether it is a single website or a full business platform, the
+              process stays the same. Plan properly, design before building, and
+              check the work at every stage.
             </p>
           </div>
           <div className="proc-grid reveal">
@@ -347,10 +377,14 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
             ].map(([title, body, icon], i) => (
               <div className="pstep" key={i as number}>
                 <span className="pnode">
-                  <span className="pn-badge">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="pn-badge">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <svg viewBox="0 0 24 24">{icon as ReactNode}</svg>
                 </span>
-                <div className="pnum">Stage {String(i + 1).padStart(2, "0")}</div>
+                <div className="pnum">
+                  Stage {String(i + 1).padStart(2, "0")}
+                </div>
                 <h3>{title as string}</h3>
                 <p>{body as string}</p>
               </div>
@@ -372,99 +406,146 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <span className="dot" />
               Industries
             </span>
-            <h2 className="h-section">Built for twenty industries, organised four ways.</h2>
+            <h2 className="h-section">
+              Built for twenty industries, organised four ways.
+            </h2>
             <p className="lede">
-              Good engineering travels, but every industry has its own problems, rules, and rhythms.
-              We have built for twenty of them. Each one speaks your language, not ours.
+              Good engineering travels, but every industry has its own problems,
+              rules, and rhythms. We have built for twenty of them. Each one
+              speaks your language, not ours.
             </p>
           </div>
           <div className="ind-grid reveal">
             <article className="ind-card">
+              <div className="industry-group-photo">
+                <Image
+                  src="/images/context/retail.webp"
+                  alt="A retailer scanning stock in a shop"
+                  width={600}
+                  height={400}
+                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
+                />
+              </div>
               <div className="ind-top">
-                <div className="ind-ic ic1">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8z" />
-                    <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-                  </svg>
-                </div>
                 <h3>Commerce &amp; Hospitality</h3>
               </div>
               <p className="desc">
-                Where the customer is the whole business, and a slow reply is a lost sale.
+                Where the customer is the whole business, and a slow reply is a
+                lost sale.
               </p>
               <div className="ind-list">
-                <Link href="/retail-ecommerce-software">Retail &amp; E-Commerce</Link>
-                <Link href="/restaurant-software">Restaurants &amp; Cloud Kitchens</Link>
-                <Link href="/hospitality-software">Hospitality &amp; Short-Lets</Link>
+                <Link href="/retail-ecommerce-software">
+                  Retail &amp; E-Commerce
+                </Link>
+                <Link href="/restaurant-software">
+                  Restaurants &amp; Cloud Kitchens
+                </Link>
+                <Link href="/hospitality-software">
+                  Hospitality &amp; Short-Lets
+                </Link>
                 <Link href="/events-software">Events &amp; Conferences</Link>
-                <Link href="/fitness-wellness-software">Fitness &amp; Salons</Link>
+                <Link href="/fitness-wellness-software">
+                  Fitness &amp; Salons
+                </Link>
               </div>
             </article>
             <article className="ind-card">
+              <div className="industry-group-photo">
+                <Image
+                  src="/images/context/fintech.webp"
+                  alt="Finance professionals reviewing transaction records"
+                  width={600}
+                  height={400}
+                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
+                />
+              </div>
               <div className="ind-top">
-                <div className="ind-ic ic2">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M3 9l9-5 9 5" />
-                    <path d="M5 9v8M10 9v8M14 9v8M19 9v8" />
-                    <path d="M3 21h18" />
-                  </svg>
-                </div>
                 <h3>Finance &amp; Professional</h3>
               </div>
               <p className="desc">
-                Where trust, compliance, and an exact paper trail are the product.
+                Where trust, compliance, and an exact paper trail are the
+                product.
               </p>
               <div className="ind-list">
-                <Link href="/fintech-software">Financial Services &amp; Fintech</Link>
-                <Link href="/insurance-software">Insurance &amp; Insurtech</Link>
-                <Link href="/professional-services-software">Professional Services</Link>
-                <Link href="/real-estate-software">Real Estate &amp; Property</Link>
+                <Link href="/fintech-software">
+                  Financial Services &amp; Fintech
+                </Link>
+                <Link href="/insurance-software">
+                  Insurance &amp; Insurtech
+                </Link>
+                <Link href="/professional-services-software">
+                  Professional Services
+                </Link>
+                <Link href="/real-estate-software">
+                  Real Estate &amp; Property
+                </Link>
                 <Link href="/automotive-software">Automotive</Link>
               </div>
             </article>
             <article className="ind-card">
+              <div className="industry-group-photo">
+                <Image
+                  src="/images/context/ngo.webp"
+                  alt="Programme officers reviewing a community water project"
+                  width={600}
+                  height={400}
+                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
+                />
+              </div>
               <div className="ind-top">
-                <div className="ind-ic ic3">
-                  <svg viewBox="0 0 24 24">
-                    <circle cx="9" cy="8" r="3" />
-                    <circle cx="17" cy="9.5" r="2.3" />
-                    <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
-                    <path d="M15 19a4 4 0 0 1 5.5-3.7" />
-                  </svg>
-                </div>
                 <h3>Public &amp; Social Impact</h3>
               </div>
               <p className="desc">
-                Where the work serves citizens, patients, students, and communities.
+                Where the work serves citizens, patients, students, and
+                communities.
               </p>
               <div className="ind-list">
-                <Link href="/government-digital-solutions">Government &amp; Public Sector</Link>
-                <Link href="/healthcare-software">Healthcare &amp; Clinics</Link>
+                <Link href="/government-digital-solutions">
+                  Government &amp; Public Sector
+                </Link>
+                <Link href="/healthcare-software">
+                  Healthcare &amp; Clinics
+                </Link>
                 <Link href="/education-software">Education &amp; EdTech</Link>
                 <Link href="/ngo-software">NGOs &amp; Development</Link>
-                <Link href="/church-management-software">Religious &amp; Faith</Link>
+                <Link href="/church-management-software">
+                  Religious &amp; Faith
+                </Link>
               </div>
             </article>
             <article className="ind-card">
+              <div className="industry-group-photo">
+                <Image
+                  src="/images/context/manufacturing.webp"
+                  alt="An engineer reviewing a manufacturing line"
+                  width={600}
+                  height={400}
+                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
+                />
+              </div>
               <div className="ind-top">
-                <div className="ind-ic ic4">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M3 6h10v9H3zM13 9h4l3 3v3h-7z" />
-                    <circle cx="7" cy="18" r="1.7" />
-                    <circle cx="17" cy="18" r="1.7" />
-                  </svg>
-                </div>
                 <h3>Industry &amp; Infrastructure</h3>
               </div>
               <p className="desc">
-                Where physical operations move, and the software has to keep up with them.
+                Where physical operations move, and the software has to keep up
+                with them.
               </p>
               <div className="ind-list">
-                <Link href="/logistics-software">Logistics &amp; Supply Chain</Link>
-                <Link href="/manufacturing-software">Manufacturing &amp; Industrial</Link>
-                <Link href="/agritech-software">Agriculture &amp; Agritech</Link>
-                <Link href="/construction-software">Construction &amp; Engineering</Link>
-                <Link href="/media-entertainment-software">Media &amp; Publishing</Link>
+                <Link href="/logistics-software">
+                  Logistics &amp; Supply Chain
+                </Link>
+                <Link href="/manufacturing-software">
+                  Manufacturing &amp; Industrial
+                </Link>
+                <Link href="/agritech-software">
+                  Agriculture &amp; Agritech
+                </Link>
+                <Link href="/construction-software">
+                  Construction &amp; Engineering
+                </Link>
+                <Link href="/media-entertainment-software">
+                  Media &amp; Publishing
+                </Link>
               </div>
             </article>
           </div>
@@ -472,25 +553,37 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
       </section>
 
       {/* PROOF */}
-      {studies.length ? <div className="svc-page"><CaseStudyProof studies={studies} heading="The work, in our clients’ context." /></div> : <section className="band" id="proof" aria-label="Our work">
-        <div className="wrap">
-          <div className="band-head reveal">
-            <span className="kicker">
-              <span className="dot" />
-              Our work
-            </span>
-            <h2 className="h-section">See what we build.</h2>
-            <p className="lede">
-              Explore Covyvo and GLEEN, our in-house products. Client case studies appear when their results are verified and approved for publication.
-            </p>
-          </div>
-          <div className="proof-foot reveal">
-            <Link className="link-arrow" href="/case-studies">
-              See the work <span className="arr">&rarr;</span>
-            </Link>
-          </div>
+      {studies.length ? (
+        <div className="svc-page">
+          <CaseStudyProof
+            studies={studies}
+            heading="The work, in our clients’ context."
+          />
         </div>
-      </section>}
+      ) : (
+        <section className="band" id="proof" aria-label="Our work">
+          <div className="wrap">
+            <div className="band-head reveal">
+              <span className="kicker">
+                <span className="dot" />
+                Our work
+              </span>
+              <h2 className="h-section">See what we build.</h2>
+              <p className="lede">
+                Explore Covyvo and GLEEN, our in-house products. Client case
+                studies appear when their results are verified and approved for
+                publication.
+              </p>
+            </div>
+            <ProductShowcase />
+            <div className="proof-foot reveal">
+              <Link className="link-arrow" href="/case-studies">
+                See the work <span className="arr">&rarr;</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* WHY */}
       <section className="band" aria-label="Why us">
@@ -514,8 +607,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <div>
                 <h3>A written scope before any work begins.</h3>
                 <p>
-                  Every project starts with a written scope, timeline, and cost. No confusion about
-                  what will be delivered and when, and no surprise invoices later.
+                  Every project starts with a written scope, timeline, and cost.
+                  No confusion about what will be delivered and when, and no
+                  surprise invoices later.
                 </p>
               </div>
             </article>
@@ -529,8 +623,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <div>
                 <h3>Direct access to the people building your product.</h3>
                 <p>
-                  Nexoris Technologies is led by its founder, who works directly on every project.
-                  You talk to the people doing the work, not an account layer in between.
+                  Nexoris Technologies is led by its founder, who works directly
+                  on every project. You talk to the people doing the work, not
+                  an account layer in between.
                 </p>
               </div>
             </article>
@@ -545,8 +640,9 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <div>
                 <h3>We know how Nigerian businesses really operate.</h3>
                 <p>
-                  Local payment systems, patchy connectivity, regulatory requirements, and how
-                  decisions actually get made here. We build for the real environment.
+                  Local payment systems, patchy connectivity, regulatory
+                  requirements, and how decisions actually get made here. We
+                  build for the real environment.
                 </p>
               </div>
             </article>
@@ -561,8 +657,8 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               <div>
                 <h3>Full ownership at handover.</h3>
                 <p>
-                  All source code, designs, and project files are handed over to you at the end of
-                  the project. Nothing is held back.
+                  All source code, designs, and project files are handed over to
+                  you at the end of the project. Nothing is held back.
                 </p>
               </div>
             </article>
@@ -582,9 +678,10 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
               </span>
               <h2>We add AI where it helps. We skip it where it does not.</h2>
               <p>
-                Not every problem needs AI, and we will tell you when yours does not. But when it
-                genuinely helps, like a chatbot that answers customers at midnight or a forecast that
-                warns you before stock runs out, we build it in <b>properly from the start</b>.
+                Not every problem needs AI, and we will tell you when yours does
+                not. But when it genuinely helps, like a chatbot that answers
+                customers at midnight or a forecast that warns you before stock
+                runs out, we build it in <b>properly from the start</b>.
               </p>
             </div>
             <OgeChat />
@@ -650,7 +747,11 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
       </section>
 
       {/* FAQ */}
-      <section className="band soft" id="faq" aria-label="Frequently asked questions">
+      <section
+        className="band soft"
+        id="faq"
+        aria-label="Frequently asked questions"
+      >
         <div className="wrap">
           <div className="faq-head reveal">
             <span className="kicker">
@@ -659,8 +760,8 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
             </span>
             <h2>The things people ask before they reach out.</h2>
             <p className="lede">
-              Straight answers to what clients raise most often. If yours is not here, ask us
-              directly and a real person will reply.
+              Straight answers to what clients raise most often. If yours is not
+              here, ask us directly and a real person will reply.
             </p>
           </div>
           <div className="faq-wrap reveal">
@@ -693,14 +794,15 @@ export function HomeView({ insights = [], testimonials = [], studies = [] }: { i
         <div className="wrap cta-inner reveal">
           <h2>Tell us what you are trying to achieve.</h2>
           <p>
-            We will reply within one business day with a short call, a suggested approach, and a
-            realistic sense of timeline and cost. No obligation on your part.
+            We will reply within one business day with a short call, a suggested
+            approach, and a realistic sense of timeline and cost. No obligation
+            on your part.
           </p>
           <Link className="btn btn-primary" href="/contact">
             Start a project <span className="arr">&rarr;</span>
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

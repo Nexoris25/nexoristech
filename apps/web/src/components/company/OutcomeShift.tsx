@@ -1,133 +1,105 @@
 "use client";
-/**
- * "What changes" illustration. A small, brand-consistent interactive chart that sits beside the
- * outcomes copy on the industry pages. It shows two genuinely different series and only the selected
- * one at a time, so the contrast is unmistakable: Before is a volatile line that swings and does not
- * grow; With Nexoris Technologies is a steady line that trends up and holds. Rendered as a realistic
- * mini analytics chart (axes, gridlines, plotted points, area fill) but with no numbers, so it
- * illustrates the shift honestly without implying a fabricated metric. Purely visual and ephemeral.
- */
-import { useState } from "react";
-import type { ReactNode } from "react";
-
-type Phase = "before" | "after";
-
-// Plot points in the 340x200 viewBox. Higher on screen = better (lower y).
-const BEFORE: [number, number][] = [
-  [30, 100],
-  [66, 70],
-  [102, 126],
-  [138, 84],
-  [174, 132],
-  [210, 96],
-  [246, 138],
-  [282, 108],
-  [316, 122],
-];
-const AFTER: [number, number][] = [
-  [30, 150],
-  [66, 140],
-  [102, 122],
-  [138, 106],
-  [174, 88],
-  [210, 70],
-  [246, 56],
-  [282, 46],
-  [316, 38],
-];
-
-const line = (pts: [number, number][]): string => pts.map((p) => p.join(",")).join(" ");
-const area = (pts: [number, number][]): string =>
-  `M${pts[0]![0]} ${pts[0]![1]} ` +
-  pts
-    .slice(1)
-    .map((p) => `L${p[0]} ${p[1]}`)
-    .join(" ") +
-  " L316 160 L30 160 Z";
-
-export function OutcomeShift(): ReactNode {
-  const [phase, setPhase] = useState<Phase>("after");
-
+import { useId, useState, useSyncExternalStore } from "react";
+import { ArrowRight, Check, Unplug, Workflow } from "lucide-react";
+import { industryWorkflows } from "../../content/industry-workflows.js";
+import "../../styles/workflow.css";
+const subscribe = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+/** Capability illustration. Client evidence is rendered separately from CMS. */
+export function OutcomeShift({ industry }: { industry: string }) {
+  const [phase, setPhase] = useState<"before" | "after">("after");
+  const panelId = useId();
+  const interactive = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const workflow = industryWorkflows[industry];
+  if (!workflow) return null;
   return (
-    <div className={`osx osx-${phase}`}>
-      <span className="osx-hint">Tap to compare</span>
-      <div className="osx-toggle" role="group" aria-label="Compare before and after">
+    <div className={`workflow-preview show-${phase}`}>
+      <div className="workflow-heading">
+        <div>
+          <span className="workflow-eyebrow">Before & after Nexoris</span>
+          <h3>{workflow.title}</h3>
+        </div>
+        <span className="workflow-context">
+          One workflow. A clearer way to work.
+        </span>
+      </div>
+      <div
+        className="workflow-switch"
+        role="group"
+        aria-label="Compare before and after"
+      >
         <button
           type="button"
-          className={phase === "before" ? "on" : ""}
+          disabled={!interactive}
           aria-pressed={phase === "before"}
+          aria-controls={panelId}
           onClick={() => setPhase("before")}
         >
           Before
         </button>
         <button
           type="button"
-          className={phase === "after" ? "on" : ""}
+          disabled={!interactive}
           aria-pressed={phase === "after"}
+          aria-controls={panelId}
           onClick={() => setPhase("after")}
         >
-          With Nexoris Technologies
+          With Nexoris
         </button>
       </div>
-
-      <svg
-        className="osx-svg"
-        viewBox="0 0 340 200"
-        role="img"
-        aria-label={
-          phase === "before"
-            ? "Chart showing volatile, non-growing results before working with Nexoris Technologies"
-            : "Chart showing steady, rising results with Nexoris Technologies"
-        }
-      >
-        <defs>
-          <linearGradient id="osxFillA" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#6A55F2" stopOpacity="0.3" />
-            <stop offset="1" stopColor="#6A55F2" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="osxFillB" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#6E6A7C" stopOpacity="0.16" />
-            <stop offset="1" stopColor="#6E6A7C" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* grid + axes */}
-        <line className="osx-grid" x1="30" y1="52" x2="316" y2="52" />
-        <line className="osx-grid" x1="30" y1="90" x2="316" y2="90" />
-        <line className="osx-grid" x1="30" y1="128" x2="316" y2="128" />
-        <line className="osx-axis" x1="30" y1="24" x2="30" y2="160" />
-        <line className="osx-axis" x1="30" y1="160" x2="316" y2="160" />
-
-        {/* Before: volatile, no growth */}
-        <g className="osx-g-before">
-          <path className="osx-area osx-area-b" d={area(BEFORE)} />
-          <polyline className="osx-line osx-line-b" points={line(BEFORE)} />
-          {BEFORE.map(([x, y], i) => (
-            <circle key={i} className="osx-pt osx-pt-b" cx={x} cy={y} r="3" />
-          ))}
-        </g>
-
-        {/* With Nexoris Technologies: steady rise */}
-        <g className="osx-g-after">
-          <path className="osx-area osx-area-a" d={area(AFTER)} />
-          <polyline className="osx-line osx-line-a" points={line(AFTER)} />
-          {AFTER.map(([x, y], i) => (
-            <circle key={i} className="osx-pt osx-pt-a" cx={x} cy={y} r="3.2" />
-          ))}
-        </g>
-
-        <text className="osx-xlab" x="30" y="177" textAnchor="start">
-          Then
-        </text>
-        <text className="osx-xlab" x="316" y="177" textAnchor="end">
-          Now
-        </text>
-      </svg>
-
-      <p className="osx-cap">
-        {phase === "before"
-          ? "Before: results swing on guesswork, with surprises and losses caught only after the fact."
-          : "With Nexoris Technologies: steadier output that trends up and holds, because problems are caught early."}
+      <div className="workflow-comparison" id={panelId}>
+        <div className="workflow-column-head workflow-before">
+          <Unplug size={22} aria-hidden="true" />
+          <div>
+            <h4>Before</h4>
+            <p>Separate tools. Manual handoffs.</p>
+          </div>
+        </div>
+        <div className="workflow-column-head workflow-after">
+          <Workflow size={22} aria-hidden="true" />
+          <div>
+            <h4>With Nexoris</h4>
+            <p>A connected flow of work.</p>
+          </div>
+        </div>
+        {workflow.steps.map((step, index) => (
+          <div className="workflow-comparison-row" key={step.label}>
+            <div className="workflow-cell workflow-before">
+              <span className="workflow-step-number" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <h5>{step.label}</h5>
+                <p>{step.before}</p>
+              </div>
+            </div>
+            <span className="workflow-transition" aria-hidden="true">
+              <ArrowRight size={17} />
+            </span>
+            <div className="workflow-cell workflow-after">
+              <span className="workflow-step-status" aria-hidden="true">
+                <Check size={17} />
+              </span>
+              <div>
+                <h5>{step.label}</h5>
+                <p>{step.after}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+        <div className="workflow-summary workflow-before">
+          <span>The missing connection</span>
+          <p>{workflow.record}, kept apart.</p>
+        </div>
+        <div className="workflow-summary workflow-after">
+          <span>One shared view</span>
+          <p>{workflow.record}, together.</p>
+        </div>
+      </div>
+      <p className="workflow-accessible-status" role="status">
+        Showing {phase === "after" ? "With Nexoris" : "Before"} on compact
+        screens.
       </p>
     </div>
   );

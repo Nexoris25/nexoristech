@@ -116,7 +116,7 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
             </p>
           </div>
           <div className="ih-grid reveal">
-            <article className="ih-card">
+            <article className="ih-card" id="covyvo">
               <div className="ih-shot">
                 <span className="ih-badge">Product screenshot</span>
                 <Image
@@ -152,7 +152,7 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
               </div>
             </article>
 
-            <article className="ih-card">
+            <article className="ih-card" id="gleen">
               <div className="ih-shot contain">
                 <span className="ih-badge">Product screenshot</span>
                 <Image
