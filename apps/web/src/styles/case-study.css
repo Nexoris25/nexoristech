@@ -17,7 +17,7 @@
   max-width: 780px;
 }
 .case-study-page .cs-head h1 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: clamp(1.9rem, 4.4vw, 3rem);
   font-weight: 700;
   line-height: 1.08;
@@ -135,7 +135,7 @@
   border-top: 1px solid var(--line, #e9e7f0);
 }
 .case-study-page .cs-services h2 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
@@ -163,14 +163,14 @@
 
 /* The reading measure and prose styles are the article page's, reused so the two read alike. */
 .case-study-page .prose {
-  font-family: "Lora", Georgia, serif;
+  font-family: "DM Sans", Georgia, serif;
   font-size: 1.13rem;
   line-height: 1.7;
   color: #241f33;
 }
 .case-study-page .prose p { margin-bottom: 22px; }
 .case-study-page .prose h2 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.45rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
@@ -178,7 +178,7 @@
   scroll-margin-top: 88px;
 }
 .case-study-page .prose h3 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);

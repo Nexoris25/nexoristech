@@ -10,9 +10,9 @@
   padding-inline: 24px;
 }
 .nexoris-site :is(.h-section, .svc-page .h-section) {
-  font-size: clamp(2rem, 1.2rem + 2.6vw, 3.625rem);
-  font-weight: 550;
-  letter-spacing: -0.045em;
+  font-size: clamp(1.75rem, 1.3rem + 1.5vw, 2.5rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
   line-height: 1.12;
 }
 .nexoris-site :is(.band-head, .svc-page .band-head) {
@@ -22,11 +22,11 @@
   max-width: 660px;
 }
 .nexoris-site :is(.hero h1, .svc-page .hero h1) {
-  font-weight: 550;
-  letter-spacing: -0.045em;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 .nexoris-site .industry-page .hero-inner h1 {
-  font-size: clamp(2.25rem, 1.35rem + 2.6vw, 3.875rem);
+  font-size: clamp(2rem, 1.45rem + 2vw, 3rem);
 }
 .nexoris-site .industry-hero-grid {
   grid-template-columns: 1.05fr 1fr;
@@ -43,8 +43,8 @@
 }
 .nexoris-site :is(.cta h2, .svc-page .cta h2) {
   max-width: 1000px;
-  font-size: clamp(2.4rem, 1.4rem + 4.2vw, 5.5rem);
-  font-weight: 550;
+  font-size: clamp(1.875rem, 1.3rem + 2vw, 2.75rem);
+  font-weight: 600;
   letter-spacing: -0.05em;
   line-height: 1.08;
 }
@@ -60,7 +60,7 @@
   max-width: 1040px;
 }
 .nexoris-site .home-page .hero-home h1 {
-  font-size: clamp(2.65rem, 1.4rem + 4.8vw, 5.75rem);
+  font-size: clamp(2rem, 1.4rem + 2.8vw, 3.5rem);
   line-height: 1.04;
   max-width: 1040px;
 }
@@ -90,8 +90,8 @@
   box-shadow: none;
 }
 .nexoris-site .home-page .pain-card h3 {
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
-  font-weight: 550;
+  font-size: clamp(1.25rem, 1rem + 0.8vw, 1.5rem);
+  font-weight: 600;
   letter-spacing: -0.035em;
   margin-top: 20px;
 }
@@ -137,7 +137,7 @@
 }
 .nexoris-site .home-page .svc-num {
   font:
-    500 0.875rem/1.5 Inter,
+    500 0.875rem/1.5 DM Sans,
     sans-serif;
   color: var(--ink-3);
 }
@@ -145,8 +145,8 @@
   grid-column: 2;
   grid-row: 1/3;
   margin: 0;
-  font-size: clamp(1.75rem, 2.8vw, 2.625rem);
-  font-weight: 550;
+  font-size: clamp(1.375rem, 1rem + 1.4vw, 1.875rem);
+  font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.04em;
 }
@@ -164,7 +164,9 @@
   gap: 10px 16px;
 }
 .nexoris-site .home-page .svc-links .tag {
-  font-family: Inter, sans-serif;
+  font-family:
+    DM Sans,
+    sans-serif;
   font-weight: 500;
   border: 0;
   border-radius: 0;
@@ -191,7 +193,7 @@
 .nexoris-site .home-page .ind-top h3 {
   font-size: 1.5rem;
   line-height: 1.3;
-  font-weight: 550;
+  font-weight: 600;
   letter-spacing: -0.025em;
 }
 .nexoris-site .home-page .ind-list a {
@@ -209,7 +211,7 @@
 }
 .nexoris-site .home-page .why-card h3 {
   font-size: 1.25rem;
-  font-weight: 550;
+  font-weight: 600;
   line-height: 1.35;
 }
 .nexoris-site .home-page .why-card p {
@@ -223,7 +225,8 @@
   margin-top: 48px;
 }
 .nexoris-site .product-feature {
-  display: block;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
   min-width: 0;
   color: var(--ink-950);
   text-decoration: none;
@@ -248,7 +251,7 @@
   transition: transform 0.3s ease;
 }
 .nexoris-site .product-feature-image-app {
-  background: #e5eae4;
+  background: #eae6f0;
 }
 .nexoris-site .product-feature:hover .product-feature-image img {
   transform: scale(1.025);
@@ -263,7 +266,7 @@
 .nexoris-site .product-feature-heading h3 {
   font-size: 1.75rem;
   letter-spacing: -0.035em;
-  font-weight: 550;
+  font-weight: 600;
   margin: 0;
 }
 .nexoris-site .product-feature-heading > span {
@@ -298,9 +301,6 @@
 @media (min-width: 1000px) {
   .nexoris-site .home-page #services > .wrap > .band-head {
     max-width: 780px;
-  }
-  .nexoris-site .home-page .product-feature:nth-child(2) {
-    margin-top: 64px;
   }
 }
 @media (max-width: 900px) {
@@ -339,7 +339,7 @@
 }
 @media (max-width: 480px) {
   .nexoris-site .home-page .hero-home h1 {
-    font-size: 2.65rem;
+    font-size: 2rem;
   }
   .nexoris-site .home-page .svc-card {
     column-gap: 12px;
@@ -360,7 +360,7 @@
 /* Numbered editorial details avoid ambiguous, repeated pictograms. */
 .nexoris-site .editorial-index {
   font:
-    500 13px/1 Inter,
+    500 13px/1 DM Sans,
     sans-serif;
   letter-spacing: 0.02em;
 }
@@ -378,18 +378,6 @@
   background: transparent;
   border: 0;
   color: #bfa8e3;
-}
-.nexoris-site .home-page .industry-group-photo {
-  aspect-ratio: 3/2;
-  overflow: hidden;
-  border-radius: 12px;
-  margin: 0 0 24px;
-  background: #ebe7f1;
-}
-.nexoris-site .home-page .industry-group-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 .nexoris-site .home-page .ind-top {
   min-height: 56px;

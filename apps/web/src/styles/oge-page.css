@@ -74,7 +74,7 @@
   text-align: center;
 }
 .ogp-name b {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
   color: #fff;
@@ -282,7 +282,7 @@
   display: inline-flex;
 }
 .ogp-mini-h b {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.92rem;
   color: #fff;
   font-weight: 700;

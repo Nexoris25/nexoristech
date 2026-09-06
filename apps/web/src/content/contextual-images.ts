@@ -98,7 +98,6 @@ export const systemsImage = photo(
   "A technology operations engineer inspecting network equipment",
 );
 export const serviceImages: Record<string, ContextualImage> = {
-  "/ai-product-development": productTeamImage,
   "/ai-chatbots-virtual-assistants": photo(
     "support-desk",
     "A customer support specialist reviewing conversations and handoffs at her workstation",
@@ -107,18 +106,14 @@ export const serviceImages: Record<string, ContextualImage> = {
     "workflow-automation",
     "Operations colleagues reviewing a purchase approval workflow and task queue",
   ),
-  "/ai-ecommerce-development": industryImages["retail-ecommerce-software"]!,
   "/data-dashboards-predictive-analytics": photo(
     "business-analytics",
     "Operations analysts reviewing business trends and tabular data on a dashboard",
   ),
-  "/ai-systems-integration": systemsImage,
   "/data-infrastructure-ai-readiness": photo(
     "data-readiness",
     "Data specialists reviewing database relationships and validation indicators",
   ),
-  "/iot-development": industryImages["agritech-software"]!,
-  "/govtech-platforms": industryImages["government-digital-solutions"]!,
   "/ai-seo-geo": photo(
     "search-editorial",
     "A content strategist and search analyst planning topic groups and search content",

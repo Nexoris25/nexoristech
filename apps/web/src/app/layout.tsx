@@ -36,6 +36,7 @@ import "../styles/industry.css";
 import "../styles/pseo.css";
 import "../styles/editorial.css";
 import "../styles/studio.css";
+import "../styles/typography.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -62,10 +63,15 @@ export default function RootLayout({
   return (
     <html lang="en-NG">
       <head>
-        {/* The two faces above the fold. Preloading them stops the swap from landing after first paint,
+        {/* The primary face above the fold. Preloading it limits swapping after first paint,
             which is what shows up as a layout shift in Cumulative Layout Shift. The rest load on demand. */}
-        <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/roboto.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          href="/fonts/dm-sans-latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="nexoris-site">
         <SkipLink targetId="main-content" />

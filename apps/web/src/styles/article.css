@@ -48,7 +48,7 @@
   background: var(--purple-600, #543cda);
 }
 .article-page .art-head h1 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
   font-weight: 700;
   line-height: 1.1;
@@ -85,7 +85,7 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 700;
   font-size: 0.88rem;
   color: #fff;
@@ -285,7 +285,7 @@
 
 /* serif reading prose */
 .article-page .prose {
-  font-family: "Lora", Georgia, serif;
+  font-family: "DM Sans", Georgia, serif;
   font-size: 1rem;
   line-height: 1.75;
   color: #241f33;
@@ -294,7 +294,7 @@
   margin-bottom: 24px;
 }
 .article-page .prose h2 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -304,7 +304,7 @@
   scroll-margin-top: 88px;
 }
 .article-page .prose h3 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
@@ -358,7 +358,7 @@
  * drops to the body's own size with a little more room around it.
  */
 .article-page .prose blockquote {
-  font-family: "Lora", Georgia, serif;
+  font-family: "DM Sans", Georgia, serif;
   font-style: italic;
   font-size: 1.08rem;
   line-height: 1.65;
@@ -471,7 +471,7 @@
   max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.94rem;
   border: 1px solid var(--line, #e9e7f0);
   border-radius: 12px;
@@ -577,7 +577,7 @@
      scroll offset that keeps a target clear of the sticky header. Without it the anchor lands the
      heading underneath the header. */
   scroll-margin-top: 88px;
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.55rem;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -593,7 +593,7 @@
   font-size: 1.02rem;
   color: var(--ink-2, #3a3550);
   line-height: 1.6;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
 }
 
 /* author + fact-checker cards */
@@ -602,7 +602,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-top: 26px;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
 }
 
 /*
@@ -619,10 +619,10 @@
   margin-top: 40px;
   padding-top: 30px;
   border-top: 1px solid var(--line, #e9e7f0);
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
 }
 .article-page .related > h2 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -714,7 +714,7 @@
 .article-page .prose h4,
 .article-page .prose h5,
 .article-page .prose h6 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
   margin: 24px 0 8px;

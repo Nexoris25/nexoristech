@@ -7,8 +7,6 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ContextualPhoto } from "../ContextualPhoto.js";
-import { productTeamImage } from "../../content/contextual-images.js";
 import { ScrollFx } from "../home/ScrollFx.js";
 
 const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
@@ -255,7 +253,7 @@ export function HowWeWorkView(): ReactNode {
       </section>
 
       {/* STAGES */}
-      <section className="band" aria-label="From the brief to a working product"><div className="wrap company-editorial"><div><span className="kicker">From the first conversation</span><h2 className="h-section">Make the work visible, at every stage.</h2><p className="lede">A written brief, interface designs, working software, and a clear handover. Each stage gives you something concrete to review before the next begins.</p></div><ContextualPhoto image={productTeamImage} /></div></section>
+      <section className="band" aria-label="From the brief to a working product"><div className="wrap company-editorial company-editorial-text"><div><span className="kicker">From the first conversation</span><h2 className="h-section">Make the work visible, at every stage.</h2><p className="lede">A written brief, interface designs, working software, and a clear handover. Each stage gives you something concrete to review before the next begins.</p></div></div></section>
       <section className="band" aria-label="The six stages">
         <div className="wrap">
           <div className="band-head reveal">

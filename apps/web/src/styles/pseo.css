@@ -11,7 +11,7 @@
  */
 .pseo-body {
   max-width: 72ch;
-  font-family: "Lora", Georgia, serif;
+  font-family: "DM Sans", Georgia, serif;
   font-size: 1.13rem;
   line-height: 1.7;
   color: #241f33;
@@ -20,7 +20,7 @@
   margin-bottom: 22px;
 }
 .pseo-body h2 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.45rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
@@ -29,7 +29,7 @@
   scroll-margin-top: 88px;
 }
 .pseo-body h3 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
@@ -67,7 +67,7 @@
   width: 100%;
   margin-bottom: 22px;
   border-collapse: collapse;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "DM Sans", system-ui, sans-serif;
   font-size: 0.92rem;
 }
 .pseo-body th,

@@ -34,7 +34,7 @@
   background: transparent;
   border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.6);
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
   padding: 10px 8px;
@@ -107,7 +107,7 @@
 }
 .scanw-meta .verdict {
   display: block;
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.18rem;
   font-weight: 700;
   color: #fff;

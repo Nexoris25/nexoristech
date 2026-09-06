@@ -75,7 +75,8 @@ export function HomeView({
               Software development &middot; Lagos, Nigeria
             </span>
             <h1 style={{ marginTop: 18 }}>
-              Software built around the way your business really works.
+              Software built around the way{" "}
+              <span className="hero-accent">your business really works.</span>
             </h1>
             <p className="lede">
               Nexoris Technologies designs and builds websites, web
@@ -417,15 +418,6 @@ export function HomeView({
           </div>
           <div className="ind-grid reveal">
             <article className="ind-card">
-              <div className="industry-group-photo">
-                <Image
-                  src="/images/context/retail.webp"
-                  alt="A retailer scanning stock in a shop"
-                  width={600}
-                  height={400}
-                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
-                />
-              </div>
               <div className="ind-top">
                 <h3>Commerce &amp; Hospitality</h3>
               </div>
@@ -450,15 +442,6 @@ export function HomeView({
               </div>
             </article>
             <article className="ind-card">
-              <div className="industry-group-photo">
-                <Image
-                  src="/images/context/fintech.webp"
-                  alt="Finance professionals reviewing transaction records"
-                  width={600}
-                  height={400}
-                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
-                />
-              </div>
               <div className="ind-top">
                 <h3>Finance &amp; Professional</h3>
               </div>
@@ -483,15 +466,6 @@ export function HomeView({
               </div>
             </article>
             <article className="ind-card">
-              <div className="industry-group-photo">
-                <Image
-                  src="/images/context/ngo.webp"
-                  alt="Programme officers reviewing a community water project"
-                  width={600}
-                  height={400}
-                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
-                />
-              </div>
               <div className="ind-top">
                 <h3>Public &amp; Social Impact</h3>
               </div>
@@ -514,15 +488,6 @@ export function HomeView({
               </div>
             </article>
             <article className="ind-card">
-              <div className="industry-group-photo">
-                <Image
-                  src="/images/context/manufacturing.webp"
-                  alt="An engineer reviewing a manufacturing line"
-                  width={600}
-                  height={400}
-                  sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 25vw"
-                />
-              </div>
               <div className="ind-top">
                 <h3>Industry &amp; Infrastructure</h3>
               </div>

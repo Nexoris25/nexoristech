@@ -239,7 +239,9 @@ export function ServiceView({
             <h2 className="h-section">{c.scope.h2}</h2>
             {c.scope.lede ? <p className="lede">{c.scope.lede}</p> : null}
           </div>
-          <div className="scope-editorial">
+          <div
+            className={`scope-editorial${contextImage ? "" : " scope-editorial-text"}`}
+          >
             {contextImage ? <ContextualPhoto image={contextImage} /> : null}
             <div className="cover reveal">
               {c.scope.items.map((it, i) => (

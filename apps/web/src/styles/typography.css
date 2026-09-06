@@ -1,0 +1,153 @@
+/* DM Sans, verified against Enyata's rendered typography. Self-hosted under SIL OFL. */
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url("/fonts/dm-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url("/fonts/dm-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+.nexoris-site {
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --fs-hero: clamp(2rem, 1.5rem + 2vw, 3rem);
+  --fs-h2: clamp(1.75rem, 1.3rem + 1.5vw, 2.5rem);
+  --fs-body: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
+  --bg: #fcfcfd;
+  --surface: #fff;
+  --ink-2: #514d60;
+  --ink-3: #656172;
+  --purple-600: #5940cb;
+  --purple-700: #4832ae;
+  --purple-500: #7057df;
+  --purple-100: #f1eefb;
+  --line: #e3e0e9;
+  font-family: var(--font-sans);
+}
+.nexoris-site
+  :is(h1, h2, h3, h4, h5, h6, button, input, select, textarea, .font-head) {
+  font-family: var(--font-sans);
+}
+.nexoris-site main h1 {
+  font-size: var(--fs-hero);
+  line-height: 1.16;
+  letter-spacing: -0.025em;
+}
+.nexoris-site :is(.hero h1, .svc-page .hero h1) {
+  font-size: var(--fs-hero);
+  line-height: 1.16;
+}
+.nexoris-site .home-page .hero-home h1 {
+  max-width: 850px;
+  margin-inline: auto;
+  line-height: 1.14;
+}
+.nexoris-site .home-page .hero-home .lede {
+  font-size: clamp(1rem, 0.96rem + 0.25vw, 1.125rem);
+  max-width: 680px;
+  margin-top: 22px;
+}
+.nexoris-site :is(.hero .lede, .svc-page .hero .lede) {
+  color: #d9d4e6;
+}
+.nexoris-site .hero-accent {
+  color: #cdbdff;
+}
+@supports (background-clip: text) {
+  .nexoris-site .hero-accent {
+    background: linear-gradient(110deg, #ece5ff 10%, #c6b4ff 65%, #dfd4ff);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nexoris-site .hero h1 {
+    animation: nexoris-title-in 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  @keyframes nexoris-title-in {
+    from {
+      opacity: 0.5;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+@media (forced-colors: active) {
+  .nexoris-site .hero-accent {
+    background: none;
+    color: CanvasText;
+  }
+}
+.nexoris-site .home-page .product-showcase {
+  align-items: stretch;
+}
+.nexoris-site .product-feature {
+  grid-template-rows: auto auto 1fr auto;
+}
+.nexoris-site .product-feature-heading h3 {
+  font-size: 1.5rem;
+}
+.nexoris-site .scope-editorial-text {
+  grid-template-columns: minmax(0, 1fr);
+}
+.nexoris-site .scope-editorial-text .cover {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 40px;
+}
+.nexoris-site .company-editorial-text {
+  grid-template-columns: minmax(0, 760px);
+}
+.nexoris-site .home-page .ind-top {
+  min-height: 0;
+  margin-bottom: 12px;
+}
+.nexoris-site .home-page .ind-grid {
+  gap: 24px 40px;
+}
+.nexoris-site :is(.pain-card, .ind-card, .why-card):hover {
+  transform: none;
+  box-shadow: none;
+  background: transparent;
+}
+.nexoris-site .hero .crumb {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+}
+@media (max-width: 760px) {
+  .nexoris-site .scope-editorial-text .cover {
+    grid-template-columns: 1fr;
+  }
+  .nexoris-site .product-feature-image img {
+    inset: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+  }
+  .nexoris-site .home-page .hero-home {
+    padding-top: 40px;
+  }
+  .nexoris-site .home-page .hero-support {
+    font-size: 1rem;
+  }
+}
+.nexoris-site .legal-page .legal-head h1 {
+  font-size: var(--fs-hero);
+}
+.nexoris-site .trust {
+  max-width: min(100%, 62ch);
+}

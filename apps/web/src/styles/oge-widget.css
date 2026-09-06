@@ -92,7 +92,7 @@
   border-radius: 20px;
   box-shadow: 0 30px 80px rgba(13, 10, 28, 0.6);
   overflow: hidden;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
 }
 
 /* Header */
@@ -129,7 +129,7 @@
   min-width: 0;
 }
 .ogw-head b {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.94rem;
   font-weight: 700;
   color: #fff;
@@ -304,7 +304,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   padding: 9px 12px;
@@ -355,7 +355,7 @@
 .ogw-lead input,
 .ogw-lead select {
   width: 100%;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.84rem;
   color: #fff;
   background: rgba(255, 255, 255, 0.06);
@@ -416,7 +416,7 @@
 .ogw-foot input {
   flex: 1;
   min-width: 0;
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.86rem;
   color: #fff;
   background: rgba(255, 255, 255, 0.06);

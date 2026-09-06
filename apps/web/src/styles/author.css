@@ -20,7 +20,7 @@
   border-radius: 32px;
   display: grid;
   place-items: center;
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 800;
   font-size: clamp(2.2rem, 5vw, 3.2rem);
   color: #fff;
@@ -35,7 +35,7 @@
   object-fit: cover;
 }
 .author-page .prof h1 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: clamp(1.9rem, 1.3rem + 2.4vw, 3rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -136,7 +136,7 @@
  * there was a screenful of nothing between the last paragraph and the first card.
  */
 .author-page .by-head {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.015em;

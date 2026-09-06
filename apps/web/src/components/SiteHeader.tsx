@@ -26,6 +26,7 @@ export function SiteHeader(): ReactNode {
   const [open, setOpen] = useState<FlyoutId | null>(null);
   const [drawer, setDrawer] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Outside-click and Escape close any open flyout.
   useEffect(() => {
@@ -33,7 +34,13 @@ export function SiteHeader(): ReactNode {
       if (navRef.current && !navRef.current.contains(e.target as Node)) setOpen(null);
     }
     function onKey(e: KeyboardEvent): void {
-      if (e.key === "Escape") setOpen(null);
+      if (e.key === "Escape") {
+        setOpen(null);
+        if (menuButtonRef.current?.getAttribute("aria-expanded") === "true") {
+          setDrawer(false);
+          menuButtonRef.current.focus();
+        }
+      }
     }
     document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKey);
@@ -185,9 +192,11 @@ export function SiteHeader(): ReactNode {
             Start a project
           </Link>
           <button
+            ref={menuButtonRef}
             className="nav-toggle"
             aria-label={drawer ? "Close menu" : "Open menu"}
             aria-expanded={drawer}
+            aria-controls="mobile-navigation"
             onClick={() => setDrawer((d) => !d)}
           >
             <span />
@@ -198,7 +207,7 @@ export function SiteHeader(): ReactNode {
       </div>
       </header>
 
-      <div className={`drawer${drawer ? " open" : ""}`} onClick={() => setDrawer(false)}>
+      <div id="mobile-navigation" className={`drawer${drawer ? " open" : ""}`} onClick={() => setDrawer(false)}>
         <div className="drawer-scroll" onClick={(e) => e.stopPropagation()}>
           <details className="acc">
             <summary>

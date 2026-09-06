@@ -54,7 +54,7 @@
   flex-wrap: wrap;
 }
 .case-studies-page .cs-tab {
-  font-family: "Inter", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.86rem;
   font-weight: 600;
   color: var(--ink-2, #3a3550);
@@ -334,14 +334,14 @@
   border-radius: 11px;
   display: grid;
   place-items: center;
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 800;
   font-size: 1.1rem;
   color: #fff;
   flex: none;
 }
 .case-studies-page .ih-name {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.015em;

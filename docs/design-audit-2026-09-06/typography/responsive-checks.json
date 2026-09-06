@@ -1,0 +1,88 @@
+{
+  "method": "Inert server-rendered HTML snapshots with original styles; checked after styles loaded",
+  "checks": [
+    {
+      "key": "home",
+      "width": 753,
+      "font": "\"DM Sans\", system-ui, sans-serif",
+      "h1": "39.36px",
+      "scroll": 753,
+      "viewport": 768
+    },
+    {
+      "key": "home",
+      "width": 1265,
+      "font": "\"DM Sans\", system-ui, sans-serif",
+      "h1": "48px",
+      "scroll": 1265,
+      "viewport": 1280
+    },
+    {
+      "key": "industry",
+      "width": 753,
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "39.36px",
+      "scroll": 753,
+      "viewport": 768
+    },
+    {
+      "key": "industry",
+      "width": 1265,
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "48px",
+      "scroll": 1265,
+      "viewport": 1280
+    },
+    {
+      "key": "service",
+      "width": 375,
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "32px",
+      "scroll": 375,
+      "viewport": 390
+    },
+    {
+      "key": "service",
+      "width": 753,
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "39.36px",
+      "scroll": 753,
+      "viewport": 768
+    },
+    {
+      "key": "service",
+      "width": 1265,
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "48px",
+      "scroll": 1265,
+      "viewport": 1280
+    },
+    {
+      "key": "home",
+      "font": "\"DM Sans\", system-ui, sans-serif",
+      "h1": "32px",
+      "scroll": 375,
+      "viewport": 390,
+      "width": 375,
+      "settled": true
+    },
+    {
+      "key": "industry",
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "32px",
+      "scroll": 375,
+      "viewport": 390,
+      "width": 375,
+      "settled": true
+    },
+    {
+      "key": "service",
+      "font": "\"DM Sans\", sans-serif",
+      "h1": "32px",
+      "scroll": 375,
+      "viewport": 390,
+      "width": 375,
+      "settled": true
+    }
+  ]
+}

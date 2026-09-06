@@ -76,7 +76,7 @@
   stroke-width: 1.7;
 }
 .industry-page .ind-pain-q {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 400;
   font-size: 0.95rem;
   line-height: 1.6;
@@ -151,7 +151,7 @@
   stroke-width: 1.6;
 }
 .industry-page .ind-sol-item h3 {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 600;
   font-size: 1.02rem;
   letter-spacing: -0.01em;
@@ -204,7 +204,7 @@
   stroke-width: 1.8;
 }
 .industry-page .ind-ai-row b {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.98rem;
   font-weight: 700;
   color: #fff;
@@ -317,7 +317,7 @@
   stroke-width: 1.7;
 }
 .industry-page .ind-svc-a b {
-  font-family: "Roboto", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 700;
   font-size: 1.02rem;
   color: var(--ink-950, #0d0a1c);

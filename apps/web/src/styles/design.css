@@ -1,7 +1,7 @@
 /*
  * Nexoris Technologies marketing design system, ported verbatim from the approved HTML/CSS
- * design handoff (2026-06-27). Heading face is Roboto, matching the design handoff (the
- * handoff specifies Roboto). Roboto, Inter, and JetBrains Mono are all self-hosted (see fonts.css).
+ * design handoff (2026-06-27). Heading face is DM Sans, matching the design handoff (the
+ * handoff specifies DM Sans). DM Sans, DM Sans, and JetBrains Mono are all self-hosted (see fonts.css).
  */
 :root{
   --ink-950:#0D0A1C;--ink-800:#1C1438;--ink-700:#2A2350;
@@ -22,13 +22,13 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;min-width:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink-950);
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink-950);
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.5;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%;height:auto}
 svg{display:block}
 ::selection{background:var(--purple-600);color:#fff}
-h1,h2,h3,h4,.font-head{font-family:'Roboto','Inter',sans-serif}
+h1,h2,h3,h4,.font-head{font-family:'DM Sans',sans-serif}
 .mono{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum"}
 a:focus-visible,button:focus-visible{outline:2px solid var(--purple-500);outline-offset:2px;border-radius:4px}
 .skip{position:absolute;left:-9999px;top:0;background:var(--purple-600);color:#fff;padding:10px 16px;z-index:300;border-radius:0 0 8px 0}
@@ -44,7 +44,7 @@ section{position:relative}
 .h-section{font-size:var(--fs-h2);font-weight:700;line-height:1.12;letter-spacing:-.015em}
 .lede{color:var(--ink-2);font-size:var(--fs-body);line-height:1.65}
 
-.btn{display:inline-flex;align-items:center;gap:9px;font-family:'Inter',sans-serif;font-size:.9375rem;font-weight:600;
+.btn{display:inline-flex;align-items:center;gap:9px;font-family:'DM Sans',sans-serif;font-size:.9375rem;font-weight:600;
   padding:12px 20px;border-radius:10px;border:1px solid transparent;cursor:pointer;
   transition:background .16s,border-color .16s,color .16s,transform .16s;white-space:nowrap}
 .btn-primary{background:var(--purple-600);color:#fff;box-shadow:var(--sh-sm)}
@@ -73,7 +73,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .brand .wm span{color:rgba(255,255,255,.5);font-weight:600}
 .nav-links{display:flex;align-items:center;gap:6px}
 .navlink{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:rgba(255,255,255,.78);
-  font-family:'Inter',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;padding:9px 12px;border-radius:8px}
+  font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;padding:9px 12px;border-radius:8px}
 .navlink:hover{color:#fff;background:rgba(255,255,255,.05)}
 .navlink .cv{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-1px);transition:transform .2s;opacity:.7}
 .has-dropdown{position:relative}
@@ -99,7 +99,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .mfeat::before{content:"";position:absolute;top:-40%;right:-25%;width:85%;height:130%;background:radial-gradient(circle,rgba(106,85,242,.45),transparent 64%);filter:blur(22px);pointer-events:none}
 .mf-ic{width:40px;height:40px;border-radius:11px;background:rgba(106,85,242,.28);border:1px solid rgba(106,85,242,.45);display:grid;place-items:center;margin-bottom:14px;position:relative}
 .mf-ic svg{width:21px;height:21px;stroke:#d4c9fb;fill:none;stroke-width:1.7}
-.mfeat .mf-title{font-family:'Roboto',sans-serif;font-size:1.0625rem;font-weight:700;color:#fff;margin-bottom:8px;position:relative;letter-spacing:-.01em}
+.mfeat .mf-title{font-family:'DM Sans',sans-serif;font-size:1.0625rem;font-weight:700;color:#fff;margin-bottom:8px;position:relative;letter-spacing:-.01em}
 .mfeat p{font-size:.82rem;color:rgba(255,255,255,.72);line-height:1.5;margin-bottom:16px;position:relative}
 .mfeat .btn{font-size:.84rem;padding:11px 16px;position:relative;align-self:flex-start}
 .dropdown{top:calc(100% + 8px);right:0;min-width:230px;padding:8px}
@@ -142,7 +142,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
   background:radial-gradient(ellipse at center,rgba(106,85,242,.26),rgba(84,60,218,.08) 48%,transparent 72%);filter:blur(46px)}
 .hero-inner{position:relative;z-index:2;max-width:74ch;margin:0 auto;text-align:center;display:flex;flex-direction:column;align-items:center}
 .hero-inner .kicker{justify-content:center}
-.hero h1{font-family:'Roboto',sans-serif;font-size:var(--fs-hero);font-weight:700;line-height:1.07;letter-spacing:-.02em;max-width:24ch;text-wrap:balance}
+.hero h1{font-family:'DM Sans',sans-serif;font-size:var(--fs-hero);font-weight:700;line-height:1.07;letter-spacing:-.02em;max-width:24ch;text-wrap:balance}
 .hero .lede{color:rgba(255,255,255,.86);margin-top:20px;max-width:62ch;font-size:var(--fs-body)}
 .hero-cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap;justify-content:center}
 .trust{margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14);font-size:.84rem;color:rgba(255,255,255,.66);display:flex;align-items:center;gap:11px;max-width:62ch;text-align:left}
@@ -166,7 +166,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .pain-ic svg{width:23px;height:23px;stroke:var(--purple-600);fill:none;stroke-width:1.6}
 .pain-card h3{font-size:1.1875rem;font-weight:700;letter-spacing:-.01em;margin-bottom:11px}
 .pain-card p{color:var(--ink-2);font-size:.9375rem;line-height:1.6}
-.pain-close{margin-top:30px;font-family:'Roboto',sans-serif;font-size:var(--fs-sub);font-weight:600;letter-spacing:-.01em;max-width:30ch}
+.pain-close{margin-top:30px;font-family:'DM Sans',sans-serif;font-size:var(--fs-sub);font-weight:600;letter-spacing:-.01em;max-width:30ch}
 .pain-close b{color:var(--purple-600)}
 
 /* SOLUTION FINDER */
@@ -174,7 +174,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
   display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,48px);align-items:center;position:relative;overflow:hidden;box-shadow:var(--sh-lg)}
 .finder .fglow{position:absolute;top:-30%;right:-10%;width:60%;height:90%;background:radial-gradient(circle,rgba(106,85,242,.3),transparent 65%);filter:blur(40px);pointer-events:none}
 .finder .fc{position:relative;z-index:2}
-.finder h2{font-family:'Roboto',sans-serif;font-size:var(--fs-sub);font-weight:700;line-height:1.16;margin:12px 0 12px;letter-spacing:-.01em}
+.finder h2{font-family:'DM Sans',sans-serif;font-size:var(--fs-sub);font-weight:700;line-height:1.16;margin:12px 0 12px;letter-spacing:-.01em}
 .finder p{color:rgba(255,255,255,.68);font-size:.9375rem;line-height:1.6;max-width:46ch}
 .cat-chips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;max-width:30rem}
 .cat-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-size:.8rem;font-weight:500;color:rgba(255,255,255,.85)}
@@ -189,7 +189,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .fp-dots{display:flex;gap:6px}
 .fp-dots i{width:7px;height:7px;border-radius:50%;background:var(--ink-700);transition:background .3s}
 .fp-dots i.on{background:var(--purple-500)}
-.fp-q{font-family:'Roboto',sans-serif;font-size:1.1875rem;font-weight:600;margin:16px 0 16px;min-height:50px}
+.fp-q{font-family:'DM Sans',sans-serif;font-size:1.1875rem;font-weight:600;margin:16px 0 16px;min-height:50px}
 .fp-opts{display:flex;flex-direction:column;gap:10px}
 .fp-opt{display:flex;align-items:center;gap:12px;text-align:left;background:#241B45;border:1px solid var(--ink-700);color:#fff;font-family:inherit;font-size:.9rem;padding:13px 15px;border-radius:9px;cursor:pointer;transition:border-color .15s,background .15s}
 .fp-opt:hover{border-color:var(--purple-500);background:#2A2150}
@@ -199,9 +199,9 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .fp-result .ric{width:50px;height:50px;border-radius:13px;display:grid;place-items:center;margin-bottom:14px}
 .fp-result .ric svg{width:25px;height:25px;fill:none;stroke-width:1.7}
 .fp-result .rk{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
-.fp-result h3{font-family:'Roboto',sans-serif;font-size:1.375rem;font-weight:700;margin:8px 0 10px}
+.fp-result h3{font-family:'DM Sans',sans-serif;font-size:1.375rem;font-weight:700;margin:8px 0 10px}
 .fp-result p{color:rgba(255,255,255,.68);font-size:.9rem;margin-bottom:18px}
-.fp-ask{display:inline-flex;align-items:center;gap:7px;margin-top:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;padding:9px 15px;border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.fp-ask{display:inline-flex;align-items:center;gap:7px;margin-top:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:9px 15px;border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
 .fp-ask:hover{background:rgba(255,255,255,.1);border-color:var(--purple-400)}
 .fp-restart{background:none;border:none;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.08em;cursor:pointer;text-transform:uppercase;margin-top:12px;display:block}
 .fp-restart:hover{color:#fff}
@@ -351,7 +351,7 @@ header{position:sticky;top:0;z-index:200;background:rgba(13,10,28,.9);backdrop-f
 .cta .photo img{width:100%;height:100%;object-fit:cover;opacity:.14;filter:saturate(.5) brightness(.7)}
 .cta .glow{position:absolute;top:8%;left:50%;transform:translateX(-50%);width:80%;height:90%;background:radial-gradient(ellipse,rgba(106,85,242,.3),transparent 65%);filter:blur(50px)}
 .cta-inner{position:relative;z-index:2}
-.cta h2{font-family:'Roboto',sans-serif;font-size:clamp(1.75rem,3.8vw,2.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;max-width:18ch;margin:0 auto}
+.cta h2{font-family:'DM Sans',sans-serif;font-size:clamp(1.75rem,3.8vw,2.75rem);font-weight:800;letter-spacing:-.02em;line-height:1.1;max-width:18ch;margin:0 auto}
 .cta p{color:rgba(255,255,255,.74);font-size:1.03rem;line-height:1.6;max-width:52ch;margin:20px auto 0}
 .cta .btn{margin-top:28px}
 
@@ -463,7 +463,7 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .faq{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-sm);overflow:hidden;transition:border-color .2s,box-shadow .2s}
 .faq:hover{border-color:var(--purple-200)}
 .faq[open]{border-color:var(--purple-300);box-shadow:var(--sh-md)}
-.faq>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px clamp(20px,2.5vw,28px);font-family:'Roboto',sans-serif;font-size:1.06rem;font-weight:600;letter-spacing:-.01em;color:var(--ink-950)}
+.faq>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px clamp(20px,2.5vw,28px);font-family:'DM Sans',sans-serif;font-size:1.06rem;font-weight:600;letter-spacing:-.01em;color:var(--ink-950)}
 .faq>summary::-webkit-details-marker{display:none}
 .faq>summary .fq-pm{width:26px;height:26px;border-radius:7px;background:var(--purple-100);color:var(--purple-600);display:grid;place-items:center;flex:none;font-size:1.2rem;line-height:1;transition:transform .2s}
 .faq[open]>summary .fq-pm{transform:rotate(45deg)}
@@ -500,7 +500,7 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .dstage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-sm);padding:clamp(20px,2.6vw,28px);transition:box-shadow .2s,border-color .2s,transform .2s}
 .dstage:hover{box-shadow:var(--sh-md);border-color:var(--purple-200);transform:translateY(-2px)}
 .dstage-num{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--purple-100);color:var(--purple-600);font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
-.dstage h3{font-family:'Roboto',sans-serif;font-size:clamp(1.05rem,1.5vw,1.18rem);font-weight:700;letter-spacing:-.01em;margin:14px 0 8px}
+.dstage h3{font-family:'DM Sans',sans-serif;font-size:clamp(1.05rem,1.5vw,1.18rem);font-weight:700;letter-spacing:-.01em;margin:14px 0 8px}
 .dstage p{color:var(--ink-2);font-size:.9rem;line-height:1.6}
 .dstage-label{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:18px 0 10px;display:flex;align-items:center;gap:8px;font-weight:600}
 .dstage-label::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--purple-500)}
@@ -553,14 +553,14 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .svc-page .nf-code{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.78rem;font-weight:700;
   letter-spacing:.18em;color:var(--purple-300,#b9aef7);border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.06);border-radius:999px;padding:6px 14px}
-.svc-page .nf-head h1{font-family:"Roboto",sans-serif;font-size:clamp(2rem,1.4rem+2.4vw,3rem);font-weight:700;
+.svc-page .nf-head h1{font-family:"DM Sans",sans-serif;font-size:clamp(2rem,1.4rem+2.4vw,3rem);font-weight:700;
   letter-spacing:-.02em;line-height:1.08;margin-top:18px}
 .svc-page .nf-head p{color:rgba(255,255,255,.78);font-size:1.05rem;line-height:1.65;margin-top:16px}
 .svc-page .nf-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 
 /* A heading over the links, rather than the full band-head the section pages use. This is a signpost
    on a page nobody chose to visit, so it should be quiet and get out of the way of the links. */
-.svc-page .nf-next{font-family:"Roboto",sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:-.01em;
+.svc-page .nf-next{font-family:"DM Sans",sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:-.01em;
   color:var(--ink-950)}
 /* Four cards, so the row divides evenly instead of leaving one stranded on a second line. auto-fit
    steps down to two and then one without needing a breakpoint for each. */
@@ -568,7 +568,7 @@ footer{background:var(--ink-950);color:rgba(255,255,255,.7);padding:60px 0 32px;
 .svc-page .nf-card{position:relative;display:block;border:1px solid var(--line);border-radius:16px;
   background:#fff;padding:22px 22px 46px;transition:border-color .15s,box-shadow .15s,transform .15s}
 .svc-page .nf-card:hover{border-color:var(--purple-300,#b9aef7);box-shadow:0 10px 30px rgba(84,60,218,.09);transform:translateY(-2px)}
-.svc-page .nf-card h3{font-family:"Roboto",sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink-950)}
+.svc-page .nf-card h3{font-family:"DM Sans",sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink-950)}
 .svc-page .nf-card p{margin-top:8px;font-size:.92rem;line-height:1.6;color:var(--ink-2,#3a3550)}
 .svc-page .nf-go{position:absolute;left:22px;bottom:20px;color:var(--purple-600,#543cda);font-weight:700}
 @media (max-width:640px){.svc-page .nf-grid{grid-template-columns:1fr}}

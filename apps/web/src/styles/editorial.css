@@ -17,7 +17,7 @@
 .nexoris-site h1, .nexoris-site h2 { letter-spacing: -.035em; text-wrap: balance; }
 .nexoris-site :is(h2,h3,h4)[id], .nexoris-site section[id] { scroll-margin-top: 100px; }
 .nexoris-site :is(.kicker,.svc-page .kicker) {
-  font-family: Inter, sans-serif; font-size: .75rem; font-weight: 650; letter-spacing: .12em;
+  font-family: DM Sans, sans-serif; font-size: .75rem; font-weight: 650; letter-spacing: .12em;
 }
 .nexoris-site :is(.kicker,.svc-page .kicker) .dot { display: none; }
 .nexoris-site :is(.hero,.svc-page .hero) { padding-block: clamp(48px, 6vw, 84px); }
@@ -29,15 +29,15 @@
 .nexoris-site :is(.h-section,.svc-page .h-section) { line-height: 1.15; font-weight: 650; }
 .nexoris-site :is(.btn,.svc-page .btn) { min-height: 48px; border-radius: 6px; white-space: normal; text-align: center; }
 .nexoris-site :is(.btn-primary,.svc-page .btn-primary) { box-shadow: none; }
-.nexoris-site .brand .wm { font-family: Inter, sans-serif; font-size: 1rem; letter-spacing: -.025em; }
+.nexoris-site .brand .wm { font-family: DM Sans, sans-serif; font-size: 1rem; letter-spacing: -.025em; }
 .nexoris-site .mfeat { border-radius: 8px; background: var(--ink-950); }
 .nexoris-site .mfeat::before { opacity: .15; }
-.nexoris-site .mcol .mh { font-family: Inter, sans-serif; font-size: .75rem; color: var(--ink-2); }
+.nexoris-site .mcol .mh { font-family: DM Sans, sans-serif; font-size: .75rem; color: var(--ink-2); }
 .nexoris-site .mitem span { font-size: .8125rem; }
 .nexoris-site .flyout { border-radius: 10px; }
 .nexoris-site .foot-brand :is(p,.addr,.addr a), .nexoris-site .foot-bottom .mono { color: #bdb9ca; }
-.nexoris-site .foot-brand .addr { font-family: Inter, sans-serif; font-size: .875rem; }
-.nexoris-site .foot-col h5 { font-family: Inter, sans-serif; color: #bdb9ca; font-size: .75rem; }
+.nexoris-site .foot-brand .addr { font-family: DM Sans, sans-serif; font-size: .875rem; }
+.nexoris-site .foot-col h5 { font-family: DM Sans, sans-serif; color: #bdb9ca; font-size: .75rem; }
 .nexoris-site .foot-col a, .nexoris-site .foot-bottom .links a { color: #d1cddb; font-size: .875rem; }
 .nexoris-site .soc { width: 44px; height: 44px; }
 
@@ -79,14 +79,14 @@
 
 /* Company pages: genuine portrait remains separate from contextual imagery. */
 .nexoris-site .home-demo-caption { text-align: center; margin-top: 16px; }
-.nexoris-site .foot-col h2 { font-family: Inter,sans-serif; color: #bdb9ca; font-size: .75rem; }
+.nexoris-site .foot-col h2 { font-family: DM Sans,sans-serif; color: #bdb9ca; font-size: .75rem; }
 .nexoris-site .insights-page .card { border-radius: 6px; box-shadow: none; border-color: var(--line); }
 .nexoris-site .insights-page .card:hover { transform: none; box-shadow: none; }
 .nexoris-site .insights-page .card-body h3 { font-size: 1.25rem; line-height: 1.35; }
 .nexoris-site .insights-page .card-ex { font-size: .9375rem; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .nexoris-site .insights-page .card-go { background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; justify-content: space-between; padding: 16px 0 0; }
 .nexoris-site .insights-page .card:hover .card-go { background: transparent; color: var(--purple-700); }
-.nexoris-site .insights-page .card-cat { border-radius: 3px; font-family: Inter,sans-serif; font-size: .6875rem; }
+.nexoris-site .insights-page .card-cat { border-radius: 3px; font-family: DM Sans,sans-serif; font-size: .6875rem; }
 .nexoris-site .insights-page .feat { border-radius: 8px; box-shadow: none; }
 .nexoris-site .insights-page .nl { border-radius: 8px; }
 .nexoris-site .insights-page .nl::before { opacity: .2; }
@@ -95,10 +95,10 @@
 .nexoris-site .ogw-launch .ogw-av { border-radius: 10px; }
 .nexoris-site .ogw-launch .ogw-ring { display: none; }
 .nexoris-site .legal-page .toc ul { list-style: none; }
-.nexoris-site .article-page .toc-aside a { font-family: Inter,sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
+.nexoris-site .article-page .toc-aside a { font-family: DM Sans,sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
 .nexoris-site .article-page .toc-aside .toc-text { -webkit-line-clamp: unset; }
-.nexoris-site .job-page .job-body, .nexoris-site .case-study-page .cs-body, .nexoris-site .pseo-page .prose { font-family: Inter,sans-serif; font-size: 1.0625rem; line-height: 1.85; }
-.nexoris-site .pseo-body { font-family: Inter,sans-serif; font-size: 1.0625rem; line-height: 1.85; }
+.nexoris-site .job-page .job-body, .nexoris-site .case-study-page .cs-body, .nexoris-site .pseo-page .prose { font-family: DM Sans,sans-serif; font-size: 1.0625rem; line-height: 1.85; }
+.nexoris-site .pseo-body { font-family: DM Sans,sans-serif; font-size: 1.0625rem; line-height: 1.85; }
 .nexoris-site .pseo-breadcrumb { margin-bottom: 28px; font-size: .8125rem; color: var(--ink-3); }
 .nexoris-site .abt-founder { box-shadow: none; border-radius: 8px; }
 .nexoris-site .abt-founder-photo { border-radius: 6px; }
@@ -116,20 +116,20 @@
 .nexoris-site .ih-shot img { object-fit: contain; background: #f0f0f3; }
 
 /* All CMS editorial families share the same readable long-form treatment. */
-.nexoris-site .article-page .prose { font-family: Inter, sans-serif; font-size: 1.0625rem; line-height: 1.85; color: #34313f; overflow-wrap: anywhere; }
+.nexoris-site .article-page .prose { font-family: DM Sans, sans-serif; font-size: 1.0625rem; line-height: 1.85; color: #34313f; overflow-wrap: anywhere; }
 .nexoris-site .article-page .prose :is(p,ul,ol) { margin-block: 0 1.4em; }
 .nexoris-site .article-page .prose h2 { font-size: clamp(1.5rem,2.3vw,2rem); line-height: 1.25; margin-top: 2.2em; margin-bottom: .8em; }
 .nexoris-site .article-page .prose h3 { font-size: 1.25rem; line-height: 1.4; margin-top: 1.8em; }
 .nexoris-site .article-page .prose a { text-decoration: underline; text-underline-offset: .2em; }
 .nexoris-site .article-page .art-head h1 { max-width: 25ch; font-weight: 650; line-height: 1.12; }
 .nexoris-site .article-page .tldr { background: #f3f3f1; border: 1px solid var(--line); border-left: 3px solid var(--purple-600); border-radius: 4px; box-shadow: none; }
-.nexoris-site .article-page .toc a { font-family: Inter, sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
+.nexoris-site .article-page .toc a { font-family: DM Sans, sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
 .nexoris-site .article-page .toc ol { list-style: none; padding-left: 0; }
 .nexoris-site .article-page .table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
-.nexoris-site .article-page .prose table { font-family: Inter, sans-serif; font-size: .9375rem; line-height: 1.65; }
+.nexoris-site .article-page .prose table { font-family: DM Sans, sans-serif; font-size: .9375rem; line-height: 1.65; }
 .nexoris-site .article-page .prose :is(th,td) { padding: 16px; min-width: 120px; }
 .nexoris-site .article-page .prose figure, .nexoris-site .article-page .art-figure { border-radius: 6px; overflow: hidden; }
-.nexoris-site .article-page .prose figcaption { font-family: Inter, sans-serif; font-size: .8125rem; line-height: 1.65; color: var(--ink-2); }
+.nexoris-site .article-page .prose figcaption { font-family: DM Sans, sans-serif; font-size: .8125rem; line-height: 1.65; color: var(--ink-2); }
 .nexoris-site .legal-page .legal-head h1 { font-size: clamp(2.125rem,4vw,3.25rem); }
 .nexoris-site .legal-page .legal-sec { border-radius: 0; box-shadow: none; }
 .nexoris-site .author-page .prof { box-shadow: none; border-radius: 8px; }
