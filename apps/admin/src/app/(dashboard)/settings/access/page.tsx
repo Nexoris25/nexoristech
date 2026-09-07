@@ -107,11 +107,17 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
         <InviteUser employees={invitableEmployees} emailReady={emailReady} />
       </div>
 
-      {/* Whether the invitation was actually delivered, said plainly.
-          This panel used to appear identically whether the email had gone out or had never left the
-          building, so an admin had no way to know that invitations were not sending. The copyable
-          link is shown either way, because it is the fallback; what changed is that the screen now
-          says which situation it is. */}
+      {/*
+        * The link, and an honest account of whether anything was emailed.
+        *
+        * Three states, because there are three situations and they are not the same. Delivered says
+        * so. No provider configured is the ordinary path on this deployment — invitations are handed
+        * over by whoever is inviting — and says nothing alarming, because nothing is wrong. Only a
+        * provider that was set up and then refused the message gets a warning, which is the one case
+        * an admin needs to act on.
+        *
+        * The copyable link is shown in all three, since it is what actually lets someone in.
+        */}
       {justInvited?.invite_token ? (
         <section className="mt-4 rounded-2xl border border-[#543CDA]/30 bg-[#F6F4FE] p-4">
           <h2 className="text-[0.92rem] font-700 text-slate-900">
@@ -120,11 +126,12 @@ export default async function AccessPage({ searchParams }: { searchParams: Promi
           <p className="mt-0.5 text-[0.82rem] text-slate-600">
             {notice.mail === "sent"
               ? `Handed to Mailjet for delivery to ${justInvited.email}. They open it, set their own password, and sign in. The link works once and expires in 7 days. Here it is as well, in case the email goes astray.`
-              : "They open it, set their own password, and sign in. The link works once and expires in 7 days."}
+              : "Send it to them however you normally would. They open it, set their own password, and sign in. The link works once and expires in 7 days."}
           </p>
-          {notice.mail === "not-sent" ? (
+          {notice.mail === "failed" ? (
             <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[0.8rem] font-600 text-amber-800">
-              The invitation email could not be sent, so this link is the only way in. Check <Link href="/settings/email" className="underline">Email Delivery</Link>.
+              A mail provider is configured but refused this message, so this link is the only way in.
+              Check <Link href="/settings/email" className="underline">Email Delivery</Link>.
             </p>
           ) : null}
           <CopyLink link={inviteLink(origin, justInvited.invite_token)} />

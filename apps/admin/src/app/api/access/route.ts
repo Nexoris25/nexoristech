@@ -32,15 +32,30 @@ import { createResetToken, resetLink, RESET_MAX_AGE_MINUTES } from "../../../lib
  * whether the invitation had been delivered or had never left the building, so "the invite is not
  * sending" was invisible from the one page an admin was looking at.
  */
-async function emailInvitation(to: string, name: string, invitedBy: string, token: string): Promise<"sent" | "not-sent"> {
+/**
+ * Three outcomes, not two.
+ *
+ * "Nobody configured a mail provider" and "the provider was asked and refused" were both reported as
+ * `not-sent`, so the screen showed the same red "the invitation email could not be sent" warning in
+ * both cases. On a deployment that deliberately hands invitation links over by hand — which is how
+ * this platform is run — that warning appeared on every single invitation, describing a fault that
+ * did not exist, and taught whoever saw it to ignore a message that also reports real failures.
+ *
+ * `not-configured` is now its own outcome and reads as the ordinary path. `failed` still warns,
+ * because a provider that was set up and then stopped working is worth knowing about.
+ */
+type Delivery = "sent" | "not-configured" | "failed";
+
+async function emailInvitation(to: string, name: string, invitedBy: string, token: string): Promise<Delivery> {
   try {
     const link = inviteLink(await shareOrigin(), token);
     const message = invitationEmail(name || to, invitedBy, link, 7);
     const result = await sendEmail({ to, ...message }, "invitation");
-    return result.status === "sent" ? "sent" : "not-sent";
+    if (result.status === "sent") return "sent";
+    return result.status === "not-configured" ? "not-configured" : "failed";
   } catch (e) {
     console.error("[invite] could not send:", e instanceof Error ? e.message : e);
-    return "not-sent";
+    return "failed";
   }
 }
 

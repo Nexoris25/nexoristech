@@ -33,7 +33,10 @@ export default async function SettingsOverview(): Promise<ReactNode> {
     { href: "/settings/roles", icon: ShieldCheck, title: "Roles & Permissions", desc: "The platform's fixed role model and what each role can do per module.", stat: "4 modules", sub: "Read-only matrix" },
     { href: "/audit", icon: FileClock, title: "Audit", desc: "The one immutable record of who did what, across every module.", stat: `${s.audit_today} today`, sub: "Platform-wide" },
     { href: "/settings/company", icon: Building2, title: "Company", desc: "Legal profile, registration, contact, fiscal calendar, and notifications.", stat: "Nexoris Technologies", sub: "Single record" },
-    { href: "/settings/email", icon: Mail, title: "Email Delivery", desc: "How invitations and password resets reach people, for every module.", stat: emailReady ? "Configured" : "Not sending", sub: emailReady ? "Mailjet over HTTPS" : "Links must be shared by hand" },
+    /* "Not sending" read as a fault. Sending email is optional here: with no provider the platform
+       hands out invitation and reset links for an admin to pass on, which is a supported way to run
+       it, not a broken one. */
+    { href: "/settings/email", icon: Mail, title: "Email Delivery", desc: "How invitations and password resets reach people, for every module.", stat: emailReady ? "Configured" : "Links by hand", sub: emailReady ? "Mailjet over HTTPS" : "No provider set; optional" },
     { href: "/e-invoicing", icon: ReceiptText, title: "NRS e-Invoicing", desc: "Readiness for the Nigeria Revenue Service e-invoicing system.", stat: s.nrs_enabled ? "Enabled" : "Not live", sub: `${s.nrs_env} environment` },
   ];
 

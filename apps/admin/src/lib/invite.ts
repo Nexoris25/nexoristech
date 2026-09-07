@@ -48,14 +48,34 @@ export function appOrigin(): string {
   return (process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").replace(/\/+$/, "");
 }
 
+/** A loopback address: fine for a server talking to itself, useless in a link sent to a person. */
+function isLoopback(origin: string): boolean {
+  return /^https?:\/\/(localhost|127\.|\[::1\])/i.test(origin.trim());
+}
+
 /**
  * The origin to put in a shared link. Prefers the host the admin is actually on, so a link copied from
  * a staging or LAN address is reachable by the person it is sent to. APP_URL wins when set, because in
  * production the public address is the one that matters and the request host may be an internal one.
+ *
+ * Except when APP_URL is a loopback address in production, which is the one case where obeying it is
+ * certainly wrong. Several variables in this deployment are *meant* to be localhost — the gateway and
+ * the media origin are server-to-server and never reach a browser — so a deployment that copies
+ * .env.local forward is likely to carry APP_URL=http://localhost:3001 with them. That value does
+ * reach a person: it is the invitation and password-reset link. Nobody can open it but the server
+ * itself, and now that links are handed over by hand rather than emailed, it is the only way in.
+ *
+ * So in production a loopback APP_URL is ignored in favour of the host the request actually arrived
+ * on, which is the address the admin is looking at and therefore one that resolves. In development it
+ * is honoured, because there localhost is the truth.
  */
 export async function shareOrigin(): Promise<string> {
   const configured = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL;
-  if (configured) return configured.replace(/\/+$/, "");
+  const usable =
+    configured && !(process.env.NODE_ENV === "production" && isLoopback(configured))
+      ? configured
+      : undefined;
+  if (usable) return usable.replace(/\/+$/, "");
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   if (!host) return appOrigin();
