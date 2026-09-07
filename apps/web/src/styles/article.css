@@ -253,6 +253,8 @@
   min-width: 0;
 }
 .article-page .tldr {
+  /* The short version is article text, so it is set in the article face. */
+  font-family: "Lora", Georgia, ui-serif, serif;
   background: var(--purple-100, #eeebfc);
   border: 1px solid var(--purple-200, #dcd6f9);
   border-radius: 14px;
@@ -483,7 +485,7 @@
   max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-family: "DM Sans", sans-serif;
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-size: 0.94rem;
   border: 1px solid var(--line, #e9e7f0);
   border-radius: 12px;
@@ -609,12 +611,13 @@
 }
 
 /* author + fact-checker cards */
+/* The byline cards read in the article face, like the article they sit under. */
 .article-page .people {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-top: 26px;
-  font-family: "DM Sans", sans-serif;
+  font-family: "Lora", Georgia, ui-serif, serif;
 }
 
 /*
@@ -755,6 +758,9 @@
   font-weight: 600;
 }
 .article-page .pcard h3 {
+  /* Stated, because the site-wide heading rule would otherwise set the author's name in the UI face
+     while the bio directly beneath it reads in the article face. */
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-size: 1.08rem;
   font-weight: 700;
   letter-spacing: -0.01em;

@@ -141,7 +141,8 @@
 .nexoris-site .article-page .toc a { font-family: DM Sans, sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
 .nexoris-site .article-page .toc ol { list-style: none; padding-left: 0; }
 .nexoris-site .article-page .table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
-.nexoris-site .article-page .prose table { font-family: DM Sans, sans-serif; font-size: .9375rem; line-height: 1.65; }
+/* Tables carry article content, so they read in the article face rather than the UI one. */
+.nexoris-site .article-page .prose table { font-family: "Lora", Georgia, ui-serif, serif; font-size: .9375rem; line-height: 1.65; }
 .nexoris-site .article-page .prose :is(th,td) { padding: 16px; min-width: 120px; }
 .nexoris-site .article-page .prose figure, .nexoris-site .article-page .art-figure { border-radius: 6px; overflow: hidden; }
 .nexoris-site .article-page .prose figcaption { font-family: DM Sans, sans-serif; font-size: .8125rem; line-height: 1.65; color: var(--ink-2); }

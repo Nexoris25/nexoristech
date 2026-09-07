@@ -750,6 +750,37 @@
 .nexoris-site #main-content .article-page .prose :is(ul, ol) {
   gap: 5px;
 }
+/*
+ * A list item written as a paragraph is still a list item.
+ *
+ * The editor produces `<li><p>…</p></li>` for some articles and a bare `<li>…</li>` for others —
+ * whichever it does is invisible to the person writing, and both mean the same thing. But the
+ * paragraph rule above put an 18px bottom margin *inside* each item, so the same list rendered with
+ * four times the spacing depending on which shape the editor happened to save. On the ERP article,
+ * 27 of its 36 items carry a paragraph and the numbered lists there were visibly looser than the
+ * identical lists on every other article.
+ *
+ * Zeroing the margin makes the two shapes render identically. An item that genuinely holds more than
+ * one paragraph still separates them.
+ */
+.nexoris-site #main-content .article-page .prose li > p {
+  margin-bottom: 0;
+  max-width: none;
+}
+.nexoris-site #main-content .article-page .prose li > p + p {
+  margin-top: 0.6em;
+}
+/*
+ * Section headings fill the line before they wrap.
+ *
+ * `text-wrap: balance` is set on every h2 site-wide, which is right for a short hero headline and
+ * wrong here: a section heading overflowing its column by 39px was split into two half-empty lines,
+ * which reads as a heading that wrapped for no reason. `pretty` keeps the first line full and only
+ * carries over what genuinely does not fit.
+ */
+.nexoris-site #main-content .article-page .prose :is(h2, h3, h4, h5, h6) {
+  text-wrap: pretty;
+}
 .nexoris-site #main-content .article-page .prose li {
   font-size: 1.0625rem;
   line-height: 1.7;
