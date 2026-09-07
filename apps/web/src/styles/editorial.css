@@ -116,7 +116,20 @@
 .nexoris-site .ih-shot img { object-fit: contain; background: #f0f0f3; }
 
 /* All CMS editorial families share the same readable long-form treatment. */
-.nexoris-site .article-page .prose { font-family: DM Sans, sans-serif; font-size: 1.0625rem; line-height: 1.85; color: #34313f; overflow-wrap: anywhere; }
+/*
+ * Articles are set in Lora, which is the face the design system assigns them.
+ *
+ * PRD 14.1 names Lora for articles — "headline and body, chosen for long-form reading comfort" — and
+ * the woff2 has been shipped and declared in the shared font stylesheet since the beginning. Nothing
+ * ever referenced it: the reading column asked for DM Sans, the site's UI face, so every article was
+ * set in the same sans as the navigation and the buttons around it. article.css still carried
+ * `"DM Sans", Georgia, serif` under a comment reading "serif reading prose", which is the remains of
+ * the intention.
+ *
+ * Body copy only. The furniture around the article — cards, the contents list, pills, buttons —
+ * stays in DM Sans, because that is chrome and belongs with the rest of the site.
+ */
+.nexoris-site .article-page .prose { font-family: "Lora", Georgia, ui-serif, serif; font-size: 1.0625rem; line-height: 1.8; color: #34313f; overflow-wrap: anywhere; }
 .nexoris-site .article-page .prose :is(p,ul,ol) { margin-block: 0 1.4em; }
 .nexoris-site .article-page .prose h2 { font-size: clamp(1.5rem,2.3vw,2rem); line-height: 1.25; margin-top: 2.2em; margin-bottom: .8em; }
 .nexoris-site .article-page .prose h3 { font-size: 1.25rem; line-height: 1.4; margin-top: 1.8em; }

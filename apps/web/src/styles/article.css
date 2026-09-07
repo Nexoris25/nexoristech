@@ -48,7 +48,8 @@
   background: var(--purple-600, #543cda);
 }
 .article-page .art-head h1 {
-  font-family: "DM Sans", sans-serif;
+  /* The headline is set in the article face, per PRD 14.1. */
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
   font-weight: 700;
   line-height: 1.1;
@@ -283,9 +284,9 @@
   color: var(--ink-950, #0d0a1c);
 }
 
-/* serif reading prose */
+/* Serif reading prose, in the face the design system assigns to articles. */
 .article-page .prose {
-  font-family: "DM Sans", Georgia, serif;
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-size: 1rem;
   line-height: 1.75;
   color: #241f33;
@@ -294,7 +295,7 @@
   margin-bottom: 24px;
 }
 .article-page .prose h2 {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -304,7 +305,7 @@
   scroll-margin-top: 88px;
 }
 .article-page .prose h3 {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--ink-950, #0d0a1c);
@@ -357,14 +358,25 @@
  * measure on a phone. It keeps the serif and the italic, which is what marks it as quoted, and
  * drops to the body's own size with a little more room around it.
  */
+/*
+ * A quote is lifted off the page, not just ruled beside it.
+ *
+ * A bare left rule on the same white ground made a pulled quote easy to read straight past — at a
+ * glance it was another indented paragraph. A tinted panel in the brand's lightest purple marks it
+ * as borrowed voice before a word of it is read, and it matches the short-version box at the top of
+ * the article, so the two things the page sets apart are set apart the same way.
+ */
 .article-page .prose blockquote {
-  font-family: "DM Sans", Georgia, serif;
+  font-family: "Lora", Georgia, ui-serif, serif;
   font-style: italic;
   font-size: 1.08rem;
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--ink-950, #0d0a1c);
-  border-left: 3px solid var(--purple-500, #6a55f2);
-  padding: 2px 0 2px 20px;
+  background: var(--purple-100, #eeebfc);
+  border: 1px solid var(--purple-200, #dcd6f9);
+  border-left: 3px solid var(--purple-600, #543cda);
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
   margin: 26px 0;
 }
 .article-page .prose blockquote p {

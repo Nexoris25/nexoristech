@@ -683,10 +683,18 @@
  * nineteen of them read as a series of disconnected fragments. These distances still separate the
  * sections clearly while keeping a heading visually attached to the passage below it.
  */
+/*
+ * A heading belongs to the text under it.
+ *
+ * The gap above an h2 was still doing more work than the gap below, so each heading read as the tail
+ * of the section it was ending rather than the start of the one it introduces. Less room above and a
+ * little more beneath puts the heading with its own paragraph, which is the relationship the reader
+ * is actually being shown.
+ */
 .nexoris-site #main-content .article-page .prose h2 {
   font-size: clamp(24px, 2vw, 28px);
   line-height: 1.2;
-  margin: 26px 0 10px;
+  margin: 20px 0 14px;
 }
 .nexoris-site #main-content .article-page .prose h3 {
   font-size: clamp(20px, 1.7vw, 23px);
@@ -719,6 +727,20 @@
  * The list gap was 12px between items whose lines are 27px tall, so a five-point list read as five
  * separate blocks rather than one list. 8px groups them without crowding.
  */
+/*
+ * A reading measure, so the eye finds the next line.
+ *
+ * The text column is 720px, which in Lora at 17px is about 83 characters a line — measured, not
+ * estimated. Long-form typography settles around 60 to 75; past that the return sweep starts landing
+ * on the wrong line and a long article becomes tiring in a way readers feel without being able to
+ * name. 58ch works out at roughly 70 characters here.
+ *
+ * Only the running text is constrained. Tables and figures keep the full column, so media still has
+ * room and everything stays flush to the same left edge.
+ */
+.nexoris-site #main-content .article-page .prose :is(p, ul, ol, blockquote) {
+  max-width: 58ch;
+}
 .nexoris-site #main-content .article-page .prose :is(p, ul, ol) {
   margin-bottom: 18px;
   font-size: 1.0625rem;
@@ -753,10 +775,19 @@
   font-size: 13px;
   line-height: 1.4;
 }
+/*
+ * A table narrower than the column sits in the middle of it.
+ *
+ * The frame already shrank to the table's own width, which is right — a short table in a full-width
+ * border reads as one that has been cut off. But with no horizontal margin it then sat hard against
+ * the left edge with a growing band of empty page to its right, which looks like a mistake rather
+ * than a choice. Centring it makes a narrow table look deliberate; a table wide enough to fill the
+ * column is unaffected, because auto margins resolve to zero once it reaches max-width.
+ */
 .nexoris-site #main-content .article-page .prose .table-wrap {
   width: fit-content;
   max-width: 100%;
-  margin: 24px 0;
+  margin: 24px auto;
   overflow-x: auto;
 }
 .nexoris-site .how-work-page .hwk-hero-inner {
