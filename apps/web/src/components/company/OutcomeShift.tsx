@@ -1,51 +1,43 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowDown, Check } from "lucide-react";
 import { industryWorkflows } from "../../content/industry-workflows.js";
 import "../../styles/workflow.css";
-/** Capability explanation; actual client case studies remain CMS controlled. */
+/** An illustrative operational journey, separate from CMS case studies. */
 export function OutcomeShift({ industry }: { industry: string }) {
   const workflow = industryWorkflows[industry];
   if (!workflow) return null;
   return (
-    <div className="flow-story">
-      <div className="flow-story-heading">
+    <div className="journey-comparison">
+      <div className="journey-heading">
         <span className="kicker">Before & after Nexoris</span>
         <h3>{workflow.title}</h3>
-        <p>Follow each step to see what changes.</p>
       </div>
-      <ol className="flow-stages">
+      <ol className="journey-stages">
         {workflow.steps.map((step, index) => (
-          <li key={step.label}>
-            <details className="flow-stage" open={index === 0}>
-              <summary>
-                <span className="flow-number">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span>{step.label}</span>
-                <span className="flow-toggle" aria-hidden="true">
-                  +
-                </span>
-              </summary>
-              <div className="flow-pair">
-                <div className="flow-old">
-                  <span>Before</span>
-                  <p>{step.before}</p>
-                </div>
-                <ArrowRight
-                  className="flow-direction"
-                  size={22}
-                  aria-hidden="true"
-                />
-                <div className="flow-new">
-                  <span>With Nexoris</span>
-                  <p>{step.after}</p>
-                </div>
-              </div>
-            </details>
+          <li className="journey-stage" key={step.label}>
+            <div className="journey-label">
+              <span aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <h4>{step.label}</h4>
+            </div>
+            <div className="journey-before">
+              <span className="journey-caption">Before</span>
+              <p>{step.before}</p>
+            </div>
+            <div className="journey-connection" aria-hidden="true">
+              <ArrowDown size={20} />
+            </div>
+            <div className="journey-after">
+              <span className="journey-caption">
+                <Check size={16} aria-hidden="true" /> With Nexoris
+              </span>
+              <p>{step.after}</p>
+            </div>
           </li>
         ))}
       </ol>
-      <div className="flow-together">
-        <span>One shared view</span>
+      <div className="journey-result">
+        <span>Connected from start to finish</span>
         <p>{workflow.record}, together.</p>
       </div>
     </div>
