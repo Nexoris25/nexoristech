@@ -34,15 +34,42 @@ const START_OPTIONS = [
 
 /** Deterministic keyword hint mirroring the handoff's smart-form assistant. */
 const HINT_MAP: [RegExp, string][] = [
-  [/chatbot|whatsapp|after hours|reply|enquir|24\/7|midnight/, "Sounds like AI Chatbots & Virtual Assistants could fit, answering customers at any hour."],
-  [/automat|repetit|manual|retype|data entry|spreadsheet|paperwork/, "This points toward Business Process Automation, taking the busywork off your team."],
-  [/dashboard|report|numbers|forecast|analytics|kpi|metric/, "This sounds like Data Dashboards & Analytics, so you can act on live numbers."],
-  [/shop|store|ecommerce|e-commerce|online sales|checkout|catalog/, "AI E-Commerce may be the right starting point for selling online day and night."],
-  [/integrat|connect|sync|two systems|share data|api/, "AI & Systems Integration could make the tools you already use share data automatically."],
-  [/track|fleet|sensor|iot|cold room|vehicle|machine/, "IoT Development fits tracking vehicles, machines, or cold rooms live."],
-  [/government|agency|ministry|citizen|public sector|council/, "GovTech Platforms is built for digital services in government and public agencies."],
-  [/seo|google|found online|ranking|content|visibility/, "AI Content, SEO & GEO helps people and AI tools find you."],
-  [/app|website|platform|system|build|software|portal|mobile/, "This sounds like AI Product Development, our main service, built around your business."],
+  [
+    /chatbot|whatsapp|after hours|reply|enquir|24\/7|midnight/,
+    "Sounds like AI Chatbots & Virtual Assistants could fit, answering customers at any hour.",
+  ],
+  [
+    /automat|repetit|manual|retype|data entry|spreadsheet|paperwork/,
+    "This points toward Business Process Automation, taking the busywork off your team.",
+  ],
+  [
+    /dashboard|report|numbers|forecast|analytics|kpi|metric/,
+    "This sounds like Data Dashboards & Analytics, so you can act on live numbers.",
+  ],
+  [
+    /shop|store|ecommerce|e-commerce|online sales|checkout|catalog/,
+    "AI E-Commerce may be the right starting point for selling online day and night.",
+  ],
+  [
+    /integrat|connect|sync|two systems|share data|api/,
+    "AI & Systems Integration could make the tools you already use share data automatically.",
+  ],
+  [
+    /track|fleet|sensor|iot|cold room|vehicle|machine/,
+    "IoT Development fits tracking vehicles, machines, or cold rooms live.",
+  ],
+  [
+    /government|agency|ministry|citizen|public sector|council/,
+    "GovTech Platforms is built for digital services in government and public agencies.",
+  ],
+  [
+    /seo|google|found online|ranking|content|visibility/,
+    "AI Content, SEO & GEO helps people and AI tools find you.",
+  ],
+  [
+    /app|website|platform|system|build|software|portal|mobile/,
+    "This sounds like AI Product Development, our main service, built around your business.",
+  ],
 ];
 
 export function ContactFormView(): ReactNode {
@@ -93,10 +120,13 @@ export function ContactFormView(): ReactNode {
       needRef.current?.focus();
       return;
     }
-    const focus = service ? `We are looking at ${service}` : "We want this handled properly";
+    const focus = service
+      ? `We are looking at ${service}`
+      : "We want this handled properly";
     let brief = `My goal:\n${v}\n\nCurrent situation:\n${focus} and want it done well.`;
     if (start) brief += `\n\nTiming:\n${start}.`;
-    brief += "\n\nA sensible first step:\nA short scoping call to agree the approach and honest numbers.";
+    brief +=
+      "\n\nA sensible first step:\nA short scoping call to agree the approach and honest numbers.";
     setNeed(brief);
     setHint("Brief shaped. Read it over and edit anything before you send.");
     needRef.current?.focus();
@@ -115,6 +145,7 @@ export function ContactFormView(): ReactNode {
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (submitting) return;
+    if (!event.currentTarget.reportValidity()) return;
     const fd = new FormData(event.currentTarget);
     const name = String(fd.get("name") ?? "").trim();
     const email = String(fd.get("email") ?? "").trim();
@@ -130,6 +161,7 @@ export function ContactFormView(): ReactNode {
       phone: String(fd.get("phone") ?? "").trim() || undefined,
       company: String(fd.get("company") ?? "").trim() || undefined,
       message,
+      consent: fd.get("consent") === "on",
     };
     try {
       const response = await fetch("/api/contact/", {
@@ -156,7 +188,10 @@ export function ContactFormView(): ReactNode {
             </svg>
           </div>
           <h3>Thank you.</h3>
-          <p>A real person reads every brief, and you will hear from us within one business day.</p>
+          <p>
+            A real person reads every brief, and you will hear from us within
+            one business day.
+          </p>
         </div>
       </div>
     );
@@ -164,20 +199,33 @@ export function ContactFormView(): ReactNode {
 
   return (
     <div className="form-card reveal">
-      <form onSubmit={onSubmit} noValidate>
+      <form onSubmit={onSubmit}>
         <h2>Start the conversation.</h2>
         <p className="fc-sub">
-          A real person reads every brief. The more you tell us, the better our first reply.
+          A real person reads every brief. The more you tell us, the better our
+          first reply.
         </p>
 
         <div className="f-row">
           <div className="field">
             <label htmlFor="f-name">Your name</label>
-            <input id="f-name" name="name" type="text" autoComplete="name" required />
+            <input
+              id="f-name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              required
+            />
           </div>
           <div className="field">
             <label htmlFor="f-email">Email address</label>
-            <input id="f-email" name="email" type="email" autoComplete="email" required />
+            <input
+              id="f-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+            />
           </div>
         </div>
         <div className="f-row">
@@ -189,7 +237,12 @@ export function ContactFormView(): ReactNode {
           </div>
           <div className="field">
             <label htmlFor="f-company">Company or organisation</label>
-            <input id="f-company" name="company" type="text" autoComplete="organization" />
+            <input
+              id="f-company"
+              name="company"
+              type="text"
+              autoComplete="organization"
+            />
           </div>
         </div>
         <div className="f-row">
@@ -242,8 +295,8 @@ export function ContactFormView(): ReactNode {
             required
           />
           <span className="micro">
-            Write it the way you would say it. Rough notes are fine, our assistant will help shape
-            them.
+            Write it the way you would say it. Rough notes are fine, our
+            assistant will help shape them.
           </span>
           <div className={`smart-hint${hint ? " on" : ""}`} aria-live="polite">
             <span className="sh-ic">
@@ -258,7 +311,12 @@ export function ContactFormView(): ReactNode {
           <label htmlFor="f-budget">
             Budget range <span className="opt">(optional)</span>
           </label>
-          <input id="f-budget" name="budget" type="text" placeholder="A rough range is fine" />
+          <input
+            id="f-budget"
+            name="budget"
+            type="text"
+            placeholder="A rough range is fine"
+          />
           <span className="micro">
             Helps us suggest the right starting point. Skip it if you prefer.
           </span>
@@ -275,12 +333,17 @@ export function ContactFormView(): ReactNode {
             <h3>Want help shaping this?</h3>
           </div>
           <p>
-            Type your rough notes and our assistant will arrange them into a clear brief: your goal,
-            your current situation, and a sensible first step. You review and edit everything before
-            it sends. Nothing goes out without your approval.
+            Type your rough notes and our assistant will arrange them into a
+            clear brief: your goal, your current situation, and a sensible first
+            step. You review and edit everything before it sends. Nothing goes
+            out without your approval.
           </p>
           <div className="brief-btns">
-            <button type="button" className="btn btn-glass" onClick={shapeNotes}>
+            <button
+              type="button"
+              className="btn btn-glass"
+              onClick={shapeNotes}
+            >
               Shape my notes into a brief
             </button>
             <button type="submit" className="btn btn-glass">
@@ -291,14 +354,34 @@ export function ContactFormView(): ReactNode {
 
         {error ? (
           <p className="form-error" role="alert">
-            We could not send that just now. Please email business@nexoristech.com or try again in a
-            moment.
+            We could not send that just now. Please email
+            business@nexoristech.com or try again in a moment.
           </p>
         ) : null}
 
+        <label className="contact-consent">
+          <input type="checkbox" name="consent" required />
+          <span>
+            I agree that Nexoris Technologies may use my details to respond to
+            this enquiry, as described in the{" "}
+            <a
+              href="/privacy-policy/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Privacy Policy (opens in a new tab)
+            </a>
+            .
+          </span>
+        </label>
         <div className="submit-row">
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? "Sending" : "Send my brief"} <span className="arr">&rarr;</span>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={submitting}
+          >
+            {submitting ? "Sending" : "Send my brief"}{" "}
+            <span className="arr">&rarr;</span>
           </button>
           <span className="privacy-note">
             Your details stay with us and are handled in line with the NDPR.

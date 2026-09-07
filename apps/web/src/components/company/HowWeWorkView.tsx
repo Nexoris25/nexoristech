@@ -20,10 +20,11 @@ const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
     ),
     body: (
       <>
-        We start by understanding the business, its users, and any constraints. We ask a lot of
-        questions, and we listen more than we talk. This stage produces a clear plan, scope, and
-        timeline <b>before development begins</b>, so both sides know exactly what is being built, by
-        when, and for how much.
+        We start by understanding the business, its users, and any constraints.
+        We ask a lot of questions, and we listen more than we talk. This stage
+        produces a clear plan, scope, and timeline{" "}
+        <b>before development begins</b>, so both sides know exactly what is
+        being built, by when, and for how much.
       </>
     ),
   },
@@ -32,9 +33,10 @@ const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
     icon: <path d="M12 19l7-7 3 3-7 7-3-3zM2 2l6 6M2 2l4 .8L6.8 8" />,
     body: (
       <>
-        We create wireframes and full designs and have them reviewed with you before development
-        starts. You see the product on screen and approve it before serious engineering money is
-        spent. Changing a design costs little. Changing built software costs a lot.{" "}
+        We create wireframes and full designs and have them reviewed with you
+        before development starts. You see the product on screen and approve it
+        before serious engineering money is spent. Changing a design costs
+        little. Changing built software costs a lot.{" "}
         <b>We do the changing here.</b>
       </>
     ),
@@ -44,9 +46,10 @@ const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
     icon: <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 6l-2 12" />,
     body: (
       <>
-        We build the product in stages using modern tools, and we keep you updated on progress
-        throughout. You will never go weeks wondering what is happening. If something shifts, you
-        hear it from us first, with options.
+        We build the product in stages using modern tools, and we keep you
+        updated on progress throughout. You will never go weeks wondering what
+        is happening. If something shifts, you hear it from us first, with
+        options.
       </>
     ),
   },
@@ -60,9 +63,9 @@ const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
     ),
     body: (
       <>
-        We test across browsers and devices, and we check performance before any stage is marked
-        complete. The product has to work for your real users on their real phones and connections,
-        not just on our machines.
+        We test across browsers and devices, and we check performance before any
+        stage is marked complete. The product has to work for your real users on
+        their real phones and connections, not just on our machines.
       </>
     ),
   },
@@ -76,9 +79,10 @@ const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
     ),
     body: (
       <>
-        We deploy the finished product, provide documentation, and train your team where needed, so
-        they can run the platform on their own. All source code, designs, and project files are
-        handed over. <b>Nothing is held back.</b>
+        We deploy the finished product, provide documentation, and train your
+        team where needed, so they can run the platform on their own. All source
+        code, designs, and project files are handed over.{" "}
+        <b>Nothing is held back.</b>
       </>
     ),
   },
@@ -92,9 +96,9 @@ const STAGES: { title: string; body: ReactNode; icon: ReactNode }[] = [
     ),
     body: (
       <>
-        We offer maintenance plans that cover updates, monitoring, and small improvements after
-        launch. Most clients stay with us on one, because software that nobody maintains slowly
-        becomes a problem.
+        We offer maintenance plans that cover updates, monitoring, and small
+        improvements after launch. Most clients stay with us on one, because
+        software that nobody maintains slowly becomes a problem.
       </>
     ),
   },
@@ -104,52 +108,57 @@ const COMMITMENTS: ReactNode[] = [
   <>
     A <b>written scope, timeline, and cost</b> before work begins.
   </>,
-  <>Straight answers when something changes, even when it is not what you expected to hear.</>,
+  <>
+    Straight answers when something changes, even when it is not what you
+    expected to hear.
+  </>,
   <>
     <b>Direct access</b> to the people building your product.
   </>,
   <>
-    At the end, all source code, designs, and project files handed over to you. Nothing is held
-    back, and there is <b>no quiet dependency</b> designed to keep you paying.
+    At the end, all source code, designs, and project files handed over to you.
+    Nothing is held back, and there is <b>no quiet dependency</b> designed to
+    keep you paying.
   </>,
 ];
 
-const MODELS: { title: string; best: string; body: string; icon: ReactNode }[] = [
-  {
-    title: "A project with a fixed written scope",
-    best: "Best when you know what you need",
-    body: "Best when you know what you need and want a clear price and date for it. We scope it, agree it in writing, and deliver it in stages you can see.",
-    icon: (
-      <>
-        <path d="M14 3v5h5" />
-        <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <path d="M9 13l2 2 4-4" />
-      </>
-    ),
-  },
-  {
-    title: "An ongoing product partnership",
-    best: "Best for products that keep evolving",
-    body: "Best when you are building something that will keep evolving, like a startup product or a growing platform. We work as your technical team over time, planning and shipping in regular cycles.",
-    icon: (
-      <>
-        <path d="M12 3v18" />
-        <path d="M5 8l7-5 7 5M5 16l7 5 7-5" />
-      </>
-    ),
-  },
-  {
-    title: "A managed operations plan",
-    best: "Best after launch",
-    body: "Best after launch. We monitor, update, support, and improve your platform on a monthly plan, so it keeps earning instead of going stale.",
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1" />
-      </>
-    ),
-  },
-];
+const MODELS: { title: string; best: string; body: string; icon: ReactNode }[] =
+  [
+    {
+      title: "A project with a fixed written scope",
+      best: "Best when you know what you need",
+      body: "Best when you know what you need and want a clear price and date for it. We scope it, agree it in writing, and deliver it in stages you can see.",
+      icon: (
+        <>
+          <path d="M14 3v5h5" />
+          <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M9 13l2 2 4-4" />
+        </>
+      ),
+    },
+    {
+      title: "An ongoing product partnership",
+      best: "Best for products that keep evolving",
+      body: "Best when you are building something that will keep evolving, like a startup product or a growing platform. We work as your technical team over time, planning and shipping in regular cycles.",
+      icon: (
+        <>
+          <path d="M12 3v18" />
+          <path d="M5 8l7-5 7 5M5 16l7 5 7-5" />
+        </>
+      ),
+    },
+    {
+      title: "A managed operations plan",
+      best: "Best after launch",
+      body: "Best after launch. We monitor, update, support, and improve your platform on a monthly plan, so it keeps earning instead of going stale.",
+      icon: (
+        <>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1" />
+        </>
+      ),
+    },
+  ];
 
 const ICP: { title: string; body: string; icon: ReactNode }[] = [
   {
@@ -217,7 +226,7 @@ export const HOW_WE_WORK_FAQ: { q: string; a: string }[] = [
 
 export function HowWeWorkView(): ReactNode {
   return (
-    <div className="svc-page">
+    <div className="svc-page how-work-page">
       <ScrollFx />
 
       {/* HERO */}
@@ -234,18 +243,23 @@ export function HowWeWorkView(): ReactNode {
               <span className="dot" />
               Our delivery process
             </span>
-            <h1>Plan properly. Design before building. Check the work at every stage.</h1>
+            <h1>
+              Plan properly.{" "}
+              <span className="hero-accent">Build with clarity.</span>
+            </h1>
             <p className="lede">
-              Whether the project is a single website or a full business platform, our process stays
-              the same. We take time to understand the problem, design the solution carefully, and
-              build software that is reliable, easy to maintain, and fully owned by you at the end.
+              Whether the project is a single website or a full business
+              platform, our process stays the same. We take time to understand
+              the problem, design the solution carefully, and build software
+              that is reliable, easy to maintain, and fully owned by you at the
+              end.
             </p>
             <div className="hero-cta">
               <Link className="btn btn-primary" href="/contact">
                 Book a scoping call <span className="arr">&rarr;</span>
               </Link>
-              <Link className="btn btn-ghost on-dark" href="/#services">
-                See our services
+              <Link className="btn btn-ghost on-dark" href="#delivery">
+                Explore the process
               </Link>
             </div>
           </div>
@@ -253,26 +267,24 @@ export function HowWeWorkView(): ReactNode {
       </section>
 
       {/* STAGES */}
-      <section className="band" aria-label="From the brief to a working product"><div className="wrap company-editorial company-editorial-text"><div><span className="kicker">From the first conversation</span><h2 className="h-section">Make the work visible, at every stage.</h2><p className="lede">A written brief, interface designs, working software, and a clear handover. Each stage gives you something concrete to review before the next begins.</p></div></div></section>
-      <section className="band" aria-label="The six stages">
+      <section className="band" id="delivery" aria-label="The six stages">
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
               <span className="dot" />
               The process
             </span>
-            <h2 className="h-section">The six stages of every project.</h2>
+            <h2 className="h-section">A clear path from brief to handover.</h2>
+            <p className="lede">
+              Six stages, with something concrete to review at every step.
+            </p>
           </div>
           <div className="hwk-stages reveal">
             {STAGES.map((s, i) => (
               <article className="hwk-stage" key={s.title}>
-                <div className="hwk-stage-top">
-                  <div className="hwk-node">
-                    <svg viewBox="0 0 24 24">{s.icon}</svg>
-                  </div>
-                  <span className="hwk-num" aria-hidden="true" data-n={String(i + 1).padStart(2, "0")} />
-                </div>
-                <div className="k">Stage {String(i + 1).padStart(2, "0")}</div>
+                <span className="delivery-number" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <h3>{s.title}</h3>
                 <p>{s.body}</p>
               </article>
@@ -309,7 +321,7 @@ export function HowWeWorkView(): ReactNode {
       </section>
 
       {/* MODELS */}
-      <section className="band" aria-label="Ways to work">
+      <section className="band" id="engagement" aria-label="Ways to work">
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
@@ -366,10 +378,6 @@ export function HowWeWorkView(): ReactNode {
             <aside className="faq-aside reveal">
               <div className="fa-eyebrow">FAQ</div>
               <h2>Questions people ask before they hire us.</h2>
-              <p className="fa-lede">
-                Straight answers to the things worth knowing before you commit. If yours is not here,
-                ask.
-              </p>
               <div className="faq-contact">
                 <div className="fc-ic">
                   <svg viewBox="0 0 24 24">
@@ -377,7 +385,10 @@ export function HowWeWorkView(): ReactNode {
                   </svg>
                 </div>
                 <b>Still have a question?</b>
-                <p>The first conversation costs nothing and usually clears things up.</p>
+                <p>
+                  The first conversation costs nothing and usually clears things
+                  up.
+                </p>
                 <Link className="btn btn-primary" href="/contact">
                   Book a scoping call <span className="arr">&rarr;</span>
                 </Link>
@@ -401,10 +412,12 @@ export function HowWeWorkView(): ReactNode {
       <section className="cta" aria-label="Closing CTA">
         <div className="glow" />
         <div className="wrap cta-inner reveal">
-          <h2>The first conversation costs nothing and usually clears things up.</h2>
+          <h2>
+            The first conversation costs nothing and usually clears things up.
+          </h2>
           <p>
-            Tell us what you are trying to achieve. We will come back with a suggested approach and
-            honest numbers.
+            Tell us what you are trying to achieve. We will come back with a
+            suggested approach and honest numbers.
           </p>
           <Link className="btn btn-primary" href="/contact">
             Book a scoping call <span className="arr">&rarr;</span>
