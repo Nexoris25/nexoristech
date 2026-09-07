@@ -86,7 +86,15 @@ function fmtDate(s: string): string {
 const BRAND = "#543CDA";
 const INK = "#0F172A";
 const MUTE = "#555269";
-const FAINT = "#8B8AA0";
+/*
+ * The quietest text on the page still has to be read.
+ *
+ * This was #8B8AA0, which is about 3.2:1 on white — under the 4.5:1 minimum, and set at 6 to 7.5pt
+ * on a document people read as a printout or a phone-sized PDF. The account-name label above the
+ * name someone checks before transferring money was the faintest thing on the invoice. #63607A is
+ * about 5.9:1 and still recedes behind INK and MUTE, which is all the tone was ever for.
+ */
+const FAINT = "#63607A";
 const LINE = "#E4E2EF";
 const TINT = "#F4F1FD";
 
@@ -168,8 +176,10 @@ const s = StyleSheet.create({
   },
   bankBank: { fontSize: 8.5, fontWeight: 700, color: BRAND, letterSpacing: 0.3 },
   bankNumber: { fontSize: 13, fontWeight: 700, color: INK, marginTop: 4, letterSpacing: 0.8 },
-  bankLabel: { fontSize: 6, color: FAINT, letterSpacing: 0.6, marginTop: 5 },
-  bankHolder: { fontSize: 8, color: INK, marginTop: 1.5 },
+  /* The account name is checked against a banking app before money moves, so it is set at the size
+     of ordinary text rather than as a caption. */
+  bankLabel: { fontSize: 6.5, color: FAINT, letterSpacing: 0.6, marginTop: 5 },
+  bankHolder: { fontSize: 9, color: INK, fontWeight: 500, marginTop: 2 },
 
   footer: { position: "absolute", bottom: 26, left: 44, right: 44, borderTopWidth: 1, borderTopColor: LINE, paddingTop: 8 },
   footText: { fontSize: 6.5, color: FAINT, textAlign: "center", lineHeight: 1.5 },
@@ -261,15 +271,16 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
           {/* IRN/QR + totals */}
           <View style={s.lower}>
             <View style={s.irnBox}>
-              {!data.isTaxInvoice ? (
-                <>
-                  <Text style={s.label}>DOCUMENT TYPE</Text>
-                  <Text style={s.notTax}>
-                    This is not a tax invoice. It has not been filed with the Nigeria Revenue Service
-                    and carries no IRN.
-                  </Text>
-                </>
-              ) : null}
+              {/*
+                * The document does not comment on its own fiscal status.
+                *
+                * A "this is not a tax invoice, it has not been filed" notice stood here. It was the
+                * most prominent thing in the block and it told the customer about our filing
+                * position rather than about their bill. The invoice now states neither that it is a
+                * tax invoice nor that it is not one: where the NRS has accepted it, the IRN and
+                * verification reference below say so on their own, and where it has not, nothing is
+                * claimed either way.
+                */}
               {/* The basis for charging no VAT belongs on any invoice that charges none, filed or
                   not. A zero VAT line with no explanation reads as an arithmetic slip. */}
               {data.vatCharged === false ? (
@@ -331,13 +342,11 @@ function InvoiceDoc({ data }: { data: EinvoicePdfData }): React.ReactElement {
         {/* Footer */}
         <View style={s.footer} fixed>
           <Text style={s.footText}>{c.legalName}{c.rcNumber ? `   |   RC ${c.rcNumber}` : ""}{c.tin ? `   |   TIN ${c.tin}` : ""}</Text>
-          {/* The footer has to agree with the document. It used to claim every invoice was an
-              official tax invoice, which on an unfiled one contradicted the notice a few lines
-              above it and was the more prominent of the two. */}
+          {/* One line for every invoice, making no claim about filing either way. It previously
+              branched on isTaxInvoice and asserted one status or the other; the document now simply
+              says what it is. */}
           <Text style={s.footText}>
-            {data.isTaxInvoice
-              ? "Official tax invoice generated under the Nigeria Revenue Service e-Invoicing framework."
-              : "This document is an invoice for payment. It is not a tax invoice and has not been filed with the Nigeria Revenue Service."}
+            Invoice issued by {c.legalName}. Please quote the invoice number with your payment.
           </Text>
         </View>
       </Page>

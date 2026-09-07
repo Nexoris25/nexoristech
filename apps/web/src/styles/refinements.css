@@ -44,7 +44,7 @@
   min-width: 0;
 }
 .nexoris-site .sector-tone-0 {
-  background: #eeebfa;
+  background: var(--purple-100);
 }
 .nexoris-site .sector-tone-1 {
   background: #e8f1ed;
@@ -137,7 +137,7 @@
   display: inline-block;
 }
 .nexoris-site :is(.sector-expand, .flow-stage) summary:focus-visible {
-  outline: 3px solid #7057df;
+  outline: 3px solid var(--purple-500);
   outline-offset: 5px;
   border-radius: 4px;
 }
@@ -335,22 +335,22 @@
   padding-block: clamp(40px, 5vw, 72px);
 }
 .nexoris-site .sector-tone-0 {
-  background: #f0ebfc;
+  background: var(--purple-100);
 }
 .nexoris-site .sector-tone-1 {
-  background: #e7def7;
+  background: var(--purple-200);
 }
 .nexoris-site .sector-tone-2 {
-  background: #f7f4fc;
+  background: var(--purple-100);
 }
 .nexoris-site .sector-tone-3 {
-  background: #ede6fa;
+  background: var(--purple-100);
 }
 .nexoris-site .sector-card .sector-group-icon {
-  color: #5940cb;
+  color: var(--purple-600);
 }
 .nexoris-site .sector-card {
-  border-color: #ded4ee;
+  border-color: var(--purple-200);
 }
 .nexoris-site .careers-page .hero .crumb {
   justify-content: center;
@@ -388,7 +388,7 @@
   column-gap: 20px;
   row-gap: 12px;
   padding: 28px;
-  border: 1px solid #ded5ee;
+  border: 1px solid var(--purple-200);
   border-radius: 12px;
   background: #fff;
   box-shadow: none;
@@ -402,8 +402,8 @@
   height: 40px;
   font-family: var(--font-sans);
   font-size: 15px;
-  background: #ede6fa;
-  color: #5940cb;
+  background: var(--purple-100);
+  color: var(--purple-600);
 }
 .nexoris-site .cr-pstep h3 {
   margin: 0;
@@ -418,36 +418,31 @@
   margin-top: 24px;
   padding: 20px 24px;
   border-radius: 10px;
-  background: #f0ebfa;
+  background: var(--purple-100);
   border: 0;
   box-shadow: none;
 }
 /*
- * Before & after, in the colours the comparison actually means.
+ * Before & after, on the brand palette.
  *
- * This was purple on purple: a lavender panel, lavender-tinted white cards, and a deep violet
- * "with Nexoris" card. Everything on the site is that colour, so the one section whose entire job is
- * to contrast two states rendered as a single wash with no contrast in it — and violet says
- * "Nexoris brand", not "this is the better outcome".
+ * The contrast comes from depth, not from a second hue. The problem state is a plain white card on a
+ * quiet ground; the resolved state is the design system's dark surface — the same ink gradient the
+ * product panels use — with the brand purple carrying the accents. That reads as a real before/after
+ * while everything on screen is still Nexoris colour.
  *
- * The pairing now carries the meaning. The "before" side is neutral slate: the current state, stated
- * plainly, neither alarming nor appealing. The "after" side is a deep teal that reads as resolved and
- * healthy without being a congratulatory green, and is far enough from the brand violet that the two
- * are never confused. The ground is a cool near-white so both sides sit on something quiet.
+ * The earlier version failed in both directions: first as lavender-on-lavender, which had no contrast
+ * at all, and then briefly as teal, which had contrast but was not the brand. Ink and purple give
+ * both.
  */
 .nexoris-site .journey-comparison {
   padding: clamp(24px, 3vw, 40px);
   border-radius: 20px;
-  background: linear-gradient(160deg, #f8fbfa 0%, #eef4f3 100%);
-  border: 1px solid #dce7e4;
+  background: linear-gradient(160deg, #fbfaff 0%, var(--purple-100) 100%);
+  border: 1px solid var(--purple-200);
 }
 .nexoris-site .journey-heading {
   max-width: 660px;
   margin-bottom: 32px;
-}
-/* The kicker inherits the site's violet everywhere else; inside this section it follows the teal. */
-.nexoris-site .journey-heading .kicker {
-  color: #1c6f61;
 }
 .nexoris-site .journey-heading h3 {
   font-size: clamp(24px, 2.3vw, 32px);
@@ -476,7 +471,7 @@
 .nexoris-site .journey-label > span {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
-  color: #79918c;
+  color: var(--ink-3);
 }
 .nexoris-site .journey-label h4 {
   font-size: 19px;
@@ -489,8 +484,8 @@
 }
 .nexoris-site .journey-before {
   background: #fff;
-  border: 1px solid #e2e7ea;
-  color: #5f6771;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
 }
 .nexoris-site .journey-caption {
   display: flex;
@@ -503,7 +498,7 @@
   margin-bottom: 14px;
 }
 .nexoris-site .journey-before .journey-caption {
-  color: #8b95a1;
+  color: var(--ink-3);
 }
 /* A small hollow marker before the "before" label, answering the tick on the other card: the two
    states are then distinguishable at a glance, without reading either caption. */
@@ -512,34 +507,34 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 1.5px solid #c2ccd6;
+  border: 1.5px solid var(--purple-200);
 }
 /*
  * The payoff card, and it should look like one: a solid ground and a real shadow, so the eye lands
  * here rather than treating the two states as equals on the page.
  */
 .nexoris-site .journey-after {
-  background: linear-gradient(165deg, #124840 0%, #0d3830 100%);
+  background: linear-gradient(158deg, var(--ink-800), var(--ink-950));
   color: #fff;
-  border: 1px solid #1d5c51;
-  box-shadow: 0 10px 24px -14px rgba(11, 51, 44, 0.55);
+  border: 1px solid var(--ink-700);
+  box-shadow: 0 10px 24px -14px rgba(13, 10, 28, 0.55);
 }
 .nexoris-site .journey-after .journey-caption {
-  color: #8fd9c7;
+  color: var(--purple-300);
 }
 .nexoris-site .journey-after p {
-  color: #eef7f5;
+  color: rgba(255, 255, 255, 0.88);
 }
 /* The arrow sits in a chip on the panel ground rather than floating loose between two cards, which
    reads as a deliberate step from one state to the next. */
 .nexoris-site .journey-connection {
   display: grid;
   place-items: center;
-  color: #2f8375;
+  color: var(--purple-600);
 }
 .nexoris-site .journey-connection svg {
   background: #fff;
-  border: 1px solid #d3e2de;
+  border: 1px solid var(--purple-200);
   border-radius: 50%;
   padding: 5px;
   width: 30px;
@@ -552,15 +547,15 @@
   align-items: center;
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid #d7e4e1;
+  border-top: 1px solid var(--purple-200);
 }
 .nexoris-site .journey-result > span {
   font-size: 14px;
   font-weight: 600;
-  color: #186b5e;
+  color: var(--purple-700);
 }
 .nexoris-site .journey-result p {
-  color: #26403b;
+  color: var(--ink-2);
   margin: 0;
 }
 @supports (animation-timeline: view()) {
@@ -648,10 +643,10 @@
   width: 20px;
   height: 20px;
   margin: 2px 0 0;
-  accent-color: #5940cb;
+  accent-color: var(--purple-600);
 }
 .nexoris-site .contact-consent a {
-  color: #4832ae;
+  color: var(--purple-700);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -662,13 +657,13 @@
     box-shadow 0.2s ease;
 }
 .nexoris-site .sector-card:focus-within {
-  border-color: #7057df;
+  border-color: var(--purple-500);
   box-shadow: 0 8px 24px rgb(60 35 105 / 9%);
 }
 @media (hover: hover) and (pointer: fine) {
   .nexoris-site .sector-card:hover {
     transform: translateY(-4px);
-    border-color: #a68bd6;
+    border-color: var(--purple-300);
     box-shadow: 0 12px 28px rgb(60 35 105 / 10%);
   }
 }
@@ -705,8 +700,28 @@
 .nexoris-site #main-content .article-page .prose :is(h2, h3) + :is(h3, h4) {
   margin-top: 16px;
 }
+/*
+ * One body size for the whole article, and standard spacing between list items.
+ *
+ * Paragraphs were coming out at 16px/1.65 while list items next to them were 17px/1.6, because the
+ * site-wide `#main-content p` rule set a clamp that the list items never saw. Body copy changed size
+ * depending on whether it happened to be a bullet, which is visible in any article that alternates
+ * prose and lists — and this one alternates constantly.
+ *
+ * The list gap was 12px between items whose lines are 27px tall, so a five-point list read as five
+ * separate blocks rather than one list. 8px groups them without crowding.
+ */
 .nexoris-site #main-content .article-page .prose :is(p, ul, ol) {
   margin-bottom: 18px;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+.nexoris-site #main-content .article-page .prose :is(ul, ol) {
+  gap: 8px;
+}
+.nexoris-site #main-content .article-page .prose li {
+  font-size: 1.0625rem;
+  line-height: 1.7;
 }
 .nexoris-site #main-content .article-page .prose table {
   table-layout: auto;
@@ -768,7 +783,7 @@
 .nexoris-site .delivery-number {
   font-size: 14px;
   font-weight: 600;
-  color: #7050ad;
+  color: var(--purple-700);
 }
 .nexoris-site .how-work-page .hwk-models {
   gap: 24px;
@@ -777,9 +792,9 @@
 .nexoris-site .how-work-page .hwk-mdl {
   padding: 28px;
   border-radius: 14px;
-  border: 1px solid #ddd3ed;
+  border: 1px solid var(--purple-200);
   box-shadow: none;
-  background: #f7f4fc;
+  background: var(--purple-100);
 }
 .nexoris-site .how-work-page .hwk-mdl h3 {
   font-size: 22px;

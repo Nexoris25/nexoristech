@@ -636,8 +636,22 @@
  * where every other listing steps through two. .ins-grid already carries all of that, so only the
  * top margin is set — the heading above provides the spacing this section needs.
  */
+/*
+ * Two columns, because there are two cards.
+ *
+ * .ins-grid is the site's three-column listing grid, which is right on the Insights hub where the
+ * row is full. Here it left the two recommendations in the first two of three tracks, so each came
+ * out roughly 227px wide inside a 720px reading column — far narrower than the same card is
+ * anywhere else, which is what made them read as slim and tall with a gap beside them.
+ */
 .article-page .related .ins-grid {
   margin-top: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 620px) {
+  .article-page .related .ins-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 /*
  * The byline card, actually reading as a card.

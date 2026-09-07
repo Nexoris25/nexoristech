@@ -28,11 +28,18 @@
   --surface: #fff;
   --ink-2: #514d60;
   --ink-3: #656172;
-  --purple-600: #5940cb;
-  --purple-700: #4832ae;
-  --purple-500: #7057df;
-  --purple-100: #f1eefb;
   --line: #e3e0e9;
+  /*
+   * The brand purples are NOT redefined here.
+   *
+   * This block used to shadow all four of them with near-misses — #5940cb for #543CDA, #4832ae for
+   * #4330B8, #7057df for #6A55F2, #f1eefb for #EEEBFC. Because `.nexoris-site` wraps the whole site,
+   * those values won over the design system for every `var(--purple-*)` on every page, so nothing
+   * anywhere rendered in the actual Nexoris purple. Each was close enough to look deliberate and
+   * wrong enough to read as off next to real brand material.
+   *
+   * design.css owns these. One palette, defined once.
+   */
   font-family: var(--font-sans);
 }
 .nexoris-site

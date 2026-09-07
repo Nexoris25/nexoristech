@@ -80,13 +80,15 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     : 0;
 
   const pdf = await renderEinvoicePdf({
-    // "Tax Invoice" is reserved for a document the NRS has actually accepted.
-    docLabel:
-      doc.doc_type === "Invoice"
-        ? doc.nrs_status === "Accepted"
-          ? "Tax Invoice"
-          : "Invoice"
-        : DOC_META[doc.doc_type].label,
+    /*
+     * Every invoice is headed "Invoice".
+     *
+     * The heading used to switch to "Tax Invoice" once the NRS had accepted the document, so the
+     * title itself was a statement about filing status and two invoices to the same customer could
+     * arrive under different names. The document no longer comments on that either way: where it has
+     * been accepted, the IRN and verification reference on the page carry the fact.
+     */
+    docLabel: doc.doc_type === "Invoice" ? "Invoice" : DOC_META[doc.doc_type].label,
     number: docNumber(doc.doc_type, doc.seq, doc.series, doc.series_no),
     isTaxInvoice: doc.nrs_status === "Accepted",
     vatCharged: doc.vat_charged,

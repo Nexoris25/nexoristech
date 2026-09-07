@@ -122,7 +122,9 @@
 .nexoris-site .article-page .prose h3 { font-size: 1.25rem; line-height: 1.4; margin-top: 1.8em; }
 .nexoris-site .article-page .prose a { text-decoration: underline; text-underline-offset: .2em; }
 .nexoris-site .article-page .art-head h1 { max-width: 25ch; font-weight: 650; line-height: 1.12; }
-.nexoris-site .article-page .tldr { background: #f3f3f1; border: 1px solid var(--line); border-left: 3px solid var(--purple-600); border-radius: 4px; box-shadow: none; }
+/* The short version reads as brand, not as a grey callout: #f3f3f1 was a warm neutral that made the
+   most prominent box on the article the one thing on the page with no Nexoris colour in it. */
+.nexoris-site .article-page .tldr { background: var(--purple-100); border: 1px solid var(--purple-200); border-left: 3px solid var(--purple-600); border-radius: 4px; box-shadow: none; }
 .nexoris-site .article-page .toc a { font-family: DM Sans, sans-serif; font-size: .8125rem; line-height: 1.55; padding-block: 8px; }
 .nexoris-site .article-page .toc ol { list-style: none; padding-left: 0; }
 .nexoris-site .article-page .table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
