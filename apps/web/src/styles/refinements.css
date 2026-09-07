@@ -675,20 +675,28 @@
     transform: none;
   }
 }
+/*
+ * Headings sit closer to the text they introduce.
+ *
+ * A heading needs enough space above it to show that a new section has started, and no more: at 32px
+ * over an 18px paragraph margin, each h2 opened a visible band of empty page, and an article with
+ * nineteen of them read as a series of disconnected fragments. These distances still separate the
+ * sections clearly while keeping a heading visually attached to the passage below it.
+ */
 .nexoris-site #main-content .article-page .prose h2 {
   font-size: clamp(24px, 2vw, 28px);
   line-height: 1.2;
-  margin: 32px 0 12px;
+  margin: 26px 0 10px;
 }
 .nexoris-site #main-content .article-page .prose h3 {
   font-size: clamp(20px, 1.7vw, 23px);
   line-height: 1.25;
-  margin: 24px 0 10px;
+  margin: 20px 0 8px;
 }
 .nexoris-site #main-content .article-page .prose :is(h4, h5, h6) {
   font-size: 18px;
   line-height: 1.3;
-  margin: 20px 0 8px;
+  margin: 16px 0 6px;
 }
 .nexoris-site
   #main-content
@@ -716,8 +724,9 @@
   font-size: 1.0625rem;
   line-height: 1.7;
 }
+/* Points in one list belong together: 5px reads as a single list rather than a stack of blocks. */
 .nexoris-site #main-content .article-page .prose :is(ul, ol) {
-  gap: 8px;
+  gap: 5px;
 }
 .nexoris-site #main-content .article-page .prose li {
   font-size: 1.0625rem;

@@ -8,9 +8,8 @@
 import { cmsDb, nameSlug } from "./cms-db.js";
 import { splitSections, wrapTables } from "./render-html.js";
 
-// Media paths are stored relative to the CMS upload origin; set CMS_MEDIA_BASE to an absolute origin
-// (CDN or the admin host) in production so images and OG tags resolve. Empty keeps paths as stored.
-const MEDIA_BASE = (process.env.CMS_MEDIA_BASE ?? "").replace(/\/+$/, "");
+// Media paths are stored as `/uploads/…` and served on this origin; CMS_MEDIA_BASE is read in
+// next.config, which rewrites that path to wherever the files actually live. Nothing here needs it.
 
 export interface Metric { label: string; value: string }
 export interface DiscoveryEntry { path: string; title: string; summary?: string; updatedAt?: string; kind: string }
@@ -120,12 +119,27 @@ function str(value: unknown): string | undefined {
  */
 const MISSING_MEDIA = new Set(["/uploads/cover-placeholder.webp"]);
 
+/**
+ * Media is addressed on this site's own origin, never on the CMS origin.
+ *
+ * Uploads used to be handed to the browser as `${CMS_MEDIA_BASE}/uploads/…`, so every cover,
+ * headshot and in-body picture on the public site was fetched cross-origin from the admin app. That
+ * makes the marketing site's imagery depend on the admin being reachable *by the visitor* — and the
+ * admin is the one part of this platform that should not be publicly reachable at all. Whenever it
+ * was down, firewalled, or simply not running, every image on the site broke at once, with nothing
+ * in the web server's log to say why, because the failure happens in the browser.
+ *
+ * The path is now left as `/uploads/…` and next.config rewrites it to the media origin server-side,
+ * so the browser only ever talks to this origin. Social previews improve too: `mediaAbsolute` turns
+ * these into `https://nexoristech.com/uploads/…`, which a crawler can actually fetch, where before it
+ * was pointed at the admin host.
+ */
 function mediaUrl(value: unknown): string | undefined {
   const url = str(value);
   if (!url) return undefined;
   if (MISSING_MEDIA.has(url)) return undefined;
   if (url.startsWith("http")) return url;
-  return MEDIA_BASE ? `${MEDIA_BASE}${url.startsWith("/") ? "" : "/"}${url}` : url;
+  return url.startsWith("/") ? url : `/${url}`;
 }
 
 /**
@@ -163,9 +177,16 @@ export function resolveBodyMedia(html: string, base: string): string {
     });
 }
 
-/** Everything a stored block of body HTML needs before it is rendered. */
+/**
+ * Everything a stored block of body HTML needs before it is rendered.
+ *
+ * The editor writes `/uploads/…`, which is already the address this site serves media on, so there
+ * is nothing to rewrite. `resolveBodyMedia` stays exported and tested because it is what makes a
+ * body written against some other origin resolve, but the base passed here is empty and the function
+ * returns the HTML untouched.
+ */
 function bodyMedia(html: string): string {
-  return resolveBodyMedia(html, MEDIA_BASE);
+  return resolveBodyMedia(html, "");
 }
 /**
  * Postgres hands back timestamps as "2026-07-18 15:40:06.679264+01", which is not valid ISO 8601. Schema

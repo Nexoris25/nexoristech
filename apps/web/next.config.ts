@@ -84,6 +84,23 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  /**
+   * Uploads are served from this origin and proxied to wherever the files actually live.
+   *
+   * The CMS stores media on the admin app's disk. Handing the browser the admin's own URL made every
+   * image on the public site depend on the admin being reachable by the visitor, which is the exact
+   * opposite of what an admin host should be — and when it was not reachable, every picture on the
+   * site broke at once. The rewrite keeps the fetch server-side: the visitor asks this origin for
+   * /uploads/x.webp, and this server gets it from the media origin over the internal network.
+   *
+   * Nothing is rewritten when CMS_MEDIA_BASE is unset, which is the same outcome as before: the path
+   * is served from this app's own public directory if it happens to exist there, and 404s if not.
+   */
+  async rewrites() {
+    return mediaOrigin
+      ? [{ source: "/uploads/:path*", destination: `${mediaOrigin}/uploads/:path*` }]
+      : [];
+  },
   // The server appends a trailing slash to every URL, for example /about-us/ (decision D-002).
   trailingSlash: true,
   // The design system and SEO engine ship as TypeScript source and are transpiled here.

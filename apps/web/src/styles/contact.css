@@ -78,8 +78,18 @@
   flex-direction: column;
   gap: 7px;
 }
+/*
+ * The full-width fields sit directly in the form, not inside an .f-row.
+ *
+ * `grid-column: 1 / -1` was the only rule here, and the form is a block, not a grid — so it did
+ * nothing at all, and these fields inherited none of the 22px that separates one row from the next.
+ * "What do you need?" was therefore flush against the bottom of the selects above it, with a
+ * measured gap of exactly 0. The grid-column stays for the case where one of these is ever placed
+ * inside a row; the margin is what actually positions them today.
+ */
 .contact-page .field.full {
   grid-column: 1 / -1;
+  margin-top: 22px;
 }
 .contact-page .field label {
   font-size: 0.82rem;
@@ -105,8 +115,10 @@
   width: 100%;
 }
 .contact-page .field textarea {
-  resize: vertical;
-  min-height: 120px;
+  /* Not resizable: dragging it out broke the form's two-column rhythm and could push the submit
+     button off-screen. The box is tall enough for a brief, and it scrolls beyond that. */
+  resize: none;
+  min-height: 140px;
   line-height: 1.55;
 }
 .contact-page .field input:focus,
