@@ -76,8 +76,18 @@ const REQUIRED_SITE_TYPES = [
   "Person",
 ];
 
-/** The WebPage type or one of its subtypes must be present on every page. */
-const WEBPAGE_TYPES = ["WebPage", "AboutPage", "ContactPage", "CollectionPage"];
+/**
+ * The WebPage type or one of its subtypes must be present on every page.
+ *
+ * ProfilePage belongs here and was missing, which made the gate contradict itself: an author route
+ * is *required* to emit ProfilePage by `requiredRouteTypes` below, and then failed `schema-webpage`
+ * for emitting it, because the one subtype the author page is built around was not on this list. So
+ * every author page reported a missing WebPage node while carrying a perfectly valid one, and the
+ * only way to pass both rules at once was to emit a second, redundant node.
+ *
+ * ProfilePage is a subclass of WebPage in schema.org, exactly as the other three here are.
+ */
+const WEBPAGE_TYPES = ["WebPage", "AboutPage", "ContactPage", "CollectionPage", "ProfilePage"];
 
 /** The schema node a route class must additionally emit (PRD 9.2). */
 function requiredRouteTypes(routeClass: RouteClass): string[] {

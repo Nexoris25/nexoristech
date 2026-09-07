@@ -639,14 +639,75 @@
 .article-page .related .ins-grid {
   margin-top: 0;
 }
+/*
+ * The byline card, actually reading as a card.
+ *
+ * It was white on a white page behind a hairline border, so the two credits ran together with the
+ * body text and the box was invisible — a reader reached the end of the article and saw two more
+ * paragraphs, not "here is who wrote this". A tinted ground and a defined edge separate them from
+ * the prose, which is the whole job: these carry the authorship the page is asking to be trusted on.
+ */
 .article-page .pcard {
   display: flex;
   flex-direction: column;
-  background: var(--surface, #fff);
-  border: 1px solid var(--line, #e9e7f0);
-  border-radius: 14px;
-  padding: 22px;
-  box-shadow: var(--sh-sm);
+  background: linear-gradient(180deg, #fbfaff 0%, #f6f4fc 100%);
+  border: 1px solid #e4e0ee;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(13, 10, 28, 0.04);
+}
+/* The label, the name and the bio sit against a tinted ground, so the avatar gets a white ring to
+   lift it off rather than floating on the same tone. */
+.article-page .pcard .avatar {
+  box-shadow: 0 0 0 3px #fff;
+}
+.article-page .pcard > p {
+  flex: 1;
+}
+/* Profile link and social marks on one baseline, pinned to the bottom so two cards of unequal bio
+   length still line up along their last row. */
+.article-page .pc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e7e3f1;
+}
+.article-page .pc-foot .pmore {
+  margin-top: 0;
+}
+.article-page .psoc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.article-page .psoc a {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid #e4e0ee;
+  color: var(--ink-3, #6a6580);
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.article-page .psoc a:hover {
+  color: var(--purple-600, #543cda);
+  border-color: #cdc2ee;
+  background: #f7f4ff;
+}
+.article-page .psoc svg {
+  width: 15px;
+  height: 15px;
+  /* The marks are solid shapes, not strokes: filling with currentColor is what lets the hover
+     state reach them. */
+  fill: currentColor;
 }
 .article-page .pcard .pc-head {
   display: flex;

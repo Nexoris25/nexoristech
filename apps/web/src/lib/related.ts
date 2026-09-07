@@ -122,9 +122,14 @@ export function scoreRelated(article: RelatedSource, candidate: RelatedSource): 
  * The most relevant articles to read next, best first, never more than `limit`.
  *
  * Recency breaks a tie and nothing more, so a related older piece always outranks an unrelated new
- * one. Anything below the floor is dropped rather than padded in to reach three.
+ * one. Anything below the floor is dropped rather than padded in to reach the limit.
+ *
+ * Two, not three. Three cards had to share the full article column, which squeezed each one narrower
+ * than the same card is anywhere else on the site — titles wrapped to four lines and the reading
+ * time crowded the date. Two cards sit at the width the card was designed for, and the second-best
+ * recommendation was rarely the one being clicked.
  */
-export function pickRelated(article: RelatedSource, candidates: InsightCard[], limit = 3): InsightCard[] {
+export function pickRelated(article: RelatedSource, candidates: InsightCard[], limit = 2): InsightCard[] {
   return candidates
     .map((c) => ({
       card: c,

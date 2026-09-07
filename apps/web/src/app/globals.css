@@ -34,6 +34,20 @@
     scroll-behavior: smooth;
   }
 
+  /*
+   * Every dropdown reads as clickable, wherever it is.
+   *
+   * The two contact selects and the assistant's own set each declared this in their own stylesheet,
+   * which meant it held only where somebody had remembered to write it: a select added to any other
+   * page would show a text caret over a control that opens a menu. Stating it once on the element
+   * covers those and anything added later. `summary` is here for the same reason — the accordions
+   * and nav disclosures are dropdowns in every sense that matters to the person clicking one.
+   */
+  select,
+  summary {
+    cursor: pointer;
+  }
+
   /* A single, consistent focus ring on every interactive element (PRD 15). */
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
     outline: 2px solid #6a55f2; /* purple-500 */

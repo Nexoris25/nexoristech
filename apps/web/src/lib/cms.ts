@@ -59,6 +59,8 @@ export interface InsightCard {
 export interface Author {
   name: string; slug?: string; role?: string; linkedin?: string; bio?: string;
   photoUrl?: string; photoAlt?: string;
+  /** Full X profile URL, as entered in the CMS. */
+  x?: string;
 }
 export interface FaqItem { question: string; answer: string }
 export interface Insight {
@@ -242,6 +244,16 @@ function toAuthor(r: Row, prefix = ""): Author | undefined {
     ...opt("bio", str(r[`${prefix}bio`])),
     ...opt("photoUrl", mediaUrl(r[`${prefix}photo`])),
     ...opt("photoAlt", str(r[`${prefix}photo_alt`])),
+    /*
+     * The social profiles the CMS holds for this person.
+     *
+     * These were read only by the author profile page, so the byline cards under an article named
+     * the writer and the fact-checker without offering any way to verify who they are. For an EEAT
+     * page that is the wrong half to leave out: the links are the part a reader (or a crawler
+     * reading sameAs) uses to check that the person exists.
+     */
+    ...opt("linkedin", str(r[`${prefix}linkedin`])),
+    ...opt("x", str(r[`${prefix}x`])),
   };
 }
 
@@ -445,8 +457,10 @@ export async function getInsight(slug: string): Promise<Insight | null> {
             c.featured_image, c.featured_image_alt, cat.name AS category,
             a.name AS a_name, a.job_title AS a_role, COALESCE(c.author_bio, a.bio) AS a_bio,
             a.headshot_url AS a_photo, a.headshot_alt AS a_photo_alt,
+            a.linkedin_url AS a_linkedin, a.x_url AS a_x,
             fc.name AS fc_name, fc.job_title AS fc_role, COALESCE(c.fact_checker_bio, fc.bio) AS fc_bio,
-            fc.headshot_url AS fc_photo, fc.headshot_alt AS fc_photo_alt
+            fc.headshot_url AS fc_photo, fc.headshot_alt AS fc_photo_alt,
+            fc.linkedin_url AS fc_linkedin, fc.x_url AS fc_x
        FROM cms_content c
        LEFT JOIN cms_category cat ON cat.id = c.category_id
        LEFT JOIN cms_author a ON a.id = c.author_id
@@ -533,7 +547,8 @@ export async function getAuthor(slug: string): Promise<AuthorProfile | null> {
     ...opt("profileHtml", bodyMedia(str(r.profile_html) ?? "") || undefined),
     ...opt("metaTitle", str(r.meta_title)),
     ...opt("metaDescription", str(r.meta_description)),
-    // toAuthor does not carry links; the profile page renders and cites both.
+    // This row names the columns directly rather than under toAuthor's `<prefix>linkedin` alias,
+    // so the links are read here. The profile page renders and cites both.
     ...opt("linkedin", str(r.linkedin_url)),
     ...opt("x", str(r.x_url)),
     ...opt("location", str(r.location)),
@@ -658,7 +673,9 @@ export async function getPseoPage(slug: string): Promise<PseoPage | null> {
     `SELECT c.title, c.slug, c.body, c.excerpt, c.faqs, c.noindex, c.industry, c.target_keyword,
             c.target_location, c.search_intent, c.meta_title, c.meta_description,
             a.name AS a_name, a.job_title AS a_role, COALESCE(c.author_bio, a.bio) AS a_bio,
+            a.linkedin_url AS a_linkedin, a.x_url AS a_x,
             fc.name AS fc_name, fc.job_title AS fc_role, COALESCE(c.fact_checker_bio, fc.bio) AS fc_bio,
+            fc.linkedin_url AS fc_linkedin, fc.x_url AS fc_x,
             cat.name AS cat_name, cat.slug AS cat_slug
        FROM cms_content c
        LEFT JOIN cms_author a ON a.id = c.author_id

@@ -55,8 +55,19 @@ describe("pickRelated", () => {
     card({ slug: "restaurant", title: "Restaurant POS systems", category: "Hospitality", publishedAt: "2026-09-01T00:00:00.000Z" }),
   ];
 
-  it("never returns more than three", () => {
+  it("never returns more than the limit it is given", () => {
     expect(pickRelated(article, candidates, 3).length).toBeLessThanOrEqual(3);
+  });
+
+  /*
+   * The article page passes no limit, so the default is the number of cards that actually appear
+   * under every published article. Three made each card narrower than the same card anywhere else
+   * on the site; this pins the count so it cannot drift back by accident.
+   */
+  it("recommends two by default, even when more are related", () => {
+    const picked = pickRelated(article, candidates);
+    expect(picked.length).toBe(2);
+    expect(pickRelated(article, candidates, 3).length).toBe(3);
   });
 
   it("leaves the article itself out", () => {

@@ -140,6 +140,53 @@ function initials(name: string): string {
     .join("");
 }
 
+/**
+ * The social profiles a credited person has in the CMS, as the platforms' own marks.
+ *
+ * Drawn inline rather than pulled from an icon package: these are two fixed paths that never change,
+ * and a brand mark is the one thing a reader identifies without reading a label — a generic link
+ * glyph would make LinkedIn and X indistinguishable at 16px.
+ *
+ * Only what the CMS actually holds is rendered, so an author with no X account gets one icon rather
+ * than a dead second one. `rel="me"` states the profiles belong to the person named on the card,
+ * which is the same claim the page's schema makes with sameAs.
+ */
+const SOCIALS: { key: "linkedin" | "x"; label: string; path: string }[] = [
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    path: "M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z",
+  },
+  {
+    key: "x",
+    label: "X",
+    path: "M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z",
+  },
+];
+
+function SocialLinks({ person }: { person: Author }): ReactNode {
+  const links = SOCIALS.filter((s) => person[s.key]);
+  if (links.length === 0) return null;
+  return (
+    <ul className="psoc">
+      {links.map((s) => (
+        <li key={s.key}>
+          <a
+            href={person[s.key]}
+            target="_blank"
+            rel="me noopener noreferrer"
+            aria-label={`${person.name} on ${s.label}`}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d={s.path} />
+            </svg>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default async function ArticlePage({
   params,
 }: {
@@ -165,8 +212,8 @@ export default async function ArticlePage({
       ...(article.category ? { category: article.category } : {}),
       ...(article.author ? { author: article.author.name } : {}),
     },
+    // The count lives with the picker, not here, so there is one place that decides it.
     await getAllInsightCards(60),
-    3,
   );
 
   const path = `/insights/${slug}`;
@@ -324,11 +371,16 @@ export default async function ArticlePage({
                 </div>
               </div>
               {person.bio ? <p>{person.bio}</p> : person.role ? <p>{person.role}</p> : null}
-              {person.slug ? (
-                <Link className="pmore" href={authorPath(person.slug)}>
-                  Read full profile &rarr;
-                </Link>
-              ) : null}
+              {/* The profile link and the social marks share one row: they are the same act — going
+                  to find out who this person is — and stacking them made the card taller for nothing. */}
+              <div className="pc-foot">
+                {person.slug ? (
+                  <Link className="pmore" href={authorPath(person.slug)}>
+                    Read full profile &rarr;
+                  </Link>
+                ) : <span />}
+                <SocialLinks person={person} />
+              </div>
             </div>
           ))}
         </section>

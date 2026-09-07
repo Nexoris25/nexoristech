@@ -422,15 +422,32 @@
   border: 0;
   box-shadow: none;
 }
+/*
+ * Before & after, in the colours the comparison actually means.
+ *
+ * This was purple on purple: a lavender panel, lavender-tinted white cards, and a deep violet
+ * "with Nexoris" card. Everything on the site is that colour, so the one section whose entire job is
+ * to contrast two states rendered as a single wash with no contrast in it — and violet says
+ * "Nexoris brand", not "this is the better outcome".
+ *
+ * The pairing now carries the meaning. The "before" side is neutral slate: the current state, stated
+ * plainly, neither alarming nor appealing. The "after" side is a deep teal that reads as resolved and
+ * healthy without being a congratulatory green, and is far enough from the brand violet that the two
+ * are never confused. The ground is a cool near-white so both sides sit on something quiet.
+ */
 .nexoris-site .journey-comparison {
   padding: clamp(24px, 3vw, 40px);
   border-radius: 20px;
-  background: linear-gradient(145deg, #f8f5fd, #eee7f9);
-  border: 1px solid #dfd4ef;
+  background: linear-gradient(160deg, #f8fbfa 0%, #eef4f3 100%);
+  border: 1px solid #dce7e4;
 }
 .nexoris-site .journey-heading {
   max-width: 660px;
   margin-bottom: 32px;
+}
+/* The kicker inherits the site's violet everywhere else; inside this section it follows the teal. */
+.nexoris-site .journey-heading .kicker {
+  color: #1c6f61;
 }
 .nexoris-site .journey-heading h3 {
   font-size: clamp(24px, 2.3vw, 32px);
@@ -458,7 +475,8 @@
 }
 .nexoris-site .journey-label > span {
   font-size: 13px;
-  color: #795d9c;
+  font-variant-numeric: tabular-nums;
+  color: #79918c;
 }
 .nexoris-site .journey-label h4 {
   font-size: 19px;
@@ -471,32 +489,61 @@
 }
 .nexoris-site .journey-before {
   background: #fff;
-  border: 1px solid #e3dcea;
-  color: #655b70;
+  border: 1px solid #e2e7ea;
+  color: #5f6771;
 }
 .nexoris-site .journey-caption {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   margin-bottom: 14px;
 }
+.nexoris-site .journey-before .journey-caption {
+  color: #8b95a1;
+}
+/* A small hollow marker before the "before" label, answering the tick on the other card: the two
+   states are then distinguishable at a glance, without reading either caption. */
+.nexoris-site .journey-before .journey-caption::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #c2ccd6;
+}
+/*
+ * The payoff card, and it should look like one: a solid ground and a real shadow, so the eye lands
+ * here rather than treating the two states as equals on the page.
+ */
 .nexoris-site .journey-after {
-  background: #34234f;
+  background: linear-gradient(165deg, #124840 0%, #0d3830 100%);
   color: #fff;
-  border: 1px solid #4e386c;
+  border: 1px solid #1d5c51;
+  box-shadow: 0 10px 24px -14px rgba(11, 51, 44, 0.55);
 }
 .nexoris-site .journey-after .journey-caption {
-  color: #dbccff;
+  color: #8fd9c7;
 }
 .nexoris-site .journey-after p {
-  color: #fff;
+  color: #eef7f5;
 }
+/* The arrow sits in a chip on the panel ground rather than floating loose between two cards, which
+   reads as a deliberate step from one state to the next. */
 .nexoris-site .journey-connection {
   display: grid;
   place-items: center;
-  color: #7050aa;
+  color: #2f8375;
+}
+.nexoris-site .journey-connection svg {
+  background: #fff;
+  border: 1px solid #d3e2de;
+  border-radius: 50%;
+  padding: 5px;
+  width: 30px;
+  height: 30px;
 }
 .nexoris-site .journey-result {
   display: grid;
@@ -505,15 +552,15 @@
   align-items: center;
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid #d5c7e6;
+  border-top: 1px solid #d7e4e1;
 }
 .nexoris-site .journey-result > span {
   font-size: 14px;
   font-weight: 600;
-  color: #5940a0;
+  color: #186b5e;
 }
 .nexoris-site .journey-result p {
-  color: #372647;
+  color: #26403b;
   margin: 0;
 }
 @supports (animation-timeline: view()) {

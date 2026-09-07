@@ -47,6 +47,33 @@ describe("validatePage", () => {
     expect(validatePage(validEntry())).toEqual([]);
   });
 
+  /*
+   * An author page satisfies schema-webpage with ProfilePage alone.
+   *
+   * The gate used to demand ProfilePage of author routes and then fail them for not also carrying a
+   * plain WebPage, so a correctly built author page could not pass. ProfilePage is a WebPage subtype
+   * in schema.org, and this pins that it counts as one here too.
+   */
+  it("accepts ProfilePage as the WebPage node on an author route", () => {
+    const issues = validatePage(
+      validEntry({
+        path: "/chinedu-nwogu",
+        routeClass: "author",
+        canonical: "https://nexoristech.com/chinedu-nwogu/",
+        og: { ...validEntry().og, url: "https://nexoristech.com/chinedu-nwogu/" },
+        schemaTypes: [
+          "Organization",
+          "ProfessionalService",
+          "WebSite",
+          "Person",
+          "ProfilePage",
+          "BreadcrumbList",
+        ],
+      }),
+    );
+    expect(issues.map((i) => i.rule)).not.toContain("schema-webpage");
+  });
+
   it("flags a wrong canonical", () => {
     const issues = validatePage(
       validEntry({

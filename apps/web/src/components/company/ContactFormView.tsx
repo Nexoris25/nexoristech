@@ -369,7 +369,16 @@ export function ContactFormView(): ReactNode {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Privacy Policy (opens in a new tab)
+              Privacy Policy
+              {/*
+                * Kept for screen readers, taken off the screen.
+                *
+                * The warning is there because the link opens a new tab and a reader who cannot see
+                * that happen is otherwise left wondering where the page went. Deleting it outright
+                * would have removed the warning for exactly the people it exists for, so it is
+                * hidden visually and still announced.
+                */}
+              <span className="sr-only"> (opens in a new tab)</span>
             </a>
             .
           </span>
