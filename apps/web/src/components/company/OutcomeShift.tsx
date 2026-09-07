@@ -1,116 +1,53 @@
-"use client";
-import { useId, useState, useSyncExternalStore } from "react";
-import { ArrowRight, Check, Unplug, Workflow } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { industryWorkflows } from "../../content/industry-workflows.js";
 import "../../styles/workflow.css";
-const subscribe = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
-/** Capability illustration. Client evidence is rendered separately from CMS. */
+/** Capability explanation; actual client case studies remain CMS controlled. */
 export function OutcomeShift({ industry }: { industry: string }) {
-  const [phase, setPhase] = useState<"before" | "after">("after");
-  const panelId = useId();
-  const [replay, setReplay] = useState(0);
-  const interactive = useSyncExternalStore(subscribe, clientReady, serverReady);
   const workflow = industryWorkflows[industry];
   if (!workflow) return null;
   return (
-    <div className={`workflow-preview show-${phase}`}>
-      <div className="workflow-heading">
-        <div>
-          <span className="workflow-eyebrow">Before & after Nexoris</span>
-          <h3>{workflow.title}</h3>
-        </div>
-        <button
-          className="workflow-replay"
-          type="button"
-          disabled={!interactive}
-          onClick={() => setReplay((value) => value + 1)}
-        >
-          Replay flow <span aria-hidden="true">↻</span>
-        </button>
+    <div className="flow-story">
+      <div className="flow-story-heading">
+        <span className="kicker">Before & after Nexoris</span>
+        <h3>{workflow.title}</h3>
+        <p>Follow each step to see what changes.</p>
       </div>
-      <div
-        className="workflow-switch"
-        role="group"
-        aria-label="Compare before and after"
-      >
-        <button
-          type="button"
-          disabled={!interactive}
-          aria-pressed={phase === "before"}
-          aria-controls={panelId}
-          onClick={() => setPhase("before")}
-        >
-          Before
-        </button>
-        <button
-          type="button"
-          disabled={!interactive}
-          aria-pressed={phase === "after"}
-          aria-controls={panelId}
-          onClick={() => setPhase("after")}
-        >
-          With Nexoris
-        </button>
-      </div>
-      <div
-        className="workflow-comparison"
-        id={panelId}
-        key={`${phase}-${replay}`}
-      >
-        <div className="workflow-column-head workflow-before">
-          <Unplug size={22} aria-hidden="true" />
-          <div>
-            <h4>Before</h4>
-            <p>Separate tools. Manual handoffs.</p>
-          </div>
-        </div>
-        <div className="workflow-column-head workflow-after">
-          <Workflow size={22} aria-hidden="true" />
-          <div>
-            <h4>With Nexoris</h4>
-            <p>A connected flow of work.</p>
-          </div>
-        </div>
+      <ol className="flow-stages">
         {workflow.steps.map((step, index) => (
-          <div className="workflow-comparison-row" key={step.label}>
-            <div className="workflow-cell workflow-before">
-              <span className="workflow-step-number" aria-hidden="true">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <div>
-                <h5>{step.label}</h5>
-                <p>{step.before}</p>
+          <li key={step.label}>
+            <details className="flow-stage" open={index === 0}>
+              <summary>
+                <span className="flow-number">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span>{step.label}</span>
+                <span className="flow-toggle" aria-hidden="true">
+                  +
+                </span>
+              </summary>
+              <div className="flow-pair">
+                <div className="flow-old">
+                  <span>Before</span>
+                  <p>{step.before}</p>
+                </div>
+                <ArrowRight
+                  className="flow-direction"
+                  size={22}
+                  aria-hidden="true"
+                />
+                <div className="flow-new">
+                  <span>With Nexoris</span>
+                  <p>{step.after}</p>
+                </div>
               </div>
-            </div>
-            <span className="workflow-transition" aria-hidden="true">
-              <ArrowRight size={17} />
-            </span>
-            <div className="workflow-cell workflow-after">
-              <span className="workflow-step-status" aria-hidden="true">
-                <Check size={17} />
-              </span>
-              <div>
-                <h5>{step.label}</h5>
-                <p>{step.after}</p>
-              </div>
-            </div>
-          </div>
+            </details>
+          </li>
         ))}
-        <div className="workflow-summary workflow-before">
-          <span>The missing connection</span>
-          <p>{workflow.record}, kept apart.</p>
-        </div>
-        <div className="workflow-summary workflow-after">
-          <span>One shared view</span>
-          <p>{workflow.record}, together.</p>
-        </div>
+      </ol>
+      <div className="flow-together">
+        <span>One shared view</span>
+        <p>{workflow.record}, together.</p>
       </div>
-      <p className="workflow-accessible-status" role="status">
-        Showing {phase === "after" ? "With Nexoris" : "Before"} on compact
-        screens.
-      </p>
     </div>
   );
 }

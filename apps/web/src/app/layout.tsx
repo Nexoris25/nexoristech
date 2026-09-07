@@ -38,6 +38,7 @@ import "../styles/editorial.css";
 import "../styles/studio.css";
 import "../styles/typography.css";
 import "../styles/experience.css";
+import "../styles/refinements.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),

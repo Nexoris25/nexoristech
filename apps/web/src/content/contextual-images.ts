@@ -98,10 +98,6 @@ export const systemsImage = photo(
   "A technology operations engineer inspecting network equipment",
 );
 export const serviceImages: Record<string, ContextualImage> = {
-  "/ai-product-development": {
-    src: "/images/photography/focused-work.webp",
-    alt: "A technology professional concentrating on her laptop at a workstation",
-  },
   "/ai-chatbots-virtual-assistants": photo(
     "support-desk",
     "A customer support specialist reviewing conversations and handoffs at her workstation",

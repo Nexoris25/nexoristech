@@ -6,6 +6,7 @@
  */
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ContextualPhoto } from "../ContextualPhoto.js";
 import { ScrollFx } from "../home/ScrollFx.js";
 import { CareersRoles } from "./CareersRoles.js";
 import type { JobCard } from "../../lib/cms.js";
@@ -14,7 +15,9 @@ const CULTURE: { title: string; body: string; icon: ReactNode }[] = [
   {
     title: "Quality you would put your name on",
     body: "Everything we ship is held to one standard: would we be comfortable using it ourselves? That means code reviews that actually review, designs that get challenged, and nobody saying “it is fine” about something that is not.",
-    icon: <path d="M12 2l2.4 5.3 5.6.6-4.2 3.8 1.2 5.6L12 20.3 7 17.3l1.2-5.6L4 7.9l5.6-.6z" />,
+    icon: (
+      <path d="M12 2l2.4 5.3 5.6.6-4.2 3.8 1.2 5.6L12 20.3 7 17.3l1.2-5.6L4 7.9l5.6-.6z" />
+    ),
   },
   {
     title: "Honesty in both directions",
@@ -45,21 +48,98 @@ const CULTURE: { title: string; body: string; icon: ReactNode }[] = [
 ];
 
 const BENEFITS: { title: string; sub: string; icon: ReactNode }[] = [
-  { title: "Competitive pay", sub: "Reviewed every year, honestly.", icon: <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /> },
-  { title: "Health cover", sub: "For you, so you can focus.", icon: <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" /> },
-  { title: "Learning budget", sub: "That actually gets used.", icon: <><path d="M3 6l9-3 9 3-9 3z" /><path d="M21 6v6M7 8v6c0 1.5 2.2 3 5 3s5-1.5 5-3V8" /></> },
-  { title: "Current hardware", sub: "The right tools to do the work.", icon: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></> },
-  { title: "Flexible & remote-friendly", sub: "Outcomes over clock-watching.", icon: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></> },
-  { title: "Real ownership", sub: "Of your work and decisions.", icon: <path d="M5 13l4 4L19 7" /> },
-  { title: "Access to leadership", sub: "The founder is in the room.", icon: <><path d="M4 20a8 8 0 0 1 16 0" /><circle cx="12" cy="8" r="4" /></> },
-  { title: "Long-run thinking", sub: "A company built to last.", icon: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M16 3v4M8 3v4M4 11h16" /></> },
+  {
+    title: "Competitive pay",
+    sub: "Reviewed every year, honestly.",
+    icon: (
+      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    ),
+  },
+  {
+    title: "Health cover",
+    sub: "For you, so you can focus.",
+    icon: (
+      <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" />
+    ),
+  },
+  {
+    title: "Learning budget",
+    sub: "That actually gets used.",
+    icon: (
+      <>
+        <path d="M3 6l9-3 9 3-9 3z" />
+        <path d="M21 6v6M7 8v6c0 1.5 2.2 3 5 3s5-1.5 5-3V8" />
+      </>
+    ),
+  },
+  {
+    title: "Current hardware",
+    sub: "The right tools to do the work.",
+    icon: (
+      <>
+        <rect x="3" y="4" width="18" height="12" rx="2" />
+        <path d="M8 20h8M12 16v4" />
+      </>
+    ),
+  },
+  {
+    title: "Flexible & remote-friendly",
+    sub: "Outcomes over clock-watching.",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </>
+    ),
+  },
+  {
+    title: "Real ownership",
+    sub: "Of your work and decisions.",
+    icon: <path d="M5 13l4 4L19 7" />,
+  },
+  {
+    title: "Access to leadership",
+    sub: "The founder is in the room.",
+    icon: (
+      <>
+        <path d="M4 20a8 8 0 0 1 16 0" />
+        <circle cx="12" cy="8" r="4" />
+      </>
+    ),
+  },
+  {
+    title: "Long-run thinking",
+    sub: "A company built to last.",
+    icon: (
+      <>
+        <rect x="4" y="5" width="16" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M4 11h16" />
+      </>
+    ),
+  },
 ];
 
 const PROCESS = [
-  { n: "1", title: "You apply", body: "Send your CV and, more importantly, something you have built or written. We reply to every application within one week." },
-  { n: "2", title: "A first conversation", body: "Thirty to forty-five minutes about your work, how you think, and what you want next. No trick questions." },
-  { n: "3", title: "A practical exercise", body: "Small, paid where substantial, and close to the real work. We respect your time, so it is scoped honestly." },
-  { n: "4", title: "A final conversation", body: "You meet the founder, ask anything, and if both sides are sure, we move fast and make an offer." },
+  {
+    n: "1",
+    title: "You apply",
+    body: "Send your CV and, more importantly, something you have built or written. We reply to every application within one week.",
+  },
+  {
+    n: "2",
+    title: "A first conversation",
+    body: "Thirty to forty-five minutes about your work, how you think, and what you want next. No trick questions.",
+  },
+  {
+    n: "3",
+    title: "A practical exercise",
+    body: "Small, paid where substantial, and close to the real work. We respect your time, so it is scoped honestly.",
+  },
+  {
+    n: "4",
+    title: "A final conversation",
+    body: "You meet the founder, ask anything, and if both sides are sure, we move fast and make an offer.",
+  },
 ];
 
 export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
@@ -81,10 +161,13 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
               <span className="dot" />
               Careers &middot; Lagos
             </span>
-            <h1>Come do work you will still be proud of in five years.</h1>
+            <h1>
+              Come do work you will{" "}
+              <span className="hero-accent">still be proud of.</span>
+            </h1>
             <p className="lede">
-              We hire people who care that the thing works, looks right, and holds up after launch.
-              If that is already how you work, read on.
+              We hire people who care that the thing works, looks right, and
+              holds up after launch. If that is already how you work, read on.
             </p>
             <div className="hero-cta">
               <Link className="btn btn-primary" href="#roles">
@@ -99,7 +182,27 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
       </section>
 
       {/* CULTURE */}
-      <section className="band" aria-label="Working together"><div className="wrap company-editorial company-editorial-text"><div><span className="kicker">The work we care about</span><h2 className="h-section">Thoughtful people. Useful software.</h2><p className="lede">Explore our approach to building software, the way we work together, and the roles currently open.</p><Link href="/how-we-work/" className="link-arrow">See how we work →</Link></div></div></section>
+      <section className="band" aria-label="Working together">
+        <div className="wrap company-editorial careers-editorial">
+          <div>
+            <span className="kicker">The work we care about</span>
+            <h2 className="h-section">Thoughtful people. Useful software.</h2>
+            <p className="lede">
+              Explore our approach to building software, the way we work
+              together, and the roles currently open.
+            </p>
+            <Link href="/how-we-work/" className="link-arrow">
+              See how we work →
+            </Link>
+          </div>
+          <ContextualPhoto
+            image={{
+              src: "/images/photography/focused-work.webp",
+              alt: "A technology professional focusing on her work at a laptop",
+            }}
+          />
+        </div>
+      </section>
       <section className="band" aria-label="Culture">
         <div className="wrap">
           <div className="band-head reveal">
@@ -171,7 +274,9 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
               <span className="dot" />
               How hiring works
             </span>
-            <h2 className="h-section">Start to finish, in two to three weeks.</h2>
+            <h2 className="h-section">
+              Start to finish, in two to three weeks.
+            </h2>
           </div>
           <div className="cr-proc reveal">
             {PROCESS.map((p) => (
@@ -190,8 +295,8 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
               </svg>
             </span>
             <span>
-              The whole process takes <b>two to three weeks</b>, and we reply to every application
-              within one week.
+              The whole process takes <b>two to three weeks</b>, and we reply to
+              every application within one week.
             </span>
           </div>
         </div>
@@ -202,7 +307,10 @@ export function CareersView({ jobs }: { jobs: JobCard[] }): ReactNode {
         <div className="glow" />
         <div className="wrap cta-inner reveal">
           <h2>No role that fits? Tell us what you are great at.</h2>
-          <p>We have hired people before a role existed, because the right person showed up.</p>
+          <p>
+            We have hired people before a role existed, because the right person
+            showed up.
+          </p>
           <a className="btn btn-primary" href="mailto:careers@nexoristech.com">
             careers@nexoristech.com <span className="arr">&rarr;</span>
           </a>

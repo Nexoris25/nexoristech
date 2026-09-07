@@ -279,29 +279,16 @@ export function AboutView(): ReactNode {
               Five values we actually use, not just publish.
             </h2>
           </div>
-          <div className="abt-vals reveal">
-            {VALUES.map((v, i) => (
-              <article className="abt-val" key={v.title}>
-                <div className="abt-val-top">
-                  <div className="abt-val-ic">
-                    <svg viewBox="0 0 24 24">{v.icon}</svg>
-                  </div>
-                  <span
-                    className="abt-val-num"
-                    aria-hidden="true"
-                    data-n={String(i + 1).padStart(2, "0")}
-                  />
-                </div>
-                <h3>{v.title}</h3>
-                <p>{v.body}</p>
+          <div className="values-editorial reveal">
+            {VALUES.map((value, index) => (
+              <article className="value-row" key={value.title}>
+                <span className="value-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <h3>{value.title}</h3>
+                <p>{value.body}</p>
               </article>
             ))}
-            <article className="abt-val statement">
-              <p>
-                These are not wall posters. They are the rules we use to decide
-                what we ship and what we will not.
-              </p>
-            </article>
           </div>
         </div>
       </section>

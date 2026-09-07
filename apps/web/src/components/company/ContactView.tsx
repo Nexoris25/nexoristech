@@ -207,9 +207,6 @@ export function ContactView(): ReactNode {
               Before you write
             </span>
             <h2>Worth knowing before you write.</h2>
-            <p className="lede">
-              A few honest answers to the questions people ask most before getting in touch.
-            </p>
           </div>
           <div className="faq-wrap reveal">
             {FAQS.map((f) => (

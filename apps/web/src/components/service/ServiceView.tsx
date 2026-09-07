@@ -483,7 +483,6 @@ export function ServiceView({
               {c.faq.kicker}
             </span>
             <h2>{c.faq.h2}</h2>
-            <p className="lede">{c.faq.lede}</p>
           </div>
           <div className="faq-wrap reveal">
             {c.faq.items.map((f, i) => (

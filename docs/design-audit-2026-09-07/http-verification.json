@@ -1,0 +1,868 @@
+{
+  "origin": "http://localhost:3000",
+  "records": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Software Development Company in Lagos | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/about/",
+      "status": 200,
+      "title": "About Us | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/about/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "AboutPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/how-we-work/",
+      "status": 200,
+      "title": "How We Work | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/how-we-work/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/case-studies/",
+      "status": 200,
+      "title": "Case Studies & Projects | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/case-studies/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "CollectionPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/contact/",
+      "status": 200,
+      "title": "Contact Us | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/contact/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "ContactPage",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/ai-product-development/",
+      "status": 200,
+      "title": "Custom Software & App Development | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/ai-product-development/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/ai-chatbots-virtual-assistants/",
+      "status": 200,
+      "title": "AI Chatbots & Virtual Assistants | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/ai-chatbots-virtual-assistants/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/business-process-automation/",
+      "status": 200,
+      "title": "Business Process Automation Services | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/business-process-automation/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/ai-ecommerce-development/",
+      "status": 200,
+      "title": "E-Commerce Website Development | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/ai-ecommerce-development/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/data-dashboards-predictive-analytics/",
+      "status": 200,
+      "title": "Business Dashboards & Analytics | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/data-dashboards-predictive-analytics/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/ai-systems-integration/",
+      "status": 200,
+      "title": "Systems Integration Services | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/ai-systems-integration/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/data-infrastructure-ai-readiness/",
+      "status": 200,
+      "title": "Data Cleaning & AI Readiness | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/data-infrastructure-ai-readiness/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/iot-development/",
+      "status": 200,
+      "title": "IoT Development & Monitoring | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/iot-development/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/govtech-platforms/",
+      "status": 200,
+      "title": "GovTech & Public Sector Platforms | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/govtech-platforms/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/ai-seo-geo/",
+      "status": 200,
+      "title": "SEO & AI Search Optimisation | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/ai-seo-geo/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/managed-technology-operations/",
+      "status": 200,
+      "title": "Software Maintenance & Support | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/managed-technology-operations/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/education-software/",
+      "status": 200,
+      "title": "School Management Software in Nigeria | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/education-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/healthcare-software/",
+      "status": 200,
+      "title": "Hospital & Clinic Software in Nigeria | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/healthcare-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/hospitality-software/",
+      "status": 200,
+      "title": "Hotel & Short-Let Software in Nigeria | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/hospitality-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/restaurant-software/",
+      "status": 200,
+      "title": "Restaurant POS & Ordering Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/restaurant-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/retail-ecommerce-software/",
+      "status": 200,
+      "title": "Retail & E-Commerce Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/retail-ecommerce-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/real-estate-software/",
+      "status": 200,
+      "title": "Real Estate Software in Nigeria | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/real-estate-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/logistics-software/",
+      "status": 200,
+      "title": "Fleet & Logistics Software in Nigeria | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/logistics-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/fintech-software/",
+      "status": 200,
+      "title": "Fintech Software Development | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/fintech-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insurance-software/",
+      "status": 200,
+      "title": "Insurance Software Solutions | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insurance-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/manufacturing-software/",
+      "status": 200,
+      "title": "Manufacturing ERP & Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/manufacturing-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/agritech-software/",
+      "status": 200,
+      "title": "Agritech & Farm Software in Nigeria | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/agritech-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/professional-services-software/",
+      "status": 200,
+      "title": "Software for Law & Accounting Firms | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/professional-services-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/church-management-software/",
+      "status": 200,
+      "title": "Church Management Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/church-management-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/ngo-software/",
+      "status": 200,
+      "title": "NGO & M&E Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/ngo-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/government-digital-solutions/",
+      "status": 200,
+      "title": "Government Digital Solutions | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/government-digital-solutions/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/construction-software/",
+      "status": 200,
+      "title": "Construction Management Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/construction-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/media-entertainment-software/",
+      "status": 200,
+      "title": "Media & Streaming Platforms | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/media-entertainment-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/fitness-wellness-software/",
+      "status": 200,
+      "title": "Salon, Spa & Gym Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/fitness-wellness-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/automotive-software/",
+      "status": 200,
+      "title": "Dealership & Workshop Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/automotive-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/events-software/",
+      "status": 200,
+      "title": "Event Ticketing & Management Software | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/events-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "Service",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/",
+      "status": 200,
+      "title": "Insights | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "CollectionPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/careers/",
+      "status": 200,
+      "title": "Careers | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/careers/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "CollectionPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/privacy-policy/",
+      "status": 200,
+      "title": "Privacy Policy | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/privacy-policy/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/terms-of-service/",
+      "status": 200,
+      "title": "Terms of Service | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/terms-of-service/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/cookie-policy/",
+      "status": 200,
+      "title": "Cookie Policy | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/cookie-policy/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/website-cost-in-nigeria/",
+      "status": 200,
+      "title": "How Much Does a Website Cost in Nige… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/website-cost-in-nigeria/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/hospital-management-system-nigeria/",
+      "status": 200,
+      "title": "Hospital Management System in Nigeri… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/hospital-management-system-nigeria/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/best-software-development-companies-nigeria/",
+      "status": 200,
+      "title": "10 Best Software Development Compani… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/best-software-development-companies-nigeria/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/hidden-cost-of-bad-ux/",
+      "status": 200,
+      "title": "The Hidden Cost of Bad UX in Enterpr… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/hidden-cost-of-bad-ux/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/ai-chatbot-for-nigerian-businesses/",
+      "status": 200,
+      "title": "AI Chatbot for Nigerian Businesses:… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/ai-chatbot-for-nigerian-businesses/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/custom-erp-software/",
+      "status": 200,
+      "title": "ERP Software in Nigeria 2026: Custom… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/custom-erp-software/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/lagos-cybersecurity-guidelines-2026/",
+      "status": 200,
+      "title": "Lagos Cybersecurity Guidelines 2026:… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/lagos-cybersecurity-guidelines-2026/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/insights/ai-personalization-roi/",
+      "status": 200,
+      "title": "AI Personalization ROI for B2B Conte… | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/insights/ai-personalization-roi/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "WebPage",
+        "BlogPosting",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/chinedu-nwogu/",
+      "status": 200,
+      "title": "Chinedu Nwogu: Founder & CEO, Nexoris | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/chinedu-nwogu/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "ProfilePage",
+        "FAQPage"
+      ],
+      "issues": []
+    },
+    {
+      "path": "/oge/",
+      "status": 200,
+      "title": "Meet Oge | Nexoris Technologies",
+      "canonical": "https://nexoristech.com/oge/",
+      "h1Count": 1,
+      "schemaTypes": [
+        "Organization",
+        "ProfessionalService",
+        "WebSite",
+        "Person",
+        "AboutPage"
+      ],
+      "issues": []
+    }
+  ],
+  "discovery": {
+    "sitemapStatus": 200,
+    "sitemapCount": 51,
+    "duplicates": 0,
+    "missingRoutes": [],
+    "robotsStatus": 200,
+    "robotsSitemap": true,
+    "llmsStatus": 200,
+    "llmsContentType": "text/plain; charset=utf-8",
+    "llmsHasOge": true,
+    "llmsHasInsights": true,
+    "aliasStatus": 308,
+    "aliasLocation": "/llms.txt",
+    "notFoundStatus": 404,
+    "notFoundNoindex": true
+  }
+}

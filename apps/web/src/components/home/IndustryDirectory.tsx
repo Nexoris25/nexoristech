@@ -1,78 +1,68 @@
-"use client";
-import { useId, useState } from "react";
 import Link from "next/link";
+import { Store, HeartHandshake, Container, Landmark } from "lucide-react";
 import { industryGroups } from "../../content/catalogue.js";
-import { SectorIcon } from "../company/SectorIcon.js";
+const presentations = [
+  {
+    icon: Store,
+    description:
+      "Better experiences for the people who buy, book and do business with you.",
+  },
+  {
+    icon: HeartHandshake,
+    description:
+      "Thoughtful systems for care, learning and the services people rely on.",
+  },
+  {
+    icon: Container,
+    description:
+      "Connect the people, resources and information that keep your business moving.",
+  },
+  {
+    icon: Landmark,
+    description:
+      "Make essential services easier to access, manage and deliver.",
+  },
+];
 export function IndustryDirectory() {
-  const [group, setGroup] = useState("All sectors");
-  const [query, setQuery] = useState("");
-  const id = useId();
-  const items = industryGroups
-    .filter((g) => group === "All sectors" || g.heading === group)
-    .flatMap((g) => g.items)
-    .filter((item) =>
-      item.label.toLowerCase().includes(query.trim().toLowerCase()),
-    );
   return (
-    <div className="industry-directory">
-      <div className="directory-tools">
-        <div
-          className="directory-filters"
-          role="group"
-          aria-label="Filter industries"
-        >
-          {["All sectors", ...industryGroups.map((g) => g.heading)].map(
-            (name) => (
-              <button
-                key={name}
-                type="button"
-                aria-pressed={group === name}
-                aria-controls={id}
-                onClick={() => setGroup(name)}
-              >
-                {name}
-              </button>
-            ),
-          )}
-        </div>
-        <label className="directory-search">
-          <span>Find your industry</span>
-          <input
-            type="search"
-            placeholder="Search industries"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-controls={id}
-          />
-        </label>
-      </div>
-      <div className="directory-links" id={id}>
-        {items.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <SectorIcon href={item.href} />
-            <span>{item.label}</span>
-            <span className="directory-arrow" aria-hidden="true">
-              ↗
-            </span>
-          </Link>
-        ))}
-      </div>
-      <p className="directory-status" role="status">
-        {items.length === 0
-          ? "No matching sector in this directory. We can still help with your industry."
-          : query
-            ? `${items.length} matching ${items.length === 1 ? "sector" : "sectors"}.`
-            : "Explore a sector to see what we can build."}
-      </p>
-      <div className="directory-contact">
-        <p>
-          <strong>Your industry is not listed?</strong> We build around your
-          business, whatever the sector.
-        </p>
-        <Link className="link-arrow" href="/contact/">
-          Tell us what you need <span aria-hidden="true">→</span>
+    <div className="sector-cards">
+      {industryGroups.map((group, index) => {
+        const { icon: Icon, description } = presentations[index]!;
+        return (
+          <article
+            className={`sector-card sector-tone-${index}`}
+            key={group.heading}
+          >
+            <Icon
+              className="sector-group-icon"
+              size={30}
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            <h3>{group.heading}</h3>
+            <p>{description}</p>
+            <details className="sector-expand">
+              <summary>
+                Explore sectors <span aria-hidden="true">+</span>
+              </summary>
+              <div className="sector-destinations">
+                {group.items.map((item) => (
+                  <Link key={item.href} href={item.href}>
+                    {item.label}
+                    <span aria-hidden="true">↗</span>
+                  </Link>
+                ))}
+              </div>
+            </details>
+          </article>
+        );
+      })}
+      <p className="sector-invitation">
+        Every industry is welcome.{" "}
+        <Link href="/contact/">
+          Tell us about yours <span aria-hidden="true">→</span>
         </Link>
-      </div>
+      </p>
     </div>
   );
 }

@@ -625,10 +625,6 @@ export function HomeView({
               Questions
             </span>
             <h2>The things people ask before they reach out.</h2>
-            <p className="lede">
-              Straight answers to what clients raise most often. If yours is not
-              here, ask us directly and a real person will reply.
-            </p>
           </div>
           <div className="faq-wrap reveal">
             {HOME_FAQ.map((item) => (
