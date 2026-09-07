@@ -34,8 +34,15 @@ async function loadRedirects(origin: string): Promise<Map<string, Redirect>> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.map;
   const map = new Map<string, Redirect>();
   try {
-    // Same-origin, so the request never leaves the instance and needs no absolute host configured.
-    const res = await fetch(`${origin}/api/redirects`, { signal: AbortSignal.timeout(3000) });
+    /*
+     * Same-origin, so the request never leaves the instance and needs no absolute host configured.
+     *
+     * The trailing slash is not cosmetic. The site sets `trailingSlash: true`, so a request to
+     * `/api/redirects` is answered with a 308 to `/api/redirects/` — and this fetch runs on every
+     * page request that is not a static asset, so the site was paying an extra internal round trip
+     * on every single page view to be told the address it already had.
+     */
+    const res = await fetch(`${origin}/api/redirects/`, { signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const json = (await res.json()) as {
         redirects?: { source?: string; destination?: string; permanent?: boolean }[];
