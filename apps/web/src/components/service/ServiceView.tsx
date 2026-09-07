@@ -218,7 +218,9 @@ export function ServiceView({
           <div className="pain-grid reveal">
             {c.problem.quotes.map((q, i) => (
               <article className="qcard" key={i}>
-                <div className="qm">&ldquo;</div>
+                <span className="discovery-number" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <p>{q.text}</p>
                 {q.tag ? <div className="qtag">{q.tag}</div> : null}
               </article>

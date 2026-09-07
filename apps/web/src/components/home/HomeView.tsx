@@ -1,3 +1,4 @@
+import { IndustryDirectory } from "./IndustryDirectory.js";
 /**
  * The Nexoris Technologies homepage, ported section-for-section from the approved design handoff
  * (2026-06-27). Static, approved copy renders in full; the proof figures, testimonials, and
@@ -399,121 +400,21 @@ export function HomeView({
         </div>
       </section>
 
-      {/* INDUSTRIES */}
       <section className="band" id="industries" aria-label="Industries">
         <div className="wrap">
           <div className="band-head reveal">
-            <span className="kicker">
-              <span className="dot" />
-              Industries
-            </span>
+            <span className="kicker">Industries</span>
             <h2 className="h-section">
-              Built for twenty industries, organised four ways.
+              Different industries.{" "}
+              <span className="heading-accent">Built around you.</span>
             </h2>
             <p className="lede">
-              Good engineering travels, but every industry has its own problems,
-              rules, and rhythms. We have built for twenty of them. Each one
-              speaks your language, not ours.
+              Every industry has its own people, processes and priorities.
+              Explore some of the sectors we build for, or talk to us about
+              yours.
             </p>
           </div>
-          <div className="ind-grid reveal">
-            <article className="ind-card">
-              <div className="ind-top">
-                <h3>Commerce &amp; Hospitality</h3>
-              </div>
-              <p className="desc">
-                Where the customer is the whole business, and a slow reply is a
-                lost sale.
-              </p>
-              <div className="ind-list">
-                <Link href="/retail-ecommerce-software">
-                  Retail &amp; E-Commerce
-                </Link>
-                <Link href="/restaurant-software">
-                  Restaurants &amp; Cloud Kitchens
-                </Link>
-                <Link href="/hospitality-software">
-                  Hospitality &amp; Short-Lets
-                </Link>
-                <Link href="/events-software">Events &amp; Conferences</Link>
-                <Link href="/fitness-wellness-software">
-                  Fitness &amp; Salons
-                </Link>
-              </div>
-            </article>
-            <article className="ind-card">
-              <div className="ind-top">
-                <h3>Finance &amp; Professional</h3>
-              </div>
-              <p className="desc">
-                Where trust, compliance, and an exact paper trail are the
-                product.
-              </p>
-              <div className="ind-list">
-                <Link href="/fintech-software">
-                  Financial Services &amp; Fintech
-                </Link>
-                <Link href="/insurance-software">
-                  Insurance &amp; Insurtech
-                </Link>
-                <Link href="/professional-services-software">
-                  Professional Services
-                </Link>
-                <Link href="/real-estate-software">
-                  Real Estate &amp; Property
-                </Link>
-                <Link href="/automotive-software">Automotive</Link>
-              </div>
-            </article>
-            <article className="ind-card">
-              <div className="ind-top">
-                <h3>Public &amp; Social Impact</h3>
-              </div>
-              <p className="desc">
-                Where the work serves citizens, patients, students, and
-                communities.
-              </p>
-              <div className="ind-list">
-                <Link href="/government-digital-solutions">
-                  Government &amp; Public Sector
-                </Link>
-                <Link href="/healthcare-software">
-                  Healthcare &amp; Clinics
-                </Link>
-                <Link href="/education-software">Education &amp; EdTech</Link>
-                <Link href="/ngo-software">NGOs &amp; Development</Link>
-                <Link href="/church-management-software">
-                  Religious &amp; Faith
-                </Link>
-              </div>
-            </article>
-            <article className="ind-card">
-              <div className="ind-top">
-                <h3>Industry &amp; Infrastructure</h3>
-              </div>
-              <p className="desc">
-                Where physical operations move, and the software has to keep up
-                with them.
-              </p>
-              <div className="ind-list">
-                <Link href="/logistics-software">
-                  Logistics &amp; Supply Chain
-                </Link>
-                <Link href="/manufacturing-software">
-                  Manufacturing &amp; Industrial
-                </Link>
-                <Link href="/agritech-software">
-                  Agriculture &amp; Agritech
-                </Link>
-                <Link href="/construction-software">
-                  Construction &amp; Engineering
-                </Link>
-                <Link href="/media-entertainment-software">
-                  Media &amp; Publishing
-                </Link>
-              </div>
-            </article>
-          </div>
+          <IndustryDirectory />
         </div>
       </section>
 

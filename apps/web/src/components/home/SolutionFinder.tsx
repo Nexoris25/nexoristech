@@ -59,7 +59,10 @@ const QUESTIONS: { q: string; a: [string, Cat][] }[] = [
   },
 ];
 
-const RECS: Record<Cat, { title: string; desc: string; ic: string; path: ReactNode }> = {
+const RECS: Record<
+  Cat,
+  { title: string; desc: string; ic: string; path: ReactNode }
+> = {
   build: {
     title: "AI Product Development",
     desc: "You described building something new. We would start by designing and scoping the product around how your business actually works, then build it in stages you can see.",
@@ -86,7 +89,9 @@ const RECS: Record<Cat, { title: string; desc: string; ic: string; path: ReactNo
     title: "AI Chatbots and Virtual Assistants",
     desc: "Customers are going unanswered. We would build an assistant trained on your own content that answers every enquiry, at any hour, and hands over to a person when it needs to.",
     ic: "ci4",
-    path: <path d="M21 11.5a8.38 8.38 0 0 1-9 8.4L3 21l1.1-3.5A8.5 8.5 0 1 1 21 11.5z" />,
+    path: (
+      <path d="M21 11.5a8.38 8.38 0 0 1-9 8.4L3 21l1.1-3.5A8.5 8.5 0 1 1 21 11.5z" />
+    ),
   },
   data: {
     title: "Data Dashboards and Analytics",
@@ -154,11 +159,13 @@ export function SolutionFinder(): ReactNode {
           <span className="dot" />
           Solution Finder
         </span>
-        <h2>Tell us what is going on. We will point you to the right service.</h2>
+        <h2>
+          Tell us what is going on. We will point you to the right service.
+        </h2>
         <p>
-          You do not need to know what an ERP is or whether you need a chatbot. Answer five short
-          questions, and our assistant matches you to one of the four ways we help, in plain words.
-          It takes about a minute.
+          You do not need to know what an ERP is or whether you need a chatbot.
+          Answer five short questions, and our assistant matches you to one of
+          the four ways we help, in plain words. It takes about a minute.
         </p>
         <div className="cat-chips">
           <div className="cat-chip">
@@ -213,7 +220,11 @@ export function SolutionFinder(): ReactNode {
             <div className="fp-q font-head">{current.q}</div>
             <div className="fp-opts">
               {current.a.map(([label, cat]) => (
-                <button key={label} className="fp-opt" onClick={() => answer(cat)}>
+                <button
+                  key={label}
+                  className="fp-opt"
+                  onClick={() => answer(cat)}
+                >
                   <span className="od" />
                   {label}
                 </button>
@@ -230,21 +241,25 @@ export function SolutionFinder(): ReactNode {
             <p>{rec.desc}</p>
             {/* Carry the recommendation and the answers through to the contact form, so the person does
                 not repeat themselves and the sales rep sees what the finder concluded. */}
-            <Link className="btn btn-primary" href={contactHref}>
-              Start this conversation <span className="arr">&rarr;</span>
-            </Link>
-            <button
-              type="button"
-              className="fp-ask"
-              onClick={() =>
-                window.Oge?.ask(`I think I need ${rec.title}. What would that involve for my business?`)
-              }
-            >
-              Ask Oge about this <span aria-hidden="true">&rarr;</span>
-            </button>
-            <button className="fp-restart" onClick={restart}>
-              &#8634; Start over
-            </button>
+            <div className="finder-result-actions">
+              <Link className="btn btn-primary" href={contactHref}>
+                Start this conversation <span className="arr">&rarr;</span>
+              </Link>
+              <button
+                type="button"
+                className="fp-ask"
+                onClick={() =>
+                  window.Oge?.ask(
+                    `I think I need ${rec.title}. What would that involve for my business?`,
+                  )
+                }
+              >
+                Ask Oge about this <span aria-hidden="true">&rarr;</span>
+              </button>
+              <button className="fp-restart" onClick={restart}>
+                &#8634; Start over
+              </button>
+            </div>
           </div>
         )}
       </div>

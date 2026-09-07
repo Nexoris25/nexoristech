@@ -1,16 +1,8 @@
-/**
- * About Us page, transcribed from the approved design handoff (About Us.html): who we are, the
- * story, mission and vision, the five values, the stack, the team (founder Chinedu Nwogu), and the
- * careers teaser. Rendered inside .svc-page to reuse the shared hero/band/cta/hero-stats primitives;
- * bespoke pieces use the abt- classes in styles/about.css. The hero and story photos are real team
- * imagery in public/about; the tools wall uses official brand marks from simple-icons; the founder is
- * shown as a CN monogram by design (no photo required). Server component; ScrollFx adds the reveal
- * animation.
- */
+/** About Nexoris: licensed contextual hero photography and the authentic founder portrait. */
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ContextualPhoto } from "../ContextualPhoto.js";
-import { productTeamImage } from "../../content/contextual-images.js";
+import { developmentPhoto } from "../../content/contextual-images.js";
 import Image from "next/image";
 import {
   siNextdotjs,
@@ -55,7 +47,9 @@ const VALUES: { title: string; body: string; icon: ReactNode }[] = [
   {
     title: "Quality",
     body: "Every product we build is held to a standard we would be comfortable using ourselves. That applies to the code, the design, and how the finished product performs.",
-    icon: <path d="M12 2l2.4 5.3 5.6.6-4.2 3.8 1.2 5.6L12 20.3 7 17.3l1.2-5.6L4 7.9l5.6-.6z" />,
+    icon: (
+      <path d="M12 2l2.4 5.3 5.6.6-4.2 3.8 1.2 5.6L12 20.3 7 17.3l1.2-5.6L4 7.9l5.6-.6z" />
+    ),
   },
   {
     title: "Integrity",
@@ -120,11 +114,17 @@ export function AboutView(): ReactNode {
                 <span className="dot" />
                 Who we are · Lagos, Nigeria
               </span>
-              <h1>We build software the way we would want it built for us.</h1>
+              <h1>
+                We build software{" "}
+                <span className="hero-accent">
+                  the way we would want it built for us.
+                </span>
+              </h1>
               <p className="lede">
-                Nexoris Technologies Ltd is a Lagos-based company that designs and builds custom
-                software for businesses in Nigeria and abroad. Every product we ship is held to a
-                simple standard: would we be comfortable using it ourselves?
+                Nexoris Technologies Ltd is a Lagos-based company that designs
+                and builds custom software for businesses in Nigeria and abroad.
+                Every product we ship is held to a simple standard: would we be
+                comfortable using it ourselves?
               </p>
               <div className="hero-cta">
                 <Link className="btn btn-primary" href="/contact">
@@ -134,72 +134,83 @@ export function AboutView(): ReactNode {
                   See how we work
                 </Link>
               </div>
-              <div className="hero-stats">
-                <div className="hstat">
-                  <div className="hn">
-                    <em>1</em> founder
-                  </div>
-                  <div className="hl">In the room on every project</div>
-                </div>
-                <div className="hstat">
-                  <div className="hn">
-                    <em>100%</em>
-                  </div>
-                  <div className="hl">Code and designs handed to you</div>
-                </div>
-                <div className="hstat">
-                  <div className="hn">
-                    NG <em>+</em>
-                  </div>
-                  <div className="hl">Clients in Nigeria and abroad</div>
-                </div>
-              </div>
+              <ul className="about-commitments">
+                <li>Founder-led delivery</li>
+                <li>Full ownership at handover</li>
+                <li>Built in Lagos, for businesses everywhere</li>
+              </ul>
             </div>
-            <ContextualPhoto image={productTeamImage} priority />
+            <ContextualPhoto image={developmentPhoto} priority />
           </div>
         </div>
       </section>
 
       {/* STORY */}
-      <section className="band" aria-label="Our story">
+      <section
+        className="band about-story-section"
+        id="our-story"
+        aria-label="Our story"
+      >
         <div className="wrap">
           <div className="band-head reveal">
             <span className="kicker">
               <span className="dot" />
               Our story
             </span>
-            <h2 className="h-section">Why Nexoris Technologies exists.</h2>
+            <h2 className="h-section">
+              The problem came first.{" "}
+              <span className="heading-accent">Nexoris followed.</span>
+            </h2>
           </div>
           <div className="abt-story">
             <div className="abt-story-body reveal">
+              <h3>The friction we kept seeing</h3>
               <p>
-                Too much business software forces people to work around it. Staff keep a spreadsheet
-                on the side because the system cannot do what they need. Managers wait days for numbers
-                the business already has. Owners pay for tools the team quietly stopped using months
-                ago.
+                Too much business software forces people to work around it.
+                Staff keep a spreadsheet on the side because the system cannot
+                do what they need. Managers wait days for numbers the business
+                already has. Owners pay for tools the team quietly stopped using
+                months ago.
               </p>
+              <h3>A better starting point</h3>
               <p>
-                We started Nexoris Technologies to do the opposite. We begin with the problem and the
-                people, and only then choose the technology. We take time to understand how your
-                business actually runs, design the solution carefully, and build software that is
-                reliable, easy to maintain, and <b>fully owned by you at the end</b>.
+                We started Nexoris Technologies to do the opposite. We begin
+                with the problem and the people, and only then choose the
+                technology. We take time to understand how your business
+                actually runs, design the solution carefully, and build software
+                that is reliable, easy to maintain, and{" "}
+                <b>fully owned by you at the end</b>.
               </p>
+              <h3>Accountability from day one</h3>
               <p>
-                The company is founded and led by Chinedu Nwogu, who works directly on every project
-                from planning through to delivery. Our team combines modern software development
-                practices with a clear understanding of the Nigerian business environment, including
-                compliance requirements, local payment systems, and the way businesses here operate
-                day to day. The result is software that performs well and that people can use without
-                difficulty.
+                The company is founded and led by Chinedu Nwogu, who works
+                directly on every project from planning through to delivery. Our
+                team combines modern software development practices with a clear
+                understanding of the Nigerian business environment, including
+                compliance requirements, local payment systems, and the way
+                businesses here operate day to day. The result is software that
+                performs well and that people can use without difficulty.
               </p>
             </div>
-            <div className="abt-story-aside reveal">
-
-              <div className="abt-pull">
-                <div className="qm">&ldquo;</div>
-                <p>We begin with the problem and the people, and only then choose the technology.</p>
-              </div>
-            </div>
+            <aside className="abt-story-aside reveal">
+              <figure className="story-portrait">
+                <Image
+                  src="/about/founder-chinedu-nwogu.webp"
+                  alt="Chinedu Nwogu, founder of Nexoris Technologies"
+                  width={800}
+                  height={1000}
+                  sizes="(max-width: 760px) 100vw, 35vw"
+                />
+                <figcaption>
+                  <strong>Chinedu Nwogu</strong>
+                  <span>Founder &amp; Chief Executive Officer</span>
+                </figcaption>
+              </figure>
+              <p className="story-principle">
+                We begin with the problem and the people, and only then choose
+                the technology.
+              </p>
+            </aside>
           </div>
         </div>
       </section>
@@ -220,14 +231,21 @@ export function AboutView(): ReactNode {
                 <svg viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="9" />
                   <circle cx="12" cy="12" r="4" />
-                  <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="1"
+                    fill="currentColor"
+                    stroke="none"
+                  />
                 </svg>
               </div>
               <div className="k">Our Mission</div>
               <h3>Reliable software that helps businesses grow.</h3>
               <p>
-                To design and build reliable software that helps businesses in Nigeria and across
-                Africa run more efficiently, reach more customers, and grow with confidence.
+                To design and build reliable software that helps businesses in
+                Nigeria and across Africa run more efficiently, reach more
+                customers, and grow with confidence.
               </p>
             </article>
             <article className="abt-mv-card">
@@ -240,9 +258,9 @@ export function AboutView(): ReactNode {
               <div className="k">Our Vision</div>
               <h3>One of the most trusted software companies in Nigeria.</h3>
               <p>
-                To be one of the most trusted software development companies in Nigeria, known for
-                combining strong engineering with a clear understanding of how local businesses
-                operate.
+                To be one of the most trusted software development companies in
+                Nigeria, known for combining strong engineering with a clear
+                understanding of how local businesses operate.
               </p>
             </article>
           </div>
@@ -257,7 +275,9 @@ export function AboutView(): ReactNode {
               <span className="dot" />
               What we value
             </span>
-            <h2 className="h-section">Five values we actually use, not just publish.</h2>
+            <h2 className="h-section">
+              Five values we actually use, not just publish.
+            </h2>
           </div>
           <div className="abt-vals reveal">
             {VALUES.map((v, i) => (
@@ -278,8 +298,8 @@ export function AboutView(): ReactNode {
             ))}
             <article className="abt-val statement">
               <p>
-                These are not wall posters. They are the rules we use to decide what we ship and what
-                we will not.
+                These are not wall posters. They are the rules we use to decide
+                what we ship and what we will not.
               </p>
             </article>
           </div>
@@ -298,13 +318,18 @@ export function AboutView(): ReactNode {
           </div>
           <div className="abt-stack">
             <p className="abt-stack-lede reveal">
-              We chose these tools for performance and easy long-term maintenance, and we adjust them
-              to fit each project rather than forcing every project to fit them.
+              We chose these tools for performance and easy long-term
+              maintenance, and we adjust them to fit each project rather than
+              forcing every project to fit them.
             </p>
             <div className="abt-tools reveal">
               {TOOLS.map((t) => (
                 <div className="abt-tool" key={t.title}>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" fill={`#${t.hex}`}>
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    fill={`#${t.hex}`}
+                  >
                     <path d={t.path} />
                   </svg>
                   <span className="tn">{t.title}</span>
@@ -327,25 +352,16 @@ export function AboutView(): ReactNode {
           </div>
           <div className="abt-team reveal">
             <article className="abt-founder">
-              <div className="abt-founder-photo">
-                <span className="abt-initials" aria-hidden="true">
-                  CN
-                </span>
-                <Image
-                  className="abt-founder-img"
-                  src="/about/founder-chinedu-nwogu.webp"
-                  alt="Chinedu Nwogu, Founder and Chief Executive Officer of Nexoris Technologies"
-                  fill
-                  sizes="(max-width: 760px) 100vw, 30vw"
-                />
-              </div>
               <div className="abt-founder-body">
-                <div className="role">Founder &amp; Chief Executive Officer</div>
+                <div className="role">
+                  Founder &amp; Chief Executive Officer
+                </div>
                 <h3>Chinedu Nwogu</h3>
                 <p>
-                  Chinedu founded Nexoris Technologies to build software that solves real problems for
-                  businesses in Nigeria and abroad. He leads the company&rsquo;s technical direction
-                  and works directly on every project, from planning through to delivery.
+                  Chinedu founded Nexoris Technologies to build software that
+                  solves real problems for businesses in Nigeria and abroad. He
+                  leads the company&rsquo;s technical direction and works
+                  directly on every project, from planning through to delivery.
                 </p>
                 <span className="sig">
                   <svg viewBox="0 0 24 24">
@@ -366,8 +382,9 @@ export function AboutView(): ReactNode {
               </div>
               <h3>The team is growing.</h3>
               <p>
-                We hire people who care that the thing works, looks right, and holds up after launch.
-                Explore the roles we are hiring for and how to apply.
+                We hire people who care that the thing works, looks right, and
+                holds up after launch. Explore the roles we are hiring for and
+                how to apply.
               </p>
               <Link className="link-arrow" href="/careers">
                 See open roles <span className="arr">&rarr;</span>
@@ -383,7 +400,10 @@ export function AboutView(): ReactNode {
           <div className="abt-teaser reveal">
             <div className="tz">
               <h2>If you care about doing this properly, we should talk.</h2>
-              <p>We hire people who care that the thing works, looks right, and holds up after launch.</p>
+              <p>
+                We hire people who care that the thing works, looks right, and
+                holds up after launch.
+              </p>
             </div>
             <Link className="btn btn-primary" href="/careers">
               See open roles <span className="arr">&rarr;</span>
@@ -398,8 +418,8 @@ export function AboutView(): ReactNode {
         <div className="wrap cta-inner reveal">
           <h2>We would welcome the chance to discuss your project.</h2>
           <p>
-            Tell us what you are trying to achieve, and we will come back with a clear suggestion and
-            honest numbers.
+            Tell us what you are trying to achieve, and we will come back with a
+            clear suggestion and honest numbers.
           </p>
           <Link className="btn btn-primary" href="/contact">
             Work with us <span className="arr">&rarr;</span>

@@ -10,6 +10,7 @@ const serverReady = () => false;
 export function OutcomeShift({ industry }: { industry: string }) {
   const [phase, setPhase] = useState<"before" | "after">("after");
   const panelId = useId();
+  const [replay, setReplay] = useState(0);
   const interactive = useSyncExternalStore(subscribe, clientReady, serverReady);
   const workflow = industryWorkflows[industry];
   if (!workflow) return null;
@@ -20,9 +21,14 @@ export function OutcomeShift({ industry }: { industry: string }) {
           <span className="workflow-eyebrow">Before & after Nexoris</span>
           <h3>{workflow.title}</h3>
         </div>
-        <span className="workflow-context">
-          One workflow. A clearer way to work.
-        </span>
+        <button
+          className="workflow-replay"
+          type="button"
+          disabled={!interactive}
+          onClick={() => setReplay((value) => value + 1)}
+        >
+          Replay flow <span aria-hidden="true">↻</span>
+        </button>
       </div>
       <div
         className="workflow-switch"
@@ -48,7 +54,11 @@ export function OutcomeShift({ industry }: { industry: string }) {
           With Nexoris
         </button>
       </div>
-      <div className="workflow-comparison" id={panelId}>
+      <div
+        className="workflow-comparison"
+        id={panelId}
+        key={`${phase}-${replay}`}
+      >
         <div className="workflow-column-head workflow-before">
           <Unplug size={22} aria-hidden="true" />
           <div>

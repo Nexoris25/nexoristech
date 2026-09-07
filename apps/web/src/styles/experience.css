@@ -1,0 +1,455 @@
+/* Useful interactions, clear reading order and compact-screen support. */
+.nexoris-site .cr-ben-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+.nexoris-site :is(.tldr, .faq-a) {
+  overflow-wrap: anywhere;
+}
+.nexoris-site .heading-accent {
+  color: var(--purple-700);
+}
+@supports (background-clip: text) {
+  .nexoris-site .heading-accent {
+    background: linear-gradient(110deg, #4832ae, #7950a1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+}
+.nexoris-site .finder-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+  margin-top: 24px;
+}
+.nexoris-site .finder-result-actions :is(.btn, .fp-ask, .fp-restart) {
+  margin: 0;
+  min-height: 44px;
+  line-height: 1.45;
+}
+.nexoris-site .finder-result-actions .fp-restart {
+  flex-basis: 100%;
+  text-align: left;
+  padding: 8px 0;
+}
+.nexoris-site .directory-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 0;
+  border-block: 1px solid var(--line);
+}
+.nexoris-site .directory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1 1 500px;
+}
+.nexoris-site .directory-filters button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink-2);
+  font:
+    500 14px/1.4 "DM Sans",
+    sans-serif;
+  cursor: pointer;
+}
+.nexoris-site .directory-filters button[aria-pressed="true"] {
+  background: var(--ink-800);
+  color: white;
+  border-color: var(--ink-800);
+}
+.nexoris-site .directory-search {
+  display: grid;
+  gap: 8px;
+  flex: 0 1 250px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.nexoris-site .directory-search input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #c9c3d5;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 8px;
+  color: var(--ink-950);
+  font-size: 16px;
+}
+.nexoris-site .directory-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 40px;
+}
+.nexoris-site .directory-links a {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 8px;
+  min-height: 76px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-950);
+  text-decoration: none;
+  font-size: 17px;
+  line-height: 1.45;
+  transition: background-color 0.2s;
+}
+.nexoris-site .directory-links svg {
+  color: var(--purple-600);
+}
+.nexoris-site .directory-arrow {
+  color: var(--ink-3);
+  transition: transform 0.2s;
+}
+.nexoris-site .directory-links a:hover {
+  background: #f4f1fc;
+}
+.nexoris-site .directory-links a:hover .directory-arrow {
+  transform: translate(2px, -2px);
+}
+.nexoris-site .directory-status {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin: 20px 0;
+}
+.nexoris-site .directory-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: #f3f0fa;
+  border-radius: 12px;
+}
+.nexoris-site .directory-contact p {
+  max-width: 580px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.nexoris-site .directory-contact strong {
+  display: block;
+  color: var(--ink-950);
+}
+.nexoris-site .directory-tools :is(button, input):focus-visible,
+.nexoris-site .directory-links a:focus-visible,
+.nexoris-site .workflow-replay:focus-visible {
+  outline: 3px solid #7964dc;
+  outline-offset: 3px;
+}
+.nexoris-site .industry-page .ind-pain,
+.nexoris-site .svc-page .pain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px;
+  border-top: 1px solid var(--line);
+}
+.nexoris-site .industry-page .ind-pain-card,
+.nexoris-site .svc-page .qcard {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 14px;
+  padding: 28px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  align-items: start;
+}
+.nexoris-site .industry-page .ind-pain-ic {
+  margin: 4px 0 0;
+  height: auto;
+}
+.nexoris-site .discovery-number {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #78638d;
+  padding-top: 4px;
+}
+.nexoris-site .industry-page .ind-pain-q,
+.nexoris-site .svc-page .qcard p {
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.7;
+  color: var(--ink-800);
+}
+.nexoris-site .svc-page .qcard .qtag {
+  grid-column: 2;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  margin: 0;
+  color: var(--ink-3);
+}
+.nexoris-site .industry-page .ind-pclose {
+  border: 0;
+  border-left: 3px solid var(--purple-600);
+  border-radius: 0;
+  box-shadow: none;
+  background: #f5f2fc;
+}
+.nexoris-site .industry-page .ind-pclose-ic {
+  display: none;
+}
+.nexoris-site .workflow-replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #ded8ec;
+  border-radius: 8px;
+  color: #5136b5;
+  font-size: 13px;
+  cursor: pointer;
+}
+.nexoris-site .workflow-replay:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nexoris-site .reveal.anim .workflow-cell.workflow-after {
+    animation: workflow-arrive 0.55s ease both;
+  }
+  .nexoris-site
+    .reveal.anim
+    .workflow-comparison-row:nth-child(4)
+    .workflow-after {
+    animation-delay: 0.12s;
+  }
+  .nexoris-site
+    .reveal.anim
+    .workflow-comparison-row:nth-child(5)
+    .workflow-after {
+    animation-delay: 0.24s;
+  }
+  .nexoris-site .reveal.anim .workflow-transition {
+    animation: workflow-arrow 0.65s ease both;
+  }
+  @keyframes workflow-arrive {
+    from {
+      opacity: 0.4;
+      transform: translateX(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes workflow-arrow {
+    from {
+      opacity: 0;
+      margin-left: -8px;
+    }
+    to {
+      opacity: 1;
+      margin-left: 0;
+    }
+  }
+}
+.nexoris-site .about-page .hero-grid {
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+.nexoris-site .about-page .hero-inner {
+  text-align: left;
+  align-items: flex-start;
+}
+.nexoris-site .about-page .hero-inner :is(h1, .lede) {
+  margin-inline: 0;
+}
+.nexoris-site .about-page .hero-cta {
+  justify-content: flex-start;
+}
+.nexoris-site .about-page .hero-grid .context-photo img {
+  aspect-ratio: 4/5;
+  max-height: 580px;
+}
+.nexoris-site .about-commitments {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid #3b324e;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  color: #d8d0e8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.nexoris-site .about-story-section .abt-story {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(32px, 6vw, 88px);
+  align-items: start;
+}
+.nexoris-site .abt-story-aside {
+  order: -1;
+}
+.nexoris-site .story-portrait {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f1eef5;
+}
+.nexoris-site .story-portrait img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  object-position: center top;
+}
+.nexoris-site .story-portrait figcaption {
+  display: grid;
+  gap: 4px;
+  padding: 20px;
+  background: white;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.nexoris-site .story-portrait figcaption span {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.nexoris-site .story-principle {
+  margin-top: 24px;
+  border-left: 2px solid var(--purple-600);
+  padding-left: 20px;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.7;
+}
+.nexoris-site .abt-story-body h3 {
+  margin: 28px 0 12px;
+  font-size: 21px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.nexoris-site .abt-story-body h3:first-child {
+  margin-top: 0;
+}
+.nexoris-site .abt-story-body p {
+  font-size: 17px;
+  line-height: 1.8;
+  margin: 0;
+}
+.nexoris-site .abt-founder {
+  grid-template-columns: 1fr;
+}
+@media (max-width: 760px) {
+  .nexoris-site .directory-links,
+  .nexoris-site .industry-page .ind-pain,
+  .nexoris-site .svc-page .pain-grid,
+  .nexoris-site .about-story-section .abt-story {
+    grid-template-columns: 1fr;
+  }
+  .nexoris-site .directory-search {
+    flex: 1 1 100%;
+  }
+  .nexoris-site .directory-links a {
+    font-size: 16px;
+  }
+  .nexoris-site .workflow-heading {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .nexoris-site .story-portrait {
+    max-width: 400px;
+  }
+  .nexoris-site .about-page .hero-grid .context-photo img {
+    aspect-ratio: 3/2;
+  }
+}
+@media (max-width: 360px) {
+  .nexoris-site {
+    --gut: 16px;
+    --fs-hero: 1.75rem;
+    --fs-h2: 1.5rem;
+  }
+  .nexoris-site :is(.h-section, .svc-page .h-section) {
+    font-size: 1.5rem;
+    line-height: 1.25;
+  }
+  .nexoris-site .home-page .hero-home h1 {
+    font-size: 1.75rem;
+  }
+  .nexoris-site :is(.cta h2, .svc-page .cta h2) {
+    font-size: 1.625rem;
+    line-height: 1.25;
+  }
+  .nexoris-site :is(h1, h2, h3, h4, h5, h6) {
+    overflow-wrap: anywhere;
+  }
+  .nexoris-site :is(.hero-cta, .finder-result-actions) {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .nexoris-site .finder-result-actions :is(.btn, .fp-ask, .fp-restart) {
+    width: 100%;
+  }
+  .nexoris-site .directory-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .nexoris-site .directory-filters button {
+    text-align: left;
+  }
+  .nexoris-site .directory-links a {
+    grid-template-columns: 24px minmax(0, 1fr) 16px;
+    gap: 10px;
+  }
+  .nexoris-site .directory-contact {
+    padding: 20px 16px;
+  }
+  .nexoris-site .brand .wm {
+    font-size: 0.9375rem;
+  }
+  .nexoris-site .nav-right {
+    gap: 8px;
+  }
+  .nexoris-site .workflow-heading,
+  .nexoris-site .workflow-column-head,
+  .nexoris-site .workflow-cell,
+  .nexoris-site .workflow-summary {
+    padding: 20px 16px;
+  }
+  .nexoris-site .workflow-cell {
+    gap: 8px;
+  }
+  .nexoris-site .workflow-switch {
+    margin-inline: 12px;
+  }
+  .nexoris-site .workflow-switch button {
+    padding-inline: 8px;
+    font-size: 13px;
+  }
+  .nexoris-site .abt-story-body p {
+    font-size: 16px;
+    line-height: 1.75;
+  }
+  .nexoris-site .abt-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nexoris-site .directory-arrow,
+  .nexoris-site .directory-links a {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .nexoris-site .heading-accent {
+    background: none;
+    color: CanvasText;
+  }
+}
