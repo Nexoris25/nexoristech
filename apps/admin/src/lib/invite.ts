@@ -45,7 +45,7 @@ export function verifyInviteToken(token: string | undefined): InvitePayload | nu
 
 /** The absolute app origin used to build invite links. Set APP_URL in production. */
 export function appOrigin(): string {
-  return (process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").replace(/\/+$/, "");
+  return (process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3102").replace(/\/+$/, "");
 }
 
 /** A loopback address: fine for a server talking to itself, useless in a link sent to a person. */
@@ -61,7 +61,7 @@ function isLoopback(origin: string): boolean {
  * Except when APP_URL is a loopback address in production, which is the one case where obeying it is
  * certainly wrong. Several variables in this deployment are *meant* to be localhost — the gateway and
  * the media origin are server-to-server and never reach a browser — so a deployment that copies
- * .env.local forward is likely to carry APP_URL=http://localhost:3001 with them. That value does
+ * .env.local forward is likely to carry APP_URL=http://localhost:3102 with them. That value does
  * reach a person: it is the invitation and password-reset link. Nobody can open it but the server
  * itself, and now that links are handed over by hand rather than emailed, it is the only way in.
  *

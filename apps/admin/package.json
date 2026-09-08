@@ -6,9 +6,9 @@
   "description": "The Nexoris Technologies internal admin dashboard. A modular staff platform on PostgreSQL (nexoris_admin), Oge-integrated. This build delivers the shared shell and its first module, the CRM.",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "next dev --webpack -p 3001",
+    "dev": "next dev --webpack -p 3102",
     "build": "next build --webpack",
-    "start": "next start -p 3001",
+    "start": "next start -p 3102",
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",

@@ -13,10 +13,11 @@ out/
 .cache/
 *.tsbuildinfo
 
-# Environment and secrets (only .env.example is committed)
+# Environment and secrets (only the *.example templates are committed — they carry no real values)
 .env
 .env.*
 !.env.example
+!.env.production.example
 *.pem
 *.key
 

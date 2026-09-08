@@ -17,7 +17,7 @@ const isDev = process.env.NODE_ENV !== "production";
  *
  * Uploads live on the admin origin, so every article cover, author headshot and in-body picture is
  * loaded cross-origin. `img-src https:` covered that in production by accident - any https host at
- * all - and blocked it outright in development, where the admin runs on http://localhost:3001. The
+ * all - and blocked it outright in development, where the admin runs on http://localhost:3102. The
  * result was every CMS image on the site rendering as a broken icon with its alt text showing, with
  * nothing in the server log to say why, because a CSP refusal happens in the browser.
  *

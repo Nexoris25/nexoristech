@@ -11,6 +11,7 @@ import type { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "../../../../lib/db.js";
 import {
+  cookieSecure,
   createSession,
   REMEMBER_SESSION_MAX_AGE,
   SESSION_COOKIE,
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(request.headers, request.nextUrl),
     path: "/",
     maxAge,
   });

@@ -8,7 +8,7 @@
  *
  * The risk is specific. Several variables in this deployment are meant to hold localhost: the Oge
  * gateway and the media origin are server-to-server and never reach a browser. So a production
- * environment assembled from the development one is quite likely to carry APP_URL=http://localhost:3001
+ * environment assembled from the development one is quite likely to carry APP_URL=http://localhost:3102
  * along with them, and that one does reach a person. These cases pin the guard that ignores it.
  *
  * NODE_ENV is set through vi.stubEnv rather than by assignment: TypeScript types it as read-only, so
@@ -55,8 +55,8 @@ describe("shareOrigin", () => {
   });
 
   it.each([
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
+    "http://localhost:3102",
+    "http://127.0.0.1:3102",
     "https://localhost",
   ])("ignores a loopback APP_URL in production (%s) and uses the request host", async (value) => {
     vi.stubEnv("NODE_ENV", "production");
@@ -66,8 +66,8 @@ describe("shareOrigin", () => {
 
   it("honours a loopback APP_URL outside production, where localhost is the truth", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("APP_URL", "http://localhost:3001");
-    expect(await shareOrigin()).toBe("http://localhost:3001");
+    vi.stubEnv("APP_URL", "http://localhost:3102");
+    expect(await shareOrigin()).toBe("http://localhost:3102");
   });
 
   it("falls back to the request host when APP_URL is not set at all", async () => {

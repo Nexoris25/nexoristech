@@ -9,7 +9,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, verifySession } from "../../../../lib/session.js";
+import { cookieSecure, SESSION_COOKIE, verifySession } from "../../../../lib/session.js";
 import { revokeSession } from "../../../../lib/sessions.js";
 
 export const runtime = "nodejs";
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   response.cookies.set(SESSION_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(request.headers, request.nextUrl),
     path: "/",
     maxAge: 0,
   });

@@ -92,3 +92,27 @@ export function verifySession(token: string | undefined): SessionPayload | null 
 export const SESSION_COOKIE = "nx_admin_session";
 export const SESSION_MAX_AGE = MAX_AGE_SECONDS;
 export const REMEMBER_SESSION_MAX_AGE = REMEMBER_MAX_AGE_SECONDS;
+
+/**
+ * Whether the session cookie may carry the Secure attribute.
+ *
+ * This was `NODE_ENV === "production"`, which is the usual advice and was wrong here in a way that
+ * made the platform impossible to sign in to. A Secure cookie is discarded by the browser unless the
+ * connection is HTTPS, and it is discarded *silently*: the sign-in succeeds, the server sets the
+ * cookie, the browser drops it, the redirect to /dashboard arrives with no session, and the admin is
+ * bounced back to /login with no error to explain it. Every credential is correct and nothing in the
+ * server log looks wrong. A deployment reached over plain HTTP — an IP and a port, or a proxy that
+ * has not had TLS put in front of it yet — locks its own administrator out.
+ *
+ * The condition that actually matters is the protocol of the request, not the build mode. Over HTTPS
+ * the cookie is Secure, which is what protects it. Over HTTP it cannot be, and refusing to set a
+ * usable cookie protects nothing: the alternative is not a safer session, it is no session at all.
+ *
+ * `x-forwarded-proto` is read first because in the normal deployment Next sits behind a reverse
+ * proxy that terminates TLS, so the request Next sees is plain HTTP even though the browser's is not.
+ */
+export function cookieSecure(headers: Headers, url?: URL): boolean {
+  const forwarded = headers.get("x-forwarded-proto");
+  if (forwarded) return forwarded.split(",")[0]!.trim().toLowerCase() === "https";
+  return url?.protocol === "https:";
+}
