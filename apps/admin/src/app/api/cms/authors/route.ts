@@ -2,11 +2,11 @@
  * Create or update a CMS author (nexoris_cms). Admin only. Expertise arrives comma-separated and is
  * stored as a text[]. On success it returns to the author's profile (edit) or the authors list (create).
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,11 +25,11 @@ function num(v: FormDataEntryValue | null): number | null { const n = Number(Str
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/authors", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/authors");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const name = String(f.get("name") ?? "").trim();
-  if (!name) return NextResponse.redirect(new URL(`${id ? `/cms/authors/${id}/edit` : "/cms/authors/new"}?error=name`, request.url), { status: 303 });
+  if (!name) return seeOther(`${id ? `/cms/authors/${id}/edit` : "/cms/authors/new"}?error=name`);
 
   const email = String(f.get("email") ?? "").trim() || null;
   const role = String(f.get("role") ?? "Author").trim() || "Author";
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest): Promise<Response> {
        featured, active, id, headshotAlt, profileHtml, metaTitle, metaDescription, linkedin, xUrl,
        JSON.stringify(faqs)]);
     await announce();
-    return NextResponse.redirect(new URL(`/cms/authors/${id}`, request.url), { status: 303 });
+    return seeOther(`/cms/authors/${id}`);
   }
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO cms_author (name, display_name, email, role, job_title, department, location, years_experience,
@@ -107,5 +107,5 @@ export async function POST(request: NextRequest): Promise<Response> {
      featured, active, headshotAlt, profileHtml, metaTitle, metaDescription, linkedin, xUrl,
      JSON.stringify(faqs)]);
   await announce();
-  return NextResponse.redirect(new URL(`/cms/authors/${rows[0]?.id ?? ""}`, request.url), { status: 303 });
+  return seeOther(`/cms/authors/${rows[0]?.id ?? ""}`);
 }

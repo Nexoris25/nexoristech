@@ -7,7 +7,6 @@
  * so `force` deletes anyway. Replacing rewrites every reference to point at another file before the
  * original goes, which is the option that leaves no page with a hole in it.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { unlink } from "node:fs/promises";
 import { join } from "node:path";
@@ -15,6 +14,7 @@ import { cmsDb } from "../../../../lib/cms-db.js";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { usageFor, replaceEverywhere } from "../../../../lib/media-usage.js";
 import { isUuid } from "../../../../lib/route-params.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,14 +32,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await requireCmsAccess();
   const f = await request.formData();
   const action = String(f.get("action") ?? "");
-  const back = new URL("/cms/media", request.url);
+  const back = "/cms/media";
   const done = (q: string): Response =>
-    NextResponse.redirect(new URL(`/cms/media${q}`, request.url), { status: 303 });
+    seeOther(`/cms/media${q}`);
   const pool = cmsDb();
 
   if (action === "update") {
     const id = String(f.get("id") ?? "");
-    if (!isUuid(id)) return NextResponse.redirect(back, { status: 303 });
+    if (!isUuid(id)) return seeOther(back);
     const name = String(f.get("name") ?? "").trim();
     const alt = String(f.get("alt_text") ?? "").trim();
     if (!name) return done("?error=name");
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   if (action === "delete") {
     const ids = f.getAll("id").map(String).filter(isUuid);
-    if (ids.length === 0) return NextResponse.redirect(back, { status: 303 });
+    if (ids.length === 0) return seeOther(back);
     const force = String(f.get("force") ?? "") === "1";
     const replaceWith = String(f.get("replace_with") ?? "").trim();
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       "SELECT id, url, name FROM cms_media WHERE id = ANY($1::uuid[])",
       [ids],
     );
-    if (files.length === 0) return NextResponse.redirect(back, { status: 303 });
+    if (files.length === 0) return seeOther(back);
 
     // Replacing is a deliberate choice for one file, so it is only offered for a single selection.
     if (replaceWith && isUuid(replaceWith) && files.length === 1) {
@@ -86,5 +86,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     return done(`?deleted=${files.length}`);
   }
 
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOther(back);
 }

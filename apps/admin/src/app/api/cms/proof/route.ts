@@ -3,13 +3,13 @@
  * One route because the three share the cms_content table; the hidden `kind` field selects which columns
  * apply. Comma lists (highlights, technologies) become text[]. On success it returns to that item's editor.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { syncToKnowledgeBase } from "../../../../lib/kb-reingest.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
 import { SERVICE_PAGES } from "../../../../lib/site-pages.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 // Only the kinds that have a public, crawlable page ground the website assistant; testimonials render
 // inside other pages and have no standalone URL.
@@ -46,12 +46,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
   const kind = String((await request.clone().formData()).get("kind") ?? "");
   const base = `/cms/${KIND_PATH[kind] ?? "case-studies"}`;
-  if (!staff) return NextResponse.redirect(new URL(base, request.url), { status: 303 });
+  if (!staff) return seeOther(base);
 
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const title = String(f.get("title") ?? "").trim();
-  if (!title || !KIND_PATH[kind]) return NextResponse.redirect(new URL(`${id ? `${base}/${id}` : `${base}/new`}?error=title`, request.url), { status: 303 });
+  if (!title || !KIND_PATH[kind]) return seeOther(`${id ? `${base}/${id}` : `${base}/new`}?error=title`);
 
   const slug = slugify(String(f.get("slug") ?? "") || title);
 
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [...vals, id, kind]);
     if (KB_KINDS.has(kind)) await syncToKnowledgeBase({ kind: kind as "case_study" | "legal_page", slug, title, status, excerpt, metaDescription: metaDesc, body });
     await announce(kind, slug, status);
-    return NextResponse.redirect(new URL(`${base}/${id}`, request.url), { status: 303 });
+    return seeOther(`${base}/${id}`);
   }
   const cast2 = (k: string): string => (k === "gallery" ? "::jsonb" : k === "service_paths" ? "::text[]" : "");
   const ph = keys.map((k, i) => `$${i + 2}${cast2(k)}`).join(", "); // shifted by kind=$1
@@ -139,5 +139,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     [kind, ...vals]);
   if (KB_KINDS.has(kind)) await syncToKnowledgeBase({ kind: kind as "case_study" | "legal_page", slug, title, status, excerpt, metaDescription: metaDesc, body });
   await announce(kind, slug, status);
-  return NextResponse.redirect(new URL(`${base}/${rows[0]?.id ?? ""}`, request.url), { status: 303 });
+  return seeOther(`${base}/${rows[0]?.id ?? ""}`);
 }

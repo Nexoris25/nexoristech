@@ -9,13 +9,13 @@
  * is given the amount is derived from the project's contract value, in Decimal, so the figures on a
  * schedule always add up to the contract rather than drifting from it by a few kobo per stage.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import Decimal from "decimal.js";
 import { db } from "../../../../lib/db.js";
 import { requireCapability } from "../../../../lib/auth.js";
 import { decimalOrNull, MILESTONE_STATUSES } from "../../../../lib/projects.js";
 import { isUuid } from "../../../../lib/route-params.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,14 +27,11 @@ export async function POST(request: NextRequest): Promise<Response> {
   const f = await request.formData();
   const projectId = String(f.get("project_id") ?? "").trim();
   const action = String(f.get("action") ?? "add");
-  if (!isUuid(projectId)) return NextResponse.redirect(new URL("/projects", request.url), { status: 303 });
+  if (!isUuid(projectId)) return seeOther("/projects");
 
   const back = `/projects/${projectId}`;
   const bail = (error: string, msg?: string): Response =>
-    NextResponse.redirect(
-      new URL(`${back}?error=${error}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`, request.url),
-      { status: 303 },
-    );
+    seeOther(`${back}?error=${error}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`);
 
   const pool = db();
   const project = (
@@ -43,7 +40,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [projectId],
     )
   ).rows[0];
-  if (!project) return NextResponse.redirect(new URL("/projects", request.url), { status: 303 });
+  if (!project) return seeOther("/projects");
 
   const milestoneId = String(f.get("milestone_id") ?? "").trim();
 
@@ -58,7 +55,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
     await pool.query("DELETE FROM project_milestone WHERE id=$1 AND project_id=$2", [milestoneId, projectId]);
-    return NextResponse.redirect(new URL(back, request.url), { status: 303 });
+    return seeOther(back);
   }
 
   if (action === "status") {
@@ -77,7 +74,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         [staff.id, milestoneId, JSON.stringify({ status: statusRaw })],
       )
       .catch(() => undefined);
-    return NextResponse.redirect(new URL(back, request.url), { status: 303 });
+    return seeOther(back);
   }
 
   // Add.
@@ -115,5 +112,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     [projectId, label, pct?.toFixed(3) ?? null, amount, String(f.get("due_date") ?? "") || null, sort],
   );
 
-  return NextResponse.redirect(new URL(back, request.url), { status: 303 });
+  return seeOther(back);
 }

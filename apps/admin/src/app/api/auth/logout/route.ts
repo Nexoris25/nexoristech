@@ -6,11 +6,11 @@
  * It also revokes the session record, so signing out actually ends the session rather than only
  * dropping the copy of the cookie held by this browser.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { cookieSecure, SESSION_COOKIE, verifySession } from "../../../../lib/session.js";
 import { revokeSession } from "../../../../lib/sessions.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const payload = verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   if (payload?.sid) await revokeSession(payload.sid, payload.sub, payload.sub);
 
-  const response = NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  const response = seeOther("/login");
   response.cookies.set(SESSION_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",

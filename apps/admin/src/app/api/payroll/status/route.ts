@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,13 +20,13 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!staff) return NextResponse.json({ ok: false }, { status: 403 });
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
-  if (!staff || !id) return NextResponse.redirect(new URL("/payroll/runs", request.url), { status: 303 });
+  if (!staff || !id) return seeOther("/payroll/runs");
 
   const pool = db();
   const run = (await pool.query<{ status: string; net: string }>("SELECT status, net::text FROM pay_run WHERE id=$1", [id])).rows[0];
-  if (!run) return NextResponse.redirect(new URL("/payroll/runs", request.url), { status: 303 });
+  if (!run) return seeOther("/payroll/runs");
   const next = NEXT[run.status];
-  if (!next) return NextResponse.redirect(new URL(`/payroll/runs/${id}`, request.url), { status: 303 });
+  if (!next) return seeOther(`/payroll/runs/${id}`);
 
   if (next === "Approved") {
     await pool.query("UPDATE pay_run SET status='Approved', approved_by=$1, approved_at=now() WHERE id=$2", [staff.id, id]);
@@ -45,5 +46,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   } else {
     await pool.query("UPDATE pay_run SET status=$1 WHERE id=$2", [next, id]);
   }
-  return NextResponse.redirect(new URL(`/payroll/runs/${id}`, request.url), { status: 303 });
+  return seeOther(`/payroll/runs/${id}`);
 }

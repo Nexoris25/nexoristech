@@ -17,11 +17,11 @@
  * silently recorded a smaller payment than the one entered. Arithmetic now goes through Decimal in
  * `applyPayment`, and an overpayment is refused with the balance named rather than trimmed.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
 import { applyPayment, isPercentageProblem } from "../../../../lib/projects.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,11 +43,11 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getFiscalStaff("INVOICE_CREATE");
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
-  const back = new URL(`/e-invoicing/doc/${id || ""}`, request.url);
+  const back = `/e-invoicing/doc/${id || ""}`;
   const fail = (err: string): Response =>
-    NextResponse.redirect(new URL(`${back.pathname}?err=${err}`, request.url), { status: 303 });
+    seeOther(`${back}?err=${err}`);
   // Only authorized Finance users (admins here) may record payments.
-  if (!staff || !id) return NextResponse.redirect(back, { status: 303 });
+  if (!staff || !id) return seeOther(back);
 
   const pool = db();
   const doc = (
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [id],
     )
   ).rows[0];
-  if (!doc) return NextResponse.redirect(back, { status: 303 });
+  if (!doc) return seeOther(back);
 
   if (doc.cancelled_at) return fail("cancelled");
   if (doc.doc_type !== "Invoice") return fail("notinvoice");
@@ -69,10 +69,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     amount: f.get("amount"),
   });
   if (isPercentageProblem(applied)) {
-    return NextResponse.redirect(
-      new URL(`${back.pathname}?err=amount&msg=${encodeURIComponent(applied.error)}`, request.url),
-      { status: 303 },
-    );
+    return seeOther(`${back}?err=amount&msg=${encodeURIComponent(applied.error)}`);
   }
 
   const method = METHODS.has(String(f.get("method"))) ? String(f.get("method")) : "Bank Transfer";
@@ -120,5 +117,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     )
     .catch(() => undefined);
 
-  return NextResponse.redirect(new URL(`${back.pathname}?paid=1`, request.url), { status: 303 });
+  return seeOther(`${back}?paid=1`);
 }

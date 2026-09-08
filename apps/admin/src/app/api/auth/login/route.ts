@@ -19,6 +19,7 @@ import {
 } from "../../../../lib/session.js";
 import { startSession, clientIp } from "../../../../lib/sessions.js";
 import { securityPolicy } from "../../../../lib/security-policy.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
   const response = isJson
     ? NextResponse.json({ ok: true, landing })
-    : NextResponse.redirect(new URL(landing, request.url), { status: 303 });
+    : seeOther(landing);
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -111,9 +112,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   return response;
 }
 
-function fail(request: NextRequest, isJson: boolean, message: string): Response {
+function fail(_request: NextRequest, isJson: boolean, message: string): Response {
   if (isJson) {
     return NextResponse.json({ error: message }, { status: 401 });
   }
-  return NextResponse.redirect(new URL("/login?error=1", request.url), { status: 303 });
+  return seeOther("/login?error=1");
 }

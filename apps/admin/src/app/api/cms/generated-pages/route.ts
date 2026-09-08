@@ -4,13 +4,13 @@
  * intent, keyword) and SEO fields. Publishing stamps published_at. Per PRD §9.7 a page should only reach
  * 'published' once it clears the quality + data-readiness gates.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { syncToKnowledgeBase } from "../../../../lib/kb-reingest.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
 import { evaluatePseoGate, applyPseoGate } from "../../../../lib/pseo-gate.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,11 +20,11 @@ const VALID = new Set(["draft", "in_review", "scheduled", "published", "archived
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/generated-pages", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/generated-pages");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const title = String(f.get("title") ?? "").trim();
-  if (!title) return NextResponse.redirect(new URL(`${id ? `/cms/generated-pages/${id}` : "/cms/generated-pages/new"}?error=title`, request.url), { status: 303 });
+  if (!title) return seeOther(`${id ? `/cms/generated-pages/${id}` : "/cms/generated-pages/new"}?error=title`);
 
   /*
    * The button decides, and "Publish" means publish.
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [...vals, id]);
     await syncToKnowledgeBase({ kind: "generated_page", slug, title, status, excerpt, metaDescription: metaDesc, body });
     await notifyPublished({ path: `/${slug}`, kind: "generated_page", published: status === "published" && !gated.noindex });
-    return NextResponse.redirect(new URL(`/cms/generated-pages/${id}${gated.heldBack ? "?gate=held" : ""}`, request.url), { status: 303 });
+    return seeOther(`/cms/generated-pages/${id}${gated.heldBack ? "?gate=held" : ""}`);
   }
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO cms_content (kind, title, slug, body, excerpt, service_industry, industry, target_location,
@@ -114,5 +114,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     vals);
   await syncToKnowledgeBase({ kind: "generated_page", slug, title, status, excerpt, metaDescription: metaDesc, body });
     await notifyPublished({ path: `/${slug}`, kind: "generated_page", published: status === "published" && !gated.noindex });
-  return NextResponse.redirect(new URL(`/cms/generated-pages/${rows[0]?.id ?? ""}${gated.heldBack ? "?gate=held" : ""}`, request.url), { status: 303 });
+  return seeOther(`/cms/generated-pages/${rows[0]?.id ?? ""}${gated.heldBack ? "?gate=held" : ""}`);
 }

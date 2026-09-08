@@ -12,10 +12,10 @@
  * A referenced row is not deleted. Removing a category that articles are filed under would either fail
  * on the foreign key or silently orphan them, so the count is checked first and the reason is reported.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCmsStaffFor } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
+import { seeOtherAt, pathBuilder } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,9 +62,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   const f = await request.formData();
   const back = safeBack(String(f.get("back") ?? "/cms"));
   const to = (params: Record<string, string>): Response => {
-    const url = new URL(back, request.url);
+    const url = pathBuilder(back);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-    return NextResponse.redirect(url, { status: 303 });
+    return seeOtherAt(url);
   };
 
   // Removing a record is a delete, so it needs the delete capability, not merely CMS access.

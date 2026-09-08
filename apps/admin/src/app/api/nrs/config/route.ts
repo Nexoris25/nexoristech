@@ -5,11 +5,11 @@
  * Secrets never touch the database: credentials are expected in the environment; we store only a flag
  * that they are set. Admin only; every change is logged.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
 import { credentialsPresent } from "../../../../lib/fiscal/provider.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,8 +18,8 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getFiscalStaff("TAX_FISCAL_CONFIG_MANAGE");
   const f = await request.formData();
   const action = String(f.get("action") ?? "");
-  const back = new URL(action === "registration" ? "/settings/e-invoicing/registration" : "/settings/e-invoicing/integration", request.url);
-  if (!staff) return NextResponse.redirect(back, { status: 303 });
+  const back = action === "registration" ? "/settings/e-invoicing/registration" : "/settings/e-invoicing/integration";
+  if (!staff) return seeOther(back);
   const pool = db();
 
   if (action === "registration") {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [ok, credentialsPresent()]);
     await pool.query("INSERT INTO nrs_log (kind, summary, ok) VALUES ('auth', $1, $2)",
       [ok ? `Readiness check passed (${c.nrs_environment})` : `Readiness check failed: missing ${missing.join(", ")}`, ok]);
-    return NextResponse.redirect(new URL("/settings/e-invoicing/integration?tested=1", request.url), { status: 303 });
+    return seeOther("/settings/e-invoicing/integration?tested=1");
   } else {
     const env = String(f.get("nrs_environment")) === "production" ? "production" : "sandbox";
     const partnerType = ["SI", "APP"].includes(String(f.get("nrs_partner_type"))) ? String(f.get("nrs_partner_type")) : null;
@@ -63,5 +63,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     "INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'update-settings','nrs_config','1',NULL,$2::jsonb)",
     [staff.id, JSON.stringify({ action })]).catch(() => undefined);
 
-  return NextResponse.redirect(new URL(back.pathname + "?saved=1", request.url), { status: 303 });
+  return seeOther(back + "?saved=1");
 }

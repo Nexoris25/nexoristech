@@ -9,12 +9,12 @@
  * With no accredited provider configured it refuses the whole batch up front rather than queueing work
  * that cannot possibly be sent. Documents already queued are skipped, so pressing this twice is safe.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../../lib/fiscal/permissions.js";
 import { fiscalAdapter } from "../../../../../lib/fiscal/provider.js";
 import { enqueueSubmission } from "../../../../../lib/fiscal/queue.js";
+import { seeOther, seeOtherAt, pathBuilder } from "../../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,14 +25,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getFiscalStaff("INVOICE_SUBMIT");
   const f = await request.formData();
   const mode = String(f.get("mode") ?? "rejected") === "ready" ? "ready" : "rejected";
-  const back = new URL(`/e-invoicing/${mode === "ready" ? "ready" : "rejected"}`, request.url);
-  if (!staff) return NextResponse.redirect(back, { status: 303 });
+  const back = pathBuilder(`/e-invoicing/${mode === "ready" ? "ready" : "rejected"}`);
+  if (!staff) return seeOtherAt(back);
 
   const adapter = fiscalAdapter();
   if (!adapter.configured) {
     await db().query("INSERT INTO nrs_log (kind, summary, ok) VALUES ('submit', $1, false)",
       ["Bulk submission blocked: no accredited SI/APP is configured, so nothing was sent to the NRS."]);
-    return NextResponse.redirect(new URL(`${back.pathname}?err=noprovider`, request.url), { status: 303 });
+    return seeOther(`${back}?err=noprovider`);
   }
 
   const pool = db();
@@ -57,5 +57,5 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   back.searchParams.set("queued", String(queued));
   if (skipped > 0) back.searchParams.set("skipped", String(skipped));
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

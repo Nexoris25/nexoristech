@@ -7,10 +7,10 @@
  * It writes only the row belonging to the signed-in person. Role, salary, department and employment
  * status are not writable here: those are decisions made about you, not by you, and belong to HR.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCurrentStaff } from "../../../lib/auth.js";
 import { db } from "../../../lib/db.js";
+import { seeOther, seeOtherAt, pathBuilder } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,15 +23,15 @@ function value(form: FormData, key: string): string | null {
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCurrentStaff();
-  if (!staff) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  if (!staff) return seeOther("/login");
 
   const form = await request.formData();
   const name = value(form, "name");
-  const back = new URL("/complete-profile", request.url);
+  const back = pathBuilder("/complete-profile");
 
   if (!name) {
     back.searchParams.set("error", "name");
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOtherAt(back);
   }
 
   await db().query("UPDATE staff SET name = $2 WHERE id = $1", [staff.id, name]);
@@ -47,5 +47,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   );
 
   back.searchParams.set("saved", "1");
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

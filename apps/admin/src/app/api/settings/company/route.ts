@@ -4,17 +4,17 @@
  * logged. NRS credentials are handled on the e-invoicing screens, never here, and secrets never land
  * in this table.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getCurrentStaff } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCurrentStaff();
-  if (!staff || staff.role !== "admin") return NextResponse.redirect(new URL("/settings/company", request.url), { status: 303 });
+  if (!staff || staff.role !== "admin") return seeOther("/settings/company");
   const f = await request.formData();
 
   const fyMonth = Math.min(12, Math.max(1, Math.round(Number.parseFloat(String(f.get("fiscal_year_start_month") ?? "1")) || 1)));
@@ -47,5 +47,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     [staff.id],
   ).catch(() => undefined);
 
-  return NextResponse.redirect(new URL("/settings/company?saved=1", request.url), { status: 303 });
+  return seeOther("/settings/company?saved=1");
 }

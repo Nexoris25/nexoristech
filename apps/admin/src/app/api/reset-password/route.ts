@@ -8,12 +8,12 @@
  *
  * Native POST, matching the other auth screens, so it works behind the framed preview's Origin: null.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "../../../lib/db.js";
 import { verifyResetToken } from "../../../lib/reset.js";
 import { securityPolicy, passwordProblem } from "../../../lib/security-policy.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const payload = verifyResetToken(token);
   // No token, or an expired one: the page's own invalid state explains it without saying which.
-  if (!payload) return NextResponse.redirect(new URL("/reset-password", request.url), { status: 303 });
+  if (!payload) return seeOther("/reset-password");
 
   // The configured policy, not a hardcoded minimum — the same rule the invitation flow applies.
   // The reason travels with the redirect. It used to be thrown away for a bare `error=weak`, and the
@@ -36,13 +36,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   // refused again with the same sentence: the screen was describing a rule the server did not apply.
   const problem = passwordProblem(password, await securityPolicy());
   if (problem) {
-    return NextResponse.redirect(
-      new URL(`${back}&error=weak&why=${encodeURIComponent(problem)}`, request.url),
-      { status: 303 },
-    );
+    return seeOther(`${back}&error=weak&why=${encodeURIComponent(problem)}`);
   }
   if (password !== confirm) {
-    return NextResponse.redirect(new URL(`${back}&error=mismatch`, request.url), { status: 303 });
+    return seeOther(`${back}&error=mismatch`);
   }
 
   const pool = db();
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         AND reset_expires IS NOT NULL AND reset_expires > now() AND active = true`,
     [payload.sub, payload.email, token],
   );
-  if (!rows[0]) return NextResponse.redirect(new URL("/reset-password", request.url), { status: 303 });
+  if (!rows[0]) return seeOther("/reset-password");
 
   const hash = await bcrypt.hash(password, 10);
   await pool.query(
@@ -82,5 +79,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     )
     .catch(() => undefined);
 
-  return NextResponse.redirect(new URL("/login?reset=1", request.url), { status: 303 });
+  return seeOther("/login?reset=1");
 }

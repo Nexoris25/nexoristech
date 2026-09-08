@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,5 +20,5 @@ export async function POST(request: NextRequest): Promise<Response> {
       [decision, staff.id, id],
     );
   }
-  return NextResponse.redirect(new URL("/people/expenses", request.url), { status: 303 });
+  return seeOther("/people/expenses");
 }

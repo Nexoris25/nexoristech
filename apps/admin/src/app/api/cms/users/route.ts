@@ -3,13 +3,13 @@
  * user adds a staff row (invited or active) and grants the CMS module with the chosen role. Super Admin
  * maps to the admin base role (implicit full access, no grant); every other role is a CMS-only grant.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getCmsStaffFor } from "../../../../lib/auth.js";
 import { createInviteToken, inviteLink, shareOrigin } from "../../../../lib/invite.js";
 import { sendEmail } from "../../../../lib/email.js";
 import { invitationEmail } from "../../../../lib/email-templates.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 /** Email an invitation. Never throws and never blocks the redirect; see the People & Access route. */
 async function emailInvitation(to: string, name: string, invitedBy: string, token: string): Promise<void> {
@@ -29,7 +29,7 @@ const STATUSES = new Set(["active", "invited", "suspended"]);
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaffFor("admin.manage");
-  if (!staff) return NextResponse.redirect(new URL("/cms/admin/users", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/admin/users");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const first = String(f.get("first_name") ?? "").trim();
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest): Promise<Response> {
         `INSERT INTO module_access (staff_id, module, role, granted_by) VALUES ($1,'cms',$2,$3)
          ON CONFLICT (staff_id, module) DO UPDATE SET role = EXCLUDED.role`, [id, cmsRole, staff.id]);
     }
-    return NextResponse.redirect(new URL(`/cms/admin/users/${id}`, request.url), { status: 303 });
+    return seeOther(`/cms/admin/users/${id}`);
   }
 
-  if (!first || !email) return NextResponse.redirect(new URL("/cms/admin/users/new?error=required", request.url), { status: 303 });
+  if (!first || !email) return seeOther("/cms/admin/users/new?error=required");
   const status = f.get("send_invite") != null ? "invited" : "active";
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO staff (name, email, password_hash, role, active, cms_department, account_status)
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest): Promise<Response> {
      ON CONFLICT (email) DO NOTHING RETURNING id`,
     [name, email, baseRole, department, status]);
   const newId = rows[0]?.id;
-  if (!newId) return NextResponse.redirect(new URL("/cms/admin/users/new?error=email_exists", request.url), { status: 303 });
+  if (!newId) return seeOther("/cms/admin/users/new?error=email_exists");
   if (cmsRole !== "Super Admin") {
     await pool.query("INSERT INTO module_access (staff_id, module, role, granted_by) VALUES ($1,'cms',$2,$3)", [newId, cmsRole, staff.id]);
   }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const token = createInviteToken(newId, email);
     await pool.query("UPDATE staff SET invite_token=$1, invite_expires=now()+interval '7 days' WHERE id=$2", [token, newId]);
     await emailInvitation(email, name, staff.name, token);
-    return NextResponse.redirect(new URL(`/cms/admin/users/${newId}?invited=1`, request.url), { status: 303 });
+    return seeOther(`/cms/admin/users/${newId}?invited=1`);
   }
-  return NextResponse.redirect(new URL(`/cms/admin/users/${newId}`, request.url), { status: 303 });
+  return seeOther(`/cms/admin/users/${newId}`);
 }

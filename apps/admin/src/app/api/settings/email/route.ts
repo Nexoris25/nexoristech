@@ -10,18 +10,18 @@
  * page, or write one to the audit log or the console. The audit entry records that email settings
  * changed and whether the key was rotated, which is the part an auditor needs.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { requireAdmin } from "../../../../lib/auth.js";
 import { hint, seal, sealingAvailable } from "../../../../lib/secret-box.js";
 import { open } from "../../../../lib/secret-box.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const back = (request: NextRequest, query = ""): Response =>
-  NextResponse.redirect(new URL(`/settings/email${query}`, request.url), { status: 303 });
+const back = (_request: NextRequest, query = ""): Response =>
+  seeOther(`/settings/email${query}`);
 
 const fail = (request: NextRequest, message: string): Response =>
   back(request, `?error=${encodeURIComponent(message)}`);

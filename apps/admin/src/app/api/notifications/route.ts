@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCurrentStaff } from "../../../lib/auth.js";
 import { markRead, markUnread } from "../../../lib/notification-read.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,11 +32,11 @@ function safeTarget(raw: string | null): string {
 export async function GET(request: NextRequest): Promise<Response> {
   const staff = await getCurrentStaff();
   // Signed out mid-click: send them to log in rather than recording a read for nobody.
-  if (!staff) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  if (!staff) return seeOther("/login");
   const params = request.nextUrl.searchParams;
   const id = params.get("id");
   if (id) await markRead(staff.id, [id]);
-  return NextResponse.redirect(new URL(safeTarget(params.get("to")), request.url), { status: 303 });
+  return seeOther(safeTarget(params.get("to")));
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -49,5 +50,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (intent === "unread") await markUnread(staff.id, ids);
   else await markRead(staff.id, ids);
 
-  return NextResponse.redirect(new URL("/action-center", request.url), { status: 303 });
+  return seeOther("/action-center");
 }

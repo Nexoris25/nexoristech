@@ -8,10 +8,10 @@
  * The stage is validated against the same set the screen renders, so an unknown value cannot be written
  * and then shown as an unstyled blank.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCmsStaffFor } from "../../../../lib/auth.js";
 import { cmsDb } from "../../../../lib/cms-db.js";
+import { seeOtherAt, pathBuilder } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,20 +23,20 @@ const safeBack = (raw: string): string => (raw.startsWith("/") && !raw.startsWit
 
 export async function POST(request: NextRequest): Promise<Response> {
   const f = await request.formData();
-  const back = new URL(safeBack(String(f.get("back") ?? "/cms/applications")), request.url);
+  const back = pathBuilder(safeBack(String(f.get("back") ?? "/cms/applications")));
 
   // Deciding on a candidate is a review decision, which is what that capability is for.
   const staff = await getCmsStaffFor("review.decide");
   if (!staff) {
     back.searchParams.set("denied", "1");
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOtherAt(back);
   }
 
   const id = String(f.get("id") ?? "").trim();
   const stage = String(f.get("stage") ?? "").trim();
   if (!id || !(APPLICATION_STAGES as readonly string[]).includes(stage)) {
     back.searchParams.set("error", "1");
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOtherAt(back);
   }
 
   const { rowCount } = await cmsDb().query(
@@ -51,5 +51,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     ).catch(() => undefined);
   }
   back.searchParams.set("moved", stage);
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

@@ -3,10 +3,10 @@
  * a baseline score and band from what was provided (completeness plus source), matching the form's
  * "auto calculated" score field; Oge re-scores richer leads later. Redirects to the new lead.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,14 +18,14 @@ function str(v: FormDataEntryValue | null): string {
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("crm.write");
   if (!staff || staff.role === "viewer") {
-    return NextResponse.redirect(new URL("/crm", request.url), { status: 303 });
+    return seeOther("/crm");
   }
 
   const form = await request.formData();
   const name = str(form.get("name"));
   const email = str(form.get("email"));
   if (!name || !email) {
-    return NextResponse.redirect(new URL("/crm/create?error=1", request.url), { status: 303 });
+    return seeOther("/crm/create?error=1");
   }
   const dial = str(form.get("dialCode"));
   const phoneRaw = str(form.get("phone"));
@@ -63,5 +63,5 @@ export async function POST(request: NextRequest): Promise<Response> {
       "Baseline score from the details provided; Oge refines it as the lead engages.", status, owner],
   );
 
-  return NextResponse.redirect(new URL(`/crm/${rows[0]!.id}`, request.url), { status: 303 });
+  return seeOther(`/crm/${rows[0]!.id}`);
 }

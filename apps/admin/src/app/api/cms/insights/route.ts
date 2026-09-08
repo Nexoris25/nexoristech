@@ -3,12 +3,12 @@
  * fields (meta title/description, focus keyword) and a derived read time, so the public page and the
  * search/answer engines get real, crawlable markup. Publishing stamps published_at the first time.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { syncToKnowledgeBase } from "../../../../lib/kb-reingest.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,11 +43,11 @@ const VALID = new Set(["draft", "in_review", "scheduled", "published", "archived
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/insights", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/insights");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const title = String(f.get("title") ?? "").trim();
-  if (!title) return NextResponse.redirect(new URL(`${id ? `/cms/insights/${id}` : "/cms/insights/new"}?error=title`, request.url), { status: 303 });
+  if (!title) return seeOther(`${id ? `/cms/insights/${id}` : "/cms/insights/new"}?error=title`);
 
   const slug = slugify(String(f.get("slug") ?? "") || title);
   const body = String(f.get("body") ?? "");
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     await syncToKnowledgeBase({ kind: "insight", slug, title, status, excerpt, metaDescription: metaDesc, body });
     await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex,
       extraPaths: await profilePaths(pool, [authorId, factCheckerId]) });
-    return NextResponse.redirect(new URL(`/cms/insights/${id}`, request.url), { status: 303 });
+    return seeOther(`/cms/insights/${id}`);
   }
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO cms_content (kind, title, slug, body, excerpt, category_id, author_id, fact_checker_id, status,
@@ -123,5 +123,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   await syncToKnowledgeBase({ kind: "insight", slug, title, status, excerpt, metaDescription: metaDesc, body });
   await notifyPublished({ path: `/insights/${slug}`, kind: "insight", published: status === "published" && !noindex,
     extraPaths: await profilePaths(pool, [authorId, factCheckerId]) });
-  return NextResponse.redirect(new URL(`/cms/insights/${rows[0]?.id ?? ""}`, request.url), { status: 303 });
+  return seeOther(`/cms/insights/${rows[0]?.id ?? ""}`);
 }

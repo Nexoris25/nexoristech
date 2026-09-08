@@ -2,10 +2,10 @@
  * Create or update a programmatic SEO template (nexoris_cms). CMS access only. Sections and variables are
  * JSON arrays. On success it returns to the templates list.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,11 +14,11 @@ const jsonOr = (v: FormDataEntryValue | null, fallback: string): string => { try
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/templates", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/templates");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const name = String(f.get("name") ?? "").trim();
-  if (!name) return NextResponse.redirect(new URL(`${id ? `/cms/templates/${id}` : "/cms/templates/new"}?error=name`, request.url), { status: 303 });
+  if (!name) return seeOther(`${id ? `/cms/templates/${id}` : "/cms/templates/new"}?error=name`);
 
   const type = String(f.get("type") ?? "Landing Page").trim() || "Landing Page";
   const description = String(f.get("description") ?? "").trim() || null;
@@ -37,5 +37,5 @@ export async function POST(request: NextRequest): Promise<Response> {
       "INSERT INTO cms_template (name, type, description, sections, variables, active, in_proposals) VALUES ($1,$2,$3,$4::jsonb,$5::jsonb,$6,$7)",
       [name, type, description, sections, variables, active, inProposals]);
   }
-  return NextResponse.redirect(new URL("/cms/templates", request.url), { status: 303 });
+  return seeOther("/cms/templates");
 }

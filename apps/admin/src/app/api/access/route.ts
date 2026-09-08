@@ -13,7 +13,6 @@
  *   reissue - mint a fresh link for a pending invite, for when the old one expired or went astray.
  * Admin only. Every change writes to the shared audit log.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../lib/db.js";
 import { requireAdmin } from "../../../lib/auth.js";
@@ -22,6 +21,7 @@ import { createInviteToken, inviteLink, shareOrigin } from "../../../lib/invite.
 import { sendEmail } from "../../../lib/email.js";
 import { invitationEmail, passwordResetEmail } from "../../../lib/email-templates.js";
 import { createResetToken, resetLink, RESET_MAX_AGE_MINUTES } from "../../../lib/reset.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 /**
  * Email an invitation. Never throws and never blocks the redirect: an account that was just created
@@ -62,8 +62,8 @@ async function emailInvitation(to: string, name: string, invitedBy: string, toke
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const back = (request: NextRequest, query = ""): Response =>
-  NextResponse.redirect(new URL(`/settings/access${query}`, request.url), { status: 303 });
+const back = (_request: NextRequest, query = ""): Response =>
+  seeOther(`/settings/access${query}`);
 
 export async function POST(request: NextRequest): Promise<Response> {
   const admin = await requireAdmin();

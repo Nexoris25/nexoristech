@@ -4,10 +4,10 @@
  * modules is a separate, deliberate grant in the shell (3.2), not implied by onboarding. There is no
  * BVN field, by design. HR Admin only.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,13 +27,13 @@ function d(v: FormDataEntryValue | null): string | null {
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("hr.write");
   if (!staff) {
-    return NextResponse.redirect(new URL("/people", request.url), { status: 303 });
+    return seeOther("/people");
   }
 
   const f = await request.formData();
   const fullName = s(f.get("full_name"));
   if (!fullName) {
-    return NextResponse.redirect(new URL("/people/onboard?error=1", request.url), { status: 303 });
+    return seeOther("/people/onboard?error=1");
   }
 
   const pool = db();
@@ -95,5 +95,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     [staff.id, rows[0]!.id, JSON.stringify({ fullName, staffNumber })],
   );
 
-  return NextResponse.redirect(new URL(`/people/${rows[0]!.id}`, request.url), { status: 303 });
+  return seeOther(`/people/${rows[0]!.id}`);
 }

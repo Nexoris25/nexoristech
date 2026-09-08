@@ -5,27 +5,27 @@
  * to approve. Existing pending proposals for the same keyword are refreshed rather than duplicated, and
  * anything already approved or rejected is left alone. Proposes only: nothing is published here.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../../lib/cms-db.js";
 import { getCmsStaffFor } from "../../../../../lib/auth.js";
 import { generateProposals } from "../../../../../lib/pseo-generator.js";
 import { pseoSettings, DEMAND_WINDOW_DAYS } from "../../../../../lib/pseo-settings.js";
+import { seeOtherAt, pathBuilder } from "../../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaffFor("seo.manage");
-  const back = new URL("/cms/proposals", request.url);
-  if (!staff) return NextResponse.redirect(back, { status: 303 });
+  const back = pathBuilder("/cms/proposals");
+  if (!staff) return seeOtherAt(back);
 
   // The pause switch. Generation writes pages onto a live site, so it has to be stoppable, and a paused
   // run says so rather than appearing to work and producing nothing.
   const settings = await pseoSettings();
   if (!settings.enabled) {
     back.searchParams.set("paused", "1");
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOtherAt(back);
   }
 
   const f = await request.formData().catch(() => null);
@@ -62,5 +62,5 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   back.searchParams.set("generated", String(written));
   back.searchParams.set("demand", String(withDemand));
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

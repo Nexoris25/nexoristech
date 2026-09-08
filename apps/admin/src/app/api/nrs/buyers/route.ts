@@ -3,18 +3,18 @@
  * is made (§17), so "verify" records the check against the directory rather than performing it - the
  * screen is ready for the real lookup to be wired in later. Admin only.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getFiscalStaff("INVOICE_CREATE");
-  const back = new URL("/settings/e-invoicing/buyers", request.url);
-  if (!staff) return NextResponse.redirect(back, { status: 303 });
+  const back = "/settings/e-invoicing/buyers";
+  if (!staff) return seeOther(back);
   const f = await request.formData();
   const action = String(f.get("action") ?? "add");
   const pool = db();
@@ -33,5 +33,5 @@ export async function POST(request: NextRequest): Promise<Response> {
         [name, String(f.get("tin") ?? "").trim() || null, staff.id]);
     }
   }
-  return NextResponse.redirect(new URL("/settings/e-invoicing/buyers?saved=1", request.url), { status: 303 });
+  return seeOther("/settings/e-invoicing/buyers?saved=1");
 }

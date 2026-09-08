@@ -5,27 +5,27 @@
  * website from the published content, so regenerating it means asking that app to rebuild the route —
  * the same call a publish makes. This is that call, on demand, for when someone wants it now.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCmsStaffFor } from "../../../../lib/auth.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
+import { seeOtherAt, pathBuilder } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest): Promise<Response> {
-  const back = new URL("/cms/seo/sitemap", request.url);
+export async function POST(_request: NextRequest): Promise<Response> {
+  const back = pathBuilder("/cms/seo/sitemap");
 
   // Rebuilding what search engines read is an SEO operation, not general CMS access.
   const staff = await getCmsStaffFor("seo.manage");
   if (!staff) {
     back.searchParams.set("denied", "1");
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOtherAt(back);
   }
 
   // The insight hub is passed as the path because notifyPublished always rebuilds /sitemap.xml and
   // /llms.txt alongside whatever it is given; those two are the point of this call.
   const result = await notifyPublished({ path: "/insights", kind: "insight", published: true });
   back.searchParams.set("regenerated", result.revalidated ? "1" : "0");
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

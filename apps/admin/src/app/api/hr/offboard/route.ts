@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
   if (!staff || !id) {
-    return NextResponse.redirect(new URL("/people", request.url), { status: 303 });
+    return seeOther("/people");
   }
   const pool = db();
   await pool.query(
@@ -36,5 +37,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     `INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'offboard','employee',$2,NULL,$3::jsonb)`,
     [staff.id, id, JSON.stringify({ exit: String(f.get("exit_reason") ?? "") })],
   );
-  return NextResponse.redirect(new URL(`/people/${id}`, request.url), { status: 303 });
+  return seeOther(`/people/${id}`);
 }

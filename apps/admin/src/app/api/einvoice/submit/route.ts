@@ -16,12 +16,12 @@
  * retries it with backoff. The refusal when no provider is configured still happens here, up front, so
  * nothing joins the queue that cannot possibly be sent.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
 import { fiscalAdapter } from "../../../../lib/fiscal/provider.js";
 import { enqueueSubmission } from "../../../../lib/fiscal/queue.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,37 +33,37 @@ export async function POST(request: NextRequest): Promise<Response> {
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
   const action = String(f.get("action") ?? "submit");
-  const back = new URL(`/e-invoicing/doc/${id || ""}`, request.url);
-  if (!staff || !id) return NextResponse.redirect(back, { status: 303 });
+  const back = `/e-invoicing/doc/${id || ""}`;
+  if (!staff || !id) return seeOther(back);
 
   const pool = db();
   const doc = (await pool.query<DocRow>(
     "SELECT id, doc_type, nrs_status, lifecycle_status, fiscal_required, cancelled_at FROM einvoice WHERE id=$1", [id])).rows[0];
-  if (!doc) return NextResponse.redirect(back, { status: 303 });
+  if (!doc) return seeOther(back);
 
   // Cancel is a commercial (lifecycle) action - it closes the document and never touches NRS status.
   if (action === "cancel") {
     await pool.query("UPDATE einvoice SET lifecycle_status='Closed', updated_at=now() WHERE id=$1", [id]);
     await pool.query("INSERT INTO einvoice_event (einvoice_id, kind, summary, ok) VALUES ($1,'cancel','Document closed',true)", [id]);
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOther(back);
   }
 
   // Submitting is opt-in. An invoice raised as an ordinary PDF invoice is not a document anybody
   // asked to file, and sending one to the tax authority because a button was available would be a
   // filing nobody decided to make. Converting it is a deliberate, separate action.
   if (!doc.fiscal_required) {
-    return NextResponse.redirect(new URL(`${back.pathname}?err=notfiscal`, request.url), { status: 303 });
+    return seeOther(`${back}?err=notfiscal`);
   }
   if (doc.cancelled_at) {
-    return NextResponse.redirect(new URL(`${back.pathname}?err=cancelled`, request.url), { status: 303 });
+    return seeOther(`${back}?err=cancelled`);
   }
 
   // Submit or retry: only from a non-final NRS state, and only NRS status is ever changed here.
-  if (!["NotSubmitted", "Rejected"].includes(doc.nrs_status)) return NextResponse.redirect(back, { status: 303 });
+  if (!["NotSubmitted", "Rejected"].includes(doc.nrs_status)) return seeOther(back);
   // A commercial invoice must be finalized (out of Draft, not Closed) before it can be submitted. Only
   // invoices carry the Finance lifecycle; credit/debit notes are raised finalized in the NRS module.
   if (doc.doc_type === "Invoice" && (doc.lifecycle_status === "Draft" || doc.lifecycle_status === "Closed")) {
-    return NextResponse.redirect(new URL(`${back.pathname}?err=notfinal`, request.url), { status: 303 });
+    return seeOther(`${back}?err=notfinal`);
   }
 
   const adapter = fiscalAdapter();
@@ -74,11 +74,11 @@ export async function POST(request: NextRequest): Promise<Response> {
     await pool.query(
       "INSERT INTO einvoice_event (einvoice_id, kind, summary, ok) VALUES ($1,'blocked',$2,false)",
       [id, "Submission blocked: no accredited SI/APP is configured, so nothing was sent to the NRS."]);
-    return NextResponse.redirect(new URL(`${back.pathname}?err=noprovider`, request.url), { status: 303 });
+    return seeOther(`${back}?err=noprovider`);
   }
 
   const queued = await enqueueSubmission(id, staff.id);
-  if (!queued.queued) return NextResponse.redirect(new URL(`${back.pathname}?err=queued`, request.url), { status: 303 });
+  if (!queued.queued) return seeOther(`${back}?err=queued`);
 
   await pool.query("INSERT INTO einvoice_event (einvoice_id, kind, summary, ok) VALUES ($1,$2,$3,true)",
     [id, action === "retry" ? "retry" : "submit",
@@ -87,5 +87,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     "INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'einvoice-submit','einvoice',$2,$3::jsonb,$4::jsonb)",
     [staff.id, id, JSON.stringify({ nrs_status: doc.nrs_status }), JSON.stringify({ queued: true })]).catch(() => undefined);
 
-  return NextResponse.redirect(new URL(`${back.pathname}?queued=1`, request.url), { status: 303 });
+  return seeOther(`${back}?queued=1`);
 }

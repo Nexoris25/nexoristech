@@ -2,10 +2,10 @@
  * Create or update a careers department (nexoris_cms). CMS access only. Slug is normalised. On success it
  * returns to the departments list.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,11 +14,11 @@ const slugify = (s: string): string => s.toLowerCase().trim().replace(/[^a-z0-9]
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/departments", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/departments");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const name = String(f.get("name") ?? "").trim();
-  if (!name) return NextResponse.redirect(new URL(`${id ? `/cms/departments/${id}` : "/cms/departments/new"}?error=name`, request.url), { status: 303 });
+  if (!name) return seeOther(`${id ? `/cms/departments/${id}` : "/cms/departments/new"}?error=name`);
 
   const slug = slugify(String(f.get("slug") ?? "") || name);
   const description = String(f.get("description") ?? "").trim() || null;
@@ -33,5 +33,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     await pool.query("INSERT INTO cms_department (name, slug, description, display_order, active) VALUES ($1,$2,$3,$4,$5)",
       [name, slug, description, order, active]);
   }
-  return NextResponse.redirect(new URL("/cms/departments", request.url), { status: 303 });
+  return seeOther("/cms/departments");
 }

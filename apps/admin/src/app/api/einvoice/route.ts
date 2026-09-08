@@ -20,7 +20,6 @@
  * percentage is checked against what the project has already been billed. The browser shows the
  * same figure so the person raising it can see it, but the browser's copy is not what is stored.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../lib/db.js";
 import { getFiscalStaff } from "../../../lib/fiscal/permissions.js";
@@ -32,6 +31,7 @@ import type { DocType, VatExemptReason } from "../../../lib/einvoice.js";
 import { isPercentageProblem, percentageBilling } from "../../../lib/projects.js";
 import { nextSeriesNumber, percentAlreadyBilled } from "../../../lib/projects-server.js";
 import { businessDayDeadline } from "../../../lib/business-days.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,13 +56,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   const docType = (TYPES.includes(String(f.get("doc_type")) as DocType) ? String(f.get("doc_type")) : "Invoice") as DocType;
   // Commercial invoices are raised in Finance; credit/debit notes are raised in the NRS module.
   const listPath = docType === "Invoice" ? "/finance/invoices" : `/e-invoicing/${DOC_META[docType].path}`;
-  if (!staff) return NextResponse.redirect(new URL(listPath, request.url), { status: 303 });
+  if (!staff) return seeOther(listPath);
 
   const bail = (error: string, msg?: string): Response =>
-    NextResponse.redirect(
-      new URL(`${listPath}/new?error=${error}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`, request.url),
-      { status: 303 },
-    );
+    seeOther(`${listPath}/new?error=${error}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`);
 
   const pool = db();
   const billingType = docType === "Invoice" && BILLING.has(String(f.get("billing_type"))) ? String(f.get("billing_type")) : "OneOff";
@@ -277,5 +274,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     "INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'einvoice-created','einvoice',$2,NULL,$3::jsonb)",
     [staff.id, docId, JSON.stringify({ docType, total: t.total, series, fiscalRequired, chargeVat, vatExemptReason, projectId })]).catch(() => undefined);
 
-  return NextResponse.redirect(new URL(`/e-invoicing/doc/${docId}`, request.url), { status: 303 });
+  return seeOther(`/e-invoicing/doc/${docId}`);
 }

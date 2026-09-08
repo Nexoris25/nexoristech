@@ -9,7 +9,6 @@
  * The client is created here too when a new name is typed, rather than behind its own screen, so
  * raising the first project for a customer is one form and not two.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { PoolClient } from "pg";
 import { db } from "../../../lib/db.js";
@@ -17,6 +16,7 @@ import { requireCapability } from "../../../lib/auth.js";
 import { decimalOrNull, PROJECT_STATUSES, type ProjectStatus } from "../../../lib/projects.js";
 import { nextProjectCode } from "../../../lib/projects-server.js";
 import { isUuid } from "../../../lib/route-params.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,10 +76,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const editing = id.length > 0 && isUuid(id);
   const backTo = editing ? `/projects/${id}` : "/projects/new";
   const bail = (error: string, msg?: string): Response =>
-    NextResponse.redirect(
-      new URL(`${backTo}?error=${error}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`, request.url),
-      { status: 303 },
-    );
+    seeOther(`${backTo}?error=${error}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`);
 
   const name = String(f.get("name") ?? "").trim();
   if (name.length === 0) return bail("name", "Give the project a name.");
@@ -169,5 +166,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     )
     .catch(() => undefined);
 
-  return NextResponse.redirect(new URL(`/projects/${projectId}`, request.url), { status: 303 });
+  return seeOther(`/projects/${projectId}`);
 }

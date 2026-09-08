@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("payroll.settings");
   if (!staff) return NextResponse.json({ ok: false }, { status: 403 });
   const f = await request.formData();
-  if (!staff) return NextResponse.redirect(new URL("/payroll/settings", request.url), { status: 303 });
+  if (!staff) return seeOther("/payroll/settings");
   const on = (k: string): boolean => f.get(k) === "on";
   const num = (k: string, d: number): number => { const n = Number.parseFloat(String(f.get(k) ?? "")); return Number.isFinite(n) && n >= 0 ? n : d; };
   await db().query(
@@ -26,5 +27,5 @@ export async function POST(request: NextRequest): Promise<Response> {
      Math.round(num("pay_day", 25))],
   );
   await db().query(`INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'payroll-settings','payroll_settings','1',NULL,'{}'::jsonb)`, [staff.id]);
-  return NextResponse.redirect(new URL("/payroll/settings?saved=1", request.url), { status: 303 });
+  return seeOther("/payroll/settings?saved=1");
 }

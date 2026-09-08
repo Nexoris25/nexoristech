@@ -3,18 +3,18 @@
  * (8.1, 8.2), applies the Tax Engine per regime, nets off due salary-advance repayments, and writes
  * a Draft run with one line per worker. Never edits HR data. Payroll Admin only.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
 import { computeLine, totalsOf, type PayrollSettings, type WorkerInput } from "../../../../lib/payroll.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("payroll.prepare");
-  if (!staff) return NextResponse.redirect(new URL("/payroll", request.url), { status: 303 });
+  if (!staff) return seeOther("/payroll");
 
   const f = await request.formData();
   const runType = String(f.get("run_type") ?? "Regular");
@@ -53,5 +53,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   await pool.query(`INSERT INTO audit_log (actor_id, action, entity, entity_id, before, after) VALUES ($1,'payroll-generate','pay_run',$2,NULL,$3::jsonb)`,
     [staff.id, run.id, JSON.stringify({ period, runType, count: lines.length })]);
 
-  return NextResponse.redirect(new URL(`/payroll/runs/${run.id}`, request.url), { status: 303 });
+  return seeOther(`/payroll/runs/${run.id}`);
 }

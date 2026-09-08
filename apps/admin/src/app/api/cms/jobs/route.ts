@@ -3,12 +3,12 @@
  * status (Open = published, Closed = archived). Stores the role description as semantic HTML plus the SEO
  * fields and careers metadata. Publishing stamps published_at (or the given publish date).
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { syncToKnowledgeBase } from "../../../../lib/kb-reingest.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,11 +19,11 @@ const int = (v: FormDataEntryValue | null): number | null => { const n = Number(
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/jobs", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/jobs");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const title = String(f.get("title") ?? "").trim();
-  if (!title) return NextResponse.redirect(new URL(`${id ? `/cms/jobs/${id}` : "/cms/jobs/new"}?error=title`, request.url), { status: 303 });
+  if (!title) return seeOther(`${id ? `/cms/jobs/${id}` : "/cms/jobs/new"}?error=title`);
 
   const statusRaw = String(f.get("status") ?? "draft").trim();
   const status = VALID.has(statusRaw) ? statusRaw : "draft";
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [...vals, id]);
     await syncToKnowledgeBase({ kind: "job", slug: String(vals[1]), title, status, excerpt: vals[3] as string | null, metaDescription: vals[16] as string | null, body: vals[2] as string });
     await notifyPublished({ path: `/careers/${String(vals[1])}`, kind: "job", published: status === "published" });
-    return NextResponse.redirect(new URL(`/cms/jobs/${id}`, request.url), { status: 303 });
+    return seeOther(`/cms/jobs/${id}`);
   }
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO cms_content (kind, title, slug, body, excerpt, department, employment_type, work_mode, job_location,
@@ -71,5 +71,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     vals);
   await syncToKnowledgeBase({ kind: "job", slug: String(vals[1]), title, status, excerpt: vals[3] as string | null, metaDescription: vals[16] as string | null, body: vals[2] as string });
     await notifyPublished({ path: `/careers/${String(vals[1])}`, kind: "job", published: status === "published" });
-  return NextResponse.redirect(new URL(`/cms/jobs/${rows[0]?.id ?? ""}`, request.url), { status: 303 });
+  return seeOther(`/cms/jobs/${rows[0]?.id ?? ""}`);
 }

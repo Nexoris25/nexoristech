@@ -2,17 +2,17 @@
  * Finance settings (PRD 6.10 Settings): financial year start, currency, VAT and WHT rates, and adding
  * a category or a payment method / bank account (6.2, 6.7). Finance Admin only; each change is logged.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("finance.settings");
-  if (!staff) return NextResponse.redirect(new URL("/finance/settings", request.url), { status: 303 });
+  if (!staff) return seeOther("/finance/settings");
   const f = await request.formData();
   const action = String(f.get("action") ?? "general");
   const pool = db();
@@ -42,5 +42,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     [staff.id],
   ).catch(() => undefined);
 
-  return NextResponse.redirect(new URL("/finance/settings?saved=1", request.url), { status: 303 });
+  return seeOther("/finance/settings?saved=1");
 }

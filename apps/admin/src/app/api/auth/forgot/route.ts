@@ -13,7 +13,6 @@
  *     form address is only ever used to look the account up. Sending to what the submitter typed is
  *     how an attacker has a reset link delivered to themselves.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { createResetToken, resetLink, RESET_MAX_AGE_MINUTES } from "../../../../lib/reset.js";
@@ -21,6 +20,7 @@ import { shareOrigin } from "../../../../lib/invite.js";
 import { sendEmail } from "../../../../lib/email.js";
 import { passwordResetEmail } from "../../../../lib/email-templates.js";
 import { consumeRecoveryCode } from "../../../../lib/recovery-codes.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,12 +50,12 @@ export async function POST(request: NextRequest): Promise<Response> {
             WHERE id = $3`,
           [token, String(RESET_MAX_AGE_MINUTES), owner.staffId],
         );
-        return NextResponse.redirect(new URL(`/reset-password?token=${encodeURIComponent(token)}`, request.url), { status: 303 });
+        return seeOther(`/reset-password?token=${encodeURIComponent(token)}`);
       }
       await db()
         .query("INSERT INTO login_attempt (email, ip) VALUES ($1, $2::inet)", [submitted, null])
         .catch(() => undefined);
-      return NextResponse.redirect(new URL("/forgot-password?badcode=1", request.url), { status: 303 });
+      return seeOther("/forgot-password?badcode=1");
     }
 
     if (submitted.includes("@")) {
@@ -96,5 +96,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.error("[auth] forgot-password failed:", error instanceof Error ? error.message : error);
   }
 
-  return NextResponse.redirect(new URL("/forgot-password?sent=1", request.url), { status: 303 });
+  return seeOther("/forgot-password?sent=1");
 }

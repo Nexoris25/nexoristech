@@ -8,18 +8,18 @@
  *
  * Requires INVOICE_SUBMIT: draining the queue transmits documents to the tax authority.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
 import { drainQueue } from "../../../../lib/fiscal/queue.js";
+import { seeOtherAt, pathBuilder } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest): Promise<Response> {
+export async function POST(_request: NextRequest): Promise<Response> {
   const staff = await getFiscalStaff("INVOICE_SUBMIT");
-  const back = new URL("/settings/e-invoicing/retry-queue", request.url);
-  if (!staff) return NextResponse.redirect(back, { status: 303 });
+  const back = pathBuilder("/settings/e-invoicing/retry-queue");
+  if (!staff) return seeOtherAt(back);
 
   const r = await drainQueue();
   back.searchParams.set("ran", "1");
@@ -28,5 +28,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   back.searchParams.set("rejected", String(r.rejected));
   back.searchParams.set("deferred", String(r.deferred));
   back.searchParams.set("failed", String(r.failed));
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

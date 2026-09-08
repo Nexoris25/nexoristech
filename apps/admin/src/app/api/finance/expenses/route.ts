@@ -4,23 +4,23 @@
  * input-VAT report but is part of what we pay. Payroll posts its own expense rows automatically on
  * disbursement (8.9); those carry source = 'Payroll' and are not entered here.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("finance.payment.record");
-  if (!staff) return NextResponse.redirect(new URL("/finance/payables", request.url), { status: 303 });
+  if (!staff) return seeOther("/finance/payables");
   const f = await request.formData();
 
   const description = String(f.get("description") ?? "").trim();
   const amount = Number.parseFloat(String(f.get("amount") ?? ""));
   if (!description || !Number.isFinite(amount) || amount < 0) {
-    return NextResponse.redirect(new URL("/finance/payables?error=1", request.url), { status: 303 });
+    return seeOther("/finance/payables?error=1");
   }
   const vat = Number.parseFloat(String(f.get("vat") ?? "0")) || 0;
   const status = String(f.get("status") ?? "Paid") === "Unpaid" ? "Unpaid" : "Paid";
@@ -44,5 +44,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     [staff.id, row.id, JSON.stringify({ description, amount })],
   ).catch(() => undefined);
 
-  return NextResponse.redirect(new URL("/finance/payables", request.url), { status: 303 });
+  return seeOther("/finance/payables");
 }

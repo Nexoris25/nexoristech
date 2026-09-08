@@ -16,11 +16,11 @@
  *  - An invoice that has taken money. Cancelling it would leave a payment attached to a document
  *    that no longer claims anything. That needs a refund or a credit note, again not a flag.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getFiscalStaff } from "../../../../lib/fiscal/permissions.js";
 import { isPositive, subtractMoney } from "../../../../lib/projects.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,16 +41,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   const f = await request.formData();
   const id = String(f.get("id") ?? "");
   const action = String(f.get("action") ?? "");
-  const back = new URL(`/e-invoicing/doc/${id || ""}`, request.url);
+  const back = `/e-invoicing/doc/${id || ""}`;
   const fail = (err: string, msg?: string): Response =>
-    NextResponse.redirect(
-      new URL(
-        `${back.pathname}?err=${err}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`,
-        request.url,
-      ),
-      { status: 303 },
-    );
-  if (!staff || !id) return NextResponse.redirect(back, { status: 303 });
+    seeOther(`${back}?err=${err}${msg ? `&msg=${encodeURIComponent(msg)}` : ""}`);
+  if (!staff || !id) return seeOther(back);
 
   const pool = db();
   const doc = (
@@ -59,7 +53,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       [id],
     )
   ).rows[0];
-  if (!doc) return NextResponse.redirect(back, { status: 303 });
+  if (!doc) return seeOther(back);
   if (doc.doc_type !== "Invoice") return fail("notinvoice");
 
   if (action === "cancel") {
@@ -94,9 +88,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         ],
       )
       .catch(() => undefined);
-    return NextResponse.redirect(new URL(`${back.pathname}?cancelled=1`, request.url), {
-      status: 303,
-    });
+    return seeOther(`${back}?cancelled=1`);
   }
 
   if (action === "paid") {
@@ -149,7 +141,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         ],
       )
       .catch(() => undefined);
-    return NextResponse.redirect(new URL(`${back.pathname}?paid=1`, request.url), { status: 303 });
+    return seeOther(`${back}?paid=1`);
   }
 
   // Mark an invoice as one to be filed with the NRS.
@@ -180,10 +172,8 @@ export async function POST(request: NextRequest): Promise<Response> {
         [staff.id, id, JSON.stringify({ fiscal_required: false }), JSON.stringify({ fiscal_required: true })],
       )
       .catch(() => undefined);
-    return NextResponse.redirect(new URL(`${back.pathname}?fiscalised=1`, request.url), {
-      status: 303,
-    });
+    return seeOther(`${back}?fiscalised=1`);
   }
 
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOther(back);
 }

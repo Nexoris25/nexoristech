@@ -4,13 +4,13 @@
  * preview's Origin: null). On success it sends the user to sign in; the modules they can see are decided
  * by their role and their module_access grants, so a CMS-only invitee sees only the CMS.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "../../../lib/db.js";
 import { verifyInviteToken } from "../../../lib/invite.js";
 import { securityPolicy, passwordProblem } from "../../../lib/security-policy.js";
 import { issueRecoveryCodes } from "../../../lib/recovery-codes.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const back = `/accept-invite?token=${encodeURIComponent(token)}`;
 
   const payload = verifyInviteToken(token);
-  if (!payload) return NextResponse.redirect(new URL("/accept-invite", request.url), { status: 303 });
+  if (!payload) return seeOther("/accept-invite");
   // The configured policy, not a hardcoded eight characters. Global Settings said twelve with a symbol
   // and this accepted "password" regardless.
   // The reason travels with the redirect. It used to be thrown away for a bare `error=weak`, and the
@@ -32,18 +32,15 @@ export async function POST(request: NextRequest): Promise<Response> {
   // refused again with the same sentence: the screen was describing a rule the server did not apply.
   const problem = passwordProblem(password, await securityPolicy());
   if (problem) {
-    return NextResponse.redirect(
-      new URL(`${back}&error=weak&why=${encodeURIComponent(problem)}`, request.url),
-      { status: 303 },
-    );
+    return seeOther(`${back}&error=weak&why=${encodeURIComponent(problem)}`);
   }
-  if (password !== confirm) return NextResponse.redirect(new URL(`${back}&error=mismatch`, request.url), { status: 303 });
+  if (password !== confirm) return seeOther(`${back}&error=mismatch`);
 
   const pool = db();
   // The token must still match the row (guards against reuse and re-issued invites).
   const { rows } = await pool.query<{ id: string }>(
     "SELECT id FROM staff WHERE id=$1 AND email=$2 AND invite_token=$3", [payload.sub, payload.email, token]);
-  if (!rows[0]) return NextResponse.redirect(new URL("/accept-invite", request.url), { status: 303 });
+  if (!rows[0]) return seeOther("/accept-invite");
 
   const hash = await bcrypt.hash(password, 10);
   await pool.query(
@@ -66,11 +63,9 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.error(`[recovery] could not issue codes on activation: ${e instanceof Error ? e.message : String(e)}`);
   }
 
-  if (codes.length === 0) return NextResponse.redirect(new URL("/login?accepted=1", request.url), { status: 303 });
+  if (codes.length === 0) return seeOther("/login?accepted=1");
 
   // Shown once, on the next screen, and never again. They travel in the URL fragment rather than the
   // query so they are not sent to the server on that request and do not reach any access log.
-  const url = new URL("/recovery-codes", request.url);
-  url.hash = `codes=${encodeURIComponent(codes.join(","))}`;
-  return NextResponse.redirect(url, { status: 303 });
+  return seeOther(`/recovery-codes#codes=${encodeURIComponent(codes.join(","))}`);
 }

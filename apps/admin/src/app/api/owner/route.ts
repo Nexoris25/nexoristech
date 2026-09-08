@@ -20,11 +20,11 @@
  * Deleting the row takes the password hash with it, which is the point: there is no "disabled"
  * state that still holds a credential somebody set outside the platform.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "../../../lib/db.js";
 import { requireStaff } from "../../../lib/auth.js";
+import { seeOther } from "../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,13 +39,13 @@ function seededEmail(): string {
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await requireStaff();
   if (staff.role !== "admin") {
-    return NextResponse.redirect(new URL("/dashboard", request.url), { status: 303 });
+    return seeOther("/dashboard");
   }
 
   const f = await request.formData();
   const action = String(f.get("action") ?? "");
   const back = (q: string): Response =>
-    NextResponse.redirect(new URL(`/settings/owner${q}`, request.url), { status: 303 });
+    seeOther(`/settings/owner${q}`);
   const fail = (msg: string): Response => back(`?error=1&msg=${encodeURIComponent(msg)}`);
 
   const pool = db();

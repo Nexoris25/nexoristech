@@ -4,11 +4,11 @@
  * by Oge (keyword + industry) so the page opens with real, structured content rather than an empty topic
  * (§9.6-9.7). The editor still reviews and approves before it can be published.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { composePageBody, generateEditorial } from "../../../../lib/oge-content.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,22 +17,22 @@ const slugify = (s: string): string => s.toLowerCase().trim().replace(/[^a-z0-9]
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/proposals", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/proposals");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const action = String(f.get("action") ?? "").trim();
-  if (!id) return NextResponse.redirect(new URL("/cms/proposals", request.url), { status: 303 });
+  if (!id) return seeOther("/cms/proposals");
   const pool = cmsDb();
 
   if (action === "reject") {
     await pool.query("UPDATE cms_proposal SET status='Rejected' WHERE id=$1", [id]);
-    return NextResponse.redirect(new URL("/cms/proposals", request.url), { status: 303 });
+    return seeOther("/cms/proposals");
   }
 
   if (action === "approve") {
     const { rows } = await pool.query<{ keyword: string; industry: string | null }>("SELECT keyword, industry FROM cms_proposal WHERE id=$1", [id]);
     const p = rows[0];
-    if (!p) return NextResponse.redirect(new URL("/cms/proposals", request.url), { status: 303 });
+    if (!p) return seeOther("/cms/proposals");
     await pool.query("UPDATE cms_proposal SET status='Approved' WHERE id=$1", [id]);
     // The approved keyword IS the page: it becomes both the title and the target keyword, so the two
     // can never drift apart. Appending "Solutions" made every title differ from the term it targets.
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       `INSERT INTO cms_content (kind, title, slug, industry, target_keyword, search_intent, status, template, body, excerpt)
        VALUES ('generated_page', $1, $2, $3, $4, 'Informational', 'draft', 'Service + Industry', $5, $6) RETURNING id`,
       [title, slugify(p.keyword), p.industry, p.keyword, body, excerpt]);
-    return NextResponse.redirect(new URL(`/cms/generated-pages/${made[0]?.id ?? ""}`, request.url), { status: 303 });
+    return seeOther(`/cms/generated-pages/${made[0]?.id ?? ""}`);
   }
-  return NextResponse.redirect(new URL("/cms/proposals", request.url), { status: 303 });
+  return seeOther("/cms/proposals");
 }

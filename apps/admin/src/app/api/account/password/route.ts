@@ -10,12 +10,12 @@
  * The current password is required. Without it, an unattended session is a password change, and
  * from there an account somebody else keeps.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "../../../../lib/db.js";
 import { requireStaff } from "../../../../lib/auth.js";
 import { revokeOtherSessions } from "../../../../lib/sessions.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const staff = await requireStaff();
   const f = await request.formData();
   const back = (q: string): Response =>
-    NextResponse.redirect(new URL(`/account${q}`, request.url), { status: 303 });
+    seeOther(`/account${q}`);
   const fail = (msg: string): Response => back(`?error=1&msg=${encodeURIComponent(msg)}`);
 
   const current = String(f.get("current") ?? "");

@@ -2,11 +2,11 @@
  * Create or update a CMS category (nexoris_cms). Admin only. Slug is normalised; a category cannot be
  * its own parent. On success it returns to the categories list.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { notifyPublished } from "../../../../lib/publish-notify.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,11 +15,11 @@ const slugify = (s: string): string => s.toLowerCase().trim().replace(/[^a-z0-9]
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return NextResponse.redirect(new URL("/cms/categories", request.url), { status: 303 });
+  if (!staff) return seeOther("/cms/categories");
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
   const name = String(f.get("name") ?? "").trim();
-  if (!name) return NextResponse.redirect(new URL(`${id ? `/cms/categories/${id}` : "/cms/categories/new"}?error=name`, request.url), { status: 303 });
+  if (!name) return seeOther(`${id ? `/cms/categories/${id}` : "/cms/categories/new"}?error=name`);
 
   const slug = slugify(String(f.get("slug") ?? "") || name);
   // Falls back to the head of the full name, which is the right answer often enough to be a useful
@@ -47,5 +47,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   // A category name appears on the insights index and on every article filed under it. The website has
   // no page per category, so the hub is what gets rebuilt; renaming one used to leave the old name up.
   await notifyPublished({ path: "/insights", kind: "category", published: active });
-  return NextResponse.redirect(new URL("/cms/categories", request.url), { status: 303 });
+  return seeOther("/cms/categories");
 }

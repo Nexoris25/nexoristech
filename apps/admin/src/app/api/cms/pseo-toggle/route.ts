@@ -4,21 +4,21 @@
  * A native form post, so the switch works without client hydration and goes through the same capability
  * gate as the generator it controls: whoever may run generation may pause it, and nobody else.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCmsStaffFor } from "../../../../lib/auth.js";
 import { setPseoEnabled } from "../../../../lib/pseo-settings.js";
+import { seeOtherAt, pathBuilder } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const back = new URL("/cms/proposals", request.url);
+  const back = pathBuilder("/cms/proposals");
 
   const staff = await getCmsStaffFor("seo.manage");
   if (!staff) {
     back.searchParams.set("denied", "1");
-    return NextResponse.redirect(back, { status: 303 });
+    return seeOtherAt(back);
   }
 
   const f = await request.formData();
@@ -26,5 +26,5 @@ export async function POST(request: NextRequest): Promise<Response> {
   await setPseoEnabled(enabled, staff.name);
 
   back.searchParams.set("generation", enabled ? "on" : "off");
-  return NextResponse.redirect(back, { status: 303 });
+  return seeOtherAt(back);
 }

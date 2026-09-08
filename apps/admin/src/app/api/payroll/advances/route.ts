@@ -4,17 +4,17 @@
  * an asset in Finance, not an expense; each payroll repayment reduces net pay and the outstanding
  * balance. On exit the outstanding is netted off the final settlement.
  */
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "../../../../lib/db.js";
 import { getStaffFor } from "../../../../lib/auth.js";
+import { seeOther } from "../../../../lib/redirect.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getStaffFor("payroll.prepare");
-  if (!staff) return NextResponse.redirect(new URL("/payroll/advances", request.url), { status: 303 });
+  if (!staff) return seeOther("/payroll/advances");
   const f = await request.formData();
   const action = String(f.get("action") ?? "");
   const pool = db();
@@ -45,5 +45,5 @@ export async function POST(request: NextRequest): Promise<Response> {
       await pool.query("UPDATE salary_advance SET status='Declined', approved_by=$1, approved_at=now() WHERE id=$2 AND status='Pending'", [staff.id, id]);
     }
   }
-  return NextResponse.redirect(new URL("/payroll/advances", request.url), { status: 303 });
+  return seeOther("/payroll/advances");
 }
