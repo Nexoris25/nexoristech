@@ -164,13 +164,26 @@ export function validatePage(entry: SeoManifestEntry): SeoIssue[] {
     );
   }
 
-  // noindex and sitemap inclusion must agree.
-  if (entry.inSitemap === entry.noindex) {
+  /*
+   * noindex and sitemap inclusion, which are related but not the same question.
+   *
+   * One direction is a defect and stays an error: a page that may be indexed and is not in any
+   * sitemap is a page the site wants found and has not told anyone about. Nobody chooses that.
+   *
+   * The other direction is a decision. Listing a noindex URL in a sitemap is a mixed signal and
+   * Search Console will say so, but it is a legitimate one: it is how a site asks a crawler to come
+   * and see the noindex directive, which is the fastest way to get something dropped from an index or
+   * kept out of it. The Oge page and the legal pages are deliberately run this way here — reachable
+   * and declared, not competing for search results. Flagging that as an error made the gate refuse a
+   * choice that was made on purpose, so it is reported as a warning: still visible, no longer a veto.
+   */
+  if (!entry.noindex && !entry.inSitemap) {
+    add("noindex-sitemap-agree", "Page is indexable but missing from its sitemap.");
+  } else if (entry.noindex && entry.inSitemap) {
     add(
       "noindex-sitemap-agree",
-      entry.noindex
-        ? "Page is noindex but still appears in a sitemap."
-        : "Page is indexable but missing from its sitemap.",
+      "Page is noindex but still appears in a sitemap. Intentional for utility pages; a mixed signal otherwise.",
+      "warning",
     );
   }
 

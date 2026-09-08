@@ -22,6 +22,16 @@ const CSP = [
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: CSP },
+  /*
+   * The admin is never indexed, said in the one place a crawler cannot ignore.
+   *
+   * There were already two defences: robots.txt disallows everything, and the root layout emits a
+   * noindex meta tag. Both are HTML-level, and robots.txt is a request not to crawl rather than a
+   * refusal to index — a URL that is linked from somewhere else can still be listed on the strength
+   * of that link alone, without ever being fetched. An HTTP header applies to every response this
+   * app makes, including the JSON and PDF routes that have no <head> to put a meta tag in.
+   */
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   {
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",

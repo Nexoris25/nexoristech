@@ -16,7 +16,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const headerStore = { host: "admin.nexoristech.com", proto: "https" };
+const headerStore = { host: "app.nexoristech.com", proto: "https" };
 
 vi.mock("next/headers", () => ({
   headers: () =>
@@ -33,7 +33,7 @@ vi.mock("next/headers", () => ({
 const { shareOrigin } = await import("./invite.js");
 
 beforeEach(() => {
-  headerStore.host = "admin.nexoristech.com";
+  headerStore.host = "app.nexoristech.com";
   headerStore.proto = "https";
 });
 
@@ -44,14 +44,14 @@ afterEach(() => {
 describe("shareOrigin", () => {
   it("uses APP_URL when it is a real public origin", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("APP_URL", "https://admin.nexoristech.com");
-    expect(await shareOrigin()).toBe("https://admin.nexoristech.com");
+    vi.stubEnv("APP_URL", "https://app.nexoristech.com");
+    expect(await shareOrigin()).toBe("https://app.nexoristech.com");
   });
 
   it("drops a trailing slash", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("APP_URL", "https://admin.nexoristech.com/");
-    expect(await shareOrigin()).toBe("https://admin.nexoristech.com");
+    vi.stubEnv("APP_URL", "https://app.nexoristech.com/");
+    expect(await shareOrigin()).toBe("https://app.nexoristech.com");
   });
 
   it.each([
@@ -61,7 +61,7 @@ describe("shareOrigin", () => {
   ])("ignores a loopback APP_URL in production (%s) and uses the request host", async (value) => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("APP_URL", value);
-    expect(await shareOrigin()).toBe("https://admin.nexoristech.com");
+    expect(await shareOrigin()).toBe("https://app.nexoristech.com");
   });
 
   it("honours a loopback APP_URL outside production, where localhost is the truth", async () => {
@@ -74,6 +74,6 @@ describe("shareOrigin", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("APP_URL", "");
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "");
-    expect(await shareOrigin()).toBe("https://admin.nexoristech.com");
+    expect(await shareOrigin()).toBe("https://app.nexoristech.com");
   });
 });

@@ -174,13 +174,38 @@
 @media (max-width: 600px) {
   .nexoris-site :is(.hero,.svc-page .hero) { padding-block: 36px 44px; }
   .nexoris-site :is(.hero .crumb,.svc-page .hero .crumb) { font-size: .75rem; margin-bottom: 24px; flex-wrap: wrap; }
-  .nexoris-site :is(.hero h1,.svc-page .hero h1) { font-size: 2.125rem; }
-  .nexoris-site :is(.hero .lede,.svc-page .hero .lede) { font-size: 1rem; line-height: 1.75; }
-  .nexoris-site .svc-page .hero-inner { text-align: left; align-items: flex-start; }
-  .nexoris-site .svc-page .hero-inner .kicker { justify-content: flex-start; }
-  .nexoris-site .svc-page .hero-cta { justify-content: flex-start; width: 100%; }
+  /*
+   * One type scale on small screens, taken from the article pages.
+   *
+   * Measured at 375px, an article read at 17px body over a 28px h1, and every other page read at
+   * 16px body over a 32px h1. So the marketing pages were simultaneously harder to read and louder:
+   * smaller running text under larger headings, which is the wrong way round on the narrowest screen
+   * the site is used on. The article scale is the one that was actually tuned for reading, so it is
+   * the one the rest of the site now follows.
+   */
+  .nexoris-site :is(.hero .lede,.svc-page .hero .lede) { line-height: 1.65; }
+
+  /*
+   * Heroes are centred on mobile, everywhere.
+   *
+   * They were centred on most pages and left-aligned on service and industry pages, so the same
+   * component read as two different designs depending on which page you arrived from — and the
+   * left-aligned ones looked one-sided, because the narrow column leaves a hero with a short heading,
+   * a short lede and a full-width button, with nothing to balance the ragged right.
+   *
+   * At this width a hero is a title, a sentence and a button: a single centred block. The rule is
+   * that simple, and it matches the article hero, which was already centred. Running text below the
+   * hero stays left-aligned — centring a paragraph is what actually hurts reading.
+   */
+  .nexoris-site :is(.svc-page, .industry-page) .hero-inner { text-align: center; align-items: center; }
+  .nexoris-site :is(.svc-page, .industry-page) .hero-inner :is(h1, .lede) { margin-inline: auto; }
+  .nexoris-site :is(.svc-page, .industry-page) .hero-inner .kicker { justify-content: center; }
+  .nexoris-site :is(.svc-page, .industry-page) .hero-inner .crumb { justify-content: center; }
+  .nexoris-site :is(.svc-page, .industry-page) .hero-cta { justify-content: center; width: 100%; }
+
   .nexoris-site .context-photo img { aspect-ratio: 4/3; }
-  .nexoris-site .article-page .prose { font-size: 1rem; line-height: 1.8; }
+  /* The article keeps its own measure: it is the source of the scale above, not a follower of it. */
+  .nexoris-site .article-page .prose { font-size: 1.0625rem; line-height: 1.7; }
   .nexoris-site .article-page .byline { gap: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {

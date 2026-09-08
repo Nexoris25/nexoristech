@@ -15,6 +15,17 @@ import { buildActionCenter, type ActionItem } from "../../lib/action-center.js";
 import { readItemIds } from "../../lib/notification-read.js";
 import { FormBusy } from "../../components/FormBusy.js";
 
+/*
+ * Never cached, never shared.
+ *
+ * This frame renders the signed-in person's name and their notification counts. Reading cookies
+ * already opts the route out of static rendering, so nothing was wrong in practice — but that is an
+ * implicit consequence of an implementation detail several files away, and the cost of it changing
+ * is one person's name and pending work appearing in another person's browser. Stating it here makes
+ * the guarantee local to the thing being guaranteed.
+ */
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

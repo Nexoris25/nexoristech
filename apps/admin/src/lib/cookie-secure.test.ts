@@ -40,7 +40,7 @@ describe("cookieSecure", () => {
    * http://194.147.95.7:3102 — where marking the cookie Secure is what locked the administrator out.
    */
   it("falls back to the request protocol when no proxy header is present", () => {
-    expect(cookieSecure(h(), new URL("https://admin.nexoristech.com/api/auth/login"))).toBe(true);
+    expect(cookieSecure(h(), new URL("https://app.nexoristech.com/api/auth/login"))).toBe(true);
     expect(cookieSecure(h(), new URL("http://194.147.95.7:3102/api/auth/login"))).toBe(false);
   });
 

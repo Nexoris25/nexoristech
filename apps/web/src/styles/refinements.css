@@ -895,3 +895,52 @@
     max-width: 28ch;
   }
 }
+
+/* ----------------------------------------------------------------------------------------------
+   One type scale on small screens, taken from the article pages.
+
+   Measured at 375px before this: an article read at 17px body under a 28px h1, while every other
+   page read at 16px body under a 32px h1. So the marketing pages were simultaneously harder to read
+   and louder — smaller running text under larger headings, which is the wrong way round on the
+   narrowest screen the site is used on.
+
+   The article scale is the one that was tuned for reading, so the rest of the site follows it. This
+   sets the scale variables rather than individual selectors: --fs-hero, --fs-h2 and --fs-body are
+   what design.css, service.css and typography.css all read, so changing them here moves every page
+   at once instead of leaving a trail of per-component overrides to keep in step. It lives in this
+   file because this is the last stylesheet imported, and typography.css restates the hero and
+   heading sizes at equal specificity after editorial.css.
+   ---------------------------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .nexoris-site {
+    --fs-hero: 1.75rem;
+    --fs-h2: 1.5rem;
+    --fs-body: 1.0625rem;
+  }
+  .nexoris-site :is(.hero h1, .svc-page .hero h1),
+  .nexoris-site main h1,
+  .nexoris-site .industry-page .hero-inner h1 {
+    font-size: var(--fs-hero);
+    line-height: 1.14;
+  }
+  .nexoris-site main :is(h2, .h-section),
+  .nexoris-site :is(.h-section, .svc-page .h-section) {
+    font-size: var(--fs-h2);
+    line-height: 1.2;
+  }
+  .nexoris-site main h3 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+  /* Running text, at the size the articles use. #main-content is an id, so the site-wide paragraph
+     clamp is restated here rather than fought with. */
+  .nexoris-site #main-content p,
+  .nexoris-site main :is(p, li) {
+    font-size: var(--fs-body);
+    line-height: 1.7;
+  }
+  .nexoris-site :is(.hero .lede, .svc-page .hero .lede) {
+    font-size: var(--fs-body);
+    line-height: 1.65;
+  }
+}

@@ -64,11 +64,11 @@ describe("createResetToken / verifyResetToken", () => {
 describe("resetLink", () => {
   it("builds a link the reset page can read, with the token encoded", () => {
     const token = createResetToken(ID, EMAIL);
-    const link = resetLink("https://admin.nexoristech.com", token);
-    expect(link).toBe(`https://admin.nexoristech.com/reset-password?token=${encodeURIComponent(token)}`);
+    const link = resetLink("https://app.nexoristech.com", token);
+    expect(link).toBe(`https://app.nexoristech.com/reset-password?token=${encodeURIComponent(token)}`);
   });
 
   it("does not double the slash when the origin has a trailing one", () => {
-    expect(resetLink("https://admin.nexoristech.com/", "t")).toContain(".com/reset-password?");
+    expect(resetLink("https://app.nexoristech.com/", "t")).toContain(".com/reset-password?");
   });
 });

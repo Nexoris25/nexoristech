@@ -24,7 +24,7 @@ rather than loudly, which is why each says what breaks without it.
 
 **Origins.** The two most commonly missed, because nothing errors when they are absent:
 
-- `APP_URL` — this admin's own public origin, e.g. `https://admin.nexoristech.com`.
+- `APP_URL` — this admin's own public origin, e.g. `https://app.nexoristech.com`.
   Invitation and password-reset links are built from it. Unset, the app falls back to the
   request host, which is right behind a proxy that sets `x-forwarded-host` and wrong
   everywhere else: the recipient gets a link they cannot open.

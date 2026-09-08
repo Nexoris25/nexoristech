@@ -24,7 +24,8 @@ export function generateMetadata(): Metadata {
       "Oge is the Nexoris Technologies website assistant. Grounded in our own content, English only, and built to point you to the right answer or the right person.",
     path: "/oge",
     ogType: "website",
-    noindex: false,
+    // Kept out of the index by choice: a utility page, discoverable but not a search result.
+    noindex: true,
   });
 }
 

@@ -33,7 +33,8 @@ export function generateMetadata(): Metadata {
     description: PAGE_DESCRIPTION,
     path: "/privacy-policy",
     ogType: "website",
-    noindex: false,
+    // Kept out of the index by choice: a utility page, discoverable but not a search result.
+    noindex: true,
   });
 }
 

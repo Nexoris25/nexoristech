@@ -101,9 +101,26 @@ describe("validatePage", () => {
     ).toBe(true);
   });
 
-  it("flags noindex disagreeing with sitemap inclusion", () => {
+  /*
+   * The two directions are not the same finding, and the severities say so.
+   *
+   * An indexable page missing from the sitemap is a defect nobody chooses. A noindex page listed in
+   * the sitemap is a decision — it is how a site asks a crawler to come and read the noindex — and
+   * the Oge and legal pages are run that way deliberately. Reporting the second as an error made the
+   * gate veto a deliberate choice.
+   */
+  it("warns, but does not fail, when a noindex page is listed in the sitemap", () => {
     const issues = validatePage(validEntry({ noindex: true, inSitemap: true }));
-    expect(issues.some((i) => i.rule === "noindex-sitemap-agree")).toBe(true);
+    const issue = issues.find((i) => i.rule === "noindex-sitemap-agree");
+    expect(issue).toBeDefined();
+    expect(issue?.severity).toBe("warning");
+  });
+
+  it("fails an indexable page that is missing from the sitemap", () => {
+    const issues = validatePage(validEntry({ noindex: false, inSitemap: false }));
+    const issue = issues.find((i) => i.rule === "noindex-sitemap-agree");
+    expect(issue).toBeDefined();
+    expect(issue?.severity).toBe("error");
   });
 
   it("passes a noindex page that is correctly out of the sitemap", () => {
