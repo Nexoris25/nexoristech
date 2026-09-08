@@ -114,18 +114,31 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios, initial }: { 
   const overflowActive = overflow.some((t) => t === active);
 
   /**
-   * Run one generation.
+   * Run one generation. Both keys default to the kind, which is right wherever one control owns one
+   * kind; they are given separately only where two controls share an endpoint.
    *
-   * `busyKey` exists so two controls that call the same kind can spin separately. The meta title and
-   * the meta description are both drafted by the "seo" kind, and while they shared a busy flag,
-   * asking for one set every spinner in the tab going and looked as though both were being rewritten.
+   * `busyKey` lets those two controls spin separately. The meta title and the meta description are
+   * both drafted by the "seo" kind, and while they shared a busy flag, asking for one set every
+   * spinner in the tab going and looked as though both were being rewritten. They still share the
+   * one result, so the state key stays "seo".
+   *
+   * `stateKey` goes further and separates what the panel remembers. The author bio and the
+   * fact-checker bio are also one kind, "author-bio", but they are two different pieces of text, so
+   * sharing an entry in `results` and `source` meant generating one replaced the other's draft and
+   * moved its Oge/fallback badge — as though the wrong person's bio had been rewritten.
    */
-  const run = async (kind: string, extra?: Record<string, unknown>, busyKey?: string): Promise<unknown> => {
-    setBusy(busyKey ?? kind);
+  const run = async (
+    kind: string,
+    extra?: Record<string, unknown>,
+    busyKey?: string,
+    stateKey?: string,
+  ): Promise<unknown> => {
+    const key = stateKey ?? kind;
+    setBusy(busyKey ?? key);
     const r = await callOge(kind, getContext(), extra);
     setBusy("");
     if (r) {
-      setResults((s) => ({ ...s, [kind]: r.result })); setSource((s) => ({ ...s, [kind]: r.source }));
+      setResults((s) => ({ ...s, [key]: r.result })); setSource((s) => ({ ...s, [key]: r.source }));
       if (kind === "faqs" && apply?.storeFaqs) apply.storeFaqs(r.result as FaqItem[]);
       if (kind === "tldr" && apply?.storeTldr) apply.storeTldr(r.result as string[]);
       return r.result;
@@ -186,7 +199,7 @@ export function OgeAssistant({ tabs, getContext, apply, seo, bios, initial }: { 
             }} />
           : active === "tldr" ? <TldrTab busy={busy === "tldr"} source={source.tldr} result={results.tldr as string[] | undefined} onGenerate={() => void run("tldr")} onInsert={(html) => apply?.insertTop?.(html)} copied={copied} onCopy={copy} />
           : active === "excerpt" ? <ExcerptTab busy={busy === "excerpt"} source={source.excerpt} result={results.excerpt as string | undefined} onGenerate={() => void run("excerpt")} onApply={apply?.excerpt} copied={copied} onCopy={copy} />
-          : active === "author-bio" ? <BioTab busy={busy} source={source} bios={bios} onGenerate={(_who, ctx) => run("author-bio", ctx)} onInsert={(html) => apply?.insertBottom?.(html)} />
+          : active === "author-bio" ? <BioTab busy={busy} source={source} bios={bios} onGenerate={(who, ctx) => { const k = who === "author" ? "author-bio" : "fact-checker-bio"; return run("author-bio", ctx, k, k); }} onInsert={(html) => apply?.insertBottom?.(html)} />
           : active === "faqs" ? <FaqTab busy={busy === "faqs"} source={source.faqs} result={results.faqs as FaqItem[] | undefined} onGenerate={() => void run("faqs")} onEdit={apply?.editFaqs ? (items) => { setResults((r) => ({ ...r, faqs: items })); apply.editFaqs?.(items); } : undefined} />
           : active === "internal-links" ? <LinksTab busy={busy === "internal-links"} source={source["internal-links"]} result={results["internal-links"] as InternalLink[] | undefined} onGenerate={() => void run("internal-links")} getBody={apply?.getBody} linkInline={apply?.linkInline} />
           : <MoreTab />}
@@ -339,7 +352,8 @@ function BioTab({ busy, source, bios, onGenerate, onInsert }: { busy: string; so
   const name = who === "author" ? bios.authorName : bios.factCheckerName;
   const value = who === "author" ? bios.authorBio : bios.factCheckerBio;
   const setValue = who === "author" ? bios.setAuthorBio : bios.setFactCheckerBio;
-  const key = who === "author" ? "author-bio" : "author-bio";
+  // Was "author-bio" in both branches, so the fact-checker showed the author's badge and spinner.
+  const key = who === "author" ? "author-bio" : "fact-checker-bio";
   const generate = async (): Promise<void> => {
     // The whole record for whichever person is selected. The fact-checker's role is stated so the
     // bio explains what they checked rather than reading like a second author byline.
@@ -359,7 +373,7 @@ function BioTab({ busy, source, bios, onGenerate, onInsert }: { busy: string; so
       <p className="mb-2 text-[0.76rem] text-slate-500">{name ? `Per-article bio for ${name}.` : `Assign a ${who === "author" ? "author" : "fact-checker"} first.`}</p>
       <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={5} placeholder="A short, article-specific bio in the house voice..." className={fieldSm} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <GenBtn busy={busy === "author-bio"} has={!!value} onClick={() => void generate()} label="Regenerate Bio" />
+        <GenBtn busy={busy === key} has={!!value} onClick={() => void generate()} label="Regenerate Bio" />
         {value ? <InsertBtn onClick={() => onInsert(`<p><em>${value}</em></p>`)} label="Insert Bio into content" /> : null}
       </div>
     </div>

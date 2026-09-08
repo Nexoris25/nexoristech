@@ -8,7 +8,7 @@
  * was broken. The cover on the same article loaded, which is what made the upload look successful.
  */
 import { describe, it, expect } from "vitest";
-import { resolveBodyMedia } from "./cms.js";
+import { resolveBodyMedia, stripLegacyMediaHost } from "./cms.js";
 
 const BASE = "https://media.nexoristech.com";
 
@@ -56,6 +56,41 @@ describe("resolveBodyMedia", () => {
   it("does not touch anything that is not an image", () => {
     const html = '<a href="/uploads/brief.pdf">The brief</a>';
     expect(resolveBodyMedia(html, BASE)).toBe(html);
+  });
+});
+
+/**
+ * The retired Strapi host still appears as an absolute URL in five published articles. Its DNS record
+ * now reaches a server that 404s every upload, so those images are dead until the files are restored;
+ * reducing the URL to a path at least points them at the media this platform serves today.
+ */
+describe("stripLegacyMediaHost", () => {
+  it("reduces a retired-host image URL to an upload path", () => {
+    expect(stripLegacyMediaHost('<img src="https://studio.nexoristech.com/uploads/a.webp" alt="A chart">')).toBe(
+      '<img src="/uploads/a.webp" alt="A chart">',
+    );
+  });
+
+  it("handles srcset as well as src", () => {
+    expect(stripLegacyMediaHost('<img srcset="https://studio.nexoristech.com/uploads/a.webp 2x">')).toBe(
+      '<img srcset="/uploads/a.webp 2x">',
+    );
+  });
+
+  it("leaves a genuinely foreign image alone", () => {
+    const html = '<img src="https://example.com/a.png" alt="">';
+    expect(stripLegacyMediaHost(html)).toBe(html);
+  });
+
+  it("leaves the live site's own absolute URLs alone", () => {
+    const html = '<img src="https://nexoristech.com/uploads/a.webp" alt="">';
+    expect(stripLegacyMediaHost(html)).toBe(html);
+  });
+
+  it("does not touch a link to the retired host", () => {
+    // Only imagery is remapped; an editor's hyperlink is content, and rewriting it would be a guess.
+    const html = '<a href="https://studio.nexoristech.com/uploads/brief.pdf">The brief</a>';
+    expect(stripLegacyMediaHost(html)).toBe(html);
   });
 });
 

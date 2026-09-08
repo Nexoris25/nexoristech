@@ -684,27 +684,30 @@
  * sections clearly while keeping a heading visually attached to the passage below it.
  */
 /*
- * A heading belongs to the text under it.
+ * A heading needs more room above it than paragraphs have between them.
  *
- * The gap above an h2 was still doing more work than the gap below, so each heading read as the tail
- * of the section it was ending rather than the start of the one it introduces. Less room above and a
- * little more beneath puts the heading with its own paragraph, which is the relationship the reader
- * is actually being shown.
+ * At 20px above and 18px between paragraphs, a heading was separated from the section it ended by
+ * almost exactly the gap that separates two ordinary paragraphs — so it stopped reading as the start
+ * of anything. The distinction is the whole job of the space: clearly more above than between, and
+ * clearly less below, which ties the heading to the text it introduces.
+ *
+ * These are the ordinary proportions for body text at this size — roughly a line and a half above,
+ * half a line below — rather than a number picked to look tight.
  */
 .nexoris-site #main-content .article-page .prose h2 {
   font-size: clamp(24px, 2vw, 28px);
   line-height: 1.2;
-  margin: 20px 0 14px;
+  margin: 32px 0 12px;
 }
 .nexoris-site #main-content .article-page .prose h3 {
   font-size: clamp(20px, 1.7vw, 23px);
   line-height: 1.25;
-  margin: 20px 0 8px;
+  margin: 26px 0 10px;
 }
 .nexoris-site #main-content .article-page .prose :is(h4, h5, h6) {
   font-size: 18px;
   line-height: 1.3;
-  margin: 16px 0 6px;
+  margin: 20px 0 8px;
 }
 .nexoris-site
   #main-content
@@ -728,19 +731,16 @@
  * separate blocks rather than one list. 8px groups them without crowding.
  */
 /*
- * A reading measure, so the eye finds the next line.
+ * The reading measure is the column itself, not a cap on the paragraphs inside it.
  *
- * The text column is 720px, which in Lora at 17px is about 83 characters a line — measured, not
- * estimated. Long-form typography settles around 60 to 75; past that the return sweep starts landing
- * on the wrong line and a long article becomes tiring in a way readers feel without being able to
- * name. 58ch works out at roughly 70 characters here.
+ * Capping only the running text gave one article three different widths — headings and the short
+ * version at the full 720px, paragraphs and images at 612px, tables somewhere else again — so the
+ * right-hand edge moved every few lines and the page looked unset rather than measured. A reader
+ * notices that immediately, and it is a worse problem than a slightly long line.
  *
- * Only the running text is constrained. Tables and figures keep the full column, so media still has
- * room and everything stays flush to the same left edge.
+ * The column is narrowed instead, in article.css, so a heading, a paragraph, a list and a picture
+ * are all exactly as wide as each other and the measure is still comfortable. One number, one edge.
  */
-.nexoris-site #main-content .article-page .prose :is(p, ul, ol, blockquote) {
-  max-width: 58ch;
-}
 .nexoris-site #main-content .article-page .prose :is(p, ul, ol) {
   margin-bottom: 18px;
   font-size: 1.0625rem;

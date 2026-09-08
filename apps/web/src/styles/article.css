@@ -248,8 +248,21 @@
   }
 }
 
+/*
+ * One column width, shared by everything in the article.
+ *
+ * The measure used to be imposed on the paragraphs alone, which gave a single article three
+ * different widths: headings and the short version ran to the full 720px, paragraphs and pictures
+ * stopped at 612px, and a table sat somewhere else again. The right-hand edge moved every few lines.
+ * That reads as unset rather than as designed, and it is a worse fault than a line being slightly
+ * long, because it is visible without reading a word.
+ *
+ * Narrowing the column instead gives one edge. A heading, a paragraph, a list and an image are now
+ * exactly as wide as each other, and 640px in Lora at 17px is about 73 characters a line — inside
+ * the 60 to 75 that long-form typography settles on. One number decides both things.
+ */
 .article-page .reading {
-  max-width: 720px;
+  max-width: 640px;
   min-width: 0;
 }
 .article-page .tldr {

@@ -178,6 +178,26 @@ export function resolveBodyMedia(html: string, base: string): string {
 }
 
 /**
+ * Media hosts this platform used to publish from, written into article bodies as absolute URLs.
+ *
+ * `studio.nexoristech.com` was the Strapi instance. It was retired, and the DNS record now reaches a
+ * server that answers every upload with a 404, so the absolute URLs left behind in five published
+ * articles are permanently broken — an absolute URL is deliberately passed through untouched, which
+ * is right for a genuinely foreign image and wrong for our own former address.
+ *
+ * Reduced to the bare `/uploads/…` path, they address the media the platform serves today. That does
+ * not conjure the files back, but it turns restoring them into copying files into MEDIA_STORAGE_PATH
+ * under the same names, instead of editing the HTML of five published articles.
+ */
+const LEGACY_MEDIA_HOSTS = /^https?:\/\/(?:studio|cms)\.nexoristech\.com(?=\/)/i;
+
+export function stripLegacyMediaHost(html: string): string {
+  if (!html) return html;
+  return html.replace(/(<img\b[^>]*?\s(?:src|srcset)=")([^"]+)(")/gi, (_m, a: string, value: string, b: string) =>
+    `${a}${value.replace(LEGACY_MEDIA_HOSTS, "")}${b}`);
+}
+
+/**
  * Everything a stored block of body HTML needs before it is rendered.
  *
  * The editor writes `/uploads/…`, which is already the address this site serves media on, so there
@@ -186,7 +206,7 @@ export function resolveBodyMedia(html: string, base: string): string {
  * returns the HTML untouched.
  */
 function bodyMedia(html: string): string {
-  return resolveBodyMedia(html, "");
+  return resolveBodyMedia(stripLegacyMediaHost(html), "");
 }
 /**
  * Postgres hands back timestamps as "2026-07-18 15:40:06.679264+01", which is not valid ISO 8601. Schema
