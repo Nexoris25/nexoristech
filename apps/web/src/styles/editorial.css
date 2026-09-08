@@ -134,7 +134,12 @@
 .nexoris-site .article-page .prose h2 { font-size: clamp(1.5rem,2.3vw,2rem); line-height: 1.25; margin-top: 2.2em; margin-bottom: .8em; }
 .nexoris-site .article-page .prose h3 { font-size: 1.25rem; line-height: 1.4; margin-top: 1.8em; }
 .nexoris-site .article-page .prose a { text-decoration: underline; text-underline-offset: .2em; }
-.nexoris-site .article-page .art-head h1 { max-width: 25ch; font-weight: 650; line-height: 1.12; }
+/* The 25ch cap keeps a long headline from running the full width of the masthead and breaking into
+   thin, awkward lines. It also makes the h1's box narrower than the centred header around it, and a
+   block box with no margins sits flush against its left edge — so the headline hung 84px left of the
+   pill, the standfirst and the byline, which all centre on the page. The cap sets the measure; the
+   auto margins put that measure back on the centre line. */
+.nexoris-site .article-page .art-head h1 { max-width: 25ch; margin-inline: auto; font-weight: 650; line-height: 1.12; }
 /* The short version reads as brand, not as a grey callout: #f3f3f1 was a warm neutral that made the
    most prominent box on the article the one thing on the page with no Nexoris colour in it. */
 .nexoris-site .article-page .tldr { background: var(--purple-100); border: 1px solid var(--purple-200); border-left: 3px solid var(--purple-600); border-radius: 4px; box-shadow: none; }
