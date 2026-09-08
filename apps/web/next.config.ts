@@ -12,27 +12,14 @@ const isDev = process.env.NODE_ENV !== "production";
  * without 'unsafe-eval' silently stops React from hydrating: the HTML renders but nothing on the page is
  * interactive. Those two allowances are therefore development-only; production keeps the strict policy.
  */
-/**
- * Where CMS media is served from, as a CSP source.
+/*
+ * CMS media needs no CSP source of its own any more.
  *
- * Uploads live on the admin origin, so every article cover, author headshot and in-body picture is
- * loaded cross-origin. `img-src https:` covered that in production by accident - any https host at
- * all - and blocked it outright in development, where the admin runs on http://localhost:3102. The
- * result was every CMS image on the site rendering as a broken icon with its alt text showing, with
- * nothing in the server log to say why, because a CSP refusal happens in the browser.
- *
- * Naming the configured origin fixes development and narrows production at the same time: the site
- * is no longer declaring that any image from anywhere on the web may be loaded into its pages.
+ * Uploads used to be loaded cross-origin from the admin, so the policy had to name that origin. They
+ * are now fetched by this server and served from this origin, so `'self'` already covers them, and
+ * naming a build-time origin here would be one more value frozen into the deployment for no reason.
+ * `https:` remains for the Unsplash photography.
  */
-const mediaOrigin = ((): string => {
-  const base = process.env.CMS_MEDIA_BASE?.trim();
-  if (!base) return "";
-  try {
-    return new URL(base).origin;
-  } catch {
-    return "";
-  }
-})();
 
 /**
  * Google Analytics, allowed only when it is actually configured.
@@ -55,7 +42,7 @@ const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${analyticsOn ? ` ${GA_SCRIPT}` : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: https:${mediaOrigin ? ` ${mediaOrigin}` : ""}`,
+  "img-src 'self' data: https:",
   "font-src 'self'",
   `connect-src 'self'${isDev ? " ws: wss:" : ""}${analyticsOn ? ` ${GA_CONNECT}` : ""}`,
   "frame-ancestors 'none'",
@@ -84,23 +71,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
-  /**
-   * Uploads are served from this origin and proxied to wherever the files actually live.
+  /*
+   * There is deliberately no rewrite for /uploads here.
    *
-   * The CMS stores media on the admin app's disk. Handing the browser the admin's own URL made every
-   * image on the public site depend on the admin being reachable by the visitor, which is the exact
-   * opposite of what an admin host should be — and when it was not reachable, every picture on the
-   * site broke at once. The rewrite keeps the fetch server-side: the visitor asks this origin for
-   * /uploads/x.webp, and this server gets it from the media origin over the internal network.
+   * It was one, and it could not work on a server. Next resolves rewrites at build time and writes
+   * the finished destination into routes-manifest.json, so whatever CMS_MEDIA_BASE happened to hold
+   * on the machine that ran `next build` is frozen into the deployment — a laptop's build shipped
+   * `http://localhost:3102`, and a build made before the variable was set shipped no rewrite at all.
+   * Every image 404s, and setting the variable on the server afterwards changes nothing.
    *
-   * Nothing is rewritten when CMS_MEDIA_BASE is unset, which is the same outcome as before: the path
-   * is served from this app's own public directory if it happens to exist there, and 404s if not.
+   * app/uploads/[...path]/route.ts does the same proxying and reads the environment per request, so
+   * the address is a matter of configuration rather than of when the build happened.
    */
-  async rewrites() {
-    return mediaOrigin
-      ? [{ source: "/uploads/:path*", destination: `${mediaOrigin}/uploads/:path*` }]
-      : [];
-  },
   // The server appends a trailing slash to every URL, for example /about-us/ (decision D-002).
   trailingSlash: true,
   // The design system and SEO engine ship as TypeScript source and are transpiled here.

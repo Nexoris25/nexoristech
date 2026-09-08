@@ -16,6 +16,7 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
+    "doctor": "node scripts/doctor.mjs",
     "check:seo": "turbo run check:seo",
     "check:a11y": "turbo run check:a11y",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
