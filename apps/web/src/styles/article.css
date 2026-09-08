@@ -257,12 +257,12 @@
  * That reads as unset rather than as designed, and it is a worse fault than a line being slightly
  * long, because it is visible without reading a word.
  *
- * Narrowing the column instead gives one edge. A heading, a paragraph, a list and an image are now
- * exactly as wide as each other, and 640px in Lora at 17px is about 73 characters a line — inside
- * the 60 to 75 that long-form typography settles on. One number decides both things.
+ * Removing the per-element cap gives one edge instead. A heading, a paragraph, a list, a picture,
+ * the short version and the questions are now exactly as wide as each other, and this one number
+ * decides the measure for all of them.
  */
 .article-page .reading {
-  max-width: 640px;
+  max-width: 720px;
   min-width: 0;
 }
 .article-page .tldr {
