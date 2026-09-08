@@ -10,7 +10,7 @@ import { db } from "./db.js";
 import { cmsDb } from "./cms-db.js";
 import { ogeDb } from "./oge-db.js";
 import { existsSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { mediaDir, mediaIsExternal } from "./media-storage.js";
 
 export type Health = "up" | "down" | "not-configured" | "unknown";
 
@@ -51,14 +51,29 @@ async function checkOge(): Promise<ServiceCheck> {
   }
 }
 
-/** Uploads are written to the local disk, so the check is whether that directory is there and writable. */
+/**
+ * Uploads are written to the local disk, so the check is whether that directory is there and writable.
+ *
+ * It names the directory it actually checked. This screen reported "public/uploads on local disk"
+ * regardless of where the files were, which is the sort of reassurance that is worse than silence:
+ * after a deploy wiped the media, the status page still said storage was up, because the directory
+ * it names had been recreated empty by the very deploy that emptied it.
+ *
+ * It also says whether the location survives a deployment, since that is the property that was
+ * missing and the one worth seeing at a glance.
+ */
 function checkStorage(): ServiceCheck {
-  const dir = join(process.cwd(), "public", "uploads");
+  const dir = mediaDir();
+  const where = mediaIsExternal()
+    ? `${dir} (outside the app, survives deploys)`
+    : `${dir} (inside the app — a deploy will erase it; set MEDIA_STORAGE_PATH)`;
   try {
-    if (!existsSync(dir)) return { name: "Media storage", health: "down", detail: "public/uploads does not exist" };
-    return statSync(dir).isDirectory()
-      ? { name: "Media storage", health: "up", detail: "public/uploads on local disk" }
-      : { name: "Media storage", health: "down", detail: "public/uploads is not a directory" };
+    if (!existsSync(dir)) return { name: "Media storage", health: "down", detail: `${dir} does not exist` };
+    if (!statSync(dir).isDirectory()) return { name: "Media storage", health: "down", detail: `${dir} is not a directory` };
+    // "up" either way: the directory is there and readable, which is what this check measures.
+    // Whether it survives a deploy is a property of the location, and belongs in the detail line
+    // rather than in a health state the rest of the screen would have to learn to render.
+    return { name: "Media storage", health: "up", detail: where };
   } catch {
     return { name: "Media storage", health: "unknown", detail: "could not be read" };
   }

@@ -11,9 +11,9 @@
  * It never prints a password, a key or a token. Connection strings are shown with the credentials
  * replaced, because the host and port are the part worth reading.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync, unlinkSync, readdirSync } from "node:fs";
 import { createConnection } from "node:net";
-import { resolve, dirname } from "node:path";
+import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -144,6 +144,34 @@ if (adminEnv) {
       ? "Sign-in throws without it: the session cannot be signed, so the login button appears to do nothing."
       : "Required before any credential can be sealed in the database.");
   }
+  /*
+   * Where uploads land, and whether that place survives a deployment.
+   *
+   * Checked because the alternative is finding out afterwards: media inside the application folder
+   * was erased by the first deploy, and nothing reported it — the cms_media rows survived, so the
+   * library went on listing files that were gone.
+   */
+  const store = adminEnv.MEDIA_STORAGE_PATH?.trim();
+  if (!store) {
+    warn(
+      "MEDIA_STORAGE_PATH is not set",
+      "Uploads go to apps/admin/public/uploads, inside the app. A deploy that replaces the app\n        directory erases every uploaded file while the database rows survive. Set it to /media/nexoris.",
+    );
+  } else if (!existsSync(store)) {
+    bad(`MEDIA_STORAGE_PATH points at ${store}, which does not exist`,
+        `sudo mkdir -p ${store} && sudo chown -R $USER:$USER ${store}`);
+  } else {
+    try {
+      const probe = join(store, `.write-probe-${process.pid}`);
+      writeFileSync(probe, "x");
+      unlinkSync(probe);
+      const count = readdirSync(store).filter((f) => !f.startsWith(".")).length;
+      ok("MEDIA_STORAGE_PATH", `${store} · writable · ${count} file(s)`);
+    } catch (e) {
+      bad(`MEDIA_STORAGE_PATH ${store} is not writable by this user`, e.message);
+    }
+  }
+
   if (adminEnv.APP_URL && /^https?:\/\/(localhost|127\.)/i.test(adminEnv.APP_URL)) {
     warn("APP_URL is a loopback address", "Ignored in production, so invitation links use the request host. Set it to https://app.nexoristech.com or leave it unset.");
   }

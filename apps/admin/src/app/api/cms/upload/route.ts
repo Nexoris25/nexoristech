@@ -8,24 +8,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { mkdir, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
 import { altTextForImage } from "../../../../lib/oge-content.js";
+import { mediaDir, mediaUrlFor } from "../../../../lib/media-storage.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 15 * 1024 * 1024;
-
-function mediaDir(): string {
-  const cwd = process.cwd();
-  const base = existsSync(join(cwd, "public")) ? join(cwd, "public") : join(cwd, "apps", "admin", "public");
-  return join(base, "uploads");
-}
 
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
@@ -55,9 +49,23 @@ export async function POST(request: NextRequest): Promise<Response> {
   const id = randomUUID();
   const fileName = `${id}.webp`;
   const dir = mediaDir();
-  await mkdir(dir, { recursive: true });
-  await writeFile(join(dir, fileName), webp);
-  const url = `/uploads/${fileName}`;
+  /*
+   * A write that fails must not leave a cms_media row pointing at a file that is not there. The
+   * directory is now outside the application, so the first upload after a deployment is also the
+   * first proof that the path exists and is writable — if it is not, say so instead of recording a
+   * library entry for a missing file.
+   */
+  try {
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, fileName), webp);
+  } catch (error) {
+    console.error(
+      `[upload] could not write to ${dir}:`,
+      error instanceof Error ? error.message : error,
+    );
+    return NextResponse.json({ error: "could not save the file" }, { status: 500 });
+  }
+  const url = mediaUrlFor(fileName);
 
   const original = file.name || "image";
   const { altText } = await altTextForImage(webp.toString("base64"), "image/webp", original);

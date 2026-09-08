@@ -9,23 +9,27 @@
  */
 import type { NextRequest } from "next/server";
 import { unlink } from "node:fs/promises";
-import { join } from "node:path";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { requireCmsAccess } from "../../../../lib/auth.js";
 import { usageFor, replaceEverywhere } from "../../../../lib/media-usage.js";
 import { isUuid } from "../../../../lib/route-params.js";
 import { seeOther } from "../../../../lib/redirect.js";
+import { fileNameFromMediaUrl, mediaFilePath } from "../../../../lib/media-storage.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Delete the file behind a URL. A missing file is not an error: the row is what we are removing. */
 async function removeFile(url: string | null): Promise<void> {
-  if (!url || !url.startsWith("/uploads/")) return;
-  const name = url.slice("/uploads/".length);
-  // Only a plain file name from our own uploads directory is ever touched.
-  if (!/^[A-Za-z0-9._-]+$/.test(name)) return;
-  await unlink(join(process.cwd(), "public", "uploads", name)).catch(() => undefined);
+  if (!url) return;
+  const name = fileNameFromMediaUrl(url);
+  if (!name) return;
+  // Resolved through the storage module, so a delete lands in the configured directory rather than
+  // in whatever public/uploads happens to be next to the running process. mediaFilePath is also
+  // where the "plain file name only" guard lives, so this cannot be pointed at another file.
+  const path = mediaFilePath(name);
+  if (!path) return;
+  await unlink(path).catch(() => undefined);
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
