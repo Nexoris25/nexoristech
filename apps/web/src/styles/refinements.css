@@ -944,3 +944,24 @@
     line-height: 1.65;
   }
 }
+
+/* ----------------------------------------------------------------------------------------------
+   The footer's last row clears the floating buttons.
+
+   Three controls are fixed to the bottom of the viewport on a phone: WhatsApp and the scroll-to-top
+   at bottom:74px, and the Oge launcher at bottom:16px. Together they occupy the lowest 118px of the
+   screen. The footer reserved 32px of bottom padding, so at the very end of the page — the one place
+   every visitor reaches by scrolling — the buttons sat on top of the last row.
+
+   Measured at 375px: the Oge launcher covered 43px of "Cookie settings", and the scroll-to-top
+   covered the copyright line. Cookie settings is how a visitor withdraws consent, so a button
+   sitting on it is not only untidy; it puts a control someone is entitled to use out of reach.
+
+   Reserving the height of the stack is the fix that cannot drift: the buttons keep their positions
+   and the footer simply ends above them.
+   ---------------------------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .nexoris-site footer {
+    padding-bottom: 134px;
+  }
+}
