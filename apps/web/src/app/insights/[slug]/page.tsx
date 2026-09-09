@@ -10,6 +10,7 @@ import { stripDuplicateBlocks } from "../../../lib/article-body.js";
 import { CountView } from "../../../components/CountView.js";
 import Link from "next/link";
 import {
+  absoluteUrl,
   buildMetadata,
   buildPageGraph,
   howToNode,
@@ -341,7 +342,14 @@ export default async function ArticlePage({
       {/* Under the article, where a reader has finished and can decide. It also carries the beacon
           that records the read, which is the only place a page view on a statically generated page
           is actually observable. */}
-      <ArticleEngage slug={article.slug} title={article.title} />
+      {/* The canonical URL is resolved here rather than read from the browser: window.location gives
+          whatever scheme and host the reader happens to be on, which behind the proxy is http, and
+          that is the address that ended up in every share. */}
+      <ArticleEngage
+        slug={article.slug}
+        title={article.title}
+        url={absoluteUrl(`/insights/${article.slug}/`)}
+      />
 
       {article.faq.length > 0 ? (
         <section className="faq-block" aria-labelledby="faq-heading">

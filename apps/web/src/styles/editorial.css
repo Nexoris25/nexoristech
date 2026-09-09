@@ -71,7 +71,21 @@
 .nexoris-site .industry-page .ind-sol-item { border-radius: 0; box-shadow: none; }
 .nexoris-site .scope-editorial { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(32px, 5vw, 64px); margin-top: 40px; align-items: start; }
 .nexoris-site .scope-editorial .cover { margin-top: 0; grid-template-columns: 1fr; }
-.nexoris-site .scope-editorial .context-photo { position: sticky; top: 106px; }
+/*
+ * The photo beside "What we do" travels with the list instead of stranding a hole above it.
+ *
+ * It was already meant to: `position: sticky` has been on the figure all along. It never stuck,
+ * because the row is `align-items: start`, which sizes each grid item to its own content — so the
+ * figure was exactly as tall as the picture, and a sticky box with no room inside its containing
+ * block cannot move. On the longest of these lists, Managed Technology Operations, the result was a
+ * 317px photo beside a 764px column and roughly 450px of empty space under it.
+ *
+ * Stretching the figure to the row and moving the stickiness onto the picture inside it gives the
+ * travel the original rule assumed: the two columns now start and finish together, and the picture
+ * stays in view while the list is read.
+ */
+.nexoris-site .scope-editorial .context-photo { align-self: stretch; position: static; }
+.nexoris-site .scope-editorial .context-photo img { position: sticky; top: 106px; }
 .nexoris-site .service-demo { min-width: 0; }
 .nexoris-site .demo-caption { color: #c6c2d2; font-size: .75rem; line-height: 1.6; margin-bottom: 12px; }
 .nexoris-site .proof-empty { border-block: 1px solid var(--line); padding-block: 28px; max-width: 68ch; }

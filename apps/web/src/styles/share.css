@@ -49,8 +49,9 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-/* X's mark is a filled glyph, not a stroked one. */
-.article-page .share-btn:first-child svg {
+/* Brand marks — X, WhatsApp — are filled glyphs rather than stroked outlines. Named by a class
+   because this used to be :first-child, which quietly meant "whichever button happens to be first". */
+.article-page .share-btn-glyph svg {
   fill: currentColor;
   stroke: none;
 }
