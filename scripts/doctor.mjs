@@ -117,6 +117,58 @@ async function checkHttp(label, base, path = "/", { expect = null, hint = "" } =
   }
 }
 
+/**
+ * Ask Google for an access token the same way the application does, and say which of the three
+ * Application Default Credentials sources answered — or that none did.
+ */
+async function checkGoogleCredential(env) {
+  const props = ["GSC_PROPERTY", "GA4_PROPERTY_ID"].filter((k) => env[k]);
+  if (props.length === 0) return; // The SEO screens are not in use here; nothing to check.
+
+  const keyFile = env.GOOGLE_APPLICATION_CREDENTIALS?.trim() || process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();
+  if (keyFile && !existsSync(keyFile)) {
+    bad(`GOOGLE_APPLICATION_CREDENTIALS points at ${keyFile}, which does not exist`,
+        "Place the service account key there, owned by this user, chmod 600.");
+    return;
+  }
+
+  let GoogleAuth;
+  try {
+    ({ GoogleAuth } = await import(`file://${ROOT}/apps/admin/node_modules/google-auth-library/build/src/index.js`));
+  } catch {
+    GoogleAuth = undefined;
+  }
+  if (typeof GoogleAuth !== "function") {
+    (keyFile ? ok : warn)(
+      "Google credential",
+      keyFile ? `${keyFile} (present; not verified here)` : "google-auth-library unavailable to verify",
+    );
+    return;
+  }
+
+  if (keyFile) process.env.GOOGLE_APPLICATION_CREDENTIALS = keyFile;
+  try {
+    const auth = new GoogleAuth({
+      scopes: [
+        "https://www.googleapis.com/auth/webmasters.readonly",
+        "https://www.googleapis.com/auth/analytics.readonly",
+      ],
+    });
+    const token = await auth.getAccessToken();
+    if (typeof token === "string" && token.length > 0) {
+      ok("Google credential", keyFile ? `key file ${keyFile}` : "found on this host (gcloud or metadata server)");
+    } else {
+      bad("Google credential: a credential was found but returned no token", `${props.join(" and ")} set`);
+    }
+  } catch (e) {
+    bad(
+      "Google credential: none available on this host",
+      `${props.join(" and ")} set, but nothing can be read without an identity.\n        ` +
+        `Set GOOGLE_APPLICATION_CREDENTIALS to a service account key kept outside the repo.\n        ${e.message}`,
+    );
+  }
+}
+
 const rootEnv = readEnvFile(resolve(ROOT, ".env")) ?? {};
 const webEnv = readEnvFile(resolve(ROOT, "apps/web/.env.local"));
 const adminEnv = readEnvFile(resolve(ROOT, "apps/admin/.env.local"));
@@ -171,6 +223,17 @@ if (adminEnv) {
       bad(`MEDIA_STORAGE_PATH ${store} is not writable by this user`, e.message);
     }
   }
+
+  /*
+   * Whether the SEO screens can actually reach Google.
+   *
+   * GSC_PROPERTY and GA4_PROPERTY_ID say which property to read; neither is a credential. The identity
+   * comes from Application Default Credentials, which live on the host and therefore do not travel
+   * with a deployment — a developer's machine has one after `gcloud auth application-default login`,
+   * a plain VPS has none. That asymmetry is invisible: everything looks configured and every SEO
+   * screen quietly reads "not connected".
+   */
+  await checkGoogleCredential(adminEnv);
 
   if (adminEnv.APP_URL && /^https?:\/\/(localhost|127\.)/i.test(adminEnv.APP_URL)) {
     warn("APP_URL is a loopback address", "Ignored in production, so invitation links use the request host. Set it to https://app.nexoristech.com or leave it unset.");

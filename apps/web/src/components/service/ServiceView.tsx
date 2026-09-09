@@ -144,7 +144,12 @@ export function ServiceView({
                 <span className="dot" />
                 {c.hero.kicker}
               </span>
-              <h1>{c.hero.h1}</h1>
+              {/* Accented whole, because the headline comes from content: there is no authored clause
+                  to mark, and picking one by splitting the string would break on the first heading
+                  that does not fit the guess. */}
+              <h1>
+                <span className="hero-accent">{c.hero.h1}</span>
+              </h1>
               <p className="lede">{c.hero.lede}</p>
               <div className="hero-cta">
                 <Link className="btn btn-primary" href={c.hero.primaryCta.href}>

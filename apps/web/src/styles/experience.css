@@ -105,6 +105,28 @@
   aspect-ratio: 4/5;
   max-height: 580px;
 }
+/*
+ * Below the width where the hero becomes one column, About centres like every other page.
+ *
+ * The left alignment above is deliberate and stays on desktop: the headline sits beside a portrait,
+ * and centring text against a photo would look accidental. Once the grid collapses the photo is no
+ * longer beside anything, and About was then the only page in the site still ranged left — the home,
+ * service, industry, careers and how-we-work heroes all centre here. The three declarations undo the
+ * three above; without the auto margins the shared rule cannot take effect, because `margin-inline: 0`
+ * is set at a higher specificity than the mobile rule that would otherwise centre the measure.
+ */
+@media (max-width: 1080px) {
+  .nexoris-site .about-page .hero-inner {
+    text-align: center;
+    align-items: center;
+  }
+  .nexoris-site .about-page .hero-inner :is(h1, .lede) {
+    margin-inline: auto;
+  }
+  .nexoris-site .about-page .hero-cta {
+    justify-content: center;
+  }
+}
 .nexoris-site .about-commitments {
   list-style: none;
   margin: 28px 0 0;

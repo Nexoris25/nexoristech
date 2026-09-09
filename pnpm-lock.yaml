@@ -352,6 +352,9 @@ importers:
       '@nexoris/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: '22'
+        version: 22.10.2
       eslint:
         specifier: 10.10.0
         version: 10.10.0(jiti@1.21.7)

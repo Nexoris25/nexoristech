@@ -522,7 +522,9 @@ export function IndustryView({
                 <span className="dot" />
                 {sector}
               </span>
-              <h1>{hero.h1}</h1>
+              <h1>
+                <span className="hero-accent">{hero.h1}</span>
+              </h1>
               {hero.subline ? <p className="lede">{hero.subline}</p> : null}
               <div className="hero-cta">
                 <Link

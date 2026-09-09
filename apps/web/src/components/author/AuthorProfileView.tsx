@@ -128,7 +128,9 @@ export async function AuthorProfileView({ slug, author }: { slug: string; author
               )}
             </div>
             <div>
-              <h1>{author.name}</h1>
+              <h1>
+                <span className="hero-accent">{author.name}</span>
+              </h1>
               {author.role ? (
                 <div className="roles">
                   <span className="role">{author.role}</span>

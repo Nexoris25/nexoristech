@@ -101,7 +101,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
           </nav>
           <div className="cs-head">
             {study.industry ? <span className="cat-pill">{study.industry}</span> : null}
-            <h1>{study.title}</h1>
+            <h1>
+              <span className="hero-accent">{study.title}</span>
+            </h1>
             {study.summary ? <p className="sub">{study.summary}</p> : null}
           </div>
         </div>

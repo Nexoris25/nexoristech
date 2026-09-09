@@ -109,7 +109,9 @@ export default function MeetOgePage(): ReactNode {
                 <span className="dot" />
                 The website assistant
               </span>
-              <h1>Meet Oge.</h1>
+              <h1>
+                Meet <span className="hero-accent">Oge.</span>
+              </h1>
               <p className="lede">
                 Oge is the assistant on the Nexoris Technologies website. It answers from our own
                 pages, points you to the right service, and connects you to a person when you are

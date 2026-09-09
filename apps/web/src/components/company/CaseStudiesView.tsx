@@ -55,7 +55,9 @@ export function CaseStudiesView({ studies = [] }: { studies?: CaseStudyCard[] })
               <span className="dot" />
               Our work
             </span>
-            <h1>Software built for real work.</h1>
+            <h1>
+              Software built <span className="hero-accent">for real work.</span>
+            </h1>
             <p className="lede">
               Explore our own products and published client work, with the context behind each build.
             </p>

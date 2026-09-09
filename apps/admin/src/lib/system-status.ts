@@ -11,6 +11,7 @@ import { cmsDb } from "./cms-db.js";
 import { ogeDb } from "./oge-db.js";
 import { existsSync, statSync } from "node:fs";
 import { mediaDir, mediaIsExternal } from "./media-storage.js";
+import { googleAccessToken } from "./google/auth.js";
 
 export type Health = "up" | "down" | "not-configured" | "unknown";
 
@@ -98,17 +99,37 @@ async function checkFiscalQueue(): Promise<ServiceCheck> {
   }
 }
 
-/** Search Console and Analytics answer only when credentials are present. */
-function checkGoogle(): ServiceCheck {
+/**
+ * Search Console and Analytics answer only when a property is named *and* a credential can be
+ * obtained. This used to report on the property names alone, which made it confidently wrong in the
+ * one situation it exists to catch: after the first VPS deployment it read "Both properties
+ * configured · up" while every SEO screen said "not connected", because the property names travel in
+ * the environment and the credential does not.
+ *
+ * Nothing here is a secret. Application Default Credentials are discovered from the host — a key file
+ * named by GOOGLE_APPLICATION_CREDENTIALS, the file `gcloud auth application-default login` writes
+ * into the user's profile, or a Google-hosted metadata server. A developer's laptop has the second
+ * after a one-off login; a plain VPS has none of them unless a key is placed on it, so the credential
+ * silently stays behind at deploy time. Asking for a token is the only way to know.
+ */
+async function checkGoogle(): Promise<ServiceCheck> {
+  const name = "Google Search Console and Analytics";
   const gsc = Boolean(process.env.GSC_PROPERTY);
   const ga4 = Boolean(process.env.GA4_PROPERTY_ID);
-  if (gsc && ga4) return { name: "Google Search Console and Analytics", health: "up", detail: "Both properties configured" };
-  if (!gsc && !ga4) return { name: "Google Search Console and Analytics", health: "not-configured", detail: "Neither property is set" };
-  return {
-    name: "Google Search Console and Analytics",
-    health: "not-configured",
-    detail: gsc ? "GA4_PROPERTY_ID is not set" : "GSC_PROPERTY is not set",
-  };
+  const missing = [!gsc ? "GSC_PROPERTY" : "", !ga4 ? "GA4_PROPERTY_ID" : ""].filter(Boolean);
+  if (missing.length === 2) return { name, health: "not-configured", detail: "Neither property is set" };
+
+  // A property without a credential reads as configured and returns nothing, so check the credential.
+  const token = await googleAccessToken();
+  if (!token) {
+    return {
+      name,
+      health: "not-configured",
+      detail: "No Google credential on this host — set GOOGLE_APPLICATION_CREDENTIALS to a service account key",
+    };
+  }
+  if (missing.length) return { name, health: "not-configured", detail: `Credential ok · ${missing[0]} is not set` };
+  return { name, health: "up", detail: "Both properties configured · credential ok" };
 }
 
 /** How long a knowledge base may go unrefreshed before it is worth saying so. */
@@ -170,14 +191,15 @@ function describeOrigin(value: string | undefined): string {
 }
 
 export async function systemStatus(): Promise<{ services: ServiceCheck[]; info: SystemInfo[] }> {
-  const [adminDb, contentDb, oge, queue, kb] = await Promise.all([
+  const [adminDb, contentDb, oge, queue, kb, google] = await Promise.all([
     checkPostgres(db, "Admin database"),
     checkPostgres(cmsDb, "Content database"),
     checkOge(),
     checkFiscalQueue(),
     checkKnowledgeBase(),
+    checkGoogle(),
   ]);
-  const services = [adminDb, contentDb, oge, kb, checkStorage(), queue, checkGoogle()];
+  const services = [adminDb, contentDb, oge, kb, checkStorage(), queue, google];
 
   const info: SystemInfo[] = [
     { key: "Environment", value: process.env.NODE_ENV === "production" ? "Production" : "Development" },

@@ -59,7 +59,9 @@ export async function LegalPageView({
               <span className="dot" />
               Legal
             </span>
-            <h1>{title}</h1>
+            <h1>
+            <span className="hero-accent">{title}</span>
+          </h1>
             {page?.intro ? <p>{page.intro}</p> : null}
             {page?.effectiveDate ? (
               <div className="legal-meta">

@@ -54,8 +54,17 @@ loopback address in production so a development value left behind is visible.
 - Search: `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY`.
 - Media: `CMS_MEDIA_BASE` — where uploaded media is served from in production.
 - Google, for the SEO screens: `GSC_PROPERTY` (e.g. `sc-domain:nexoristech.com`),
-  `GA4_PROPERTY_ID` (the numeric id), and Application Default Credentials on the host. No
-  JSON key is downloaded or committed.
+  `GA4_PROPERTY_ID` (the numeric id), and — on a server — `GOOGLE_APPLICATION_CREDENTIALS`.
+  The first two say which property to read and are not credentials. The identity comes from
+  Application Default Credentials, discovered from the host: a key file named by
+  `GOOGLE_APPLICATION_CREDENTIALS`, else the file `gcloud auth application-default login` writes
+  into the user's profile, else a Google-hosted metadata server. A developer's machine has the
+  second after a one-off login, which is why this needs nothing locally — and why it is easy to
+  miss that a deployment carries the property names but not the credential. A plain VPS has none
+  of them, so point the variable at a service account key held outside the repository
+  (`/etc/nexoris/google-sa.json`, mode 600, owned by the user running the admin). The key is never
+  committed. Confirm in Global Settings, System: the Google row says "credential ok" only when a
+  token was actually obtained.
 - Search engines: `INDEXNOW_KEY`.
 - Gateway: `OGE_PORT`.
 - Seeding the first administrator, once: `ADMIN_SEED_EMAIL`, `ADMIN_SEED_NAME`,

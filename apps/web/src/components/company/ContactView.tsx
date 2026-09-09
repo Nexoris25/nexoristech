@@ -71,7 +71,9 @@ export function ContactView(): ReactNode {
               <span className="dot" />
               Start a project
             </span>
-            <h1>Tell us what you are trying to achieve.</h1>
+            <h1>
+              Tell us <span className="hero-accent">what you are trying to achieve.</span>
+            </h1>
             <p className="lede">
               Share what you are trying to achieve. We will reply within one business day with a
               short scoping call, a suggested approach, and a realistic sense of timeline and cost.

@@ -93,7 +93,9 @@ export default async function JobPage({
           </nav>
           <div className="job-head">
             {job.department ? <span className="team-pill">{job.department}</span> : null}
-            <h1>{job.title}</h1>
+            <h1>
+              <span className="hero-accent">{job.title}</span>
+            </h1>
             <div className="job-facts">
               {job.location ? (
                 <span className="fact">
