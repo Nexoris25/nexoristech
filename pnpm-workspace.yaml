@@ -1,3 +1,50 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Dependency version pins.
+#
+# Moved here from the "pnpm" field in package.json: from pnpm 10 onwards that field is no longer
+# read, and pnpm 12 ignores it with a warning rather than an error. Every entry below is a floor
+# raised deliberately — most of them to pull a transitive dependency past a published advisory — so
+# losing them silently would have quietly reintroduced the vulnerabilities they were added for.
+overrides:
+  "@types/react": "19.0.2"
+  "@types/react-dom": "19.0.2"
+  sharp: "^0.35.3"
+  multer: "^2.2.0"
+  nanoid: "^3.3.17"
+  postcss: "^8.5.26"
+  esbuild: "^0.25.0"
+  qs: "^6.15.2"
+  body-parser: "^1.20.6"
+  tmp: "^0.2.6"
+  cookie: "^0.7.0"
+  ip-address: "^10.3.1"
+  "@eslint/plugin-kit": "^0.3.4"
+  playwright: "^1.62.1"
+  "@playwright/test": "^1.62.1"
+  "brace-expansion@1": "^1.1.18"
+  "brace-expansion@2": "^2.1.4"
+  "js-yaml@3": "^3.15.1"
+  "js-yaml@4": "^4.3.1"
+  "path-to-regexp@0.1": "^0.1.13"
+  vite: "^6.4.3"
+  uuid: "^11.1.1"
+
+# Dependencies allowed to run install scripts.
+#
+# pnpm 10 stopped running dependency lifecycle scripts by default, which is a good default: an
+# install script is arbitrary code from the supply chain. esbuild is the only dependency in this
+# tree with a real one — it fetches its platform binary, and without it every vitest run and the
+# admin build fail to start. Everything else that looked like a candidate only has "prepare", which
+# npm does not run for published packages.
+#
+# sharp is deliberately absent: 0.35 ships prebuilt platform packages as optional dependencies and
+# needs no build step, so the WebP pipeline is unaffected by this setting.
+#
+# pnpm 12 spells this "allowBuilds", a map, rather than pnpm 10's "onlyBuiltDependencies" list.
+# Anything not named here is refused a build and the install fails loudly rather than producing a
+# tree that is quietly missing a binary.
+allowBuilds:
+  esbuild: true

@@ -2,8 +2,12 @@
  * Security floors for transitive dependencies we do not control directly.
  *
  * These packages reach the repo only through a parent that pins them behind a known advisory, and
- * cannot be fixed by upgrading that parent. Each is lifted by pnpm.overrides in the root
- * package.json, which deliberately breaks the parent's declared range.
+ * cannot be fixed by upgrading that parent. Each is lifted by an entry under `overrides:` in
+ * pnpm-workspace.yaml, which deliberately breaks the parent's declared range.
+ *
+ * They lived in the root package.json's `pnpm` field until the upgrade to pnpm 12, which stopped
+ * reading that field — it warns and carries on, so the pins would have vanished from the install
+ * with nothing failing. This test is what caught the move, which is the entire reason it exists.
  *
  * The two that run in production are worth naming:
  *
@@ -26,14 +30,38 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-interface RootManifest {
-  pnpm?: { overrides?: Record<string, string> };
+const root = resolve(import.meta.dirname, "../../..");
+
+/**
+ * The `overrides:` block of pnpm-workspace.yaml, as a plain map.
+ *
+ * Read with a small parser rather than a YAML dependency: the block is a flat map of string to
+ * string, and this test's job is to notice an entry being deleted or weakened, which does not need
+ * a general parser. Keys and values may be quoted — `"@types/react"` must be, and version ranges
+ * beginning with `^` must be — so quotes are stripped from both.
+ */
+function readOverrides(): Record<string, string> {
+  const yaml = readFileSync(resolve(root, "pnpm-workspace.yaml"), "utf8");
+  const out: Record<string, string> = {};
+  let inBlock = false;
+  for (const line of yaml.split(/\r?\n/)) {
+    if (/^overrides:\s*$/.test(line)) {
+      inBlock = true;
+      continue;
+    }
+    if (!inBlock) continue;
+    // The block ends at the next line that starts in column zero and is not a comment.
+    if (/^\S/.test(line)) break;
+    const m = /^\s+(?:"([^"]+)"|'([^']+)'|([^\s:#]+))\s*:\s*(?:"([^"]*)"|'([^']*)'|(\S+))\s*$/.exec(line);
+    if (!m) continue;
+    const key = m[1] ?? m[2] ?? m[3];
+    const value = m[4] ?? m[5] ?? m[6];
+    if (key !== undefined && value !== undefined) out[key] = value;
+  }
+  return out;
 }
 
-const root = resolve(import.meta.dirname, "../../..");
-const overrides = (
-  JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as RootManifest
-).pnpm?.overrides ?? {};
+const overrides = readOverrides();
 
 /** Lowest version that carries the fix, as major/minor/patch. */
 const FLOORS: Record<string, [number, number, number]> = {
@@ -79,7 +107,7 @@ describe("pnpm overrides keep patched versions of pinned transitive dependencies
   for (const [name, floor] of Object.entries(FLOORS)) {
     it(`pins ${name} at or above ${floor.join(".")}`, () => {
       const range = overrides[name];
-      expect(range, `pnpm.overrides.${name} is missing from the root package.json`).toBeDefined();
+      expect(range, `overrides.${name} is missing from pnpm-workspace.yaml`).toBeDefined();
       expect(
         atLeast(lowerBound(range as string), floor),
         `${name} override "${range}" is below the patched ${floor.join(".")}`,
