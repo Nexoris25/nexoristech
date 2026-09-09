@@ -6,7 +6,12 @@
  * says anything useful in the browser — the sign-in button appears to do nothing, and the images are
  * simply absent — so this asks every question directly and prints the answer.
  *
- * Run it on the server, from the repository root:  node scripts/doctor.mjs
+ * Run it on the server, from the repository root:  pnpm check:deploy
+ * (or directly:  node scripts/doctor.mjs)
+ *
+ * The script is deliberately not called "doctor" any more. pnpm 12 has a built-in `pnpm doctor`
+ * that reports on the package manager's own health, and it shadows a script of that name — so
+ * `pnpm doctor` silently answered "All checks passed" about pnpm while this file never ran.
  *
  * It never prints a password, a key or a token. Connection strings are shown with the credentials
  * replaced, because the host and port are the part worth reading.
