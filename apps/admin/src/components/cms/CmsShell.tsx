@@ -17,6 +17,7 @@ import {
   Bell, HelpCircle, X, Sparkles,
 } from "lucide-react";
 import { PLATFORM_VERSION } from "../../lib/version.js";
+import { AccountMenu } from "../AccountMenu.js";
 
 type Icon = ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
 interface Item { icon: Icon; label: string; href: string }
@@ -84,11 +85,8 @@ function isActive(pathname: string, href: string): boolean {
   if (href === "/cms/ai") return pathname === "/cms/ai";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
-function initials(name: string): string {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
-}
 
-function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate: () => void }): ReactNode {
+function Sidebar({ staff, pathname, onNavigate }: { staff: { name: string; role: string }; pathname: string; onNavigate: () => void }): ReactNode {
   return (
     <>
       <Link href="/dashboard" className="flex items-center gap-2.5 px-4 py-4" title="Back to the platform">
@@ -100,6 +98,16 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate: () =>
           <NavGroup key={group.section ?? `g${gi}`} group={group} pathname={pathname} onNavigate={onNavigate} />
         ))}
       </nav>
+      {/* The signed-in person sits at the foot of the rail here too, where the dashboard puts them,
+          so the same thing is in the same place whichever shell you are in. */}
+      <div className="border-t border-slate-200 px-3 py-3">
+        <AccountMenu
+          staff={staff}
+          variant="sidebar"
+          settingsHref="/cms/settings"
+          roleLabel={staff.role === "admin" ? "Super Admin" : staff.role}
+        />
+      </div>
     </>
   );
 }
@@ -149,7 +157,7 @@ export function CmsShell({ staff, notifications, notificationItems = [], childre
   return (
     <div className="min-h-screen bg-slate-50 lg:flex">
       <aside className="sticky top-0 hidden h-screen w-[13.2rem] shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
-        <Sidebar pathname={pathname} onNavigate={() => undefined} />
+        <Sidebar staff={staff} pathname={pathname} onNavigate={() => undefined} />
       </aside>
 
       {mobileOpen ? (
@@ -157,7 +165,7 @@ export function CmsShell({ staff, notifications, notificationItems = [], childre
           <button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)} className="absolute inset-0 cursor-pointer bg-black/40" />
           <aside className="absolute inset-y-0 left-0 flex w-[82%] max-w-[300px] flex-col overflow-y-auto border-r border-slate-200 bg-white">
             <button type="button" aria-label="Close" onClick={() => setMobileOpen(false)} className="absolute right-3 top-4 rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"><X size={18} /></button>
-            <Sidebar pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+            <Sidebar staff={staff} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
           </aside>
         </div>
       ) : null}
@@ -203,14 +211,14 @@ export function CmsShell({ staff, notifications, notificationItems = [], childre
               ) : null}
             </div>
             <Link href="/cms/settings" aria-label="Help and settings" className="hidden h-9 w-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 sm:grid"><HelpCircle size={18} /></Link>
-            <div className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-1.5">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#14112e] font-mono text-[0.64rem] font-700 text-white">{initials(staff.name)}</span>
-              <span className="hidden leading-tight md:block">
-                <span className="block max-w-[130px] truncate text-[0.8rem] font-600 text-slate-900">{staff.name}</span>
-                <span className="block text-[0.66rem] capitalize text-slate-500">{staff.role === "admin" ? "Super Admin" : staff.role}</span>
-              </span>
-              <ChevronDown size={14} className="hidden text-slate-500 md:block" />
-            </div>
+            {/* Was a plain div with a chevron: it looked like the dashboard's account menu and did
+                nothing, which left every CMS route with no way to reach a profile or sign out. */}
+            <AccountMenu
+              staff={staff}
+              variant="header"
+              settingsHref="/cms/settings"
+              roleLabel={staff.role === "admin" ? "Super Admin" : staff.role}
+            />
           </div>
         </header>
 

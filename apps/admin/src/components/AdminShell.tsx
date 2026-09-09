@@ -33,10 +33,8 @@ import {
   HandCoins,
   Inbox,
   LayoutDashboard,
-  LayoutGrid,
   Lightbulb,
   ListChecks,
-  LogOut,
   Menu,
   Newspaper,
   PanelLeft,
@@ -64,6 +62,7 @@ import {
 } from "lucide-react";
 import { isExecutive } from "../lib/crm-constants.js";
 import { Dropdown } from "./Dropdown.js";
+import { AccountMenu } from "./AccountMenu.js";
 import { OgeWidget } from "./OgeWidget.js";
 
 type Icon = ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
@@ -246,9 +245,6 @@ function dashboardsFor(role: string): { label: string; href: string }[] {
     .map((d) => ({ label: d.label, href: d.href }));
 }
 
-function initials(name: string): string {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
-}
 
 /** True when this entry is the current section. Exact-match roots (like /crm) never swallow their
  *  own children (/crm/companies), so only one item is ever highlighted. */
@@ -329,15 +325,32 @@ function SidebarNav({
 }): ReactNode {
   const activeId = activeModuleId(pathname);
   const modules = MODULES.filter((m) => canSee(m, role, access));
-  // Each module with children expands in place (the CMS accordion pattern) so its sub-screens are one
-  // click away without navigating first. An untouched module follows the active screen; once the user
-  // toggles a module, their choice sticks — and persists across reloads via localStorage.
+  /*
+   * Each module with children expands in place, so its sub-screens are one click away without
+   * navigating there first. An untouched module follows the active screen: the one you are in opens,
+   * the rest stay shut.
+   *
+   * The remembered state is scoped to the module you are in, and that is the point. It used to be
+   * remembered for every module at once and kept in localStorage, so opening the CMS once left
+   * `cms: true` on record for good — and from then on the CMS stood open on the dashboard home, and
+   * on every other module's screens, while the modules nobody had touched sat correctly collapsed.
+   * One expanded section among collapsed ones reads as a deliberate difference, and it was not.
+   *
+   * Reloading the storage whenever the active module changes prunes it back to that module, so a
+   * choice still survives a reload while you are working inside a module and cannot follow you out.
+   */
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    try { const raw = localStorage.getItem("nx-nav-open"); if (raw) setOpen(JSON.parse(raw) as Record<string, boolean>); } catch { /* ignore */ }
+    let saved: Record<string, boolean> = {};
+    try {
+      const raw = localStorage.getItem("nx-nav-open");
+      if (raw) saved = JSON.parse(raw) as Record<string, boolean>;
+    } catch { /* unreadable or not JSON; treat as nothing remembered */ }
+    const remembered = saved[activeId];
+    setOpen(typeof remembered === "boolean" ? { [activeId]: remembered } : {});
     setLoaded(true);
-  }, []);
+  }, [activeId]);
   useEffect(() => {
     if (!loaded) return;
     try { localStorage.setItem("nx-nav-open", JSON.stringify(open)); } catch { /* ignore */ }
@@ -450,32 +463,9 @@ export function AdminShell({ staff, unread, notifications, access, children }: {
           <SidebarNav role={staff.role} access={access} pathname={pathname} collapsed={isCollapsed} onNavigate={() => setMobileOpen(false)} />
         </div>
 
-        {/* Signed-in user chip, per the design */}
+        {/* Signed-in user chip, per the design. Same menu as the top bar — see AccountMenu. */}
         <div className="mt-4 border-t border-slate-200 pt-3">
-          <Dropdown
-            panelClassName="w-[200px] bottom-full mb-1"
-            buttonClassName={`flex w-full items-center rounded-xl py-2 text-left hover:bg-slate-100 ${isCollapsed ? "justify-center px-0" : "gap-2.5 px-2"}`}
-            label={
-              <>
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#14112e] font-mono text-[0.66rem] font-700 text-white">{initials(staff.name)}</span>
-                {!isCollapsed ? (
-                  <>
-                    <span className="min-w-0 flex-1 leading-tight">
-                      <span className="block truncate text-[0.82rem] font-600 text-slate-900">{staff.name}</span>
-                      <span className="block truncate text-[0.68rem] capitalize text-slate-500">{staff.role}</span>
-                    </span>
-                    <ChevronDown size={14} strokeWidth={2.2} className="shrink-0 text-slate-500" />
-                  </>
-                ) : null}
-              </>
-            }
-          >
-            <Link href="/complete-profile" className={MENU_ITEM}><UserCog size={15} strokeWidth={2} /> Profile</Link>
-            <Link href="/settings" className={MENU_ITEM}><Settings size={15} strokeWidth={2} /> Settings</Link>
-            <form action="/api/auth/logout" method="post" className="border-t border-slate-100">
-              <button type="submit" className={`${MENU_ITEM} w-full text-left text-red-600`}><LogOut size={15} strokeWidth={2} /> Logout</button>
-            </form>
-          </Dropdown>
+          <AccountMenu staff={staff} variant="sidebar" collapsed={isCollapsed} />
         </div>
       </>
     );
@@ -576,34 +566,7 @@ export function AdminShell({ staff, unread, notifications, access, children }: {
               <Link href="/action-center" className="block border-t border-slate-100 px-3 py-2 text-center text-[0.8rem] font-600 text-[#543CDA] hover:bg-slate-50">View all</Link>
             </Dropdown>
 
-            <Dropdown
-              align="right"
-              panelClassName="w-[220px]"
-              buttonClassName="flex cursor-pointer items-center gap-2 rounded-full py-1 pl-1 pr-1 hover:bg-slate-50"
-              buttonLabel={`Account menu for ${staff.name}`}
-              label={
-                <>
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#14112e] font-mono text-[0.66rem] font-700 text-white">{initials(staff.name)}</span>
-                  <span className="hidden leading-tight md:block">
-                    <span className="block max-w-[120px] truncate text-[0.8rem] font-600 text-slate-900">{staff.name}</span>
-                    <span className="block text-[0.68rem] capitalize text-slate-500">{staff.role}</span>
-                  </span>
-                  <ChevronDown size={14} strokeWidth={2.2} className="hidden text-slate-500 md:block" />
-                </>
-              }
-            >
-              <div className="border-b border-slate-100 px-3 py-2">
-                <p className="truncate text-[0.84rem] font-600 text-slate-900">{staff.name}</p>
-                <p className="text-[0.72rem] capitalize text-slate-500">{staff.role}</p>
-              </div>
-              <Link href="/complete-profile" className={MENU_ITEM}><UserCog size={15} strokeWidth={2} /> Profile</Link>
-              <Link href="/account" className={MENU_ITEM}><KeyRound size={15} strokeWidth={2} /> Your account</Link>
-              <Link href="/users/sessions" className={MENU_ITEM}><LayoutGrid size={15} strokeWidth={2} /> Active sessions</Link>
-              <Link href="/settings" className={MENU_ITEM}><Settings size={15} strokeWidth={2} /> Settings</Link>
-              <form action="/api/auth/logout" method="post" className="border-t border-slate-100">
-                <button type="submit" className={`${MENU_ITEM} w-full text-left text-red-600`}><LogOut size={15} strokeWidth={2} /> Sign out</button>
-              </form>
-            </Dropdown>
+            <AccountMenu staff={staff} variant="header" />
           </div>
         </header>
 
