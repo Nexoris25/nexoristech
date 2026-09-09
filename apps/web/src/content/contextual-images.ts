@@ -93,10 +93,6 @@ export const productTeamImage = photo(
   "product-team",
   "Designers and engineers reviewing interface wireframes together",
 );
-export const systemsImage = photo(
-  "systems",
-  "A technology operations engineer inspecting network equipment",
-);
 export const serviceImages: Record<string, ContextualImage> = {
   "/ai-chatbots-virtual-assistants": photo(
     "support-desk",
@@ -118,7 +114,15 @@ export const serviceImages: Record<string, ContextualImage> = {
     "search-editorial",
     "A content strategist and search analyst planning topic groups and search content",
   ),
-  "/managed-technology-operations": systemsImage,
+  /*
+   * The previous image here was a server room — an engineer at a network rack. That is data-centre
+   * hardware, and this page sells software maintenance: monitoring, patching, releases and support.
+   * The picture now shows the work the six points beside it describe.
+   */
+  "/managed-technology-operations": photo(
+    "managed-technology-operations",
+    "Two engineers reviewing an application monitoring dashboard showing uptime, error rate and recently applied security patches",
+  ),
 };
 
 /** Authentic photographs; source, photographer and license recorded in photography/CREDITS.md. */
