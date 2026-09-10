@@ -75,11 +75,20 @@ export async function middleware(request: NextRequest, event: NextFetchEvent): P
   const rules = await loadRules(request.nextUrl.origin);
   if (rules.length === 0) return NextResponse.next();
 
-  const hit = matchRedirect(request.nextUrl.pathname, rules);
+  // The forwarded host is what the visitor actually typed; behind the proxy nextUrl carries the
+  // internal one, and a www rule has to be judged on the public host or it can never fire.
+  const host = (request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host).toLowerCase();
+  const hit = matchRedirect(request.nextUrl.pathname, rules, host);
   if (!hit) return NextResponse.next();
 
-  // Redirecting the home page would take the whole site down, whatever the rule says.
-  if (request.nextUrl.pathname === "/" && hit.rule.pattern === "Exact match") return NextResponse.next();
+  /*
+   * Redirecting the home page of every host would take the whole site down, so a rule that is not
+   * scoped to a host is never allowed to do it. A host-scoped one is a different thing entirely, and
+   * is the commonest redirect there is: www to the canonical domain, root included.
+   */
+  if (request.nextUrl.pathname === "/" && hit.rule.pattern === "Exact match" && !hit.rule.host) {
+    return NextResponse.next();
+  }
 
   const status = statusFor(hit.rule.type);
   countHit(event, request.nextUrl.origin, hit.rule.id);

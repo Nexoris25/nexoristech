@@ -38,20 +38,23 @@ export async function POST(request: NextRequest): Promise<Response> {
   const values = [
     input.oldUrl, input.newUrl || null, input.type, input.status, input.notes,
     input.pattern, input.caseSensitivity, input.slashHandling, input.expiryDate,
+    input.startDate, input.sourceHost,
   ];
 
   if (id) {
     await pool.query(
       `UPDATE cms_redirect
           SET old_url=$1, new_url=$2, type=$3, status=$4, notes=$5,
-              pattern=$6, case_sensitivity=$7, slash_handling=$8, expiry_date=$9
-        WHERE id=$10`,
+              pattern=$6, case_sensitivity=$7, slash_handling=$8, expiry_date=$9,
+              start_date=$10, source_host=$11
+        WHERE id=$12`,
       [...values, id]);
   } else {
     await pool.query(
       `INSERT INTO cms_redirect
-         (old_url, new_url, type, status, notes, pattern, case_sensitivity, slash_handling, expiry_date)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+         (old_url, new_url, type, status, notes, pattern, case_sensitivity, slash_handling,
+          expiry_date, start_date, source_host)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       values);
   }
 

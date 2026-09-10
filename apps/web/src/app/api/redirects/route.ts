@@ -31,13 +31,14 @@ interface Row {
   slash_handling: string;
   expiry_date: string | null;
   start_date: string | null;
+  source_host: string | null;
 }
 
 export async function GET(): Promise<Response> {
   try {
     const { rows } = await cmsDb().query<Row>(
       `SELECT id, old_url, new_url, type, pattern, case_sensitivity, slash_handling,
-              expiry_date::text AS expiry_date, start_date::text AS start_date
+              expiry_date::text AS expiry_date, start_date::text AS start_date, source_host
          FROM cms_redirect
         WHERE status = 'Active' AND old_url IS NOT NULL
         ORDER BY created_at
@@ -47,6 +48,7 @@ export async function GET(): Promise<Response> {
     const redirects: RedirectRule[] = rows
       .map((r) => ({
         id: r.id,
+        host: r.source_host ? r.source_host.toLowerCase() : null,
         source: r.old_url.trim(),
         destination: (r.new_url ?? "").trim(),
         type: (["301", "302", "307", "410"].includes(r.type) ? r.type : "301") as RedirectType,

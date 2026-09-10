@@ -39,7 +39,7 @@ export default async function EditRedirectPage({
 
   const { rows } = await cmsDb().query<Row>(
     `SELECT id, old_url, new_url, type, status, notes, pattern, case_sensitivity, slash_handling,
-            start_date::text AS start_date, expiry_date::text AS expiry_date,
+            start_date::text AS start_date, expiry_date::text AS expiry_date, source_host,
             hits, last_used::text AS last_used
        FROM cms_redirect WHERE id = $1 LIMIT 1`,
     [id]);
@@ -47,6 +47,21 @@ export default async function EditRedirectPage({
   if (!row) notFound();
 
   const used = row.last_used ? new Date(row.last_used).toLocaleString("en-NG") : "never";
+
+  /*
+   * A host-scoped rule is shown as the whole URL it was written as.
+   *
+   * The host lives in its own column, so the field would otherwise show only the path — and saving
+   * that back would re-derive the host from what is in the field, find none, and quietly un-scope the
+   * rule. A www rule would silently become one that fires on every host, which is the failure this
+   * scoping exists to prevent.
+   */
+  const values: RedirectValues = {
+    ...row,
+    old_url: row.source_host && row.pattern !== "Pattern match (RegEx)"
+      ? `https://${row.source_host}${row.old_url ?? "/"}`
+      : (row.old_url ?? ""),
+  };
 
   return (
     <div>
@@ -58,7 +73,7 @@ export default async function EditRedirectPage({
         <MousePointerClick size={14} />
         Served {Number(row.hits ?? 0).toLocaleString("en-NG")} time{Number(row.hits ?? 0) === 1 ? "" : "s"} · last used {used}
       </p>
-      <RedirectForm values={row} {...(error ? { error } : {})} />
+      <RedirectForm values={values} {...(error ? { error } : {})} />
     </div>
   );
 }

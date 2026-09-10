@@ -18,6 +18,7 @@ import {
 
 const rule = (over: Partial<RedirectRule> = {}): RedirectRule => ({
   id: "11111111-1111-4111-8111-111111111111",
+  host: null,
   source: "/old/",
   destination: "/new/",
   type: "301",
@@ -104,6 +105,40 @@ describe("matchRedirect", () => {
 
   it("returns null when nothing matches", () => {
     expect(matchRedirect("/untouched/", [rule()])).toBeNull();
+  });
+
+  it("fires a host-scoped rule only on that host", () => {
+    // www to the canonical domain: the paths are identical on purpose, so without the host scope
+    // this rule would also fire on the canonical host and send a page to itself.
+    const rules = [rule({
+      host: "www.nexoristech.com",
+      source: "/pricing/",
+      destination: "https://nexoristech.com/pricing/",
+    })];
+    expect(matchRedirect("/pricing/", rules, "www.nexoristech.com")?.destination)
+      .toBe("https://nexoristech.com/pricing/");
+    expect(matchRedirect("/pricing/", rules, "nexoristech.com")).toBeNull();
+  });
+
+  it("compares the host without regard to case", () => {
+    const rules = [rule({ host: "www.nexoristech.com" })];
+    expect(matchRedirect("/old/", rules, "WWW.NexorisTech.com")).not.toBeNull();
+  });
+
+  it("keeps matching every host when no host is set", () => {
+    expect(matchRedirect("/old/", [rule()], "anything.example.com")).not.toBeNull();
+  });
+
+  it("moves a whole host with one pattern rule", () => {
+    const rules = [rule({
+      host: "www.nexoristech.com",
+      pattern: "Pattern match (RegEx)",
+      source: "^(/.*)$",
+      destination: "https://nexoristech.com$1",
+    })];
+    expect(matchRedirect("/any/deep/page", rules, "www.nexoristech.com")?.destination)
+      .toBe("https://nexoristech.com/any/deep/page");
+    expect(matchRedirect("/any/deep/page", rules, "nexoristech.com")).toBeNull();
   });
 });
 

@@ -29,6 +29,7 @@ export interface RedirectValues {
   slash_handling?: string;
   pattern?: string;
   notes?: string | null;
+  source_host?: string | null;
 }
 
 export function RedirectForm({ values = {}, error }: { values?: RedirectValues; error?: string }): ReactNode {
@@ -53,9 +54,17 @@ export function RedirectForm({ values = {}, error }: { values?: RedirectValues; 
               placeholder="/old-page-url or https://nexoristech.com/old-page-url"
               className={`${field} font-mono`} />
             <span className="text-[0.74rem] text-slate-500">
-              A path or a full URL — a full URL is reduced to its path. For a RegEx rule, write the
-              expression instead, such as <code className="font-mono">^/blog/(.+)$</code>.
+              A path, or a full URL. Give a full URL and the rule fires only on that host — which is
+              how you send <code className="font-mono">www.nexoristech.com</code> to the canonical
+              domain. A bare path matches on every host. For a RegEx rule, write the expression
+              instead, such as <code className="font-mono">^/blog/(.+)$</code>.
             </span>
+            {values.source_host ? (
+              <span className="text-[0.74rem] text-slate-600">
+                Scoped to host <code className="font-mono font-600">{values.source_host}</code> — it
+                will not fire on any other host. Remove the host from the field above to match everywhere.
+              </span>
+            ) : null}
           </label>
           <label className="flex flex-col gap-1.5">
             <span className={label}>Destination URL</span>

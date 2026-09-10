@@ -15,6 +15,14 @@ export type MatchPattern = "Exact match" | "Pattern match (RegEx)";
 
 export interface RedirectRule {
   id: string;
+  /**
+   * The host this rule applies to, lower-cased, or null for every host.
+   *
+   * Without it a www-to-canonical rule is impossible to express safely: the source and destination
+   * paths are identical on purpose, so a path-only rule fires on the canonical host too and sends a
+   * page to itself. Scoped to a host, it fires only where it is meant to.
+   */
+  host: string | null;
   /** A path for an exact rule; a regular expression source for a pattern rule. */
   source: string;
   /** A path, or an absolute URL for an off-site redirect. Empty for a 410. */
@@ -89,8 +97,16 @@ function substitute(destination: string, groups: RegExpExecArray): string {
  * Exact rules are tried before patterns: they are the common case, they are unambiguous, and an
  * editor who wrote both would expect the specific one to win over the general one.
  */
-export function matchRedirect(requestPath: string, rules: RedirectRule[]): RedirectHit | null {
-  const exact = rules.filter((r) => r.pattern === "Exact match");
+export function matchRedirect(
+  requestPath: string,
+  rules: RedirectRule[],
+  requestHost?: string,
+): RedirectHit | null {
+  const host = (requestHost ?? "").toLowerCase();
+  // A rule with no host still matches everywhere, which is what every existing rule means.
+  const applies = rules.filter((r) => !r.host || r.host === host);
+
+  const exact = applies.filter((r) => r.pattern === "Exact match");
   for (const rule of exact) {
     const path = normalisePath(requestPath, rule.exactSlash);
     const source = normalisePath(rule.source, rule.exactSlash);
@@ -98,7 +114,7 @@ export function matchRedirect(requestPath: string, rules: RedirectRule[]): Redir
     if (same) return { rule, destination: rule.destination };
   }
 
-  for (const rule of rules) {
+  for (const rule of applies) {
     if (rule.pattern !== "Pattern match (RegEx)") continue;
     const re = compilePattern(rule);
     if (!re) continue;

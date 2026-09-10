@@ -22,6 +22,15 @@ export type MatchPattern = (typeof MATCH_PATTERNS)[number];
 
 export interface FieldResult {
   value: string;
+  /**
+   * The host the rule is scoped to, when the editor gave a full URL.
+   *
+   * This is what makes a www-to-canonical redirect expressible. Without it the host was discarded and
+   * the rule matched on every host, so `https://www.example.com/pricing/ -> https://example.com/pricing/`
+   * also fired on the canonical host — redirecting a page to itself. Null means "any host", which is
+   * what a plain path has always meant.
+   */
+  host?: string | null;
   /** A reason to reject, or null when the value is usable. */
   error: string | null;
 }
@@ -56,17 +65,24 @@ export function normaliseSource(raw: string, pattern: MatchPattern): FieldResult
   }
 
   let path = input;
+  let host: string | null = null;
   if (/^https?:\/\//i.test(path)) {
     try {
       const u = new URL(path);
+      // The host is kept, not discarded: it is the difference between "redirect /pricing/ on the www
+      // host" and "redirect /pricing/ everywhere", and only the first of those is safe to pair with a
+      // destination on the canonical host.
+      host = u.host.toLowerCase();
       path = `${u.pathname}${u.search}`;
     } catch {
       return { value: input, error: "That does not look like a valid URL." };
     }
   }
   path = `/${path.replace(/^\/+/, "")}`;
-  if (path === "/") return { value: path, error: "The home page cannot be redirected." };
-  return { value: path, error: null };
+  // The home page of a specific host is a legitimate rule — that is exactly how www is redirected —
+  // but "/" with no host would take the whole site down.
+  if (path === "/" && !host) return { value: path, error: "The home page cannot be redirected." };
+  return { value: path, host, error: null };
 }
 
 /**
@@ -99,6 +115,8 @@ export function normaliseDestination(raw: string, type: RedirectType): FieldResu
  */
 export interface RedirectInput {
   oldUrl: string;
+  /** The host this rule is scoped to, or null for every host. */
+  sourceHost: string | null;
   newUrl: string;
   type: RedirectType;
   pattern: MatchPattern;
@@ -119,7 +137,27 @@ export function parseRedirectForm(get: (name: string) => unknown): { input: Redi
   const destination = normaliseDestination(String(get("new_url") ?? ""), type);
   if (destination.error) return { input: null, error: destination.error };
 
-  if (type !== "410" && pattern === "Exact match" && source.value === destination.value) {
+  /*
+   * A rule points at itself when it lands on the same path of the same host.
+   *
+   * Both halves matter. Comparing the raw strings is not enough — a source is stored as a path and a
+   * destination may be a full URL, so "/pricing/" and "https://www.example.com/pricing/" are the same
+   * address written two ways. And the host has to be part of it, because sending
+   * www.example.com/pricing/ to example.com/pricing/ is the same path on purpose: that is what a
+   * www-to-canonical redirect is, and refusing it would block the commonest rule there is.
+   *
+   * A destination with no host of its own resolves against whatever host the request arrived on, so
+   * it counts as the same host as the source.
+   */
+  let destHost: string | null = null;
+  let destPath = destination.value;
+  if (/^https?:\/\//i.test(destination.value)) {
+    const u = new URL(destination.value);
+    destHost = u.host.toLowerCase();
+    destPath = `${u.pathname}${u.search}`;
+  }
+  const sameHost = destHost === null || (source.host ?? null) === destHost;
+  if (type !== "410" && pattern === "Exact match" && sameHost && source.value === destPath) {
     return { input: null, error: "A redirect cannot point at itself." };
   }
 
@@ -136,6 +174,7 @@ export function parseRedirectForm(get: (name: string) => unknown): { input: Redi
   return {
     input: {
       oldUrl: source.value,
+      sourceHost: source.host ?? null,
       newUrl: destination.value,
       type,
       pattern,

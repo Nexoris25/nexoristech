@@ -24,6 +24,22 @@ describe("normaliseSource", () => {
     expect(normaliseSource("https://nexoristech.com/old-page/", "Exact match").value).toBe("/old-page/");
   });
 
+  it("keeps the host of a full URL, so a www rule can be scoped to www", () => {
+    const r = normaliseSource("https://www.nexoristech.com/old-page/", "Exact match");
+    expect(r.value).toBe("/old-page/");
+    expect(r.host).toBe("www.nexoristech.com");
+  });
+
+  it("has no host for a bare path, which means every host", () => {
+    expect(normaliseSource("/old-page/", "Exact match").host).toBeNull();
+  });
+
+  it("allows the home page of a specific host, which is how www is redirected", () => {
+    const r = normaliseSource("https://www.nexoristech.com/", "Exact match");
+    expect(r.error).toBeNull();
+    expect(r.host).toBe("www.nexoristech.com");
+  });
+
   it("keeps a query string on the source", () => {
     expect(normaliseSource("https://nexoristech.com/p/?ref=x", "Exact match").value).toBe("/p/?ref=x");
   });
@@ -93,6 +109,26 @@ describe("parseRedirectForm", () => {
 
   it("refuses a redirect that points at itself", () => {
     const { error } = parseRedirectForm(form({ old_url: "/a/", new_url: "/a/", type: "301" }));
+    expect(error).toBeTruthy();
+  });
+
+  it("accepts the same path on a different host, which is what www to canonical is", () => {
+    const { input, error } = parseRedirectForm(form({
+      old_url: "https://www.nexoristech.com/pricing/",
+      new_url: "https://nexoristech.com/pricing/",
+      type: "301",
+    }));
+    expect(error).toBeNull();
+    expect(input?.sourceHost).toBe("www.nexoristech.com");
+    expect(input?.oldUrl).toBe("/pricing/");
+  });
+
+  it("still refuses the same path on the same host", () => {
+    const { error } = parseRedirectForm(form({
+      old_url: "https://www.nexoristech.com/pricing/",
+      new_url: "https://www.nexoristech.com/pricing/",
+      type: "301",
+    }));
     expect(error).toBeTruthy();
   });
 
