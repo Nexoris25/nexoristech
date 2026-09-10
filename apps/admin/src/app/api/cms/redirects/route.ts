@@ -1,38 +1,61 @@
 /**
- * Create or update a URL redirect (nexoris_cms). CMS access only. On success it returns to the redirect
- * list. Type is validated against the allowed set.
+ * Create or update a URL redirect (nexoris_cms). CMS access only.
+ *
+ * Everything the form collects is stored now. It used to write five columns and drop the rest on the
+ * floor: Expiry Date, Case Sensitivity, Slash Handling and Match Pattern — including RegEx — were all
+ * posted by the form and silently discarded, so a rule saved as a pattern behaved as an exact match
+ * and an expiry date expired nothing.
+ *
+ * The values are also validated rather than trimmed and trusted. A source is reduced to a path so a
+ * pasted full URL works, repeated leading slashes collapse, and a pattern must compile. A rule that
+ * cannot match is worse than a rejected one: it sits in the list looking Active.
  */
 import type { NextRequest } from "next/server";
 import { cmsDb } from "../../../../lib/cms-db.js";
 import { getCmsStaff } from "../../../../lib/auth.js";
-import { seeOther } from "../../../../lib/redirect.js";
+import { seeOtherAt, pathBuilder } from "../../../../lib/redirect.js";
+import { parseRedirectForm } from "../../../../lib/redirect-rules.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TYPES = new Set(["301", "302", "307", "410"]);
-
 export async function POST(request: NextRequest): Promise<Response> {
   const staff = await getCmsStaff();
-  if (!staff) return seeOther("/cms/seo/redirects");
+  if (!staff) return seeOtherAt(pathBuilder("/cms/seo/redirects"));
+
   const f = await request.formData();
   const id = String(f.get("id") ?? "").trim();
-  const oldUrl = String(f.get("old_url") ?? "").trim();
-  if (!oldUrl) return seeOther(`${id ? `/cms/seo/redirects` : "/cms/seo/redirects/new"}?error=old_url`);
+  const { input, error } = parseRedirectForm((name) => f.get(name));
 
-  const newUrl = String(f.get("new_url") ?? "").trim() || null;
-  const typeRaw = String(f.get("type") ?? "301").trim();
-  const type = TYPES.has(typeRaw) ? typeRaw : "301";
-  const status = String(f.get("status") ?? "Active").trim() === "Inactive" ? "Inactive" : "Active";
-  const notes = String(f.get("notes") ?? "").trim() || null;
+  if (!input) {
+    // Back to the form the editor was on, with the reason, rather than a silent no-op.
+    const back = pathBuilder(id ? `/cms/seo/redirects/${id}` : "/cms/seo/redirects/new");
+    back.searchParams.set("error", error ?? "That redirect could not be saved.");
+    return seeOtherAt(back);
+  }
+
   const pool = cmsDb();
+  const values = [
+    input.oldUrl, input.newUrl || null, input.type, input.status, input.notes,
+    input.pattern, input.caseSensitivity, input.slashHandling, input.expiryDate,
+  ];
 
   if (id) {
-    await pool.query("UPDATE cms_redirect SET old_url=$1, new_url=$2, type=$3, status=$4, notes=$5 WHERE id=$6",
-      [oldUrl, newUrl, type, status, notes, id]);
+    await pool.query(
+      `UPDATE cms_redirect
+          SET old_url=$1, new_url=$2, type=$3, status=$4, notes=$5,
+              pattern=$6, case_sensitivity=$7, slash_handling=$8, expiry_date=$9
+        WHERE id=$10`,
+      [...values, id]);
   } else {
-    await pool.query("INSERT INTO cms_redirect (old_url, new_url, type, status, notes) VALUES ($1,$2,$3,$4,$5)",
-      [oldUrl, newUrl, type, status, notes]);
+    await pool.query(
+      `INSERT INTO cms_redirect
+         (old_url, new_url, type, status, notes, pattern, case_sensitivity, slash_handling, expiry_date)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      values);
   }
-  return seeOther("/cms/seo/redirects");
+
+  const back = pathBuilder("/cms/seo/redirects");
+  back.searchParams.set("saved", "1");
+  return seeOtherAt(back);
 }

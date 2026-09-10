@@ -53,7 +53,7 @@ export default async function RedirectsPage({ searchParams }: { searchParams: Pr
     { icon: MoveRight, label: "301 Redirects", value: k?.r301 ?? "0", tint: "#DCFCE7", fg: "#16A34A" },
     { icon: MoveRight, label: "302 Redirects", value: k?.r302 ?? "0", tint: "#FEF3C7", fg: "#B45309" },
     { icon: Ban, label: "410 Gone", value: k?.r410 ?? "0", tint: "#FEE2E2", fg: "#DC2626" },
-    { icon: MousePointerClick, label: "Redirect Hits (30d)", value: Number(k?.hits ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
+    { icon: MousePointerClick, label: "Redirect Hits (total)", value: Number(k?.hits ?? 0).toLocaleString(), tint: "#EEEBFC", fg: "#543CDA" },
   ];
 
   return (
@@ -99,7 +99,7 @@ export default async function RedirectsPage({ searchParams }: { searchParams: Pr
                     <td className="px-5 py-3 text-[0.84rem] font-600 text-slate-800">{r.hits.toLocaleString()}</td>
                     <td className="px-5 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-[0.72rem] font-600 ${r.status === "Active" ? "bg-[#DCFCE7] text-[#15803D]" : "bg-slate-100 text-slate-600"}`}>{r.status}</span></td>
                     <td className="px-5 py-3 text-[0.8rem] text-slate-500">{r.last_used ? new Date(r.last_used).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}</td>
-                    <td className="px-5 py-3 text-right"><RecordActions entity="redirect" id={String(r.id)} editHref={`/cms/seo/redirects`} label={r.old_url} back="/cms/seo/redirects" /></td>
+                    <td className="px-5 py-3 text-right"><RecordActions entity="redirect" id={String(r.id)} editHref={`/cms/seo/redirects/${r.id}`} label={r.old_url} back="/cms/seo/redirects" /></td>
                   </tr>
                 );
               })}
